@@ -311,7 +311,7 @@
 
     .habit {
       display: grid;
-      grid-template-columns: 1fr auto auto;
+      grid-template-columns: 1fr auto auto auto;
       align-items: center;
       gap: 8px;
       padding: 10px 0;
@@ -345,6 +345,41 @@
       border-color: rgba(224, 80, 80, .7);
       color: var(--red);
       background: rgba(224, 80, 80, .12);
+    }
+
+    .remove-factor {
+      min-width: 42px;
+      height: 28px;
+      border: 1px solid var(--line);
+      background: transparent;
+      color: var(--muted);
+      cursor: pointer;
+      padding: 0 7px;
+      font-size: 11px;
+      font-weight: 800;
+      letter-spacing: 0;
+    }
+
+    .remove-factor:hover {
+      color: var(--red);
+      border-color: rgba(224, 80, 80, .7);
+    }
+
+    .factor-form {
+      display: grid;
+      grid-template-columns: minmax(180px, 1fr) minmax(150px, .5fr) minmax(140px, .5fr) auto;
+      gap: 10px;
+      align-items: center;
+    }
+
+    .factor-form input,
+    .factor-form select {
+      min-height: 40px;
+      border: 1px solid var(--line);
+      background: #0d0d0d;
+      color: var(--text);
+      padding: 0 10px;
+      width: 100%;
     }
 
     .ghost.done {
@@ -419,6 +454,50 @@
     .exercise-table {
       width: 100%;
       border-collapse: collapse;
+      min-width: 760px;
+    }
+
+    .session-exercise {
+      overflow-x: auto;
+    }
+
+    .exercise-table .series-cell {
+      width: 64px;
+    }
+
+    .exercise-table .weight-cell {
+      width: 150px;
+    }
+
+    .exercise-table .reps-cell {
+      width: 104px;
+    }
+
+    .exercise-table .type-cell {
+      width: 142px;
+    }
+
+    .exercise-table .rest-cell {
+      width: 190px;
+    }
+
+    .exercise-table .status-cell {
+      width: 132px;
+    }
+
+    .motivation-row td {
+      border-bottom: 1px solid rgba(201, 162, 39, .25);
+      padding: 8px 10px 12px;
+    }
+
+    .motivation-strip {
+      border-left: 3px solid var(--gold);
+      background: rgba(201, 162, 39, .09);
+      color: #e8d28a;
+      padding: 9px 11px;
+      font-size: 13px;
+      font-weight: 700;
+      line-height: 1.35;
     }
 
     th, td {
@@ -824,6 +903,10 @@
       .set-index {
         grid-column: span 2;
       }
+
+      .factor-form {
+        grid-template-columns: 1fr;
+      }
     }
   </style>
 </head>
@@ -885,7 +968,7 @@
           <div class="grid">
             <div class="panel hero">
               <div>
-                <div class="kicker">Coach Ganley</div>
+                <div class="kicker">Plano diário</div>
                 <div class="hero-title">Construa o monumento.</div>
                 <div class="quote">Seu objetivo é superar a sessão anterior. Uma carga melhor, uma repetição melhor, uma execução mais limpa.</div>
               </div>
@@ -894,10 +977,10 @@
               </div>
             </div>
             <div class="grid metrics">
-              <div class="metric"><span>Próximo treino</span><b>Costas</b></div>
-              <div class="metric"><span>Sequência</span><b>12 dias</b></div>
-              <div class="metric"><span>Recordes</span><b>4</b></div>
-              <div class="metric"><span>Volume semanal</span><b>42.8t</b></div>
+              <div class="metric"><span>Próximo treino</span><b>Escolher</b></div>
+              <div class="metric"><span>Sequência</span><b>0 dias</b></div>
+              <div class="metric"><span>Recordes</span><b>0</b></div>
+              <div class="metric"><span>Volume semanal</span><b>0t</b></div>
             </div>
           </div>
 
@@ -918,6 +1001,23 @@
             <div class="date">Execução do plano físico e mental</div>
           </div>
           <button class="action" id="saveCheckin">Salvar dia</button>
+        </div>
+        <div class="panel">
+          <div class="section-title"><h3>Adicionar tarefa diária</h3><span>O score se ajusta sozinho</span></div>
+          <form class="factor-form" id="factorForm">
+            <input id="factorName" placeholder="Ex: Medir açúcar?" />
+            <select id="factorGroup">
+              <option>Saúde</option>
+              <option>Nutrição</option>
+              <option>Treino</option>
+              <option>Recuperação</option>
+            </select>
+            <select id="factorEffect">
+              <option value="positive">Sim soma</option>
+              <option value="negative">Sim desconta</option>
+            </select>
+            <button class="action" type="submit">Adicionar</button>
+          </form>
         </div>
         <div class="grid programs" id="checkinGroups"></div>
       </section>
@@ -964,7 +1064,7 @@
             <h2 id="sessionTitle">Costas + Panturrilha</h2>
             <div class="date" id="sessionMeta">Conclua exercício por exercício</div>
           </div>
-          <button class="action" id="finishExercise">Concluir exercício atual</button>
+          <button class="action" id="finishExercise">Concluir treino</button>
         </div>
         <div class="grid stats-layout">
           <div class="panel">
@@ -977,9 +1077,9 @@
           <div class="panel">
             <div class="section-title"><h3>Progressão</h3><span>Automática</span></div>
             <div class="bars">
-              <div class="bar"><span><b>Último treino</b><b>140 x 8</b></span><div class="track"><div class="fill" style="width: 78%"></div></div></div>
-              <div class="bar"><span><b>Melhor treino</b><b>145 x 8</b></span><div class="track"><div class="fill" style="width: 92%"></div></div></div>
-              <div class="bar"><span><b>Volume</b><b>+7%</b></span><div class="track"><div class="fill" style="width: 70%"></div></div></div>
+              <div class="bar"><span><b>Último treino</b><b>Sem registro</b></span><div class="track"><div class="fill" style="width: 0%"></div></div></div>
+              <div class="bar"><span><b>Melhor treino</b><b>Sem registro</b></span><div class="track"><div class="fill" style="width: 0%"></div></div></div>
+              <div class="bar"><span><b>Volume</b><b>0%</b></span><div class="track"><div class="fill" style="width: 0%"></div></div></div>
             </div>
           </div>
         </div>
@@ -1013,10 +1113,10 @@
           <div class="panel">
             <div class="section-title"><h3>Frequência</h3><span>Últimos 30 dias</span></div>
             <div class="bars">
-              <div class="bar"><span><b>Treinos realizados</b><b>22</b></span><div class="track"><div class="fill" style="width: 82%"></div></div></div>
-              <div class="bar"><span><b>Cardio</b><b>18</b></span><div class="track"><div class="fill" style="width: 66%"></div></div></div>
-              <div class="bar"><span><b>Sono completo</b><b>21</b></span><div class="track"><div class="fill" style="width: 78%"></div></div></div>
-              <div class="bar"><span><b>Proteína suficiente</b><b>26</b></span><div class="track"><div class="fill" style="width: 91%"></div></div></div>
+              <div class="bar"><span><b>Treinos realizados</b><b>0</b></span><div class="track"><div class="fill" style="width: 0%"></div></div></div>
+              <div class="bar"><span><b>Cardio</b><b>0</b></span><div class="track"><div class="fill" style="width: 0%"></div></div></div>
+              <div class="bar"><span><b>Sono completo</b><b>0</b></span><div class="track"><div class="fill" style="width: 0%"></div></div></div>
+              <div class="bar"><span><b>Proteína suficiente</b><b>0</b></span><div class="track"><div class="fill" style="width: 0%"></div></div></div>
             </div>
           </div>
           <div class="panel">
@@ -1044,6 +1144,7 @@
             <button class="ghost export-btn" data-export="csv">CSV</button>
             <button class="ghost export-btn" data-export="pdf">PDF</button>
             <button class="ghost export-btn" data-export="monolith">.monolith</button>
+            <button class="ghost" id="clearHistoryButton" type="button">Limpar histórico</button>
           </div>
         </div>
       </section>
@@ -1081,18 +1182,37 @@
   <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
   <script>
-    const habits = [
-      ["Água", true], ["Sono", true], ["Treino", true], ["Cardio", false],
-      ["Proteína suficiente", true], ["Almoço comprado", true],
-      ["Janta comprada", false], ["Creatina", true], ["Vitaminas", true]
+    const defaultFactors = [
+      { id: "agua", group: "Saúde", name: "Água", active: true, positive: true },
+      { id: "sono-7h", group: "Recuperação", name: "Dormi o suficiente?", active: true, positive: true },
+      { id: "descansado", group: "Recuperação", name: "Acordei descansado?", active: true, positive: true },
+      { id: "treino", group: "Treino", name: "Treinei?", active: true, positive: true },
+      { id: "cardio", group: "Treino", name: "Fiz cardio?", active: false, positive: true },
+      { id: "proteina", group: "Nutrição", name: "Comi proteína suficiente?", active: true, positive: true },
+      { id: "almoco-dieta", group: "Nutrição", name: "Almoço dentro da dieta?", active: true, positive: true },
+      { id: "janta-dieta", group: "Nutrição", name: "Janta dentro da dieta?", active: false, positive: true },
+      { id: "acucar-controlado", group: "Saúde", name: "Açúcar controlado?", active: true, positive: true },
+      { id: "vitaminas", group: "Saúde", name: "Tomei vitaminas?", active: true, positive: true }
     ];
 
-    const checkin = {
-      "Recuperação": ["Dormi bem?", "Dormi pelo menos 7 horas?", "Acordei descansado?"],
-      "Nutrição": ["Tomei café da manhã?", "Comi proteína suficiente?", "Evitei excesso de açúcar?", "Comprei almoço?", "Comprei janta?"],
-      "Treino": ["Treinei?", "Fiz cardio?", "Alonguei?"],
-      "Saúde": ["Bebi água suficiente?", "Tomei creatina?", "Tomei vitaminas?"]
-    };
+    function loadFactors() {
+      try {
+        const saved = JSON.parse(localStorage.getItem("monolith.factors") || "null") || defaultFactors;
+        return saved.map(factor => ({
+          ...factor,
+          name: factor.name === "Dormi pelo menos 7 horas?" ? "Dormi o suficiente?" : factor.name,
+          positive: factor.positive !== false
+        }));
+      } catch {
+        return defaultFactors;
+      }
+    }
+
+    function saveFactors(factors) {
+      localStorage.setItem("monolith.factors", JSON.stringify(factors));
+    }
+
+    let factors = loadFactors();
 
     const workoutModal = document.getElementById("workoutModal");
     const workoutForm = document.getElementById("workoutForm");
@@ -1168,9 +1288,16 @@
 
     function updateDailyScore() {
       const rows = [...document.querySelectorAll("#quickHabits .habit")];
-      const completed = rows.filter(row => row.querySelector(".yes.active")).length;
-      const percentage = Math.round((completed / rows.length) * 100);
+      const completed = rows.filter(row => {
+        const factor = factors.find(item => item.id === row.dataset.factorId);
+        const yesActive = row.querySelector(".yes.active");
+        const noActive = row.querySelector(".no.active");
+        return factor?.positive === false ? noActive : yesActive;
+      }).length;
+      const percentage = rows.length ? Math.round((completed / rows.length) * 100) : 0;
+      const pointsPerItem = rows.length ? Math.round(100 / rows.length) : 0;
       document.getElementById("score").textContent = `${percentage}%`;
+      document.querySelector(".score-ring span").textContent = rows.length ? `${pointsPerItem} pts por fator` : "Sem fatores";
     }
 
     function downloadExport(type) {
@@ -1179,7 +1306,8 @@
         exportedAt: new Date().toISOString(),
         dailyScore: document.getElementById("score").textContent,
         workouts: storedWorkouts(),
-        selectedCoach: document.querySelector(".coach-card.selected h3")?.textContent || "Ganley / Israetel / Nippard"
+        completedWorkouts: JSON.parse(localStorage.getItem("monolith.completedWorkouts") || "[]"),
+        selectedCoach: document.querySelector(".coach-card.selected h3")?.textContent || "Nenhum coach selecionado"
       };
       const config = {
         excel: ["monolith-export.xls", "application/vnd.ms-excel", "MONOLITH\tExport\nScore\t" + payload.dailyScore],
@@ -1204,31 +1332,66 @@
     }).format(new Date());
     document.getElementById("today").textContent = today;
 
-    function makeHabit(name, active) {
+    function makeHabit(factor, removable = true) {
       const row = document.createElement("div");
       row.className = "habit";
-      row.innerHTML = `<span>${name}</span><button class="toggle yes ${active ? "active" : ""}" aria-label="${name} sim">✓</button><button class="toggle no ${active ? "" : "active"}" aria-label="${name} não">×</button>`;
+      row.dataset.factorId = factor.id;
+      row.innerHTML = `
+        <span>${escapeHTML(factor.name)}</span>
+        <button class="toggle yes ${factor.active ? "active" : ""}" aria-label="${escapeHTML(factor.name)} sim">✓</button>
+        <button class="toggle no ${factor.active ? "" : "active"}" aria-label="${escapeHTML(factor.name)} não">×</button>
+        ${removable ? `<button class="remove-factor" type="button" aria-label="Remover ${escapeHTML(factor.name)}">DEL</button>` : ""}
+      `;
       return row;
     }
 
     const quickHabits = document.getElementById("quickHabits");
-    habits.forEach(([name, active]) => quickHabits.appendChild(makeHabit(name, active)));
     storedWorkouts().reverse().forEach(workout => {
       createWorkoutCard(workout.name, workout.goal, workout.exercises, false);
     });
-    updateDailyScore();
 
     const checkinGroups = document.getElementById("checkinGroups");
-    Object.entries(checkin).forEach(([group, items]) => {
-      const panel = document.createElement("article");
-      panel.className = "coach-card";
-      const list = document.createElement("div");
-      list.innerHTML = `<div class="kicker">${group}</div><div class="habit-list"></div>`;
-      const habitList = list.querySelector(".habit-list");
-      items.forEach((item, index) => habitList.appendChild(makeHabit(item, index !== items.length - 1)));
-      panel.appendChild(list);
-      checkinGroups.appendChild(panel);
-    });
+
+    function syncFactorState(id, active) {
+      factors = factors.map(factor => factor.id === id ? { ...factor, active } : factor);
+      saveFactors(factors);
+      document.querySelectorAll(`.habit[data-factor-id="${id}"]`).forEach(row => {
+        row.querySelector(".yes").classList.toggle("active", active);
+        row.querySelector(".no").classList.toggle("active", !active);
+      });
+      updateDailyScore();
+    }
+
+    function removeFactor(id) {
+      factors = factors.filter(factor => factor.id !== id);
+      saveFactors(factors);
+      renderFactors();
+      showToast("Fator removido. Pontuação recalculada.");
+    }
+
+    function renderFactors() {
+      quickHabits.innerHTML = "";
+      checkinGroups.innerHTML = "";
+      factors.forEach(factor => quickHabits.appendChild(makeHabit(factor, true)));
+      const grouped = factors.reduce((groups, factor) => {
+        groups[factor.group] = groups[factor.group] || [];
+        groups[factor.group].push(factor);
+        return groups;
+      }, {});
+      Object.entries(grouped).forEach(([group, items]) => {
+        const panel = document.createElement("article");
+        panel.className = "coach-card";
+        const list = document.createElement("div");
+        list.innerHTML = `<div class="kicker">${escapeHTML(group)}</div><div class="habit-list"></div>`;
+        const habitList = list.querySelector(".habit-list");
+        items.forEach(item => habitList.appendChild(makeHabit(item, true)));
+        panel.appendChild(list);
+        checkinGroups.appendChild(panel);
+      });
+      updateDailyScore();
+    }
+
+    renderFactors();
 
     function showScreen(id) {
       document.querySelectorAll(".screen").forEach(screen => screen.classList.toggle("active", screen.id === id));
@@ -1240,9 +1403,12 @@
       const toggle = event.target.closest(".toggle");
       if (toggle) {
         const row = toggle.closest(".habit");
-        row.querySelectorAll(".toggle").forEach(btn => btn.classList.remove("active"));
-        toggle.classList.add("active");
-        updateDailyScore();
+        syncFactorState(row.dataset.factorId, toggle.classList.contains("yes"));
+      }
+
+      const removeFactorButton = event.target.closest(".remove-factor");
+      if (removeFactorButton) {
+        removeFactor(removeFactorButton.closest(".habit").dataset.factorId);
       }
 
       const setDone = event.target.closest(".set-done");
@@ -1279,10 +1445,33 @@
     });
 
     document.getElementById("newWorkoutButton").addEventListener("click", openWorkoutModal);
+    document.getElementById("factorForm").addEventListener("submit", event => {
+      event.preventDefault();
+      const nameInput = document.getElementById("factorName");
+      const groupInput = document.getElementById("factorGroup");
+      const effectInput = document.getElementById("factorEffect");
+      const name = nameInput.value.trim();
+      if (!name) return;
+      factors.push({
+        id: `factor-${Date.now()}`,
+        group: groupInput.value,
+        name,
+        active: false,
+        positive: effectInput.value === "positive"
+      });
+      saveFactors(factors);
+      renderFactors();
+      nameInput.value = "";
+      showToast("Fator adicionado. Pontuação recalculada.");
+    });
     document.getElementById("saveCheckin").addEventListener("click", () => {
       const yesCount = document.querySelectorAll("#checkinGroups .yes.active").length;
       const total = document.querySelectorAll("#checkinGroups .habit").length;
       showToast(`Check-in salvo: ${yesCount}/${total} itens concluídos.`);
+    });
+    document.getElementById("clearHistoryButton").addEventListener("click", () => {
+      localStorage.removeItem("monolith.completedWorkouts");
+      showToast("Histórico de treinos concluídos limpo.");
     });
     document.getElementById("finishExercise").addEventListener("click", () => {
       document.querySelectorAll(".set-done").forEach(button => {
@@ -1308,6 +1497,16 @@
   <script>
     (() => {
       const setTypes = ["Normal", "Aquecimento", "Falha", "Drop Set", "Rest Pause"];
+      const motivationMessagesV2 = [
+        "Respira, controla e faz a proxima repeticao valer.",
+        "Nao negocia com a vontade de parar. Executa limpo.",
+        "Voce nao precisa estar motivado, precisa terminar esta serie.",
+        "Carga boa, forma melhor ainda. Domina o movimento.",
+        "Mais uma serie bem feita e voce fica mais perto do corpo que prometeu construir.",
+        "Foco no musculo, foco na tecnica, foco no proximo numero.",
+        "O treino de hoje vira evidencia. Continua.",
+        "Sem pressa, sem ego: amplitude, controle e intensidade."
+      ];
       const defaultWorkoutsV2 = [
         {
           id: "library-ramon-arms",
@@ -1639,6 +1838,20 @@
         localStorage.setItem("monolith.workouts", JSON.stringify(saved));
       }
 
+      function loadCompletedWorkoutsV2() {
+        try {
+          return JSON.parse(localStorage.getItem("monolith.completedWorkouts") || "[]");
+        } catch {
+          return [];
+        }
+      }
+
+      function saveCompletedWorkoutV2(session) {
+        const completed = loadCompletedWorkoutsV2();
+        completed.unshift(session);
+        localStorage.setItem("monolith.completedWorkouts", JSON.stringify(completed.slice(0, 250)));
+      }
+
       function deleteCustomWorkoutV2(id) {
         const saved = loadWorkoutsV2().filter(workout => workout.id !== id);
         localStorage.setItem("monolith.workouts", JSON.stringify(saved));
@@ -1756,11 +1969,11 @@
 
       function sessionSetRowV2(exerciseIndex, setIndex, set = {}) {
         return `
-          <tr>
-            <td>${setIndex + 1}</td>
-            <td><input value="${html(set.weight || "")}" placeholder="Peso" /></td>
-            <td><input value="${html(set.reps || "")}" placeholder="Reps" /></td>
-            <td><select>${typeOptions(set.type)}</select></td>
+          <tr data-exercise-index="${exerciseIndex}" data-set-index="${setIndex}">
+            <td class="series-cell">${setIndex + 1}</td>
+            <td class="weight-cell"><input class="session-weight" value="${html(set.weight || "")}" placeholder="Peso" /></td>
+            <td class="reps-cell"><input class="session-reps" value="${html(set.reps || "")}" placeholder="Reps" /></td>
+            <td class="type-cell"><select class="session-type">${typeOptions(set.type)}</select></td>
             <td class="rest-cell">
               <div class="rest-control">
                 <input class="session-rest" value="${html(set.rest || "90")}" aria-label="Descanso em segundos" />
@@ -1772,7 +1985,16 @@
                 <button class="mini-btn rest-preset-v2" type="button" data-rest="120">120s</button>
               </div>
             </td>
-            <td><button class="ghost set-done-v2" type="button">Concluir série</button></td>
+            <td class="status-cell"><button class="ghost set-done-v2" type="button">Concluir série</button></td>
+          </tr>
+        `;
+      }
+
+      function sessionMotivationRowV2(exerciseIndex, setIndex) {
+        const message = motivationMessagesV2[(exerciseIndex + setIndex) % motivationMessagesV2.length];
+        return `
+          <tr class="motivation-row">
+            <td colspan="6"><div class="motivation-strip">${html(message)}</div></td>
           </tr>
         `;
       }
@@ -1801,8 +2023,8 @@
               </div>
             </div>
             <table class="exercise-table">
-              <thead><tr><th>Série</th><th>Peso</th><th>Repetições</th><th>Técnica</th><th>Descanso</th><th>Status</th></tr></thead>
-              <tbody>${exercise.sets.map((set, setIndex) => sessionSetRowV2(exerciseIndex, setIndex, set)).join("")}</tbody>
+              <thead><tr><th class="series-cell">Série</th><th class="weight-cell">Peso</th><th class="reps-cell">Reps</th><th class="type-cell">Técnica</th><th class="rest-cell">Descanso</th><th class="status-cell">Status</th></tr></thead>
+              <tbody>${exercise.sets.map((set, setIndex) => sessionSetRowV2(exerciseIndex, setIndex, set) + (setIndex < exercise.sets.length - 1 ? sessionMotivationRowV2(exerciseIndex, setIndex) : "")).join("")}</tbody>
             </table>
           `;
           container.appendChild(block);
@@ -1831,6 +2053,51 @@
         toastV2(`${activeWorkoutV2.exercises[index].name} concluído.`);
       }
 
+      function readCompletedSessionV2() {
+        const exercises = [...document.querySelectorAll("#sessionExercises .session-exercise")].map(block => {
+          const exerciseIndex = Number(block.dataset.exerciseIndex);
+          const sourceExercise = activeWorkoutV2.exercises[exerciseIndex];
+          const sets = [...block.querySelectorAll("tr[data-set-index]")].map(row => ({
+            set: Number(row.dataset.setIndex) + 1,
+            weight: row.querySelector(".session-weight").value.trim(),
+            reps: row.querySelector(".session-reps").value.trim(),
+            type: row.querySelector(".session-type").value,
+            rest: row.querySelector(".session-rest").value.trim(),
+            done: row.querySelector(".set-done-v2").classList.contains("done")
+          }));
+          return {
+            name: sourceExercise.name,
+            done: block.classList.contains("done"),
+            sets
+          };
+        });
+        const completedSets = exercises.reduce((total, exercise) => total + exercise.sets.filter(set => set.done).length, 0);
+        const totalSets = exercises.reduce((total, exercise) => total + exercise.sets.length, 0);
+        return {
+          id: `session-${Date.now()}`,
+          workoutId: activeWorkoutV2.id,
+          workoutName: activeWorkoutV2.name,
+          completedAt: new Date().toISOString(),
+          date: new Intl.DateTimeFormat("pt-BR", { dateStyle: "medium", timeStyle: "short" }).format(new Date()),
+          completedExercises: exercises.filter(exercise => exercise.done).length,
+          totalExercises: exercises.length,
+          completedSets,
+          totalSets,
+          exercises
+        };
+      }
+
+      function finishWorkoutV2(event) {
+        event.preventDefault();
+        event.stopImmediatePropagation();
+        activeWorkoutV2.exercises.forEach((_, index) => completeExerciseV2(index));
+        const session = readCompletedSessionV2();
+        saveCompletedWorkoutV2(session);
+        document.getElementById("sessionMeta").textContent = `Treino salvo hoje: ${session.completedSets}/${session.totalSets} séries`;
+        toastV2("Treino do dia salvo no histórico local.");
+        showScreen("stats");
+      }
+
       function finishCurrentExerciseV2(event) {
         event.preventDefault();
         event.stopImmediatePropagation();
@@ -1855,7 +2122,7 @@
         toastV2("Treino criado com exercícios, séries, peso e técnicas.");
       }, true);
 
-      document.getElementById("finishExercise").addEventListener("click", finishCurrentExerciseV2, true);
+      document.getElementById("finishExercise").addEventListener("click", finishWorkoutV2, true);
       document.getElementById("addExerciseButton").addEventListener("click", () => addExerciseEditorV2());
 
       document.addEventListener("click", event => {
