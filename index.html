@@ -1,0 +1,1927 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>MONOLITH Prototype</title>
+  <meta name="theme-color" content="#0A0A0A" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-title" content="MONOLITH" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <link rel="manifest" href="manifest.webmanifest" />
+  <link rel="icon" href="monolith-icon.svg" />
+  <style>
+    :root {
+      --black: #0a0a0a;
+      --panel: #151515;
+      --panel-2: #1a1a1a;
+      --line: #2a2a2a;
+      --text: #f5f5f5;
+      --muted: #a7a7a7;
+      --gold: #c9a227;
+      --green: #58c77a;
+      --red: #e05050;
+      --blue: #8ab4ff;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      background: var(--black);
+      color: var(--text);
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      letter-spacing: 0;
+    }
+
+    button, input, textarea {
+      font: inherit;
+    }
+
+    .app {
+      min-height: 100vh;
+      display: grid;
+      grid-template-columns: 276px minmax(0, 1fr);
+    }
+
+    aside {
+      position: sticky;
+      top: 0;
+      height: 100vh;
+      padding: 28px 18px;
+      border-right: 1px solid var(--line);
+      background: #080808;
+      display: flex;
+      flex-direction: column;
+      gap: 28px;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 0 8px;
+    }
+
+    .mark {
+      width: 38px;
+      height: 38px;
+      display: grid;
+      place-items: center;
+      border: 1px solid var(--gold);
+      color: var(--gold);
+      font-weight: 800;
+      letter-spacing: 0;
+    }
+
+    .brand h1 {
+      margin: 0;
+      font-size: 19px;
+      line-height: 1;
+      letter-spacing: 2px;
+    }
+
+    .brand p {
+      margin: 4px 0 0;
+      font-size: 11px;
+      color: var(--muted);
+    }
+
+    nav {
+      display: grid;
+      gap: 6px;
+    }
+
+    .nav-btn {
+      width: 100%;
+      min-height: 44px;
+      border: 1px solid transparent;
+      background: transparent;
+      color: var(--muted);
+      display: flex;
+      align-items: center;
+      gap: 11px;
+      padding: 0 12px;
+      cursor: pointer;
+      text-align: left;
+    }
+
+    .nav-btn svg {
+      width: 18px;
+      height: 18px;
+      flex: 0 0 auto;
+    }
+
+    .nav-btn.active,
+    .nav-btn:hover {
+      border-color: var(--line);
+      background: var(--panel);
+      color: var(--text);
+    }
+
+    .nav-btn.active svg {
+      color: var(--gold);
+    }
+
+    .offline {
+      margin-top: auto;
+      border: 1px solid var(--line);
+      background: var(--panel);
+      padding: 14px;
+    }
+
+    .offline strong {
+      display: block;
+      margin-bottom: 4px;
+      color: var(--gold);
+      font-size: 13px;
+    }
+
+    .offline span {
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.45;
+    }
+
+    main {
+      min-width: 0;
+      padding: 28px;
+    }
+
+    .topbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      margin-bottom: 22px;
+    }
+
+    .topbar h2 {
+      margin: 0;
+      font-size: 28px;
+      letter-spacing: 0;
+    }
+
+    .date {
+      color: var(--muted);
+      font-size: 14px;
+    }
+
+    .action {
+      border: 1px solid var(--gold);
+      background: var(--gold);
+      color: #070707;
+      min-height: 40px;
+      padding: 0 14px;
+      font-weight: 750;
+      cursor: pointer;
+    }
+
+    .ghost {
+      border: 1px solid var(--line);
+      background: transparent;
+      color: var(--text);
+      min-height: 40px;
+      padding: 0 12px;
+      cursor: pointer;
+    }
+
+    .screen {
+      display: none;
+    }
+
+    .screen.active {
+      display: block;
+    }
+
+    .grid {
+      display: grid;
+      gap: 16px;
+    }
+
+    .dashboard {
+      grid-template-columns: minmax(0, 1.25fr) minmax(320px, .75fr);
+      align-items: start;
+    }
+
+    .panel {
+      border: 1px solid var(--line);
+      background: var(--panel);
+      padding: 18px;
+    }
+
+    .hero {
+      min-height: 304px;
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) 220px;
+      gap: 20px;
+      align-items: end;
+      background:
+        linear-gradient(135deg, rgba(201, 162, 39, .15), rgba(10, 10, 10, 0) 45%),
+        var(--panel);
+    }
+
+    .kicker {
+      color: var(--gold);
+      font-size: 12px;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 1.5px;
+    }
+
+    .hero-title {
+      margin: 10px 0 12px;
+      font-size: clamp(36px, 7vw, 78px);
+      line-height: .9;
+      letter-spacing: 0;
+    }
+
+    .quote {
+      max-width: 620px;
+      color: var(--muted);
+      font-size: 17px;
+      line-height: 1.55;
+    }
+
+    .score-ring {
+      width: 190px;
+      aspect-ratio: 1;
+      border-radius: 999px;
+      display: grid;
+      place-items: center;
+      margin-left: auto;
+      background: conic-gradient(var(--gold) 0 86%, #303030 86% 100%);
+      position: relative;
+    }
+
+    .score-ring::before {
+      content: "";
+      position: absolute;
+      inset: 12px;
+      border-radius: inherit;
+      background: var(--panel);
+    }
+
+    .score-ring div {
+      position: relative;
+      text-align: center;
+    }
+
+    .score-ring b {
+      font-size: 46px;
+      letter-spacing: 0;
+    }
+
+    .score-ring span {
+      display: block;
+      color: var(--muted);
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+
+    .metrics {
+      grid-template-columns: repeat(4, minmax(120px, 1fr));
+    }
+
+    .metric {
+      border: 1px solid var(--line);
+      background: var(--panel-2);
+      min-height: 96px;
+      padding: 14px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+    }
+
+    .metric span {
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    .metric b {
+      font-size: 24px;
+    }
+
+    .habit-list {
+      display: grid;
+      gap: 9px;
+    }
+
+    .habit {
+      display: grid;
+      grid-template-columns: 1fr auto auto;
+      align-items: center;
+      gap: 8px;
+      padding: 10px 0;
+      border-bottom: 1px solid var(--line);
+    }
+
+    .habit:last-child {
+      border-bottom: 0;
+    }
+
+    .habit span {
+      color: var(--text);
+    }
+
+    .toggle {
+      width: 34px;
+      height: 28px;
+      border: 1px solid var(--line);
+      background: #101010;
+      color: var(--muted);
+      cursor: pointer;
+    }
+
+    .toggle.yes.active {
+      border-color: rgba(88, 199, 122, .7);
+      color: var(--green);
+      background: rgba(88, 199, 122, .12);
+    }
+
+    .toggle.no.active {
+      border-color: rgba(224, 80, 80, .7);
+      color: var(--red);
+      background: rgba(224, 80, 80, .12);
+    }
+
+    .ghost.done {
+      border-color: rgba(88, 199, 122, .7);
+      color: var(--green);
+      background: rgba(88, 199, 122, .12);
+    }
+
+    .coach-card.selected {
+      border-color: var(--gold);
+      background: linear-gradient(135deg, rgba(201, 162, 39, .12), rgba(21, 21, 21, 1) 42%);
+    }
+
+    .section-title {
+      margin: 0 0 14px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+    }
+
+    .section-title h3 {
+      margin: 0;
+      font-size: 18px;
+    }
+
+    .section-title span {
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    .workouts {
+      grid-template-columns: repeat(3, minmax(220px, 1fr));
+    }
+
+    .workout {
+      border: 1px solid var(--line);
+      background: var(--panel);
+      min-height: 190px;
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+    }
+
+    .workout h3 {
+      margin: 0 0 8px;
+      font-size: 19px;
+    }
+
+    .workout p {
+      margin: 0;
+      color: var(--muted);
+      line-height: 1.45;
+      font-size: 14px;
+    }
+
+    .pill-row {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      margin-top: 14px;
+    }
+
+    .pill {
+      border: 1px solid var(--line);
+      color: var(--muted);
+      padding: 5px 8px;
+      font-size: 12px;
+    }
+
+    .exercise-table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+
+    th, td {
+      border-bottom: 1px solid var(--line);
+      padding: 12px 10px;
+      text-align: left;
+    }
+
+    th {
+      color: var(--muted);
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+
+    td input {
+      width: 100%;
+      min-height: 36px;
+      border: 1px solid var(--line);
+      background: #101010;
+      color: var(--text);
+      padding: 0 10px;
+    }
+
+    .record {
+      color: var(--green);
+      font-weight: 750;
+    }
+
+    .programs {
+      grid-template-columns: repeat(3, minmax(240px, 1fr));
+    }
+
+    .coach-card {
+      border: 1px solid var(--line);
+      background: var(--panel);
+      padding: 16px;
+      min-height: 170px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+    }
+
+    .coach-card h3 {
+      margin: 0;
+    }
+
+    .coach-card p {
+      color: var(--muted);
+      line-height: 1.5;
+    }
+
+    .stats-layout {
+      grid-template-columns: minmax(0, 1fr) minmax(280px, .45fr);
+    }
+
+    .bars {
+      display: grid;
+      gap: 13px;
+    }
+
+    .bar span {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 7px;
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    .track {
+      height: 11px;
+      background: #2a2a2a;
+      overflow: hidden;
+    }
+
+    .fill {
+      height: 100%;
+      background: var(--gold);
+    }
+
+    .photo-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 10px;
+    }
+
+    .photo-slot {
+      aspect-ratio: 3 / 4;
+      border: 1px dashed #444;
+      display: grid;
+      place-items: center;
+      color: var(--muted);
+      background: #101010;
+      font-size: 13px;
+    }
+
+    .backup-row {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 10px;
+    }
+
+    .modal-backdrop {
+      position: fixed;
+      inset: 0;
+      display: none;
+      place-items: center;
+      padding: 18px;
+      background: rgba(0, 0, 0, .72);
+      z-index: 20;
+    }
+
+    .modal-backdrop.active {
+      display: grid;
+    }
+
+    .modal {
+      width: min(820px, 100%);
+      max-height: min(86vh, 860px);
+      overflow: auto;
+      border: 1px solid var(--line);
+      background: var(--panel);
+      padding: 18px;
+      box-shadow: 0 24px 70px rgba(0, 0, 0, .5);
+    }
+
+    .modal-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 14px;
+    }
+
+    .modal-head h3 {
+      margin: 0;
+      font-size: 19px;
+    }
+
+    .icon-btn {
+      width: 38px;
+      height: 38px;
+      border: 1px solid var(--line);
+      background: #101010;
+      color: var(--text);
+      display: grid;
+      place-items: center;
+      cursor: pointer;
+    }
+
+    .form-grid {
+      display: grid;
+      gap: 12px;
+    }
+
+    .field {
+      display: grid;
+      gap: 6px;
+    }
+
+    .field label {
+      color: var(--muted);
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+
+    .field input,
+    .field textarea {
+      width: 100%;
+      border: 1px solid var(--line);
+      background: #101010;
+      color: var(--text);
+      padding: 10px;
+    }
+
+    .field textarea {
+      min-height: 86px;
+      resize: vertical;
+    }
+
+    .exercise-builder,
+    .session-exercises {
+      display: grid;
+      gap: 14px;
+    }
+
+    .exercise-editor,
+    .session-exercise {
+      border: 1px solid var(--line);
+      background: #111;
+      padding: 14px;
+    }
+
+    .exercise-editor-head,
+    .session-exercise-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      margin-bottom: 12px;
+    }
+
+    .exercise-editor-head input {
+      min-width: 0;
+      flex: 1;
+      border: 1px solid var(--line);
+      background: #0d0d0d;
+      color: var(--text);
+      padding: 10px;
+      font-weight: 750;
+    }
+
+    .set-row {
+      display: grid;
+      grid-template-columns: 52px minmax(80px, 1fr) minmax(80px, 1fr) minmax(120px, 1fr) minmax(90px, 1fr) auto;
+      gap: 8px;
+      align-items: center;
+      margin-bottom: 8px;
+    }
+
+    .set-row input,
+    .set-row select {
+      width: 100%;
+      min-height: 36px;
+      border: 1px solid var(--line);
+      background: #0d0d0d;
+      color: var(--text);
+      padding: 0 9px;
+    }
+
+    .set-index {
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    .session-exercise.done {
+      border-color: rgba(88, 199, 122, .7);
+    }
+
+    .session-exercise.done h3::after {
+      content: " concluído";
+      color: var(--green);
+      font-size: 12px;
+      font-weight: 700;
+      margin-left: 8px;
+      text-transform: uppercase;
+    }
+
+    .rest-cell {
+      min-width: 180px;
+    }
+
+    .rest-control {
+      display: grid;
+      grid-template-columns: 72px auto;
+      gap: 8px;
+      align-items: center;
+    }
+
+    .rest-control input {
+      min-width: 0;
+    }
+
+    .rest-timer {
+      color: var(--gold);
+      font-weight: 800;
+      font-variant-numeric: tabular-nums;
+      white-space: nowrap;
+    }
+
+    .rest-quick {
+      display: flex;
+      gap: 5px;
+      margin-top: 6px;
+    }
+
+    .mini-btn {
+      min-height: 26px;
+      border: 1px solid var(--line);
+      background: #0d0d0d;
+      color: var(--muted);
+      padding: 0 7px;
+      cursor: pointer;
+      font-size: 12px;
+    }
+
+    .mini-btn:hover {
+      color: var(--text);
+      border-color: var(--gold);
+    }
+
+    .modal-actions {
+      display: flex;
+      justify-content: flex-end;
+      gap: 10px;
+      margin-top: 16px;
+    }
+
+    .toast {
+      position: fixed;
+      right: 18px;
+      bottom: 18px;
+      max-width: min(360px, calc(100vw - 36px));
+      border: 1px solid var(--line);
+      background: #111;
+      color: var(--text);
+      padding: 12px 14px;
+      box-shadow: 0 18px 50px rgba(0, 0, 0, .45);
+      opacity: 0;
+      transform: translateY(10px);
+      pointer-events: none;
+      transition: opacity .18s ease, transform .18s ease;
+      z-index: 30;
+    }
+
+    .toast.active {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    [data-screen="programs"],
+    #programs {
+      display: none;
+    }
+
+    @media (max-width: 960px) {
+      .app {
+        grid-template-columns: 1fr;
+      }
+
+      aside {
+        position: static;
+        height: auto;
+        padding: 16px;
+      }
+
+      nav {
+        grid-template-columns: repeat(3, 1fr);
+      }
+
+      .nav-btn {
+        justify-content: center;
+        padding: 0 8px;
+      }
+
+      .nav-btn span {
+        display: none;
+      }
+
+      .offline {
+        display: none;
+      }
+
+      main {
+        padding: 18px;
+      }
+
+      .dashboard,
+      .hero,
+      .stats-layout {
+        grid-template-columns: 1fr;
+      }
+
+      .score-ring {
+        margin: 0;
+      }
+
+      .metrics,
+      .workouts,
+      .programs,
+      .backup-row {
+        grid-template-columns: 1fr 1fr;
+      }
+    }
+
+    @media (max-width: 560px) {
+      .topbar {
+        align-items: flex-start;
+        flex-direction: column;
+      }
+
+      nav {
+        grid-template-columns: repeat(2, 1fr);
+      }
+
+      .metrics,
+      .workouts,
+      .programs,
+      .backup-row,
+      .photo-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .hero {
+        min-height: 0;
+      }
+
+      .set-row {
+        grid-template-columns: 1fr 1fr;
+      }
+
+      .set-index {
+        grid-column: span 2;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <aside>
+      <div class="brand">
+        <div class="mark">M</div>
+        <div>
+          <h1>MONOLITH</h1>
+          <p>Built One Day At A Time.</p>
+        </div>
+      </div>
+
+      <nav aria-label="Principal">
+        <button class="nav-btn active" data-screen="home" title="Dashboard">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12l9-9 9 9"/><path d="M5 10v10h14V10"/></svg>
+          <span>Dashboard</span>
+        </button>
+        <button class="nav-btn" data-screen="checkin" title="Check-in">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
+          <span>Check-in</span>
+        </button>
+        <button class="nav-btn" data-screen="workouts" title="Treinos">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 7v10"/><path d="M18 7v10"/><path d="M3 9v6"/><path d="M21 9v6"/><path d="M6 12h12"/></svg>
+          <span>Treinos</span>
+        </button>
+        <button class="nav-btn" data-screen="programs" title="Programas">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19.5V5a2 2 0 0 1 2-2h12v18H6a2 2 0 0 1-2-1.5z"/><path d="M8 7h6"/><path d="M8 11h6"/></svg>
+          <span>Programas</span>
+        </button>
+        <button class="nav-btn" data-screen="stats" title="Estatísticas">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19V5"/><path d="M4 19h16"/><path d="M8 16V9"/><path d="M13 16V6"/><path d="M18 16v-4"/></svg>
+          <span>Estatísticas</span>
+        </button>
+        <button class="nav-btn" data-screen="backup" title="Backup">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3v12"/><path d="M7 10l5 5 5-5"/><path d="M5 21h14"/></svg>
+          <span>Backup</span>
+        </button>
+      </nav>
+
+      <div class="offline">
+        <strong>100% offline</strong>
+        <span>Dados, fotos, treinos, histórico e programas salvos localmente no aparelho.</span>
+      </div>
+    </aside>
+
+    <main>
+      <section id="home" class="screen active">
+        <div class="topbar">
+          <div>
+            <h2>Dashboard diário</h2>
+            <div class="date" id="today"></div>
+          </div>
+          <button class="action" data-screen-jump="workouts">Iniciar treino</button>
+        </div>
+
+        <div class="grid dashboard">
+          <div class="grid">
+            <div class="panel hero">
+              <div>
+                <div class="kicker">Coach Ganley</div>
+                <div class="hero-title">Construa o monumento.</div>
+                <div class="quote">Seu objetivo é superar a sessão anterior. Uma carga melhor, uma repetição melhor, uma execução mais limpa.</div>
+              </div>
+              <div class="score-ring" aria-label="Pontuação do dia 86%">
+                <div><b id="score">86%</b><span>Excelente</span></div>
+              </div>
+            </div>
+            <div class="grid metrics">
+              <div class="metric"><span>Próximo treino</span><b>Costas</b></div>
+              <div class="metric"><span>Sequência</span><b>12 dias</b></div>
+              <div class="metric"><span>Recordes</span><b>4</b></div>
+              <div class="metric"><span>Volume semanal</span><b>42.8t</b></div>
+            </div>
+          </div>
+
+          <div class="panel">
+            <div class="section-title">
+              <h3>Resumo rápido</h3>
+              <span>Hoje</span>
+            </div>
+            <div class="habit-list" id="quickHabits"></div>
+          </div>
+        </div>
+      </section>
+
+      <section id="checkin" class="screen">
+        <div class="topbar">
+          <div>
+            <h2>Check-in diário</h2>
+            <div class="date">Execução do plano físico e mental</div>
+          </div>
+          <button class="action" id="saveCheckin">Salvar dia</button>
+        </div>
+        <div class="grid programs" id="checkinGroups"></div>
+      </section>
+
+      <section id="workouts" class="screen">
+        <div class="topbar">
+          <div>
+            <h2>Treinos</h2>
+            <div class="date">Biblioteca ilimitada, histórico e progressão automática</div>
+          </div>
+          <button class="action" id="newWorkoutButton">Novo treino</button>
+        </div>
+        <div class="grid workouts" id="workoutList">
+          <article class="workout">
+            <div>
+              <h3>Costas + Panturrilha</h3>
+              <p>Puxadas, remadas e finalização de panturrilha com progressão de carga.</p>
+              <div class="pill-row"><span class="pill">6 exercícios</span><span class="pill">75 min</span><span class="pill">Força</span></div>
+            </div>
+            <button class="ghost" data-screen-jump="session">Abrir sessão</button>
+          </article>
+          <article class="workout">
+            <div>
+              <h3>Pernas Pesado</h3>
+              <p>Agachamento, leg press, posterior e panturrilhas em alto esforço.</p>
+              <div class="pill-row"><span class="pill">7 exercícios</span><span class="pill">90 min</span><span class="pill">Hipertrofia</span></div>
+            </div>
+            <button class="ghost" data-screen-jump="session">Abrir sessão</button>
+          </article>
+          <article class="workout">
+            <div>
+              <h3>Ombro + Bíceps</h3>
+              <p>Deltoides completos, braços e controle de execução série a série.</p>
+              <div class="pill-row"><span class="pill">8 exercícios</span><span class="pill">70 min</span><span class="pill">Volume</span></div>
+            </div>
+            <button class="ghost" data-screen-jump="session">Abrir sessão</button>
+          </article>
+        </div>
+      </section>
+
+      <section id="session" class="screen">
+        <div class="topbar">
+          <div>
+            <h2 id="sessionTitle">Costas + Panturrilha</h2>
+            <div class="date" id="sessionMeta">Conclua exercício por exercício</div>
+          </div>
+          <button class="action" id="finishExercise">Concluir exercício atual</button>
+        </div>
+        <div class="grid stats-layout">
+          <div class="panel">
+            <div class="section-title">
+              <h3>Execução do treino</h3>
+              <span class="record" id="sessionRecord">Registre série por série</span>
+            </div>
+            <div class="session-exercises" id="sessionExercises"></div>
+          </div>
+          <div class="panel">
+            <div class="section-title"><h3>Progressão</h3><span>Automática</span></div>
+            <div class="bars">
+              <div class="bar"><span><b>Último treino</b><b>140 x 8</b></span><div class="track"><div class="fill" style="width: 78%"></div></div></div>
+              <div class="bar"><span><b>Melhor treino</b><b>145 x 8</b></span><div class="track"><div class="fill" style="width: 92%"></div></div></div>
+              <div class="bar"><span><b>Volume</b><b>+7%</b></span><div class="track"><div class="fill" style="width: 70%"></div></div></div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section id="programs" class="screen">
+        <div class="topbar">
+          <div>
+            <h2>Programas e coaches</h2>
+            <div class="date">Filosofias de treino, intensidade e disciplina</div>
+          </div>
+        </div>
+        <div class="grid programs">
+          <article class="coach-card"><div><div class="kicker">Escola Clássica</div><h3>Arnold / Zane / Platz</h3><p>Volume, estética e construção paciente de base muscular.</p></div><button class="ghost select-coach">Selecionar</button></article>
+          <article class="coach-card"><div><div class="kicker">Classic Physique</div><h3>CBUM / Ramon / Urs</h3><p>Consistência, simetria e execução repetida com precisão.</p></div><button class="ghost select-coach">Selecionar</button></article>
+          <article class="coach-card selected"><div><div class="kicker">Hipertrofia Moderna</div><h3>Ganley / Israetel / Nippard</h3><p>Progressão estruturada, volume eficiente e registro inteligente.</p></div><button class="ghost select-coach done">Selecionado</button></article>
+          <article class="coach-card"><div><div class="kicker">Intensidade Máxima</div><h3>Mentzer / Trudel / Sulek</h3><p>Menos distração, mais esforço real nas séries importantes.</p></div><button class="ghost select-coach">Selecionar</button></article>
+          <article class="coach-card"><div><div class="kicker">Execução</div><h3>Correa / Meadows</h3><p>Controle, conexão mente-músculo e repetição que vale.</p></div><button class="ghost select-coach">Selecionar</button></article>
+          <article class="coach-card"><div><div class="kicker">Mentalidade</div><h3>Goggins / Jocko</h3><p>Disciplina, responsabilidade e ação mesmo em dias ruins.</p></div><button class="ghost select-coach">Selecionar</button></article>
+        </div>
+      </section>
+
+      <section id="stats" class="screen">
+        <div class="topbar">
+          <div>
+            <h2>Estatísticas e evolução</h2>
+            <div class="date">Treinos, cardio, medidas, fotos e recordes</div>
+          </div>
+        </div>
+        <div class="grid stats-layout">
+          <div class="panel">
+            <div class="section-title"><h3>Frequência</h3><span>Últimos 30 dias</span></div>
+            <div class="bars">
+              <div class="bar"><span><b>Treinos realizados</b><b>22</b></span><div class="track"><div class="fill" style="width: 82%"></div></div></div>
+              <div class="bar"><span><b>Cardio</b><b>18</b></span><div class="track"><div class="fill" style="width: 66%"></div></div></div>
+              <div class="bar"><span><b>Sono completo</b><b>21</b></span><div class="track"><div class="fill" style="width: 78%"></div></div></div>
+              <div class="bar"><span><b>Proteína suficiente</b><b>26</b></span><div class="track"><div class="fill" style="width: 91%"></div></div></div>
+            </div>
+          </div>
+          <div class="panel">
+            <div class="section-title"><h3>Fotos</h3><span>Local</span></div>
+            <div class="photo-grid">
+              <div class="photo-slot">Frente</div>
+              <div class="photo-slot">Lado</div>
+              <div class="photo-slot">Costas</div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section id="backup" class="screen">
+        <div class="topbar">
+          <div>
+            <h2>Backup e restauração</h2>
+            <div class="date">Exportação local sem nuvem obrigatória</div>
+          </div>
+        </div>
+        <div class="panel">
+          <div class="section-title"><h3>Exportar dados</h3><span>Treinos, histórico, fotos, estatísticas e check-ins</span></div>
+          <div class="backup-row">
+            <button class="ghost export-btn" data-export="excel">Excel</button>
+            <button class="ghost export-btn" data-export="csv">CSV</button>
+            <button class="ghost export-btn" data-export="pdf">PDF</button>
+            <button class="ghost export-btn" data-export="monolith">.monolith</button>
+          </div>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <div class="modal-backdrop" id="workoutModal" role="dialog" aria-modal="true" aria-labelledby="workoutModalTitle">
+    <form class="modal" id="workoutForm">
+      <div class="modal-head">
+        <h3 id="workoutModalTitle">Novo treino</h3>
+        <button class="icon-btn" type="button" id="closeWorkoutModal" aria-label="Fechar">×</button>
+      </div>
+      <div class="form-grid">
+        <div class="field">
+          <label for="workoutName">Nome</label>
+          <input id="workoutName" required placeholder="Ex: Peito + Abdômen" />
+        </div>
+        <div class="field">
+          <label for="workoutGoal">Objetivo</label>
+          <input id="workoutGoal" placeholder="Ex: Hipertrofia e progressão de carga" />
+        </div>
+        <div class="field">
+          <label>Exercícios</label>
+          <div class="exercise-builder" id="exerciseBuilder"></div>
+          <button class="ghost" type="button" id="addExerciseButton">Adicionar exercício</button>
+        </div>
+      </div>
+      <div class="modal-actions">
+        <button class="ghost" type="button" id="cancelWorkout">Cancelar</button>
+        <button class="action" type="submit">Criar treino</button>
+      </div>
+    </form>
+  </div>
+
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+  <script>
+    const habits = [
+      ["Água", true], ["Sono", true], ["Treino", true], ["Cardio", false],
+      ["Proteína suficiente", true], ["Almoço comprado", true],
+      ["Janta comprada", false], ["Creatina", true], ["Vitaminas", true]
+    ];
+
+    const checkin = {
+      "Recuperação": ["Dormi bem?", "Dormi pelo menos 7 horas?", "Acordei descansado?"],
+      "Nutrição": ["Tomei café da manhã?", "Comi proteína suficiente?", "Evitei excesso de açúcar?", "Comprei almoço?", "Comprei janta?"],
+      "Treino": ["Treinei?", "Fiz cardio?", "Alonguei?"],
+      "Saúde": ["Bebi água suficiente?", "Tomei creatina?", "Tomei vitaminas?"]
+    };
+
+    const workoutModal = document.getElementById("workoutModal");
+    const workoutForm = document.getElementById("workoutForm");
+    const workoutName = document.getElementById("workoutName");
+    const workoutGoal = document.getElementById("workoutGoal");
+    const workoutExercises = document.getElementById("workoutExercises");
+    const workoutList = document.getElementById("workoutList");
+    const toast = document.getElementById("toast");
+    let toastTimer;
+
+    function showToast(message) {
+      clearTimeout(toastTimer);
+      toast.textContent = message;
+      toast.classList.add("active");
+      toastTimer = setTimeout(() => toast.classList.remove("active"), 2400);
+    }
+
+    function escapeHTML(value) {
+      return value.replace(/[&<>"']/g, character => ({
+        "&": "&amp;",
+        "<": "&lt;",
+        ">": "&gt;",
+        '"': "&quot;",
+        "'": "&#039;"
+      }[character]));
+    }
+
+    function storedWorkouts() {
+      try {
+        return JSON.parse(localStorage.getItem("monolith.workouts") || "[]");
+      } catch {
+        return [];
+      }
+    }
+
+    function saveWorkout(workout) {
+      const list = storedWorkouts();
+      list.unshift(workout);
+      localStorage.setItem("monolith.workouts", JSON.stringify(list));
+    }
+
+    function openWorkoutModal() {
+      workoutModal.classList.add("active");
+      workoutName.focus();
+    }
+
+    function closeWorkoutModal() {
+      workoutModal.classList.remove("active");
+      workoutForm.reset();
+    }
+
+    function createWorkoutCard(name, goal, exercises, shouldSave = true) {
+      const items = exercises.split(",").map(item => item.trim()).filter(Boolean);
+      const safeName = escapeHTML(name);
+      const safeGoal = escapeHTML(goal || "Treino criado para execução e progressão consistente.");
+      const article = document.createElement("article");
+      article.className = "workout";
+      article.innerHTML = `
+        <div>
+          <h3>${safeName}</h3>
+          <p>${safeGoal}</p>
+          <div class="pill-row">
+            <span class="pill">${items.length || 1} exercícios</span>
+            <span class="pill">Novo</span>
+            <span class="pill">Local</span>
+          </div>
+        </div>
+        <button class="ghost" data-screen-jump="session">Abrir sessão</button>
+      `;
+      workoutList.prepend(article);
+      if (shouldSave) saveWorkout({ name, goal, exercises });
+    }
+
+    function updateDailyScore() {
+      const rows = [...document.querySelectorAll("#quickHabits .habit")];
+      const completed = rows.filter(row => row.querySelector(".yes.active")).length;
+      const percentage = Math.round((completed / rows.length) * 100);
+      document.getElementById("score").textContent = `${percentage}%`;
+    }
+
+    function downloadExport(type) {
+      const payload = {
+        app: "MONOLITH",
+        exportedAt: new Date().toISOString(),
+        dailyScore: document.getElementById("score").textContent,
+        workouts: storedWorkouts(),
+        selectedCoach: document.querySelector(".coach-card.selected h3")?.textContent || "Ganley / Israetel / Nippard"
+      };
+      const config = {
+        excel: ["monolith-export.xls", "application/vnd.ms-excel", "MONOLITH\tExport\nScore\t" + payload.dailyScore],
+        csv: ["monolith-export.csv", "text/csv", "campo,valor\nscore," + payload.dailyScore + "\ncoach," + payload.selectedCoach],
+        pdf: ["monolith-export.pdf", "application/pdf", "%PDF-1.4\n% MONOLITH export preview\n1 0 obj <<>> endobj\ntrailer <<>>\n%%EOF"],
+        monolith: ["backup.monolith", "application/json", JSON.stringify(payload, null, 2)]
+      }[type];
+      const blob = new Blob([config[2]], { type: config[1] });
+      const link = document.createElement("a");
+      link.href = URL.createObjectURL(blob);
+      link.download = config[0];
+      link.click();
+      URL.revokeObjectURL(link.href);
+      showToast(`Exportação ${config[0]} criada.`);
+    }
+
+    const today = new Intl.DateTimeFormat("pt-BR", {
+      weekday: "long",
+      day: "2-digit",
+      month: "long",
+      year: "numeric"
+    }).format(new Date());
+    document.getElementById("today").textContent = today;
+
+    function makeHabit(name, active) {
+      const row = document.createElement("div");
+      row.className = "habit";
+      row.innerHTML = `<span>${name}</span><button class="toggle yes ${active ? "active" : ""}" aria-label="${name} sim">✓</button><button class="toggle no ${active ? "" : "active"}" aria-label="${name} não">×</button>`;
+      return row;
+    }
+
+    const quickHabits = document.getElementById("quickHabits");
+    habits.forEach(([name, active]) => quickHabits.appendChild(makeHabit(name, active)));
+    storedWorkouts().reverse().forEach(workout => {
+      createWorkoutCard(workout.name, workout.goal, workout.exercises, false);
+    });
+    updateDailyScore();
+
+    const checkinGroups = document.getElementById("checkinGroups");
+    Object.entries(checkin).forEach(([group, items]) => {
+      const panel = document.createElement("article");
+      panel.className = "coach-card";
+      const list = document.createElement("div");
+      list.innerHTML = `<div class="kicker">${group}</div><div class="habit-list"></div>`;
+      const habitList = list.querySelector(".habit-list");
+      items.forEach((item, index) => habitList.appendChild(makeHabit(item, index !== items.length - 1)));
+      panel.appendChild(list);
+      checkinGroups.appendChild(panel);
+    });
+
+    function showScreen(id) {
+      document.querySelectorAll(".screen").forEach(screen => screen.classList.toggle("active", screen.id === id));
+      document.querySelectorAll(".nav-btn").forEach(btn => btn.classList.toggle("active", btn.dataset.screen === id));
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    }
+
+    document.addEventListener("click", event => {
+      const toggle = event.target.closest(".toggle");
+      if (toggle) {
+        const row = toggle.closest(".habit");
+        row.querySelectorAll(".toggle").forEach(btn => btn.classList.remove("active"));
+        toggle.classList.add("active");
+        updateDailyScore();
+      }
+
+      const setDone = event.target.closest(".set-done");
+      if (setDone) {
+        setDone.classList.add("done");
+        setDone.textContent = "Concluída";
+        showToast("Série registrada.");
+      }
+
+      const selectCoach = event.target.closest(".select-coach");
+      if (selectCoach) {
+        document.querySelectorAll(".coach-card.selected").forEach(card => card.classList.remove("selected"));
+        document.querySelectorAll(".select-coach.done").forEach(button => {
+          button.classList.remove("done");
+          button.textContent = "Selecionar";
+        });
+        const card = selectCoach.closest(".coach-card");
+        card.classList.add("selected");
+        selectCoach.classList.add("done");
+        selectCoach.textContent = "Selecionado";
+        showToast(`${card.querySelector("h3").textContent} definido como coach.`);
+      }
+
+      const exportButton = event.target.closest(".export-btn");
+      if (exportButton) {
+        downloadExport(exportButton.dataset.export);
+      }
+
+      const nav = event.target.closest("[data-screen]");
+      if (nav) showScreen(nav.dataset.screen);
+
+      const jump = event.target.closest("[data-screen-jump]");
+      if (jump) showScreen(jump.dataset.screenJump);
+    });
+
+    document.getElementById("newWorkoutButton").addEventListener("click", openWorkoutModal);
+    document.getElementById("saveCheckin").addEventListener("click", () => {
+      const yesCount = document.querySelectorAll("#checkinGroups .yes.active").length;
+      const total = document.querySelectorAll("#checkinGroups .habit").length;
+      showToast(`Check-in salvo: ${yesCount}/${total} itens concluídos.`);
+    });
+    document.getElementById("finishExercise").addEventListener("click", () => {
+      document.querySelectorAll(".set-done").forEach(button => {
+        button.classList.add("done");
+        button.textContent = "Concluída";
+      });
+      showToast("Exercício concluído e progressão atualizada.");
+      showScreen("workouts");
+    });
+    document.getElementById("closeWorkoutModal").addEventListener("click", closeWorkoutModal);
+    document.getElementById("cancelWorkout").addEventListener("click", closeWorkoutModal);
+    workoutModal.addEventListener("click", event => {
+      if (event.target === workoutModal) closeWorkoutModal();
+    });
+    workoutForm.addEventListener("submit", event => {
+      event.preventDefault();
+      createWorkoutCard(workoutName.value.trim(), workoutGoal.value.trim(), workoutExercises.value.trim());
+      closeWorkoutModal();
+      showScreen("workouts");
+      showToast("Treino criado na biblioteca.");
+    });
+  </script>
+  <script>
+    (() => {
+      const setTypes = ["Normal", "Aquecimento", "Falha", "Drop Set", "Rest Pause"];
+      const defaultWorkoutsV2 = [
+        {
+          id: "library-ramon-arms",
+          name: "Ramon Dino - Braço",
+          goal: "Modelo público inspirado no dia de braços: bíceps, tríceps e finalizações isoladas.",
+          tag: "Ramon",
+          exercises: [
+            { name: "Incline seated cable curl", sets: [{ weight: "", reps: "12", type: "Aquecimento" }, { weight: "", reps: "10", type: "Normal" }, { weight: "", reps: "8", type: "Falha" }] },
+            { name: "Nautilus bicep curl", sets: [{ weight: "", reps: "12", type: "Normal" }, { weight: "", reps: "10", type: "Normal" }, { weight: "", reps: "10", type: "Rest Pause" }] },
+            { name: "Seated single-arm high machine curl", sets: [{ weight: "", reps: "12", type: "Normal" }, { weight: "", reps: "10", type: "Normal" }, { weight: "", reps: "8", type: "Falha" }] },
+            { name: "Incline bench triceps extension", sets: [{ weight: "", reps: "12", type: "Aquecimento" }, { weight: "", reps: "10", type: "Normal" }, { weight: "", reps: "8", type: "Falha" }] },
+            { name: "Single-arm crossbody triceps extension", sets: [{ weight: "", reps: "12", type: "Normal" }, { weight: "", reps: "12", type: "Normal" }, { weight: "", reps: "12", type: "Drop Set" }] },
+            { name: "Rope triceps pushdown", sets: [{ weight: "", reps: "15", type: "Normal" }, { weight: "", reps: "15", type: "Rest Pause" }] }
+          ]
+        },
+        {
+          id: "library-cbum-chest",
+          name: "CBUM - Peito 35 min",
+          goal: "Rotina com tri-set de halteres e finalização no pec deck.",
+          tag: "CBUM",
+          exercises: [
+            { name: "Incline pronated dumbbell bench press", sets: [{ weight: "", reps: "6", type: "Normal" }, { weight: "", reps: "6", type: "Normal" }, { weight: "", reps: "6", type: "Normal" }, { weight: "", reps: "6", type: "Normal" }, { weight: "", reps: "6", type: "Falha" }] },
+            { name: "Decline pronated dumbbell chest press", sets: [{ weight: "", reps: "12", type: "Normal" }, { weight: "", reps: "12", type: "Normal" }, { weight: "", reps: "12", type: "Normal" }, { weight: "", reps: "12", type: "Normal" }, { weight: "", reps: "12", type: "Falha" }] },
+            { name: "Flat bench pronated dumbbell fly", sets: [{ weight: "", reps: "25", type: "Normal" }, { weight: "", reps: "25", type: "Normal" }, { weight: "", reps: "25", type: "Normal" }, { weight: "", reps: "25", type: "Normal" }, { weight: "", reps: "25", type: "Drop Set" }] },
+            { name: "Pec deck", sets: [{ weight: "", reps: "15", type: "Normal" }, { weight: "", reps: "15", type: "Normal" }, { weight: "", reps: "15", type: "Rest Pause" }] }
+          ]
+        },
+        {
+          id: "library-cbum-hipertrofia-chest",
+          name: "CBUM - Peito Hipertrofia.org",
+          goal: "Dia 1 da divisão de 8 dias: peito com progressão dupla e dropsets.",
+          tag: "CBUM",
+          exercises: [
+            { name: "Supino inclinado com halteres", sets: [{ weight: "", reps: "8-10", type: "Normal" }, { weight: "", reps: "8-10", type: "Falha" }] },
+            { name: "Crucifixo inclinado com halteres", sets: [{ weight: "", reps: "8-10", type: "Normal" }, { weight: "", reps: "8-10", type: "Falha" }] },
+            { name: "Supino inclinado Hammer Strength", sets: [{ weight: "", reps: "6-10", type: "Normal" }, { weight: "", reps: "6-10", type: "Drop Set" }] },
+            { name: "Peck deck", sets: [{ weight: "", reps: "15", type: "Normal" }, { weight: "", reps: "15", type: "Normal" }, { weight: "", reps: "15", type: "Rest Pause" }] },
+            { name: "Flexões", sets: [{ weight: "", reps: "Falha", type: "Falha" }, { weight: "", reps: "Falha", type: "Falha" }] }
+          ]
+        },
+        {
+          id: "library-cbum-quads-calves",
+          name: "CBUM - Quadríceps + Panturrilha",
+          goal: "Dia 2 da divisão: extensora com dropset, smith e tri-set de perna.",
+          tag: "CBUM",
+          exercises: [
+            { name: "Cadeira extensora", sets: [{ weight: "", reps: "20", type: "Drop Set" }, { weight: "", reps: "20", type: "Drop Set" }] },
+            { name: "Agachamento smith", sets: [{ weight: "", reps: "6-10", type: "Normal" }, { weight: "", reps: "6-10", type: "Falha" }] },
+            { name: "Leg press unilateral", sets: [{ weight: "", reps: "8-10", type: "Normal" }, { weight: "", reps: "8-10", type: "Normal" }, { weight: "", reps: "8-10", type: "Falha" }] },
+            { name: "Agachamento sissy", sets: [{ weight: "", reps: "12-15", type: "Normal" }, { weight: "", reps: "12-15", type: "Normal" }, { weight: "", reps: "12-15", type: "Rest Pause" }] },
+            { name: "Panturrilha sentado", sets: [{ weight: "", reps: "10-12", type: "Normal" }, { weight: "", reps: "10-12", type: "Normal" }, { weight: "", reps: "10-12", type: "Falha" }] }
+          ]
+        },
+        {
+          id: "library-cbum-back-thickness",
+          name: "CBUM - Costas Espessura",
+          goal: "Dia 3 da divisão: remadas, puxadas e foco em densidade das costas.",
+          tag: "CBUM",
+          exercises: [
+            { name: "Puxada supinada fechada", sets: [{ weight: "", reps: "10-12", type: "Normal" }, { weight: "", reps: "10-12", type: "Normal" }, { weight: "", reps: "10-12", type: "Falha" }] },
+            { name: "Remada com halteres apoiada", sets: [{ weight: "", reps: "8-10", type: "Normal" }, { weight: "", reps: "8-10", type: "Falha" }] },
+            { name: "Remada cavalinho com apoio no peito", sets: [{ weight: "", reps: "8-10", type: "Normal" }, { weight: "", reps: "8-10", type: "Drop Set" }] },
+            { name: "Remada apoiada na máquina", sets: [{ weight: "", reps: "10-12", type: "Normal" }, { weight: "", reps: "10-12", type: "Normal" }, { weight: "", reps: "10-12", type: "Rest Pause" }] },
+            { name: "Pulldown", sets: [{ weight: "", reps: "15", type: "Normal" }, { weight: "", reps: "15", type: "Falha" }] }
+          ]
+        },
+        {
+          id: "library-cbum-shoulders-triceps",
+          name: "CBUM - Ombros + Tríceps",
+          goal: "Dia 5 da divisão: deltoides com presses, laterais e tríceps em superset.",
+          tag: "CBUM",
+          exercises: [
+            { name: "Desenvolvimento sentado com halteres", sets: [{ weight: "", reps: "6-8", type: "Normal" }, { weight: "", reps: "6-8", type: "Normal" }, { weight: "", reps: "6-8", type: "Falha" }] },
+            { name: "Desenvolvimento Arnold", sets: [{ weight: "", reps: "10", type: "Normal" }, { weight: "", reps: "10", type: "Normal" }, { weight: "", reps: "10", type: "Falha" }] },
+            { name: "Desenvolvimento na máquina", sets: [{ weight: "", reps: "10-12", type: "Normal" }, { weight: "", reps: "10-12", type: "Normal" }, { weight: "", reps: "10-12", type: "Rest Pause" }] },
+            { name: "Elevação lateral", sets: [{ weight: "", reps: "12-15", type: "Normal" }, { weight: "", reps: "12-15", type: "Normal" }, { weight: "", reps: "12-15", type: "Drop Set" }] },
+            { name: "Tríceps corda", sets: [{ weight: "", reps: "12-15", type: "Normal" }, { weight: "", reps: "12-15", type: "Normal" }, { weight: "", reps: "12-15", type: "Falha" }] },
+            { name: "Tríceps na polia", sets: [{ weight: "", reps: "8-10", type: "Normal" }, { weight: "", reps: "8-10", type: "Normal" }, { weight: "", reps: "8-10", type: "Rest Pause" }] },
+            { name: "Paralelas para tríceps", sets: [{ weight: "", reps: "Falha", type: "Falha" }, { weight: "", reps: "Falha", type: "Falha" }, { weight: "", reps: "Falha", type: "Falha" }] }
+          ]
+        },
+        {
+          id: "library-cbum-width-hamstrings",
+          name: "CBUM - Posterior + Costas Largura",
+          goal: "Dia 6 adaptado: puxadas para largura e posterior em sessão separada.",
+          tag: "CBUM",
+          exercises: [
+            { name: "Puxada pronada", sets: [{ weight: "", reps: "10-12", type: "Normal" }, { weight: "", reps: "10-12", type: "Normal" }, { weight: "", reps: "10-12", type: "Falha" }] },
+            { name: "Puxada fechada", sets: [{ weight: "", reps: "10-12", type: "Normal" }, { weight: "", reps: "10-12", type: "Normal" }, { weight: "", reps: "10-12", type: "Rest Pause" }] },
+            { name: "Remada unilateral na máquina", sets: [{ weight: "", reps: "10-12", type: "Normal" }, { weight: "", reps: "10-12", type: "Normal" }, { weight: "", reps: "10-12", type: "Falha" }] },
+            { name: "Remada supinada", sets: [{ weight: "", reps: "10-12", type: "Normal" }, { weight: "", reps: "10-12", type: "Normal" }, { weight: "", reps: "10-12", type: "Drop Set" }] },
+            { name: "Mesa flexora", sets: [{ weight: "", reps: "10-12", type: "Normal" }, { weight: "", reps: "10-12", type: "Normal" }, { weight: "", reps: "10-12", type: "Falha" }] }
+          ]
+        },
+        {
+          id: "library-cbum-arms",
+          name: "CBUM - Braços",
+          goal: "Dia 7 da divisão: bíceps e tríceps com dropsets e séries até a falha.",
+          tag: "CBUM",
+          exercises: [
+            { name: "Tríceps corda", sets: [{ weight: "", reps: "8-10", type: "Normal" }, { weight: "", reps: "8-10", type: "Drop Set" }] },
+            { name: "Rosca testa com halteres no banco inclinado", sets: [{ weight: "", reps: "8-10", type: "Normal" }, { weight: "", reps: "8-10", type: "Falha" }] },
+            { name: "Rosca Scott com barra W", sets: [{ weight: "", reps: "8-10", type: "Normal" }, { weight: "", reps: "8-10", type: "Normal" }, { weight: "", reps: "8-10", type: "Drop Set" }] },
+            { name: "Rosca alternada", sets: [{ weight: "", reps: "10-12", type: "Normal" }, { weight: "", reps: "10-12", type: "Falha" }] },
+            { name: "Tríceps na polia", sets: [{ weight: "", reps: "10-15", type: "Normal" }, { weight: "", reps: "10-15", type: "Rest Pause" }] },
+            { name: "Rosca direta na polia baixa", sets: [{ weight: "", reps: "10-12", type: "Normal" }, { weight: "", reps: "10-12", type: "Drop Set" }] }
+          ]
+        },
+        {
+          id: "library-hany-shoulders",
+          name: "Hany Rambod - Ombro FST-7",
+          goal: "Ombros 3D usando o princípio FST-7: base pesada e sete séries finais de pump.",
+          tag: "FST-7",
+          exercises: [
+            { name: "Seated dumbbell shoulder press", sets: [{ weight: "", reps: "12", type: "Aquecimento" }, { weight: "", reps: "10", type: "Normal" }, { weight: "", reps: "8", type: "Normal" }, { weight: "", reps: "8", type: "Falha" }] },
+            { name: "Machine lateral raise", sets: [{ weight: "", reps: "12", type: "Normal" }, { weight: "", reps: "12", type: "Normal" }, { weight: "", reps: "10", type: "Falha" }] },
+            { name: "Rear delt fly", sets: [{ weight: "", reps: "15", type: "Normal" }, { weight: "", reps: "15", type: "Normal" }, { weight: "", reps: "12", type: "Drop Set" }] },
+            { name: "Cable lateral raise FST-7", sets: [{ weight: "", reps: "12-15", type: "Normal" }, { weight: "", reps: "12-15", type: "Normal" }, { weight: "", reps: "12-15", type: "Normal" }, { weight: "", reps: "12-15", type: "Normal" }, { weight: "", reps: "12-15", type: "Normal" }, { weight: "", reps: "12-15", type: "Normal" }, { weight: "", reps: "12-15", type: "Rest Pause" }] }
+          ]
+        },
+        {
+          id: "library-arnold-chest-back",
+          name: "Arnold - Peito + Costas",
+          goal: "Estilo old school: peito e costas no mesmo dia, com supersets e pirâmide.",
+          tag: "Old School",
+          exercises: [
+            { name: "Barbell bench press", sets: [{ weight: "", reps: "15", type: "Aquecimento" }, { weight: "", reps: "12", type: "Normal" }, { weight: "", reps: "10", type: "Normal" }, { weight: "", reps: "8", type: "Falha" }] },
+            { name: "Wide-grip pull-up", sets: [{ weight: "", reps: "10", type: "Normal" }, { weight: "", reps: "10", type: "Normal" }, { weight: "", reps: "10", type: "Falha" }] },
+            { name: "Incline dumbbell press", sets: [{ weight: "", reps: "12", type: "Normal" }, { weight: "", reps: "10", type: "Normal" }, { weight: "", reps: "8", type: "Falha" }] },
+            { name: "T-bar row", sets: [{ weight: "", reps: "12", type: "Normal" }, { weight: "", reps: "10", type: "Normal" }, { weight: "", reps: "8", type: "Falha" }] },
+            { name: "Dumbbell fly", sets: [{ weight: "", reps: "12", type: "Normal" }, { weight: "", reps: "12", type: "Normal" }, { weight: "", reps: "12", type: "Drop Set" }] },
+            { name: "Straight-arm pulldown", sets: [{ weight: "", reps: "15", type: "Normal" }, { weight: "", reps: "15", type: "Rest Pause" }] }
+          ]
+        },
+        {
+          id: "library-tom-platz-legs",
+          name: "Tom Platz - Pernas",
+          goal: "Treino de pernas com amplitude completa, alto volume e execução controlada.",
+          tag: "Leg Day",
+          exercises: [
+            { name: "Back squat", sets: [{ weight: "", reps: "15", type: "Aquecimento" }, { weight: "", reps: "12", type: "Normal" }, { weight: "", reps: "10", type: "Normal" }, { weight: "", reps: "8", type: "Falha" }, { weight: "", reps: "20", type: "Rest Pause" }] },
+            { name: "Hack squat", sets: [{ weight: "", reps: "15", type: "Normal" }, { weight: "", reps: "12", type: "Normal" }, { weight: "", reps: "10", type: "Falha" }] },
+            { name: "Leg curl", sets: [{ weight: "", reps: "15", type: "Normal" }, { weight: "", reps: "15", type: "Normal" }, { weight: "", reps: "12", type: "Drop Set" }] },
+            { name: "Leg extension", sets: [{ weight: "", reps: "15", type: "Normal" }, { weight: "", reps: "15", type: "Normal" }, { weight: "", reps: "15", type: "Rest Pause" }] },
+            { name: "Standing calf raise", sets: [{ weight: "", reps: "20", type: "Normal" }, { weight: "", reps: "20", type: "Normal" }, { weight: "", reps: "20", type: "Falha" }] }
+          ]
+        },
+        {
+          id: "library-dorian-back",
+          name: "Dorian Yates - Costas",
+          goal: "Costas no estilo Blood and Guts: aquecimento e séries efetivas muito intensas.",
+          tag: "HIT",
+          exercises: [
+            { name: "Hammer strength pulldown", sets: [{ weight: "", reps: "12", type: "Aquecimento" }, { weight: "", reps: "10", type: "Normal" }, { weight: "", reps: "8", type: "Falha" }] },
+            { name: "Barbell row", sets: [{ weight: "", reps: "10", type: "Aquecimento" }, { weight: "", reps: "8", type: "Normal" }, { weight: "", reps: "8", type: "Falha" }] },
+            { name: "One-arm machine row", sets: [{ weight: "", reps: "10", type: "Normal" }, { weight: "", reps: "8", type: "Falha" }] },
+            { name: "Seated cable row", sets: [{ weight: "", reps: "10", type: "Normal" }, { weight: "", reps: "8", type: "Rest Pause" }] },
+            { name: "Weighted back extension", sets: [{ weight: "", reps: "12", type: "Normal" }, { weight: "", reps: "10", type: "Falha" }] }
+          ]
+        },
+        {
+          id: "library-mentzer-chest",
+          name: "Mike Mentzer - Peito Heavy Duty",
+          goal: "Baixo volume, pré-exaustão e uma série real até a falha.",
+          tag: "Heavy Duty",
+          exercises: [
+            { name: "Pec deck pre-exhaust", sets: [{ weight: "", reps: "12", type: "Aquecimento" }, { weight: "", reps: "8-10", type: "Falha" }] },
+            { name: "Incline press", sets: [{ weight: "", reps: "8", type: "Aquecimento" }, { weight: "", reps: "6-8", type: "Falha" }] },
+            { name: "Weighted dip", sets: [{ weight: "", reps: "6-8", type: "Falha" }, { weight: "", reps: "6-8", type: "Rest Pause" }] }
+          ]
+        },
+        {
+          id: "library-ganley-structured-push",
+          name: "Gabriel Ganley - Push Estruturado",
+          goal: "Modelo inspirado em progressão estruturada: peito, ombro e tríceps com carga rastreável.",
+          tag: "Ganley",
+          exercises: [
+            { name: "Incline machine press", sets: [{ weight: "", reps: "12", type: "Aquecimento" }, { weight: "", reps: "10", type: "Normal" }, { weight: "", reps: "8", type: "Normal" }, { weight: "", reps: "6-8", type: "Falha" }] },
+            { name: "Flat dumbbell press", sets: [{ weight: "", reps: "10", type: "Normal" }, { weight: "", reps: "8-10", type: "Normal" }, { weight: "", reps: "8", type: "Rest Pause" }] },
+            { name: "Cable fly", sets: [{ weight: "", reps: "12-15", type: "Normal" }, { weight: "", reps: "12-15", type: "Normal" }, { weight: "", reps: "12-15", type: "Drop Set" }] },
+            { name: "Seated shoulder press", sets: [{ weight: "", reps: "10", type: "Normal" }, { weight: "", reps: "8-10", type: "Normal" }, { weight: "", reps: "8", type: "Falha" }] },
+            { name: "Cable lateral raise", sets: [{ weight: "", reps: "15", type: "Normal" }, { weight: "", reps: "15", type: "Normal" }, { weight: "", reps: "15", type: "Rest Pause" }] },
+            { name: "Rope triceps pushdown", sets: [{ weight: "", reps: "12", type: "Normal" }, { weight: "", reps: "12", type: "Normal" }, { weight: "", reps: "10", type: "Falha" }] }
+          ]
+        },
+        {
+          id: "library-mathla-upper",
+          name: "Mathla - Upper Moderno",
+          goal: "Modelo inspirado em hipertrofia moderna: volume eficiente, cabos e controle.",
+          tag: "Mathla",
+          exercises: [
+            { name: "Chest-supported row", sets: [{ weight: "", reps: "12", type: "Aquecimento" }, { weight: "", reps: "10", type: "Normal" }, { weight: "", reps: "8-10", type: "Falha" }] },
+            { name: "Incline dumbbell press", sets: [{ weight: "", reps: "10", type: "Normal" }, { weight: "", reps: "8-10", type: "Normal" }, { weight: "", reps: "8", type: "Falha" }] },
+            { name: "Neutral-grip pulldown", sets: [{ weight: "", reps: "10-12", type: "Normal" }, { weight: "", reps: "10", type: "Normal" }, { weight: "", reps: "8", type: "Rest Pause" }] },
+            { name: "Machine lateral raise", sets: [{ weight: "", reps: "15", type: "Normal" }, { weight: "", reps: "15", type: "Normal" }, { weight: "", reps: "12", type: "Drop Set" }] },
+            { name: "Cable curl", sets: [{ weight: "", reps: "12", type: "Normal" }, { weight: "", reps: "10-12", type: "Normal" }, { weight: "", reps: "10", type: "Falha" }] },
+            { name: "Overhead cable triceps extension", sets: [{ weight: "", reps: "12", type: "Normal" }, { weight: "", reps: "12", type: "Normal" }, { weight: "", reps: "12", type: "Rest Pause" }] }
+          ]
+        },
+        {
+          id: "library-correa-arms",
+          name: "Eduardo Correa - Braços Execução",
+          goal: "Bíceps e tríceps com variedade de ângulos, execução estrita e contração máxima.",
+          tag: "Correa",
+          exercises: [
+            { name: "Alternating dumbbell curl", sets: [{ weight: "", reps: "10-12", type: "Normal" }, { weight: "", reps: "10-12", type: "Normal" }, { weight: "", reps: "10-12", type: "Falha" }] },
+            { name: "Concentration curl", sets: [{ weight: "", reps: "12", type: "Normal" }, { weight: "", reps: "12", type: "Normal" }, { weight: "", reps: "12", type: "Rest Pause" }] },
+            { name: "Machine preacher curl", sets: [{ weight: "", reps: "10-12", type: "Normal" }, { weight: "", reps: "10-12", type: "Normal" }, { weight: "", reps: "10-12", type: "Falha" }] },
+            { name: "Cable hammer curl", sets: [{ weight: "", reps: "15", type: "Normal" }, { weight: "", reps: "15", type: "Normal" }, { weight: "", reps: "15", type: "Drop Set" }] },
+            { name: "Close-grip bench press", sets: [{ weight: "", reps: "10", type: "Aquecimento" }, { weight: "", reps: "10", type: "Normal" }, { weight: "", reps: "10", type: "Falha" }] },
+            { name: "Parallel bar dip", sets: [{ weight: "", reps: "10-12", type: "Normal" }, { weight: "", reps: "10-12", type: "Normal" }, { weight: "", reps: "10-12", type: "Rest Pause" }] },
+            { name: "Cable pressdown", sets: [{ weight: "", reps: "12-15", type: "Normal" }, { weight: "", reps: "12-15", type: "Normal" }, { weight: "", reps: "12-15", type: "Drop Set" }] },
+            { name: "Overhead dumbbell extension", sets: [{ weight: "", reps: "12", type: "Normal" }, { weight: "", reps: "12", type: "Normal" }, { weight: "", reps: "12", type: "Falha" }] }
+          ]
+        },
+        {
+          id: "library-leandro-peres-open",
+          name: "Leandro Peres - Open Alta Intensidade",
+          goal: "Modelo inspirado no fisiculturismo Open: básicos pesados, máquinas e finalizações próximas da falha.",
+          tag: "Leandro Peres",
+          exercises: [
+            { name: "Incline plate-loaded press", sets: [{ weight: "", reps: "12", type: "Aquecimento" }, { weight: "", reps: "10", type: "Normal" }, { weight: "", reps: "8", type: "Normal" }, { weight: "", reps: "6-8", type: "Falha" }] },
+            { name: "Chest-supported row", sets: [{ weight: "", reps: "10", type: "Aquecimento" }, { weight: "", reps: "8-10", type: "Normal" }, { weight: "", reps: "8", type: "Falha" }] },
+            { name: "Hack squat", sets: [{ weight: "", reps: "12", type: "Aquecimento" }, { weight: "", reps: "10", type: "Normal" }, { weight: "", reps: "8-10", type: "Normal" }, { weight: "", reps: "8", type: "Rest Pause" }] },
+            { name: "Seated hamstring curl", sets: [{ weight: "", reps: "12", type: "Normal" }, { weight: "", reps: "10-12", type: "Normal" }, { weight: "", reps: "10", type: "Drop Set" }] },
+            { name: "Machine shoulder press", sets: [{ weight: "", reps: "10", type: "Normal" }, { weight: "", reps: "8-10", type: "Normal" }, { weight: "", reps: "8", type: "Falha" }] },
+            { name: "Cable lateral raise", sets: [{ weight: "", reps: "15", type: "Normal" }, { weight: "", reps: "15", type: "Normal" }, { weight: "", reps: "15", type: "Rest Pause" }] },
+            { name: "Rope pushdown", sets: [{ weight: "", reps: "12", type: "Normal" }, { weight: "", reps: "12", type: "Normal" }, { weight: "", reps: "10", type: "Falha" }] },
+            { name: "Machine preacher curl", sets: [{ weight: "", reps: "12", type: "Normal" }, { weight: "", reps: "10-12", type: "Normal" }, { weight: "", reps: "10", type: "Drop Set" }] }
+          ]
+        }
+      ];
+
+      const builder = document.getElementById("exerciseBuilder");
+      const workoutListV2 = document.getElementById("workoutList");
+      const formV2 = document.getElementById("workoutForm");
+      let workoutsV2 = [...defaultWorkoutsV2.filter(workout => !deletedLibraryWorkoutsV2().includes(workout.id)), ...loadWorkoutsV2()];
+      let activeWorkoutV2 = workoutsV2[0];
+      let restTimersV2 = new Map();
+
+      function html(value = "") {
+        return String(value).replace(/[&<>"']/g, char => ({
+          "&": "&amp;",
+          "<": "&lt;",
+          ">": "&gt;",
+          '"': "&quot;",
+          "'": "&#039;"
+        }[char]));
+      }
+
+      function toastV2(message) {
+        const toast = document.getElementById("toast");
+        toast.textContent = message;
+        toast.classList.add("active");
+        setTimeout(() => toast.classList.remove("active"), 2400);
+      }
+
+      function formatRestV2(seconds) {
+        const safeSeconds = Math.max(0, Number(seconds) || 0);
+        const minutes = Math.floor(safeSeconds / 60);
+        const rest = String(safeSeconds % 60).padStart(2, "0");
+        return `${minutes}:${rest}`;
+      }
+
+      function startRestTimerV2(row) {
+        const input = row.querySelector(".session-rest");
+        const display = row.querySelector(".rest-timer");
+        const seconds = Math.max(1, Number(input.value) || 90);
+        if (restTimersV2.has(row)) clearInterval(restTimersV2.get(row));
+        let remaining = seconds;
+        display.textContent = formatRestV2(remaining);
+        const timer = setInterval(() => {
+          remaining -= 1;
+          display.textContent = formatRestV2(remaining);
+          if (remaining <= 0) {
+            clearInterval(timer);
+            restTimersV2.delete(row);
+            display.textContent = "Pronto";
+            toastV2("Descanso finalizado. Próxima série.");
+          }
+        }, 1000);
+        restTimersV2.set(row, timer);
+      }
+
+      function normalizeWorkoutV2(workout) {
+        if (Array.isArray(workout.exercises) && workout.exercises[0]?.sets) return workout;
+        const names = String(workout.exercises || "Exercício").split(",").map(item => item.trim()).filter(Boolean);
+        return {
+          id: workout.id || `custom-${Date.now()}`,
+          name: workout.name || "Treino",
+          goal: workout.goal || "Treino local",
+          tag: "Local",
+        exercises: names.map(name => ({
+          name,
+          sets: [
+              { weight: "", reps: "10", type: "Aquecimento", rest: "60" },
+              { weight: "", reps: "10", type: "Normal", rest: "90" },
+              { weight: "", reps: "8", type: "Falha", rest: "120" }
+          ]
+        }))
+      };
+      }
+
+      function loadWorkoutsV2() {
+        try {
+          return JSON.parse(localStorage.getItem("monolith.workouts") || "[]").map(normalizeWorkoutV2);
+        } catch {
+          return [];
+        }
+      }
+
+      function deletedLibraryWorkoutsV2() {
+        try {
+          return JSON.parse(localStorage.getItem("monolith.deletedLibraryWorkouts") || "[]");
+        } catch {
+          return [];
+        }
+      }
+
+      function rememberDeletedLibraryWorkoutV2(id) {
+        const deleted = deletedLibraryWorkoutsV2();
+        if (!deleted.includes(id)) deleted.push(id);
+        localStorage.setItem("monolith.deletedLibraryWorkouts", JSON.stringify(deleted));
+      }
+
+      function saveCustomWorkoutV2(workout) {
+        const saved = loadWorkoutsV2();
+        saved.unshift(workout);
+        localStorage.setItem("monolith.workouts", JSON.stringify(saved));
+      }
+
+      function deleteCustomWorkoutV2(id) {
+        const saved = loadWorkoutsV2().filter(workout => workout.id !== id);
+        localStorage.setItem("monolith.workouts", JSON.stringify(saved));
+      }
+
+      function deleteWorkoutV2(id) {
+        const workout = workoutsV2.find(item => item.id === id);
+        if (!workout) return;
+        workoutsV2 = workoutsV2.filter(item => item.id !== id);
+        if (id.startsWith("library-")) rememberDeletedLibraryWorkoutV2(id);
+        else deleteCustomWorkoutV2(id);
+        renderWorkoutListV2();
+        if (activeWorkoutV2?.id === id) {
+          activeWorkoutV2 = workoutsV2[0];
+          if (activeWorkoutV2) renderSessionV2(activeWorkoutV2);
+        }
+        toastV2(`${workout.name} excluído.`);
+      }
+
+      function renderWorkoutListV2() {
+        workoutListV2.innerHTML = "";
+        workoutsV2.forEach(workout => {
+          const totalSets = workout.exercises.reduce((total, exercise) => total + exercise.sets.length, 0);
+          const card = document.createElement("article");
+          card.className = "workout";
+          card.innerHTML = `
+            <div>
+              <h3>${html(workout.name)}</h3>
+              <p>${html(workout.goal)}</p>
+              <div class="pill-row">
+                <span class="pill">${workout.exercises.length} exercícios</span>
+                <span class="pill">${totalSets} séries</span>
+                <span class="pill">${html(workout.tag || "Local")}</span>
+              </div>
+            </div>
+            <div class="pill-row">
+              <button class="ghost open-workout-session-v2" type="button" data-workout-id="${workout.id}">Abrir sessão</button>
+              <button class="ghost delete-workout-v2" type="button" data-workout-id="${workout.id}">Excluir</button>
+            </div>
+          `;
+          workoutListV2.appendChild(card);
+        });
+      }
+
+      function typeOptions(selected = "Normal") {
+        return setTypes.map(type => `<option ${type === selected ? "selected" : ""}>${type}</option>`).join("");
+      }
+
+      function refreshEditorIndexes(editor) {
+        editor.querySelectorAll(".set-row").forEach((row, index) => {
+          row.querySelector(".set-index").textContent = `Série ${index + 1}`;
+        });
+      }
+
+      function addSetEditorV2(editor, set = {}) {
+        const sets = editor.querySelector(".sets-editor");
+        const row = document.createElement("div");
+        row.className = "set-row";
+        row.innerHTML = `
+          <span class="set-index">Série</span>
+          <input class="set-weight" placeholder="Peso" value="${html(set.weight || "")}" />
+          <input class="set-reps" placeholder="Reps" value="${html(set.reps || "")}" />
+          <select class="set-type">${typeOptions(set.type)}</select>
+          <input class="set-rest" placeholder="Descanso s" value="${html(set.rest || "90")}" />
+          <button class="ghost remove-set-v2" type="button">Remover</button>
+        `;
+        sets.appendChild(row);
+        refreshEditorIndexes(editor);
+      }
+
+      function addExerciseEditorV2(exercise = {}) {
+        const editor = document.createElement("div");
+        editor.className = "exercise-editor";
+        editor.innerHTML = `
+          <div class="exercise-editor-head">
+            <input class="exercise-name" required placeholder="Nome do exercício" value="${html(exercise.name || "")}" />
+            <button class="ghost remove-exercise-v2" type="button">Remover exercício</button>
+          </div>
+          <div class="sets-editor"></div>
+          <button class="ghost add-set-v2" type="button">Adicionar série</button>
+        `;
+        builder.appendChild(editor);
+        const sets = exercise.sets?.length ? exercise.sets : [
+          { weight: "", reps: "10", type: "Aquecimento", rest: "60" },
+          { weight: "", reps: "10", type: "Normal", rest: "90" },
+          { weight: "", reps: "8", type: "Falha", rest: "120" }
+        ];
+        sets.forEach(set => addSetEditorV2(editor, set));
+      }
+
+      function resetBuilderV2() {
+        builder.innerHTML = "";
+        addExerciseEditorV2();
+      }
+
+      function readWorkoutV2() {
+        const exercises = [...builder.querySelectorAll(".exercise-editor")].map((editor, index) => {
+          const name = editor.querySelector(".exercise-name").value.trim() || `Exercício ${index + 1}`;
+          const sets = [...editor.querySelectorAll(".set-row")].map(row => ({
+            weight: row.querySelector(".set-weight").value.trim(),
+            reps: row.querySelector(".set-reps").value.trim(),
+            type: row.querySelector(".set-type").value,
+            rest: row.querySelector(".set-rest").value.trim() || "90"
+          }));
+          return { name, sets: sets.length ? sets : [{ weight: "", reps: "", type: "Normal", rest: "90" }] };
+        });
+        return {
+          id: `custom-${Date.now()}`,
+          name: document.getElementById("workoutName").value.trim() || "Novo treino",
+          goal: document.getElementById("workoutGoal").value.trim() || "Treino criado com exercícios e séries.",
+          tag: "Local",
+          exercises
+        };
+      }
+
+      function sessionSetRowV2(exerciseIndex, setIndex, set = {}) {
+        return `
+          <tr>
+            <td>${setIndex + 1}</td>
+            <td><input value="${html(set.weight || "")}" placeholder="Peso" /></td>
+            <td><input value="${html(set.reps || "")}" placeholder="Reps" /></td>
+            <td><select>${typeOptions(set.type)}</select></td>
+            <td class="rest-cell">
+              <div class="rest-control">
+                <input class="session-rest" value="${html(set.rest || "90")}" aria-label="Descanso em segundos" />
+                <span class="rest-timer">--:--</span>
+              </div>
+              <div class="rest-quick">
+                <button class="mini-btn rest-preset-v2" type="button" data-rest="60">60s</button>
+                <button class="mini-btn rest-preset-v2" type="button" data-rest="90">90s</button>
+                <button class="mini-btn rest-preset-v2" type="button" data-rest="120">120s</button>
+              </div>
+            </td>
+            <td><button class="ghost set-done-v2" type="button">Concluir série</button></td>
+          </tr>
+        `;
+      }
+
+      function renderSessionV2(workout) {
+        restTimersV2.forEach(timer => clearInterval(timer));
+        restTimersV2.clear();
+        activeWorkoutV2 = workout;
+        document.getElementById("sessionTitle").textContent = workout.name;
+        document.getElementById("sessionMeta").textContent = `${workout.exercises.length} exercícios no treino`;
+        const container = document.getElementById("sessionExercises");
+        container.innerHTML = "";
+        workout.exercises.forEach((exercise, exerciseIndex) => {
+          const block = document.createElement("article");
+          block.className = "session-exercise";
+          block.dataset.exerciseIndex = exerciseIndex;
+          block.innerHTML = `
+            <div class="session-exercise-head">
+              <div>
+                <div class="kicker">Exercício ${exerciseIndex + 1}</div>
+                <h3>${html(exercise.name)}</h3>
+              </div>
+              <div class="pill-row">
+                <button class="ghost add-session-set-v2" type="button" data-exercise-index="${exerciseIndex}">Adicionar série</button>
+                <button class="ghost complete-exercise-v2" type="button" data-exercise-index="${exerciseIndex}">Concluir exercício</button>
+              </div>
+            </div>
+            <table class="exercise-table">
+              <thead><tr><th>Série</th><th>Peso</th><th>Repetições</th><th>Técnica</th><th>Descanso</th><th>Status</th></tr></thead>
+              <tbody>${exercise.sets.map((set, setIndex) => sessionSetRowV2(exerciseIndex, setIndex, set)).join("")}</tbody>
+            </table>
+          `;
+          container.appendChild(block);
+        });
+        updateSessionProgressV2();
+      }
+
+      function updateSessionProgressV2() {
+        const total = activeWorkoutV2.exercises.length;
+        const done = document.querySelectorAll("#sessionExercises .session-exercise.done").length;
+        document.getElementById("sessionRecord").textContent = `${done}/${total} exercícios concluídos`;
+      }
+
+      function completeExerciseV2(index) {
+        const block = document.querySelector(`#sessionExercises .session-exercise[data-exercise-index="${index}"]`);
+        if (!block) return;
+        block.classList.add("done");
+        block.querySelectorAll(".set-done-v2").forEach(button => {
+          button.classList.add("done");
+          button.textContent = "Concluída";
+        });
+        const completeButton = block.querySelector(".complete-exercise-v2");
+        completeButton.classList.add("done");
+        completeButton.textContent = "Exercício concluído";
+        updateSessionProgressV2();
+        toastV2(`${activeWorkoutV2.exercises[index].name} concluído.`);
+      }
+
+      function finishCurrentExerciseV2(event) {
+        event.preventDefault();
+        event.stopImmediatePropagation();
+        const next = [...document.querySelectorAll("#sessionExercises .session-exercise")].find(block => !block.classList.contains("done"));
+        if (!next) {
+          toastV2("Todos os exercícios já foram concluídos.");
+          return;
+        }
+        completeExerciseV2(Number(next.dataset.exerciseIndex));
+      }
+
+      formV2.addEventListener("submit", event => {
+        event.preventDefault();
+        event.stopImmediatePropagation();
+        const workout = readWorkoutV2();
+        workoutsV2.unshift(workout);
+        saveCustomWorkoutV2(workout);
+        renderWorkoutListV2();
+        document.getElementById("workoutModal").classList.remove("active");
+        formV2.reset();
+        resetBuilderV2();
+        toastV2("Treino criado com exercícios, séries, peso e técnicas.");
+      }, true);
+
+      document.getElementById("finishExercise").addEventListener("click", finishCurrentExerciseV2, true);
+      document.getElementById("addExerciseButton").addEventListener("click", () => addExerciseEditorV2());
+
+      document.addEventListener("click", event => {
+        const open = event.target.closest(".open-workout-session-v2");
+        if (open) {
+          const workout = workoutsV2.find(item => item.id === open.dataset.workoutId) || workoutsV2[0];
+          renderSessionV2(workout);
+          showScreen("session");
+        }
+
+        const deleteWorkout = event.target.closest(".delete-workout-v2");
+        if (deleteWorkout) {
+          event.preventDefault();
+          event.stopPropagation();
+          deleteWorkoutV2(deleteWorkout.dataset.workoutId);
+        }
+
+        const addSet = event.target.closest(".add-set-v2");
+        if (addSet) addSetEditorV2(addSet.closest(".exercise-editor"));
+
+        const removeSet = event.target.closest(".remove-set-v2");
+        if (removeSet) {
+          const editor = removeSet.closest(".exercise-editor");
+          removeSet.closest(".set-row").remove();
+          refreshEditorIndexes(editor);
+        }
+
+        const removeExercise = event.target.closest(".remove-exercise-v2");
+        if (removeExercise && builder.children.length > 1) removeExercise.closest(".exercise-editor").remove();
+
+        const addSessionSet = event.target.closest(".add-session-set-v2");
+        if (addSessionSet) {
+          const index = Number(addSessionSet.dataset.exerciseIndex);
+          activeWorkoutV2.exercises[index].sets.push({ weight: "", reps: "", type: "Normal", rest: "90" });
+          renderSessionV2(activeWorkoutV2);
+          toastV2(`Nova série adicionada em ${activeWorkoutV2.exercises[index].name}.`);
+        }
+
+        const restPreset = event.target.closest(".rest-preset-v2");
+        if (restPreset) {
+          const row = restPreset.closest("tr");
+          row.querySelector(".session-rest").value = restPreset.dataset.rest;
+          startRestTimerV2(row);
+          toastV2(`Descanso de ${restPreset.dataset.rest}s iniciado.`);
+        }
+
+        const completeExercise = event.target.closest(".complete-exercise-v2");
+        if (completeExercise) completeExerciseV2(Number(completeExercise.dataset.exerciseIndex));
+
+        const setDone = event.target.closest(".set-done-v2");
+        if (setDone) {
+          setDone.classList.add("done");
+          setDone.textContent = "Concluída";
+          startRestTimerV2(setDone.closest("tr"));
+          toastV2("Série registrada. Descanso iniciado.");
+        }
+      });
+
+      renderWorkoutListV2();
+      renderSessionV2(activeWorkoutV2);
+      resetBuilderV2();
+
+      if ("serviceWorker" in navigator) {
+        navigator.serviceWorker.register("sw.js").catch(() => {});
+      }
+    })();
+  </script>
+</body>
+</html>
