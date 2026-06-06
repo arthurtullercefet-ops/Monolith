@@ -1,4 +1,4 @@
-<!doctype html>
+﻿<!doctype html>
 <html lang="pt-BR">
 <head>
   <meta charset="utf-8" />
@@ -142,6 +142,28 @@
       color: var(--muted);
       font-size: 12px;
       line-height: 1.45;
+    }
+
+    .language-select {
+      display: grid;
+      gap: 6px;
+      padding: 0 8px;
+    }
+
+    .language-select label {
+      color: var(--muted);
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+
+    .language-select select {
+      min-height: 36px;
+      border: 1px solid var(--line);
+      background: #101010;
+      color: var(--text);
+      padding: 0 10px;
+      width: 100%;
     }
 
     main {
@@ -454,7 +476,7 @@
     .exercise-table {
       width: 100%;
       border-collapse: collapse;
-      min-width: 760px;
+      min-width: 650px;
     }
 
     .session-exercise {
@@ -466,11 +488,11 @@
     }
 
     .exercise-table .weight-cell {
-      width: 150px;
+      width: 76px;
     }
 
     .exercise-table .reps-cell {
-      width: 104px;
+      width: 62px;
     }
 
     .exercise-table .type-cell {
@@ -478,7 +500,7 @@
     }
 
     .exercise-table .rest-cell {
-      width: 190px;
+      width: 142px;
     }
 
     .exercise-table .status-cell {
@@ -488,6 +510,29 @@
     .motivation-row td {
       border-bottom: 1px solid rgba(201, 162, 39, .25);
       padding: 8px 10px 12px;
+    }
+
+    .previous-row td {
+      padding: 0 10px 10px;
+      border-bottom: 1px solid rgba(138, 180, 255, .2);
+    }
+
+    .previous-strip {
+      border-left: 3px solid var(--blue);
+      background: rgba(138, 180, 255, .09);
+      color: #b8ccff;
+      padding: 8px 10px;
+      font-size: 12px;
+      line-height: 1.35;
+      display: flex;
+      justify-content: space-between;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .progress-hint {
+      color: var(--green);
+      font-weight: 800;
     }
 
     .motivation-strip {
@@ -591,6 +636,82 @@
       place-items: center;
       color: var(--muted);
       background: #101010;
+      font-size: 13px;
+    }
+
+    .photo-vault {
+      display: grid;
+      gap: 14px;
+    }
+
+    .photo-period {
+      display: grid;
+      gap: 10px;
+    }
+
+    .photo-period h4 {
+      margin: 0;
+      font-size: 14px;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+
+    .photo-card {
+      border: 1px solid var(--line);
+      background: #101010;
+      padding: 10px;
+      display: grid;
+      gap: 8px;
+    }
+
+    .photo-preview {
+      aspect-ratio: 3 / 4;
+      border: 1px dashed #444;
+      display: grid;
+      place-items: center;
+      color: var(--muted);
+      background: #0d0d0d;
+      overflow: hidden;
+      font-size: 13px;
+    }
+
+    .photo-preview img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      filter: blur(18px);
+      transform: scale(1.08);
+      transition: filter .18s ease, transform .18s ease;
+    }
+
+    .photo-preview.revealed img {
+      filter: none;
+      transform: scale(1);
+    }
+
+    .photo-card input {
+      width: 100%;
+      min-height: 38px;
+      border: 1px solid var(--line);
+      background: #0d0d0d;
+      color: var(--muted);
+      padding: 7px;
+      font-size: 12px;
+    }
+
+    .report-summary {
+      display: grid;
+      gap: 12px;
+      margin-top: 14px;
+    }
+
+    .report-line {
+      border: 1px solid var(--line);
+      background: #101010;
+      padding: 12px;
+      color: var(--muted);
+      line-height: 1.45;
       font-size: 13px;
     }
 
@@ -713,7 +834,7 @@
 
     .set-row {
       display: grid;
-      grid-template-columns: 52px minmax(80px, 1fr) minmax(80px, 1fr) minmax(120px, 1fr) minmax(90px, 1fr) auto;
+      grid-template-columns: 48px 72px 58px minmax(118px, 1fr) 70px auto;
       gap: 8px;
       align-items: center;
       margin-bottom: 8px;
@@ -753,7 +874,7 @@
 
     .rest-control {
       display: grid;
-      grid-template-columns: 72px auto;
+      grid-template-columns: 54px auto;
       gap: 8px;
       align-items: center;
     }
@@ -897,11 +1018,21 @@
       }
 
       .set-row {
-        grid-template-columns: 1fr 1fr;
+        grid-template-columns: 44px minmax(58px, .8fr) minmax(48px, .7fr);
+        gap: 7px;
       }
 
       .set-index {
-        grid-column: span 2;
+        grid-column: span 1;
+      }
+
+      .set-row .set-type,
+      .set-row .set-rest {
+        grid-column: span 3;
+      }
+
+      .set-row .remove-set-v2 {
+        grid-column: span 3;
       }
 
       .factor-form {
@@ -919,6 +1050,15 @@
           <h1>MONOLITH</h1>
           <p>Built One Day At A Time.</p>
         </div>
+      </div>
+
+      <div class="language-select">
+        <label for="languageSelect">Idioma</label>
+        <select id="languageSelect" aria-label="Idioma">
+          <option value="pt">Português</option>
+          <option value="en">English</option>
+          <option value="es">Español</option>
+        </select>
       </div>
 
       <nav aria-label="Principal">
@@ -1112,19 +1252,19 @@
         <div class="grid stats-layout">
           <div class="panel">
             <div class="section-title"><h3>Frequência</h3><span>Últimos 30 dias</span></div>
-            <div class="bars">
-              <div class="bar"><span><b>Treinos realizados</b><b>0</b></span><div class="track"><div class="fill" style="width: 0%"></div></div></div>
-              <div class="bar"><span><b>Cardio</b><b>0</b></span><div class="track"><div class="fill" style="width: 0%"></div></div></div>
-              <div class="bar"><span><b>Sono completo</b><b>0</b></span><div class="track"><div class="fill" style="width: 0%"></div></div></div>
-              <div class="bar"><span><b>Proteína suficiente</b><b>0</b></span><div class="track"><div class="fill" style="width: 0%"></div></div></div>
-            </div>
+            <div class="bars" id="frequencyBars"></div>
           </div>
           <div class="panel">
-            <div class="section-title"><h3>Fotos</h3><span>Local</span></div>
-            <div class="photo-grid">
-              <div class="photo-slot">Frente</div>
-              <div class="photo-slot">Lado</div>
-              <div class="photo-slot">Costas</div>
+            <div class="section-title"><h3>Fotos</h3><span>Protegidas</span></div>
+            <div class="photo-vault">
+              <div class="photo-period">
+                <h4>Mês passado</h4>
+                <div class="photo-grid" id="lastMonthPhotos"></div>
+              </div>
+              <div class="photo-period">
+                <h4>Este mês</h4>
+                <div class="photo-grid" id="currentMonthPhotos"></div>
+              </div>
             </div>
           </div>
         </div>
@@ -1134,16 +1274,16 @@
         <div class="topbar">
           <div>
             <h2>Backup e restauração</h2>
-            <div class="date">Exportação local sem nuvem obrigatória</div>
+            <div class="date">Relatório mensal para acompanhamento profissional</div>
           </div>
         </div>
         <div class="panel">
-          <div class="section-title"><h3>Exportar dados</h3><span>Treinos, histórico, fotos, estatísticas e check-ins</span></div>
+          <div class="section-title"><h3>Relatório mensal do aluno</h3><span>Estatísticas, check-ins dia a dia e treinos</span></div>
+          <div class="report-line" id="trainerReportSummary">Relatório pronto para personal trainer: frequência dos últimos 30 dias, rotina diária e resumo de treinos concluídos.</div>
           <div class="backup-row">
-            <button class="ghost export-btn" data-export="excel">Excel</button>
-            <button class="ghost export-btn" data-export="csv">CSV</button>
-            <button class="ghost export-btn" data-export="pdf">PDF</button>
-            <button class="ghost export-btn" data-export="monolith">.monolith</button>
+            <button class="action" id="openMonthlyReport" type="button">Abrir relatório mensal</button>
+            <button class="ghost export-btn" data-export="report">Baixar relatório HTML</button>
+            <button class="ghost export-btn" data-export="monolith">Backup .monolith</button>
             <button class="ghost" id="clearHistoryButton" type="button">Limpar histórico</button>
           </div>
         </div>
@@ -1213,6 +1353,93 @@
     }
 
     let factors = loadFactors();
+
+    const translations = {
+      en: {
+        "Idioma": "Language",
+        "Português": "Portuguese",
+        "Dashboard": "Dashboard",
+        "Check-in": "Check-in",
+        "Treinos": "Workouts",
+        "Programas": "Programs",
+        "Estatísticas": "Stats",
+        "Backup": "Backup",
+        "Dashboard diário": "Daily dashboard",
+        "Iniciar treino": "Start workout",
+        "Check-in diário": "Daily check-in",
+        "Salvar dia": "Save day",
+        "Adicionar tarefa diária": "Add daily task",
+        "Novo treino": "New workout",
+        "Estatísticas e evolução": "Stats and progress",
+        "Frequência": "Frequency",
+        "Últimos 30 dias": "Last 30 days",
+        "Fotos": "Photos",
+        "Protegidas": "Protected",
+        "Mês passado": "Last month",
+        "Este mês": "This month",
+        "Backup e restauração": "Backup and restore",
+        "Relatório mensal do aluno": "Monthly student report",
+        "Abrir relatório mensal": "Open monthly report",
+        "Baixar relatório HTML": "Download HTML report",
+        "Limpar histórico": "Clear history",
+        "Concluir treino": "Finish workout",
+        "Concluir exercício": "Finish exercise",
+        "Adicionar série": "Add set",
+        "Abrir sessão": "Open session",
+        "Excluir": "Delete",
+        "Selecionar": "Select",
+        "Selecionado": "Selected"
+      },
+      es: {
+        "Idioma": "Idioma",
+        "Português": "Portugués",
+        "Dashboard": "Panel",
+        "Check-in": "Check-in",
+        "Treinos": "Entrenos",
+        "Programas": "Programas",
+        "Estatísticas": "Estadísticas",
+        "Backup": "Backup",
+        "Dashboard diário": "Panel diario",
+        "Iniciar treino": "Iniciar entreno",
+        "Check-in diário": "Check-in diario",
+        "Salvar dia": "Guardar día",
+        "Adicionar tarefa diária": "Agregar tarea diaria",
+        "Novo treino": "Nuevo entreno",
+        "Estatísticas e evolução": "Estadísticas y evolución",
+        "Frequência": "Frecuencia",
+        "Últimos 30 dias": "Últimos 30 días",
+        "Fotos": "Fotos",
+        "Protegidas": "Protegidas",
+        "Mês passado": "Mes pasado",
+        "Este mês": "Este mes",
+        "Backup e restauração": "Backup y restauración",
+        "Relatório mensal do aluno": "Informe mensual del alumno",
+        "Abrir relatório mensal": "Abrir informe mensual",
+        "Baixar relatório HTML": "Descargar informe HTML",
+        "Limpar histórico": "Limpiar historial",
+        "Concluir treino": "Finalizar entreno",
+        "Concluir exercício": "Finalizar ejercicio",
+        "Adicionar série": "Agregar serie",
+        "Abrir sessão": "Abrir sesión",
+        "Excluir": "Eliminar",
+        "Selecionar": "Seleccionar",
+        "Selecionado": "Seleccionado"
+      }
+    };
+
+    function applyLanguage(language) {
+      localStorage.setItem("monolith.language", language);
+      document.documentElement.lang = language === "pt" ? "pt-BR" : language;
+      document.querySelectorAll("button, h2, h3, h4, label, span, option").forEach(element => {
+        const current = element.textContent.trim();
+        if (!element.dataset.i18nKey && (translations.en[current] || translations.es[current])) {
+          element.dataset.i18nKey = current;
+        }
+        const key = element.dataset.i18nKey;
+        if (!key) return;
+        element.textContent = language === "pt" ? key : translations[language]?.[key] || key;
+      });
+    }
 
     const workoutModal = document.getElementById("workoutModal");
     const workoutForm = document.getElementById("workoutForm");
@@ -1300,6 +1527,226 @@
       document.querySelector(".score-ring span").textContent = rows.length ? `${pointsPerItem} pts por fator` : "Sem fatores";
     }
 
+    function todayKey(date = new Date()) {
+      return date.toISOString().slice(0, 10);
+    }
+
+    function loadCheckins() {
+      try {
+        return JSON.parse(localStorage.getItem("monolith.checkins") || "[]");
+      } catch {
+        return [];
+      }
+    }
+
+    function saveCheckins(checkins) {
+      localStorage.setItem("monolith.checkins", JSON.stringify(checkins));
+    }
+
+    function factorCompleted(row, factor) {
+      const yesActive = row.querySelector(".yes.active");
+      const noActive = row.querySelector(".no.active");
+      return factor?.positive === false ? !!noActive : !!yesActive;
+    }
+
+    function readCurrentCheckin() {
+      const rows = [...document.querySelectorAll("#checkinGroups .habit")];
+      const items = rows.map(row => {
+        const factor = factors.find(item => item.id === row.dataset.factorId);
+        return {
+          id: row.dataset.factorId,
+          name: factor?.name || row.querySelector("span")?.textContent || "Item",
+          group: factor?.group || "Check-in",
+          positive: factor?.positive !== false,
+          answer: row.querySelector(".yes.active") ? "sim" : "nao",
+          completed: factorCompleted(row, factor)
+        };
+      });
+      const completed = items.filter(item => item.completed).length;
+      return {
+        date: todayKey(),
+        label: new Intl.DateTimeFormat("pt-BR", { dateStyle: "short" }).format(new Date()),
+        savedAt: new Date().toISOString(),
+        completed,
+        total: items.length,
+        score: items.length ? Math.round((completed / items.length) * 100) : 0,
+        items
+      };
+    }
+
+    function upsertTodayCheckin(entry) {
+      const checkins = loadCheckins().filter(item => item.date !== entry.date);
+      checkins.unshift(entry);
+      saveCheckins(checkins.slice(0, 365));
+      renderStats();
+      renderTrainerSummary();
+    }
+
+    function lastThirtyCheckins() {
+      const start = new Date();
+      start.setDate(start.getDate() - 29);
+      const startKey = todayKey(start);
+      return loadCheckins().filter(entry => entry.date >= startKey);
+    }
+
+    function renderStats() {
+      const container = document.getElementById("frequencyBars");
+      if (!container) return;
+      const checkins = lastThirtyCheckins();
+      container.innerHTML = "";
+      factors.forEach(factor => {
+        const appearances = checkins.filter(entry => entry.items?.some(item => item.id === factor.id));
+        const completed = appearances.filter(entry => entry.items?.some(item => item.id === factor.id && item.completed)).length;
+        const total = 30;
+        const percent = Math.round((completed / Math.max(1, total)) * 100);
+        const bar = document.createElement("div");
+        bar.className = "bar";
+        bar.innerHTML = `<span><b>${escapeHTML(factor.name)}</b><b>${completed}/${total} dias</b></span><div class="track"><div class="fill" style="width: ${percent}%"></div></div>`;
+        container.appendChild(bar);
+      });
+      if (!factors.length) container.innerHTML = `<div class="report-line">Adicione itens no check-in diário para começar a medir a frequência.</div>`;
+    }
+
+    function loadProgressPhotos() {
+      try {
+        return JSON.parse(localStorage.getItem("monolith.progressPhotos") || "{}");
+      } catch {
+        return {};
+      }
+    }
+
+    function saveProgressPhotos(photos) {
+      localStorage.setItem("monolith.progressPhotos", JSON.stringify(photos));
+    }
+
+    function readFileAsDataURL(file) {
+      return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => resolve(reader.result);
+        reader.onerror = reject;
+        reader.readAsDataURL(file);
+      });
+    }
+
+    function renderPhotoVault() {
+      const photoLabels = ["Frente", "Lado", "Costas"];
+      const photos = loadProgressPhotos();
+      const periods = [["last", document.getElementById("lastMonthPhotos")], ["current", document.getElementById("currentMonthPhotos")]];
+      periods.forEach(([period, container]) => {
+        if (!container) return;
+        container.innerHTML = "";
+        photoLabels.forEach(label => {
+          const key = label.toLowerCase();
+          const image = photos[period]?.[key];
+          const card = document.createElement("div");
+          card.className = "photo-card";
+          card.dataset.period = period;
+          card.dataset.slot = key;
+          card.innerHTML = `<div class="photo-preview">${image ? `<img src="${image}" alt="${label}" />` : `<span>${label}</span>`}</div><input type="file" accept="image/*" aria-label="Enviar foto ${label}" /><button class="ghost reveal-photo" type="button" ${image ? "" : "disabled"}>Ver foto</button>`;
+          container.appendChild(card);
+        });
+      });
+    }
+
+    function reportNumber(value) {
+      const parsed = Number(String(value || "").replace(",", "."));
+      return Number.isFinite(parsed) ? parsed : 0;
+    }
+
+    function setVolume(set) {
+      return reportNumber(set.weight) * reportNumber(set.reps);
+    }
+
+    function estimatedOneRepMax(set) {
+      const weight = reportNumber(set.weight);
+      const reps = reportNumber(set.reps);
+      return weight && reps ? weight * (1 + reps / 30) : 0;
+    }
+
+    function sessionExerciseScore(exercise) {
+      const sets = exercise.sets || [];
+      const volume = sets.reduce((total, set) => total + setVolume(set), 0);
+      const bestE1rm = Math.max(0, ...sets.map(estimatedOneRepMax));
+      const bestSet = sets.reduce((best, set) => {
+        return estimatedOneRepMax(set) > estimatedOneRepMax(best || {}) ? set : best;
+      }, null);
+      return { volume, bestE1rm, bestSet };
+    }
+
+    function exerciseEvolutionReport(completedWorkouts) {
+      const grouped = {};
+      [...completedWorkouts].reverse().forEach(session => {
+        (session.exercises || []).forEach(exercise => {
+          const key = String(exercise.name || "").trim().toLowerCase();
+          if (!key) return;
+          grouped[key] = grouped[key] || { name: exercise.name, records: [] };
+          grouped[key].records.push({
+            date: session.date || session.completedAt || "-",
+            workoutName: session.workoutName || "Treino",
+            ...sessionExerciseScore(exercise)
+          });
+        });
+      });
+      const rows = Object.values(grouped).filter(item => item.records.length >= 2).map(item => {
+        const first = item.records[0];
+        const latest = item.records[item.records.length - 1];
+        const best = item.records.reduce((winner, record) => record.bestE1rm > winner.bestE1rm ? record : winner, first);
+        const volumeDelta = latest.volume - first.volume;
+        const strengthDelta = latest.bestE1rm - first.bestE1rm;
+        const percent = first.volume ? Math.round((volumeDelta / first.volume) * 100) : 0;
+        return { ...item, first, latest, best, volumeDelta, strengthDelta, percent };
+      });
+      return {
+        topGains: rows.filter(item => item.volumeDelta > 0 || item.strengthDelta > 0).sort((a, b) => (b.percent - a.percent) || (b.strengthDelta - a.strengthDelta)).slice(0, 5),
+        topDrops: rows.filter(item => item.volumeDelta < 0 || item.strengthDelta < 0).sort((a, b) => (a.percent - b.percent) || (a.strengthDelta - b.strengthDelta)).slice(0, 5)
+      };
+    }
+
+    function monthlyReportData() {
+      const checkins = lastThirtyCheckins();
+      const completedWorkouts = JSON.parse(localStorage.getItem("monolith.completedWorkouts") || "[]");
+      const stats = factors.map(factor => {
+        const appearances = checkins.filter(entry => entry.items?.some(item => item.id === factor.id));
+        const completed = appearances.filter(entry => entry.items?.some(item => item.id === factor.id && item.completed)).length;
+        return { name: factor.name, completed, total: 30 };
+      });
+      const evolution = exerciseEvolutionReport(completedWorkouts);
+      return { checkins, completedWorkouts, stats, evolution, generatedAt: new Date().toLocaleString("pt-BR") };
+    }
+
+    function monthlyReportHTML() {
+      const report = monthlyReportData();
+      const statsRows = report.stats.map(item => `<tr><td>${escapeHTML(item.name)}</td><td>${item.completed}/${item.total}</td><td>${Math.round((item.completed / Math.max(1, item.total)) * 100)}%</td></tr>`).join("");
+      const dayRows = report.checkins.map(day => `<tr><td>${escapeHTML(day.label || day.date)}</td><td>${day.completed}/${day.total}</td><td>${day.score}%</td><td>${day.items.map(item => `${escapeHTML(item.name)}: ${item.completed ? "ok" : "não"}`).join("<br>")}</td></tr>`).join("");
+      const workoutRows = report.completedWorkouts.slice(0, 30).map(session => `<tr><td>${escapeHTML(session.date || session.completedAt || "-")}</td><td>${escapeHTML(session.workoutName || "Treino")}</td><td>${session.completedSets || 0}/${session.totalSets || 0} séries</td></tr>`).join("");
+      const evolutionRow = item => `<tr><td>${escapeHTML(item.name)}</td><td>${escapeHTML(item.first.date)}</td><td>${Math.round(item.first.volume)} vol / ${Math.round(item.first.bestE1rm)}kg e1RM</td><td>${escapeHTML(item.latest.date)}</td><td>${Math.round(item.latest.volume)} vol / ${Math.round(item.latest.bestE1rm)}kg e1RM</td><td>${item.percent > 0 ? "+" : ""}${item.percent}%</td></tr>`;
+      const gainRows = report.evolution.topGains.map(evolutionRow).join("");
+      const dropRows = report.evolution.topDrops.map(evolutionRow).join("");
+      return `<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><title>Relatório mensal MONOLITH</title><style>body{font-family:Arial,sans-serif;margin:32px;color:#111}h1{margin-bottom:4px}table{width:100%;border-collapse:collapse;margin:18px 0}th,td{border:1px solid #ccc;padding:8px;text-align:left;vertical-align:top}th{background:#eee}.muted{color:#666}.gain{color:#137333;font-weight:700}.drop{color:#b3261e;font-weight:700}@media print{button{display:none}}</style></head><body><button onclick="window.print()">Salvar como PDF</button><h1>Relatório mensal MONOLITH</h1><p class="muted">Gerado em ${escapeHTML(report.generatedAt)}. Use o botão do navegador para salvar como PDF.</p><h2>Top 5 maiores evoluções</h2><table><thead><tr><th>Exercício</th><th>Base</th><th>Primeiro registro</th><th>Atual</th><th>Último registro</th><th>Delta</th></tr></thead><tbody>${gainRows || `<tr><td colspan="6">Ainda precisa de pelo menos duas sessões salvas do mesmo exercício.</td></tr>`}</tbody></table><h2>Top 5 maiores quedas</h2><table><thead><tr><th>Exercício</th><th>Base</th><th>Primeiro registro</th><th>Atual</th><th>Último registro</th><th>Delta</th></tr></thead><tbody>${dropRows || `<tr><td colspan="6">Nenhuma queda relevante detectada.</td></tr>`}</tbody></table><h2>Frequência dos últimos 30 dias</h2><table><thead><tr><th>Item</th><th>Concluído</th><th>Aderência</th></tr></thead><tbody>${statsRows || `<tr><td colspan="3">Sem check-ins salvos.</td></tr>`}</tbody></table><h2>Dia a dia</h2><table><thead><tr><th>Dia</th><th>Score</th><th>%</th><th>Itens</th></tr></thead><tbody>${dayRows || `<tr><td colspan="4">Sem check-ins salvos.</td></tr>`}</tbody></table><h2>Treinos concluídos</h2><table><thead><tr><th>Data</th><th>Treino</th><th>Séries</th></tr></thead><tbody>${workoutRows || `<tr><td colspan="3">Sem treinos concluídos salvos.</td></tr>`}</tbody></table></body></html>`;
+    }
+
+    function downloadTextFile(filename, type, content) {
+      const blob = new Blob([content], { type });
+      const link = document.createElement("a");
+      link.href = URL.createObjectURL(blob);
+      link.download = filename;
+      link.click();
+      URL.revokeObjectURL(link.href);
+    }
+
+    function openMonthlyReport() {
+      const reportWindow = window.open("", "_blank");
+      reportWindow.document.write(monthlyReportHTML());
+      reportWindow.document.close();
+    }
+
+    function renderTrainerSummary() {
+      const target = document.getElementById("trainerReportSummary");
+      if (!target) return;
+      const report = monthlyReportData();
+      const avg = report.checkins.length ? Math.round(report.checkins.reduce((total, item) => total + item.score, 0) / report.checkins.length) : 0;
+      target.textContent = `${report.checkins.length} check-ins nos últimos 30 dias, aderência média de ${avg}% e ${report.completedWorkouts.length} treinos concluídos registrados.`;
+    }
     function downloadExport(type) {
       const payload = {
         app: "MONOLITH",
@@ -1307,12 +1754,18 @@
         dailyScore: document.getElementById("score").textContent,
         workouts: storedWorkouts(),
         completedWorkouts: JSON.parse(localStorage.getItem("monolith.completedWorkouts") || "[]"),
-        selectedCoach: document.querySelector(".coach-card.selected h3")?.textContent || "Nenhum coach selecionado"
+        selectedCoach: document.querySelector(".coach-card.selected h3")?.textContent || "Nenhum coach selecionado",
+        checkins: loadCheckins(),
+        progressPhotos: loadProgressPhotos()
       };
+      if (type === "report" || type === "pdf") {
+        downloadTextFile("monolith-relatorio-mensal.html", "text/html;charset=utf-8", monthlyReportHTML());
+        showToast("Relatório mensal criado. Abra e salve como PDF pelo navegador.");
+        return;
+      }
       const config = {
         excel: ["monolith-export.xls", "application/vnd.ms-excel", "MONOLITH\tExport\nScore\t" + payload.dailyScore],
         csv: ["monolith-export.csv", "text/csv", "campo,valor\nscore," + payload.dailyScore + "\ncoach," + payload.selectedCoach],
-        pdf: ["monolith-export.pdf", "application/pdf", "%PDF-1.4\n% MONOLITH export preview\n1 0 obj <<>> endobj\ntrailer <<>>\n%%EOF"],
         monolith: ["backup.monolith", "application/json", JSON.stringify(payload, null, 2)]
       }[type];
       const blob = new Blob([config[2]], { type: config[1] });
@@ -1389,9 +1842,18 @@
         checkinGroups.appendChild(panel);
       });
       updateDailyScore();
+      renderStats();
+      renderTrainerSummary();
     }
 
     renderFactors();
+    renderPhotoVault();
+    renderStats();
+    renderTrainerSummary();
+    const languageSelect = document.getElementById("languageSelect");
+    languageSelect.value = localStorage.getItem("monolith.language") || "pt";
+    languageSelect.addEventListener("change", event => applyLanguage(event.target.value));
+    applyLanguage(languageSelect.value);
 
     function showScreen(id) {
       document.querySelectorAll(".screen").forEach(screen => screen.classList.toggle("active", screen.id === id));
@@ -1437,8 +1899,22 @@
         downloadExport(exportButton.dataset.export);
       }
 
+      const revealPhoto = event.target.closest(".reveal-photo");
+      if (revealPhoto) {
+        const preview = revealPhoto.closest(".photo-card").querySelector(".photo-preview");
+        preview.classList.toggle("revealed");
+        revealPhoto.textContent = preview.classList.contains("revealed") ? "Ocultar foto" : "Ver foto";
+      }
+
       const nav = event.target.closest("[data-screen]");
-      if (nav) showScreen(nav.dataset.screen);
+      if (nav) {
+        showScreen(nav.dataset.screen);
+        if (nav.dataset.screen === "stats") {
+          renderStats();
+          renderPhotoVault();
+        }
+        if (nav.dataset.screen === "backup") renderTrainerSummary();
+      }
 
       const jump = event.target.closest("[data-screen-jump]");
       if (jump) showScreen(jump.dataset.screenJump);
@@ -1465,13 +1941,28 @@
       showToast("Fator adicionado. Pontuação recalculada.");
     });
     document.getElementById("saveCheckin").addEventListener("click", () => {
-      const yesCount = document.querySelectorAll("#checkinGroups .yes.active").length;
-      const total = document.querySelectorAll("#checkinGroups .habit").length;
-      showToast(`Check-in salvo: ${yesCount}/${total} itens concluídos.`);
+      const entry = readCurrentCheckin();
+      upsertTodayCheckin(entry);
+      showToast(`Check-in salvo: ${entry.completed}/${entry.total} itens concluídos.`);
     });
     document.getElementById("clearHistoryButton").addEventListener("click", () => {
       localStorage.removeItem("monolith.completedWorkouts");
-      showToast("Histórico de treinos concluídos limpo.");
+      localStorage.removeItem("monolith.checkins");
+      renderStats();
+      renderTrainerSummary();
+      showToast("Histórico mensal limpo.");
+    });
+    document.getElementById("openMonthlyReport").addEventListener("click", openMonthlyReport);
+    document.addEventListener("change", async event => {
+      const input = event.target.closest(".photo-card input[type='file']");
+      if (!input || !input.files?.[0]) return;
+      const card = input.closest(".photo-card");
+      const photos = loadProgressPhotos();
+      photos[card.dataset.period] = photos[card.dataset.period] || {};
+      photos[card.dataset.period][card.dataset.slot] = await readFileAsDataURL(input.files[0]);
+      saveProgressPhotos(photos);
+      renderPhotoVault();
+      showToast("Foto salva protegida por blur.");
     });
     document.getElementById("finishExercise").addEventListener("click", () => {
       document.querySelectorAll(".set-done").forEach(button => {
@@ -1871,6 +2362,47 @@
         toastV2(`${workout.name} excluído.`);
       }
 
+      function normalizeExerciseNameV2(name = "") {
+        return String(name).trim().toLowerCase();
+      }
+
+      function numberValueV2(value) {
+        const parsed = Number(String(value || "").replace(",", "."));
+        return Number.isFinite(parsed) ? parsed : 0;
+      }
+
+      function previousExerciseForV2(name) {
+        const target = normalizeExerciseNameV2(name);
+        for (const session of loadCompletedWorkoutsV2()) {
+          const exercise = session.exercises?.find(item => normalizeExerciseNameV2(item.name) === target);
+          if (exercise) return { ...exercise, date: session.date || session.completedAt };
+        }
+        return null;
+      }
+
+      function progressMessageV2(previousSet, currentWeight, currentReps) {
+        if (!previousSet) return "";
+        const previousWeight = numberValueV2(previousSet.weight);
+        const previousReps = numberValueV2(previousSet.reps);
+        const weight = numberValueV2(currentWeight);
+        const reps = numberValueV2(currentReps);
+        if (!weight && !reps) return "Preencha hoje para comparar";
+        if (weight > previousWeight) return `Subiu carga: ${previousWeight || 0}kg -> ${weight}kg`;
+        if (weight === previousWeight && reps > previousReps) return `Subiu repetições: ${previousReps || 0} -> ${reps}`;
+        if (weight >= previousWeight && reps >= previousReps && (weight || reps)) return "Manteve ou igualou a melhor marca";
+        return "Abaixo do registro anterior";
+      }
+
+      function updateSetProgressV2(row) {
+        const previousRow = row.nextElementSibling;
+        if (!previousRow?.classList.contains("previous-row")) return;
+        const hint = previousRow.querySelector(".progress-hint");
+        hint.textContent = progressMessageV2({
+          weight: row.dataset.prevWeight,
+          reps: row.dataset.prevReps
+        }, row.querySelector(".session-weight").value, row.querySelector(".session-reps").value);
+      }
+
       function renderWorkoutListV2() {
         workoutListV2.innerHTML = "";
         workoutsV2.forEach(workout => {
@@ -1912,10 +2444,10 @@
         row.className = "set-row";
         row.innerHTML = `
           <span class="set-index">Série</span>
-          <input class="set-weight" placeholder="Peso" value="${html(set.weight || "")}" />
-          <input class="set-reps" placeholder="Reps" value="${html(set.reps || "")}" />
+          <input class="set-weight" placeholder="Peso" inputmode="decimal" maxlength="5" value="${html(set.weight || "")}" />
+          <input class="set-reps" placeholder="Reps" inputmode="numeric" maxlength="2" value="${html(set.reps || "")}" />
           <select class="set-type">${typeOptions(set.type)}</select>
-          <input class="set-rest" placeholder="Descanso s" value="${html(set.rest || "90")}" />
+          <input class="set-rest" placeholder="Descanso s" inputmode="numeric" maxlength="3" value="${html(set.rest || "90")}" />
           <button class="ghost remove-set-v2" type="button">Remover</button>
         `;
         sets.appendChild(row);
@@ -1967,16 +2499,19 @@
         };
       }
 
-      function sessionSetRowV2(exerciseIndex, setIndex, set = {}) {
+      function sessionSetRowV2(exerciseIndex, setIndex, set = {}, previousSet = null) {
+        const previousLine = previousSet
+          ? `<tr class="previous-row"><td colspan="6"><div class="previous-strip"><span>Anterior: ${html(previousSet.weight || "0")}kg x ${html(previousSet.reps || "0")} reps (${html(previousSet.type || "Normal")})</span><span class="progress-hint">Preencha hoje para comparar</span></div></td></tr>`
+          : "";
         return `
-          <tr data-exercise-index="${exerciseIndex}" data-set-index="${setIndex}">
+          <tr data-exercise-index="${exerciseIndex}" data-set-index="${setIndex}" data-prev-weight="${html(previousSet?.weight || "")}" data-prev-reps="${html(previousSet?.reps || "")}">
             <td class="series-cell">${setIndex + 1}</td>
-            <td class="weight-cell"><input class="session-weight" value="${html(set.weight || "")}" placeholder="Peso" /></td>
-            <td class="reps-cell"><input class="session-reps" value="${html(set.reps || "")}" placeholder="Reps" /></td>
+            <td class="weight-cell"><input class="session-weight" value="${html(set.weight || "")}" placeholder="Peso" inputmode="decimal" maxlength="5" /></td>
+            <td class="reps-cell"><input class="session-reps" value="${html(set.reps || "")}" placeholder="Reps" inputmode="numeric" maxlength="2" /></td>
             <td class="type-cell"><select class="session-type">${typeOptions(set.type)}</select></td>
             <td class="rest-cell">
               <div class="rest-control">
-                <input class="session-rest" value="${html(set.rest || "90")}" aria-label="Descanso em segundos" />
+                <input class="session-rest" value="${html(set.rest || "90")}" aria-label="Descanso em segundos" inputmode="numeric" maxlength="3" />
                 <span class="rest-timer">--:--</span>
               </div>
               <div class="rest-quick">
@@ -1987,7 +2522,7 @@
             </td>
             <td class="status-cell"><button class="ghost set-done-v2" type="button">Concluir série</button></td>
           </tr>
-        `;
+        ${previousLine}`;
       }
 
       function sessionMotivationRowV2(exerciseIndex, setIndex) {
@@ -2008,6 +2543,7 @@
         const container = document.getElementById("sessionExercises");
         container.innerHTML = "";
         workout.exercises.forEach((exercise, exerciseIndex) => {
+          const previousExercise = previousExerciseForV2(exercise.name);
           const block = document.createElement("article");
           block.className = "session-exercise";
           block.dataset.exerciseIndex = exerciseIndex;
@@ -2024,11 +2560,12 @@
             </div>
             <table class="exercise-table">
               <thead><tr><th class="series-cell">Série</th><th class="weight-cell">Peso</th><th class="reps-cell">Reps</th><th class="type-cell">Técnica</th><th class="rest-cell">Descanso</th><th class="status-cell">Status</th></tr></thead>
-              <tbody>${exercise.sets.map((set, setIndex) => sessionSetRowV2(exerciseIndex, setIndex, set) + (setIndex < exercise.sets.length - 1 ? sessionMotivationRowV2(exerciseIndex, setIndex) : "")).join("")}</tbody>
+              <tbody>${exercise.sets.map((set, setIndex) => sessionSetRowV2(exerciseIndex, setIndex, set, previousExercise?.sets?.[setIndex]) + (setIndex < exercise.sets.length - 1 ? sessionMotivationRowV2(exerciseIndex, setIndex) : "")).join("")}</tbody>
             </table>
           `;
           container.appendChild(block);
         });
+        document.querySelectorAll("#sessionExercises tr[data-set-index]").forEach(updateSetProgressV2);
         updateSessionProgressV2();
       }
 
@@ -2049,8 +2586,11 @@
         const completeButton = block.querySelector(".complete-exercise-v2");
         completeButton.classList.add("done");
         completeButton.textContent = "Exercício concluído";
+        const setRows = [...block.querySelectorAll("tbody tr[data-set-index]")];
+        const lastSetRow = setRows[setRows.length - 1];
+        if (lastSetRow) startRestTimerV2(lastSetRow);
         updateSessionProgressV2();
-        toastV2(`${activeWorkoutV2.exercises[index].name} concluído.`);
+        toastV2(`${activeWorkoutV2.exercises[index].name} concluído. Descanso entre exercícios iniciado.`);
       }
 
       function readCompletedSessionV2() {
@@ -2181,9 +2721,16 @@
         }
       });
 
+      document.addEventListener("input", event => {
+        if (event.target.matches(".session-weight, .session-reps")) {
+          updateSetProgressV2(event.target.closest("tr[data-set-index]"));
+        }
+      });
+
       renderWorkoutListV2();
       renderSessionV2(activeWorkoutV2);
       resetBuilderV2();
+      applyLanguage(localStorage.getItem("monolith.language") || "pt");
 
       if ("serviceWorker" in navigator) {
         navigator.serviceWorker.register("sw.js").catch(() => {});

@@ -1,0 +1,264 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>MONOLITH - Relatorio Mensal Demo</title>
+  <style>
+    :root {
+      --ink: #141414;
+      --muted: #666;
+      --line: #d8d8d8;
+      --gold: #b8911f;
+      --soft: #f6f3eb;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      background: #ececec;
+      color: var(--ink);
+      font-family: Arial, Helvetica, sans-serif;
+    }
+
+    .page {
+      width: min(960px, calc(100vw - 32px));
+      margin: 24px auto;
+      background: #fff;
+      padding: 34px;
+      box-shadow: 0 18px 60px rgba(0, 0, 0, .14);
+    }
+
+    header {
+      display: flex;
+      justify-content: space-between;
+      gap: 20px;
+      border-bottom: 3px solid var(--ink);
+      padding-bottom: 18px;
+      margin-bottom: 22px;
+    }
+
+    h1, h2, h3, p { margin-top: 0; }
+    h1 { font-size: 30px; letter-spacing: 1px; margin-bottom: 6px; }
+    h2 { font-size: 18px; margin: 24px 0 10px; }
+    h3 { font-size: 14px; margin-bottom: 6px; }
+    .muted { color: var(--muted); }
+    .brand { color: var(--gold); font-weight: 800; }
+
+    .metrics {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 10px;
+      margin-bottom: 18px;
+    }
+
+    .metric {
+      border: 1px solid var(--line);
+      background: var(--soft);
+      padding: 12px;
+      min-height: 86px;
+    }
+
+    .metric b {
+      display: block;
+      font-size: 25px;
+      margin-top: 12px;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 10px 0 18px;
+      font-size: 13px;
+    }
+
+    th, td {
+      border: 1px solid var(--line);
+      padding: 8px;
+      text-align: left;
+      vertical-align: top;
+    }
+
+    th { background: #f0f0f0; }
+
+    .photos {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 12px;
+    }
+
+    .photo {
+      border: 1px solid var(--line);
+      padding: 8px;
+      background: #fafafa;
+    }
+
+    .photo-art {
+      height: 210px;
+      display: grid;
+      place-items: center;
+      color: #fff;
+      font-weight: 700;
+      background:
+        radial-gradient(circle at 50% 24%, #f0c8a0 0 13px, transparent 14px),
+        linear-gradient(90deg, transparent 39%, #303030 40% 60%, transparent 61%),
+        linear-gradient(90deg, transparent 31%, #303030 32% 40%, transparent 41% 59%, #303030 60% 68%, transparent 69%),
+        linear-gradient(180deg, #202020, #585858);
+    }
+
+    .photo .caption {
+      display: flex;
+      justify-content: space-between;
+      margin-top: 8px;
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    .plans {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 10px;
+    }
+
+    .plan {
+      border: 1px solid var(--line);
+      padding: 10px;
+      background: #fff;
+    }
+
+    .plan strong { color: var(--gold); }
+
+    .note {
+      margin-top: 18px;
+      border-left: 4px solid var(--gold);
+      background: var(--soft);
+      padding: 12px;
+      color: #4a4024;
+      line-height: 1.45;
+    }
+
+    .gain { color: #137333; font-weight: 800; }
+    .drop { color: #b3261e; font-weight: 800; }
+
+    button {
+      border: 1px solid var(--ink);
+      background: var(--ink);
+      color: #fff;
+      min-height: 38px;
+      padding: 0 14px;
+      cursor: pointer;
+    }
+
+    @media print {
+      body { background: #fff; }
+      .page { width: auto; margin: 0; box-shadow: none; }
+      button { display: none; }
+    }
+
+    @media (max-width: 760px) {
+      header, .metrics, .photos, .plans { grid-template-columns: 1fr; display: grid; }
+    }
+  </style>
+</head>
+<body>
+  <main class="page">
+    <button onclick="window.print()">Salvar como PDF</button>
+    <header>
+      <div>
+        <div class="brand">MONOLITH</div>
+        <h1>Relatorio Mensal do Aluno</h1>
+        <p class="muted">Demo com dados fake - Maio/2026</p>
+      </div>
+      <div>
+        <p><strong>Aluno:</strong> Lucas Andrade</p>
+        <p><strong>Personal:</strong> Marina Costa</p>
+        <p><strong>Plano:</strong> Personal Trainer Plus</p>
+      </div>
+    </header>
+
+    <section class="metrics">
+      <div class="metric"><span>Check-ins salvos</span><b>27/30</b></div>
+      <div class="metric"><span>Aderencia media</span><b>84%</b></div>
+      <div class="metric"><span>Treinos concluidos</span><b>18</b></div>
+      <div class="metric"><span>Volume mensal</span><b>42.8t</b></div>
+    </section>
+
+    <h2>Top 5 Maiores Evolucoes do Aluno</h2>
+    <table>
+      <thead><tr><th>Exercicio</th><th>Primeira rodada</th><th>Melhor/atual</th><th>Evolucao</th><th>Leitura para o personal</th></tr></thead>
+      <tbody>
+        <tr><td>Leg Press 45</td><td>220kg x 8 reps</td><td>280kg x 10 reps</td><td class="gain">+59% volume</td><td>Grande resposta em membros inferiores.</td></tr>
+        <tr><td>Supino Inclinado</td><td>26kg x 8 reps</td><td>34kg x 9 reps</td><td class="gain">+47% volume</td><td>Peitoral subindo com tecnica consistente.</td></tr>
+        <tr><td>Puxada Alta</td><td>50kg x 10 reps</td><td>65kg x 11 reps</td><td class="gain">+43% volume</td><td>Costas evoluindo bem, manter amplitude.</td></tr>
+        <tr><td>Desenvolvimento Maquina</td><td>35kg x 8 reps</td><td>45kg x 9 reps</td><td class="gain">+45% volume</td><td>Ombro forte, cuidar recuperacao articular.</td></tr>
+        <tr><td>Rosca Scott</td><td>22kg x 9 reps</td><td>28kg x 10 reps</td><td class="gain">+41% volume</td><td>Braco respondeu ao bloco de progressao.</td></tr>
+      </tbody>
+    </table>
+
+    <h2>Top 5 Maiores Quedas ou Alertas</h2>
+    <table>
+      <thead><tr><th>Exercicio</th><th>Primeira rodada</th><th>Ultima semana</th><th>Queda</th><th>Leitura para o personal</th></tr></thead>
+      <tbody>
+        <tr><td>Agachamento Livre</td><td>100kg x 6 reps</td><td>90kg x 5 reps</td><td class="drop">-25% volume</td><td>Checar dor, sono ou fadiga sistemica.</td></tr>
+        <tr><td>Stiff</td><td>80kg x 8 reps</td><td>70kg x 7 reps</td><td class="drop">-23% volume</td><td>Posterior pode estar acumulando fadiga.</td></tr>
+        <tr><td>Remada Curvada</td><td>70kg x 8 reps</td><td>62kg x 8 reps</td><td class="drop">-11% volume</td><td>Possivel impacto lombar apos pernas.</td></tr>
+        <tr><td>Elevação Lateral</td><td>12kg x 15 reps</td><td>10kg x 13 reps</td><td class="drop">-28% volume</td><td>Ajustar volume de ombro na semana.</td></tr>
+        <tr><td>Triceps Testa</td><td>30kg x 10 reps</td><td>26kg x 9 reps</td><td class="drop">-22% volume</td><td>Cotovelo ou fadiga de empurrar.</td></tr>
+      </tbody>
+    </table>
+
+    <h2>Frequencia por Item do Check-in</h2>
+    <table>
+      <thead><tr><th>Item</th><th>Concluido</th><th>Aderencia</th><th>Leitura do personal</th></tr></thead>
+      <tbody>
+        <tr><td>Agua</td><td>28/30</td><td>93%</td><td>Consistencia excelente.</td></tr>
+        <tr><td>Treino</td><td>18/30</td><td>60%</td><td>Boa frequencia para hipertrofia, manter progressao.</td></tr>
+        <tr><td>Cardio</td><td>14/30</td><td>47%</td><td>Ponto de ajuste para o proximo bloco.</td></tr>
+        <tr><td>Sono suficiente</td><td>22/30</td><td>73%</td><td>Recuperacao aceitavel, ainda instavel nos fins de semana.</td></tr>
+        <tr><td>Proteina suficiente</td><td>25/30</td><td>83%</td><td>Base nutricional forte.</td></tr>
+      </tbody>
+    </table>
+
+    <h2>Dia a Dia</h2>
+    <table>
+      <thead><tr><th>Dia</th><th>Score</th><th>Resumo</th></tr></thead>
+      <tbody>
+        <tr><td>01/05</td><td>90%</td><td>Treino, agua, proteina e sono completos.</td></tr>
+        <tr><td>02/05</td><td>70%</td><td>Sem cardio, sono abaixo do planejado.</td></tr>
+        <tr><td>03/05</td><td>100%</td><td>Dia completo, melhor score da semana.</td></tr>
+        <tr><td>04/05</td><td>80%</td><td>Treino concluido, dieta dentro do plano.</td></tr>
+        <tr><td>05/05</td><td>60%</td><td>Sem treino, foco em recuperacao.</td></tr>
+      </tbody>
+    </table>
+
+    <h2>Fotos de Evolucao</h2>
+    <div class="photos">
+      <article class="photo">
+        <div class="photo-art">Frente</div>
+        <div class="caption"><span>Mes passado</span><span>82.4 kg</span></div>
+      </article>
+      <article class="photo">
+        <div class="photo-art">Lado</div>
+        <div class="caption"><span>Este mes</span><span>80.9 kg</span></div>
+      </article>
+      <article class="photo">
+        <div class="photo-art">Costas</div>
+        <div class="caption"><span>Comparativo</span><span>-1.5 kg</span></div>
+      </article>
+    </div>
+
+    <h2>Produtos e Formas do App</h2>
+    <div class="plans">
+      <div class="plan"><strong>Aluno</strong><p>US$ 3.99 inicial. Check-in, treinos, fotos e relatorios pessoais.</p></div>
+      <div class="plan"><strong>Influencer</strong><p>Free. Perfil publico, desafios e aquisicao de audiencia.</p></div>
+      <div class="plan"><strong>Personal Basic</strong><p>Carteira simples de alunos, relatorios mensais e acompanhamento.</p></div>
+      <div class="plan"><strong>Personal Plus</strong><p>Automacoes, produtos, funis, pagamentos e analise avancada.</p></div>
+    </div>
+
+    <div class="note">
+      Recomendacao do personal: manter treino de forca 4x/semana, subir cardio para 3x/semana e proteger a rotina de sono. O proximo ciclo deve priorizar consistencia antes de aumentar volume.
+    </div>
+  </main>
+</body>
+</html>
