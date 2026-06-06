@@ -157,13 +157,66 @@
       letter-spacing: 1px;
     }
 
-    .language-select select {
+    .language-buttons {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 6px;
+    }
+
+    .language-button {
       min-height: 36px;
       border: 1px solid var(--line);
       background: #101010;
       color: var(--text);
+      display: grid;
+      place-items: center;
+      cursor: pointer;
+      font-size: 17px;
+    }
+
+    .language-button.active {
+      border-color: var(--gold);
+      background: rgba(201, 162, 39, .12);
+    }
+
+    .language-button span {
+      font-size: 11px;
+      color: var(--muted);
+      margin-left: 4px;
+    }
+
+    .checkin-measure {
+      display: grid;
+      grid-template-columns: minmax(160px, .35fr) minmax(220px, 1fr);
+      gap: 12px;
+      align-items: end;
+      margin-bottom: 16px;
+    }
+
+    .measure-field {
+      display: grid;
+      gap: 6px;
+    }
+
+    .measure-field label {
+      color: var(--muted);
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+
+    .measure-field input {
+      min-height: 40px;
+      border: 1px solid var(--line);
+      background: #0d0d0d;
+      color: var(--text);
       padding: 0 10px;
-      width: 100%;
+    }
+
+    .measure-note {
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.45;
     }
 
     main {
@@ -1038,6 +1091,10 @@
       .factor-form {
         grid-template-columns: 1fr;
       }
+
+      .checkin-measure {
+        grid-template-columns: 1fr;
+      }
     }
   </style>
 </head>
@@ -1053,12 +1110,12 @@
       </div>
 
       <div class="language-select">
-        <label for="languageSelect">Idioma</label>
-        <select id="languageSelect" aria-label="Idioma">
-          <option value="pt">Português</option>
-          <option value="en">English</option>
-          <option value="es">Español</option>
-        </select>
+        <label data-i18n="Idioma">Idioma</label>
+        <div class="language-buttons" id="languageSelect" aria-label="Idioma">
+          <button class="language-button" type="button" data-lang="pt" title="Português">🇧🇷<span>PT</span></button>
+          <button class="language-button" type="button" data-lang="en" title="English">🇺🇸<span>EN</span></button>
+          <button class="language-button" type="button" data-lang="es" title="Español">🇪🇸<span>ES</span></button>
+        </div>
       </div>
 
       <nav aria-label="Principal">
@@ -1143,6 +1200,13 @@
           <button class="action" id="saveCheckin">Salvar dia</button>
         </div>
         <div class="panel">
+          <div class="checkin-measure">
+            <div class="measure-field">
+              <label for="dailyWeight">Peso de hoje</label>
+              <input id="dailyWeight" inputmode="decimal" placeholder="Ex: 82.4" />
+            </div>
+            <div class="measure-note">O peso entra no relatório mensal e ajuda o personal a ver evolução, retenção e queda dia a dia.</div>
+          </div>
           <div class="section-title"><h3>Adicionar tarefa diária</h3><span>O score se ajusta sozinho</span></div>
           <form class="factor-form" id="factorForm">
             <input id="factorName" placeholder="Ex: Medir açúcar?" />
@@ -1388,7 +1452,44 @@
         "Abrir sessão": "Open session",
         "Excluir": "Delete",
         "Selecionar": "Select",
-        "Selecionado": "Selected"
+        "Selecionado": "Selected",
+        "Resumo rápido": "Quick summary",
+        "Hoje": "Today",
+        "Água": "Water",
+        "Dormi o suficiente?": "Slept enough?",
+        "Acordei descansado?": "Woke up rested?",
+        "Treinei?": "Trained?",
+        "Fiz cardio?": "Did cardio?",
+        "Comi proteína suficiente?": "Ate enough protein?",
+        "Almoço dentro da dieta?": "Lunch on diet?",
+        "Janta dentro da dieta?": "Dinner on diet?",
+        "Açúcar controlado?": "Sugar controlled?",
+        "Tomei vitaminas?": "Took vitamins?",
+        "Próximo treino": "Next workout",
+        "Escolher": "Choose",
+        "Sequência": "Streak",
+        "Recordes": "Records",
+        "Volume semanal": "Weekly volume",
+        "Plano diário": "Daily plan",
+        "Construa o monumento.": "Build the monument.",
+        "Seu objetivo é superar a sessão anterior. Uma carga melhor, uma repetição melhor, uma execução mais limpa.": "Your goal is to beat the previous session. Better load, better reps, cleaner execution.",
+        "Excelente": "Excellent",
+        "100% offline": "100% offline",
+        "Dados, fotos, treinos, histórico e programas salvos localmente no aparelho.": "Data, photos, workouts, history and programs saved locally on the device.",
+        "Peso de hoje": "Today's weight",
+        "O peso entra no relatório mensal e ajuda o personal a ver evolução, retenção e queda dia a dia.": "Weight goes into the monthly report and helps the trainer see progress, retention and daily drops.",
+        "Execução do plano físico e mental": "Physical and mental plan execution",
+        "O score se ajusta sozinho": "The score adjusts automatically",
+        "Adicionar": "Add",
+        "Ver foto": "View photo",
+        "Ocultar foto": "Hide photo",
+        "Frente": "Front",
+        "Lado": "Side",
+        "Costas": "Back",
+        "Relatório pronto para personal trainer: frequência dos últimos 30 dias, rotina diária e resumo de treinos concluídos.": "Trainer-ready report: last 30 days frequency, daily routine and completed workout summary.",
+        "Relatório mensal pronto para personal trainer: estatísticas, check-ins dia a dia e resumo de treinos.": "Monthly report ready for trainers: stats, daily check-ins and workout summary.",
+        "Relatório mensal criado. Abra e salve como PDF pelo navegador.": "Monthly report created. Open it and save as PDF in the browser.",
+        "Peso não registrado": "Weight not recorded"
       },
       es: {
         "Idioma": "Idioma",
@@ -1423,21 +1524,68 @@
         "Abrir sessão": "Abrir sesión",
         "Excluir": "Eliminar",
         "Selecionar": "Seleccionar",
-        "Selecionado": "Seleccionado"
+        "Selecionado": "Seleccionado",
+        "Resumo rápido": "Resumen rápido",
+        "Hoje": "Hoy",
+        "Água": "Agua",
+        "Dormi o suficiente?": "¿Dormí lo suficiente?",
+        "Acordei descansado?": "¿Me desperté descansado?",
+        "Treinei?": "¿Entrené?",
+        "Fiz cardio?": "¿Hice cardio?",
+        "Comi proteína suficiente?": "¿Comí suficiente proteína?",
+        "Almoço dentro da dieta?": "¿Almuerzo dentro de la dieta?",
+        "Janta dentro da dieta?": "¿Cena dentro de la dieta?",
+        "Açúcar controlado?": "¿Azúcar controlado?",
+        "Tomei vitaminas?": "¿Tomé vitaminas?",
+        "Próximo treino": "Próximo entreno",
+        "Escolher": "Elegir",
+        "Sequência": "Racha",
+        "Recordes": "Récords",
+        "Volume semanal": "Volumen semanal",
+        "Plano diário": "Plan diario",
+        "Construa o monumento.": "Construye el monumento.",
+        "Seu objetivo é superar a sessão anterior. Uma carga melhor, uma repetição melhor, uma execução mais limpa.": "Tu objetivo es superar la sesión anterior. Mejor carga, mejores repeticiones, ejecución más limpia.",
+        "Excelente": "Excelente",
+        "100% offline": "100% offline",
+        "Dados, fotos, treinos, histórico e programas salvos localmente no aparelho.": "Datos, fotos, entrenos, historial y programas guardados localmente en el dispositivo.",
+        "Peso de hoje": "Peso de hoy",
+        "O peso entra no relatório mensal e ajuda o personal a ver evolução, retenção e queda dia a dia.": "El peso entra en el informe mensual y ayuda al entrenador a ver evolución, retención y bajadas día a día.",
+        "Execução do plano físico e mental": "Ejecución del plan físico y mental",
+        "O score se ajusta sozinho": "El score se ajusta solo",
+        "Adicionar": "Agregar",
+        "Ver foto": "Ver foto",
+        "Ocultar foto": "Ocultar foto",
+        "Frente": "Frente",
+        "Lado": "Lado",
+        "Costas": "Espalda",
+        "Relatório pronto para personal trainer: frequência dos últimos 30 dias, rotina diária e resumo de treinos concluídos.": "Informe listo para entrenador: frecuencia de los últimos 30 días, rutina diaria y resumen de entrenos completados.",
+        "Relatório mensal pronto para personal trainer: estatísticas, check-ins dia a dia e resumo de treinos.": "Informe mensual listo para entrenadores: estadísticas, check-ins diarios y resumen de entrenos.",
+        "Relatório mensal criado. Abra e salve como PDF pelo navegador.": "Informe mensual creado. Ábrelo y guárdalo como PDF en el navegador.",
+        "Peso não registrado": "Peso no registrado"
       }
     };
+
+    function t(key, language = localStorage.getItem("monolith.language") || "pt") {
+      return language === "pt" ? key : translations[language]?.[key] || key;
+    }
 
     function applyLanguage(language) {
       localStorage.setItem("monolith.language", language);
       document.documentElement.lang = language === "pt" ? "pt-BR" : language;
-      document.querySelectorAll("button, h2, h3, h4, label, span, option").forEach(element => {
+      document.querySelectorAll(".language-button").forEach(button => {
+        button.classList.toggle("active", button.dataset.lang === language);
+      });
+      document.querySelectorAll("button:not(.language-button), h2, h3, h4, label, span, option, p, strong, .kicker, .hero-title, .quote, .measure-note, .report-line").forEach(element => {
         const current = element.textContent.trim();
         if (!element.dataset.i18nKey && (translations.en[current] || translations.es[current])) {
           element.dataset.i18nKey = current;
         }
-        const key = element.dataset.i18nKey;
+        const key = element.dataset.i18nKey || element.dataset.i18n;
         if (!key) return;
         element.textContent = language === "pt" ? key : translations[language]?.[key] || key;
+      });
+      document.querySelectorAll("[data-i18n-placeholder]").forEach(element => {
+        element.placeholder = t(element.dataset.i18nPlaceholder, language);
       });
     }
 
@@ -1563,10 +1711,12 @@
         };
       });
       const completed = items.filter(item => item.completed).length;
+      const weight = document.getElementById("dailyWeight")?.value.trim() || "";
       return {
         date: todayKey(),
         label: new Intl.DateTimeFormat("pt-BR", { dateStyle: "short" }).format(new Date()),
         savedAt: new Date().toISOString(),
+        weight,
         completed,
         total: items.length,
         score: items.length ? Math.round((completed / items.length) * 100) : 0,
@@ -1589,6 +1739,29 @@
       return loadCheckins().filter(entry => entry.date >= startKey);
     }
 
+    function lastThirtyDateKeys() {
+      return Array.from({ length: 30 }, (_, index) => {
+        const date = new Date();
+        date.setDate(date.getDate() - (29 - index));
+        return todayKey(date);
+      });
+    }
+
+    function missedCheckinDays(checkins = lastThirtyCheckins()) {
+      const saved = new Set(checkins.map(entry => entry.date));
+      return lastThirtyDateKeys().filter(date => !saved.has(date));
+    }
+
+    function weightSeries(checkins = lastThirtyCheckins()) {
+      return checkins
+        .filter(entry => Number.isFinite(Number(String(entry.weight || "").replace(",", "."))))
+        .map(entry => ({
+          date: entry.label || entry.date,
+          value: Number(String(entry.weight).replace(",", "."))
+        }))
+        .sort((a, b) => a.date.localeCompare(b.date));
+    }
+
     function renderStats() {
       const container = document.getElementById("frequencyBars");
       if (!container) return;
@@ -1601,7 +1774,7 @@
         const percent = Math.round((completed / Math.max(1, total)) * 100);
         const bar = document.createElement("div");
         bar.className = "bar";
-        bar.innerHTML = `<span><b>${escapeHTML(factor.name)}</b><b>${completed}/${total} dias</b></span><div class="track"><div class="fill" style="width: ${percent}%"></div></div>`;
+        bar.innerHTML = `<span><b>${escapeHTML(t(factor.name))}</b><b>${completed}/${total} dias</b></span><div class="track"><div class="fill" style="width: ${percent}%"></div></div>`;
         container.appendChild(bar);
       });
       if (!factors.length) container.innerHTML = `<div class="report-line">Adicione itens no check-in diário para começar a medir a frequência.</div>`;
@@ -1642,7 +1815,7 @@
           card.className = "photo-card";
           card.dataset.period = period;
           card.dataset.slot = key;
-          card.innerHTML = `<div class="photo-preview">${image ? `<img src="${image}" alt="${label}" />` : `<span>${label}</span>`}</div><input type="file" accept="image/*" aria-label="Enviar foto ${label}" /><button class="ghost reveal-photo" type="button" ${image ? "" : "disabled"}>Ver foto</button>`;
+          card.innerHTML = `<div class="photo-preview">${image ? `<img src="${image}" alt="${t(label)}" />` : `<span>${t(label)}</span>`}</div><input type="file" accept="image/*" aria-label="Enviar foto ${t(label)}" /><button class="ghost reveal-photo" type="button" ${image ? "" : "disabled"}>${t("Ver foto")}</button>`;
           container.appendChild(card);
         });
       });
@@ -1711,18 +1884,29 @@
         return { name: factor.name, completed, total: 30 };
       });
       const evolution = exerciseEvolutionReport(completedWorkouts);
-      return { checkins, completedWorkouts, stats, evolution, generatedAt: new Date().toLocaleString("pt-BR") };
+      const missedDays = missedCheckinDays(checkins);
+      const weights = weightSeries(checkins);
+      return { checkins, completedWorkouts, stats, evolution, missedDays, weights, generatedAt: new Date().toLocaleString("pt-BR") };
     }
 
     function monthlyReportHTML() {
       const report = monthlyReportData();
       const statsRows = report.stats.map(item => `<tr><td>${escapeHTML(item.name)}</td><td>${item.completed}/${item.total}</td><td>${Math.round((item.completed / Math.max(1, item.total)) * 100)}%</td></tr>`).join("");
-      const dayRows = report.checkins.map(day => `<tr><td>${escapeHTML(day.label || day.date)}</td><td>${day.completed}/${day.total}</td><td>${day.score}%</td><td>${day.items.map(item => `${escapeHTML(item.name)}: ${item.completed ? "ok" : "não"}`).join("<br>")}</td></tr>`).join("");
+      const dayRows = report.checkins.map(day => `<tr><td>${escapeHTML(day.label || day.date)}</td><td>${day.weight ? `${escapeHTML(day.weight)} kg` : "Peso não registrado"}</td><td>${day.completed}/${day.total}</td><td>${day.score}%</td><td>${day.items.map(item => `${escapeHTML(item.name)}: ${item.completed ? "ok" : "não"}`).join("<br>")}</td></tr>`).join("");
       const workoutRows = report.completedWorkouts.slice(0, 30).map(session => `<tr><td>${escapeHTML(session.date || session.completedAt || "-")}</td><td>${escapeHTML(session.workoutName || "Treino")}</td><td>${session.completedSets || 0}/${session.totalSets || 0} séries</td></tr>`).join("");
       const evolutionRow = item => `<tr><td>${escapeHTML(item.name)}</td><td>${escapeHTML(item.first.date)}</td><td>${Math.round(item.first.volume)} vol / ${Math.round(item.first.bestE1rm)}kg e1RM</td><td>${escapeHTML(item.latest.date)}</td><td>${Math.round(item.latest.volume)} vol / ${Math.round(item.latest.bestE1rm)}kg e1RM</td><td>${item.percent > 0 ? "+" : ""}${item.percent}%</td></tr>`;
       const gainRows = report.evolution.topGains.map(evolutionRow).join("");
       const dropRows = report.evolution.topDrops.map(evolutionRow).join("");
-      return `<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><title>Relatório mensal MONOLITH</title><style>body{font-family:Arial,sans-serif;margin:32px;color:#111}h1{margin-bottom:4px}table{width:100%;border-collapse:collapse;margin:18px 0}th,td{border:1px solid #ccc;padding:8px;text-align:left;vertical-align:top}th{background:#eee}.muted{color:#666}.gain{color:#137333;font-weight:700}.drop{color:#b3261e;font-weight:700}@media print{button{display:none}}</style></head><body><button onclick="window.print()">Salvar como PDF</button><h1>Relatório mensal MONOLITH</h1><p class="muted">Gerado em ${escapeHTML(report.generatedAt)}. Use o botão do navegador para salvar como PDF.</p><h2>Top 5 maiores evoluções</h2><table><thead><tr><th>Exercício</th><th>Base</th><th>Primeiro registro</th><th>Atual</th><th>Último registro</th><th>Delta</th></tr></thead><tbody>${gainRows || `<tr><td colspan="6">Ainda precisa de pelo menos duas sessões salvas do mesmo exercício.</td></tr>`}</tbody></table><h2>Top 5 maiores quedas</h2><table><thead><tr><th>Exercício</th><th>Base</th><th>Primeiro registro</th><th>Atual</th><th>Último registro</th><th>Delta</th></tr></thead><tbody>${dropRows || `<tr><td colspan="6">Nenhuma queda relevante detectada.</td></tr>`}</tbody></table><h2>Frequência dos últimos 30 dias</h2><table><thead><tr><th>Item</th><th>Concluído</th><th>Aderência</th></tr></thead><tbody>${statsRows || `<tr><td colspan="3">Sem check-ins salvos.</td></tr>`}</tbody></table><h2>Dia a dia</h2><table><thead><tr><th>Dia</th><th>Score</th><th>%</th><th>Itens</th></tr></thead><tbody>${dayRows || `<tr><td colspan="4">Sem check-ins salvos.</td></tr>`}</tbody></table><h2>Treinos concluídos</h2><table><thead><tr><th>Data</th><th>Treino</th><th>Séries</th></tr></thead><tbody>${workoutRows || `<tr><td colspan="3">Sem treinos concluídos salvos.</td></tr>`}</tbody></table></body></html>`;
+      const minWeight = Math.min(...report.weights.map(item => item.value));
+      const maxWeight = Math.max(...report.weights.map(item => item.value));
+      const weightBars = report.weights.map(item => {
+        const range = Math.max(.1, maxWeight - minWeight);
+        const height = Math.max(8, Math.round(((item.value - minWeight) / range) * 84) + 8);
+        return `<div class="wbar" style="height:${height}px"><b>${item.value}kg</b><span>${escapeHTML(item.date)}</span></div>`;
+      }).join("");
+      const missedPreview = report.missedDays.slice(-7).map(day => escapeHTML(day)).join(", ");
+      const alertLevel = report.missedDays.length >= 5 ? "drop" : "gain";
+      return `<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><title>Relatório mensal MONOLITH</title><style>body{font-family:Arial,sans-serif;margin:32px;color:#111}h1{margin-bottom:4px}table{width:100%;border-collapse:collapse;margin:18px 0}th,td{border:1px solid #ccc;padding:8px;text-align:left;vertical-align:top}th{background:#eee}.muted{color:#666}.gain{color:#137333;font-weight:700}.drop{color:#b3261e;font-weight:700}.alert{border-left:4px solid #b8911f;background:#f6f3eb;padding:12px;margin:14px 0}.weight-chart{height:140px;display:flex;align-items:end;gap:8px;border:1px solid #ccc;padding:12px;margin:12px 0}.wbar{min-width:54px;background:#b8911f;display:flex;flex-direction:column;justify-content:space-between;color:#111;padding:4px;font-size:10px}.wbar span{writing-mode:vertical-rl;transform:rotate(180deg);opacity:.7}@media print{button{display:none}}</style></head><body><button onclick="window.print()">Salvar como PDF</button><h1>Relatório mensal MONOLITH</h1><p class="muted">Gerado em ${escapeHTML(report.generatedAt)}. Use o botão do navegador para salvar como PDF.</p><h2>Alerta de check-in para o personal</h2><div class="alert"><strong class="${alertLevel}">${report.missedDays.length} dias sem check-in nos últimos 30 dias.</strong><br>${report.missedDays.length ? `Dias recentes sem registro: ${missedPreview}` : "Aluno manteve check-in completo no período."}</div><h2>Evolução de peso</h2>${weightBars ? `<div class="weight-chart">${weightBars}</div>` : `<p class="muted">Ainda não há pesos salvos no check-in diário.</p>`}<h2>Top 5 maiores evoluções</h2><table><thead><tr><th>Exercício</th><th>Base</th><th>Primeiro registro</th><th>Atual</th><th>Último registro</th><th>Delta</th></tr></thead><tbody>${gainRows || `<tr><td colspan="6">Ainda precisa de pelo menos duas sessões salvas do mesmo exercício.</td></tr>`}</tbody></table><h2>Top 5 maiores quedas</h2><table><thead><tr><th>Exercício</th><th>Base</th><th>Primeiro registro</th><th>Atual</th><th>Último registro</th><th>Delta</th></tr></thead><tbody>${dropRows || `<tr><td colspan="6">Nenhuma queda relevante detectada.</td></tr>`}</tbody></table><h2>Frequência dos últimos 30 dias</h2><table><thead><tr><th>Item</th><th>Concluído</th><th>Aderência</th></tr></thead><tbody>${statsRows || `<tr><td colspan="3">Sem check-ins salvos.</td></tr>`}</tbody></table><h2>Dia a dia</h2><table><thead><tr><th>Dia</th><th>Peso</th><th>Score</th><th>%</th><th>Itens</th></tr></thead><tbody>${dayRows || `<tr><td colspan="5">Sem check-ins salvos.</td></tr>`}</tbody></table><h2>Treinos concluídos</h2><table><thead><tr><th>Data</th><th>Treino</th><th>Séries</th></tr></thead><tbody>${workoutRows || `<tr><td colspan="3">Sem treinos concluídos salvos.</td></tr>`}</tbody></table></body></html>`;
     }
 
     function downloadTextFile(filename, type, content) {
@@ -1745,7 +1929,7 @@
       if (!target) return;
       const report = monthlyReportData();
       const avg = report.checkins.length ? Math.round(report.checkins.reduce((total, item) => total + item.score, 0) / report.checkins.length) : 0;
-      target.textContent = `${report.checkins.length} check-ins nos últimos 30 dias, aderência média de ${avg}% e ${report.completedWorkouts.length} treinos concluídos registrados.`;
+      target.textContent = `${report.checkins.length} check-ins nos últimos 30 dias, aderência média de ${avg}%, ${report.completedWorkouts.length} treinos concluídos e ${report.missedDays.length} dias sem check-in para o personal acompanhar.`;
     }
     function downloadExport(type) {
       const payload = {
@@ -1790,7 +1974,7 @@
       row.className = "habit";
       row.dataset.factorId = factor.id;
       row.innerHTML = `
-        <span>${escapeHTML(factor.name)}</span>
+        <span>${escapeHTML(t(factor.name))}</span>
         <button class="toggle yes ${factor.active ? "active" : ""}" aria-label="${escapeHTML(factor.name)} sim">✓</button>
         <button class="toggle no ${factor.active ? "" : "active"}" aria-label="${escapeHTML(factor.name)} não">×</button>
         ${removable ? `<button class="remove-factor" type="button" aria-label="Remover ${escapeHTML(factor.name)}">DEL</button>` : ""}
@@ -1851,9 +2035,16 @@
     renderStats();
     renderTrainerSummary();
     const languageSelect = document.getElementById("languageSelect");
-    languageSelect.value = localStorage.getItem("monolith.language") || "pt";
-    languageSelect.addEventListener("change", event => applyLanguage(event.target.value));
-    applyLanguage(languageSelect.value);
+    const currentLanguage = localStorage.getItem("monolith.language") || "pt";
+    languageSelect.addEventListener("click", event => {
+      const button = event.target.closest(".language-button");
+      if (!button) return;
+      applyLanguage(button.dataset.lang);
+      renderFactors();
+      renderStats();
+      renderPhotoVault();
+    });
+    applyLanguage(currentLanguage);
 
     function showScreen(id) {
       document.querySelectorAll(".screen").forEach(screen => screen.classList.toggle("active", screen.id === id));
@@ -1943,6 +2134,7 @@
     document.getElementById("saveCheckin").addEventListener("click", () => {
       const entry = readCurrentCheckin();
       upsertTodayCheckin(entry);
+      document.getElementById("dailyWeight").value = "";
       showToast(`Check-in salvo: ${entry.completed}/${entry.total} itens concluídos.`);
     });
     document.getElementById("clearHistoryButton").addEventListener("click", () => {

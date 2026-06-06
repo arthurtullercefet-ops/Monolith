@@ -141,6 +141,44 @@
     .gain { color: #137333; font-weight: 800; }
     .drop { color: #b3261e; font-weight: 800; }
 
+    .alert {
+      border-left: 4px solid var(--gold);
+      background: var(--soft);
+      padding: 12px;
+      margin: 14px 0;
+      line-height: 1.45;
+    }
+
+    .weight-chart {
+      height: 150px;
+      display: flex;
+      align-items: end;
+      gap: 8px;
+      border: 1px solid var(--line);
+      padding: 12px;
+      margin: 10px 0 18px;
+      overflow-x: auto;
+    }
+
+    .wbar {
+      min-width: 54px;
+      background: var(--gold);
+      color: #111;
+      padding: 4px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      font-size: 10px;
+      font-weight: 700;
+    }
+
+    .wbar span {
+      writing-mode: vertical-rl;
+      transform: rotate(180deg);
+      opacity: .72;
+      font-weight: 400;
+    }
+
     button {
       border: 1px solid var(--ink);
       background: var(--ink);
@@ -183,6 +221,22 @@
       <div class="metric"><span>Treinos concluidos</span><b>18</b></div>
       <div class="metric"><span>Volume mensal</span><b>42.8t</b></div>
     </section>
+
+    <h2>Alerta de Check-in para o Personal</h2>
+    <div class="alert">
+      <strong class="drop">3 dias sem check-in nos ultimos 30 dias.</strong><br>
+      Dias recentes sem registro: 12/05, 19/05, 27/05. Recomendacao: mandar mensagem curta e verificar sono, rotina e motivacao.
+    </div>
+
+    <h2>Evolucao de Peso</h2>
+    <div class="weight-chart">
+      <div class="wbar" style="height:112px"><b>82.4kg</b><span>01/05</span></div>
+      <div class="wbar" style="height:104px"><b>82.0kg</b><span>06/05</span></div>
+      <div class="wbar" style="height:96px"><b>81.6kg</b><span>11/05</span></div>
+      <div class="wbar" style="height:88px"><b>81.2kg</b><span>16/05</span></div>
+      <div class="wbar" style="height:76px"><b>80.9kg</b><span>21/05</span></div>
+      <div class="wbar" style="height:70px"><b>80.7kg</b><span>28/05</span></div>
+    </div>
 
     <h2>Top 5 Maiores Evolucoes do Aluno</h2>
     <table>
