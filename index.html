@@ -35,8 +35,121 @@
       letter-spacing: 0;
     }
 
+    body:not(.authenticated) .app {
+      display: none;
+    }
+
     button, input, textarea {
       font: inherit;
+    }
+
+    .auth-screen {
+      min-height: 100vh;
+      display: grid;
+      grid-template-columns: minmax(320px, .9fr) minmax(340px, 1.1fr);
+      background:
+        linear-gradient(135deg, rgba(201, 162, 39, .18), transparent 34%),
+        radial-gradient(circle at 82% 18%, rgba(88, 199, 122, .12), transparent 28%),
+        var(--black);
+    }
+
+    body.authenticated .auth-screen {
+      display: none;
+    }
+
+    .auth-hero {
+      min-height: 100vh;
+      padding: 52px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      border-right: 1px solid var(--line);
+    }
+
+    .auth-hero h1 {
+      margin: 24px 0 12px;
+      font-size: clamp(42px, 6vw, 76px);
+      line-height: .95;
+      letter-spacing: 0;
+    }
+
+    .auth-hero p {
+      max-width: 560px;
+      color: var(--muted);
+      font-size: 17px;
+      line-height: 1.55;
+    }
+
+    .auth-stack {
+      align-self: center;
+      width: min(520px, calc(100% - 40px));
+      display: grid;
+      gap: 14px;
+      padding: 42px 0;
+    }
+
+    .auth-card {
+      border: 1px solid var(--line);
+      background: rgba(15, 15, 15, .94);
+      padding: 22px;
+    }
+
+    .auth-card h2,
+    .auth-card h3 {
+      margin: 0 0 6px;
+      letter-spacing: 0;
+    }
+
+    .auth-card p {
+      margin: 0 0 16px;
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.45;
+    }
+
+    .auth-form {
+      display: grid;
+      gap: 12px;
+    }
+
+    .auth-form label {
+      color: var(--muted);
+      font-size: 11px;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+
+    .auth-form input,
+    .auth-form select {
+      width: 100%;
+      min-height: 42px;
+      border: 1px solid var(--line);
+      background: #0d0d0d;
+      color: var(--text);
+      padding: 0 11px;
+    }
+
+    .auth-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+    }
+
+    .auth-demo {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+      margin-top: 12px;
+    }
+
+    .auth-warning {
+      border-left: 3px solid var(--gold);
+      background: rgba(201, 162, 39, .09);
+      padding: 12px;
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.45;
     }
 
     .app {
@@ -142,6 +255,29 @@
       color: var(--muted);
       font-size: 12px;
       line-height: 1.45;
+    }
+
+    .session-card {
+      border: 1px solid var(--line);
+      background: var(--panel);
+      padding: 12px;
+      display: grid;
+      gap: 10px;
+    }
+
+    .session-card strong {
+      display: block;
+      font-size: 13px;
+      color: var(--text);
+    }
+
+    .session-card span {
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    .session-card button {
+      min-height: 34px;
     }
 
     .language-select,
@@ -1152,6 +1288,22 @@
     }
 
     @media (max-width: 960px) {
+      .auth-screen {
+        grid-template-columns: 1fr;
+      }
+
+      .auth-hero {
+        min-height: auto;
+        padding: 28px;
+        gap: 24px;
+        border-right: 0;
+        border-bottom: 1px solid var(--line);
+      }
+
+      .auth-stack {
+        align-self: start;
+      }
+
       .app {
         grid-template-columns: 1fr;
       }
@@ -1203,6 +1355,19 @@
     }
 
     @media (max-width: 560px) {
+      .auth-hero {
+        padding: 20px;
+      }
+
+      .auth-hero h1 {
+        font-size: 42px;
+      }
+
+      .auth-grid,
+      .auth-demo {
+        grid-template-columns: 1fr;
+      }
+
       .topbar {
         align-items: flex-start;
         flex-direction: column;
@@ -1288,7 +1453,75 @@
   </style>
 </head>
 <body>
-  <div class="app">
+  <section class="auth-screen" id="authScreen">
+    <div class="auth-hero">
+      <div class="brand">
+        <div class="mark">M</div>
+        <div>
+          <h1>MONOLITH</h1>
+          <p>Built One Day At A Time.</p>
+        </div>
+      </div>
+      <div>
+        <h1>Entrar, treinar, evoluir.</h1>
+        <p>Separe o acesso de alunos e personais desde agora. Esta primeira camada cria o fluxo do produto; a segurança real entra quando conectarmos banco, backend e pagamentos.</p>
+      </div>
+      <div class="auth-warning">Protótipo local: contas salvas apenas neste aparelho. Não use senha real nesta fase.</div>
+    </div>
+
+    <div class="auth-stack">
+      <div class="auth-card">
+        <h2>Login</h2>
+        <p>Entre como aluno ou personal para abrir o painel correto.</p>
+        <form class="auth-form" id="loginForm">
+          <div>
+            <label for="loginEmail">E-mail</label>
+            <input id="loginEmail" type="email" autocomplete="email" required placeholder="email@monolith.app" />
+          </div>
+          <div>
+            <label for="loginPassword">Senha</label>
+            <input id="loginPassword" type="password" autocomplete="current-password" required placeholder="123456" />
+          </div>
+          <button class="action" type="submit">Entrar</button>
+        </form>
+        <div class="auth-demo">
+          <button class="ghost demo-login" type="button" data-email="aluno@monolith.app">Demo aluno</button>
+          <button class="ghost demo-login" type="button" data-email="personal@monolith.app">Demo personal</button>
+        </div>
+      </div>
+
+      <div class="auth-card">
+        <h3>Criar conta</h3>
+        <p>Crie contas locais para testar a separação de experiência.</p>
+        <form class="auth-form" id="signupForm">
+          <div class="auth-grid">
+            <div>
+              <label for="signupName">Nome</label>
+              <input id="signupName" required placeholder="Nome completo" />
+            </div>
+            <div>
+              <label for="signupRole">Tipo</label>
+              <select id="signupRole">
+                <option value="student">Aluno</option>
+                <option value="personal">Personal trainer</option>
+              </select>
+            </div>
+          </div>
+          <div>
+            <label for="signupEmail">E-mail</label>
+            <input id="signupEmail" type="email" autocomplete="email" required placeholder="novo@monolith.app" />
+          </div>
+          <div>
+            <label for="signupPassword">Senha</label>
+            <input id="signupPassword" type="password" autocomplete="new-password" required minlength="6" placeholder="Mínimo 6 caracteres" />
+          </div>
+          <button class="ghost" type="submit">Criar e entrar</button>
+        </form>
+      </div>
+    </div>
+  </section>
+
+  <div class="app" id="appShell">
     <aside>
       <div class="brand">
         <div class="mark">M</div>
@@ -1315,6 +1548,14 @@
         </div>
       </div>
 
+      <div class="session-card">
+        <div>
+          <strong id="sessionName">Usuário</strong>
+          <span id="sessionRole">Plano local</span>
+        </div>
+        <button class="ghost" type="button" id="logoutButton">Sair</button>
+      </div>
+
       <nav aria-label="Principal">
         <button class="nav-btn active" data-screen="home" title="Dashboard">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12l9-9 9 9"/><path d="M5 10v10h14V10"/></svg>
@@ -1335,6 +1576,10 @@
         <button class="nav-btn" data-screen="programs" title="Programas">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19.5V5a2 2 0 0 1 2-2h12v18H6a2 2 0 0 1-2-1.5z"/><path d="M8 7h6"/><path d="M8 11h6"/></svg>
           <span>Programas</span>
+        </button>
+        <button class="nav-btn" data-screen="clients" data-role-only="personal" title="Alunos">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+          <span>Alunos</span>
         </button>
         <button class="nav-btn" data-screen="stats" title="Estatísticas">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19V5"/><path d="M4 19h16"/><path d="M8 16V9"/><path d="M13 16V6"/><path d="M18 16v-4"/></svg>
@@ -1597,6 +1842,17 @@
         </div>
       </section>
 
+      <section id="clients" class="screen">
+        <div class="topbar">
+          <div>
+            <h2>Alunos</h2>
+            <div class="date">Painel inicial do personal trainer</div>
+          </div>
+          <button class="action" id="inviteStudentButton" type="button">Criar convite</button>
+        </div>
+        <div class="grid programs" id="clientList"></div>
+      </section>
+
       <section id="stats" class="screen">
         <div class="topbar">
           <div>
@@ -1709,6 +1965,135 @@
 
     let factors = loadFactors();
 
+    function loadAccounts() {
+      try {
+        return JSON.parse(localStorage.getItem("monolith.accounts") || "[]");
+      } catch {
+        return [];
+      }
+    }
+
+    function saveAccounts(accounts) {
+      localStorage.setItem("monolith.accounts", JSON.stringify(accounts));
+    }
+
+    async function hashPassword(password) {
+      if (window.crypto?.subtle) {
+        const data = new TextEncoder().encode(`monolith:${password}`);
+        const hash = await crypto.subtle.digest("SHA-256", data);
+        return [...new Uint8Array(hash)].map(byte => byte.toString(16).padStart(2, "0")).join("");
+      }
+      let hash = 0;
+      for (const char of `monolith:${password}`) hash = ((hash << 5) - hash + char.charCodeAt(0)) | 0;
+      return `local-${Math.abs(hash)}`;
+    }
+
+    async function ensureDemoAccounts() {
+      const accounts = loadAccounts();
+      if (accounts.length) return accounts;
+      const demoPassword = await hashPassword("123456");
+      const seeded = [
+        {
+          id: "personal-demo",
+          role: "personal",
+          name: "Personal Demo",
+          email: "personal@monolith.app",
+          passwordHash: demoPassword,
+          plan: "Personal Trainer Plus",
+          students: ["aluno-demo"]
+        },
+        {
+          id: "aluno-demo",
+          role: "student",
+          name: "Aluno Demo",
+          email: "aluno@monolith.app",
+          passwordHash: demoPassword,
+          plan: "Aluno",
+          trainerId: "personal-demo"
+        }
+      ];
+      saveAccounts(seeded);
+      return seeded;
+    }
+
+    function currentAccount() {
+      const id = localStorage.getItem("monolith.sessionUserId");
+      return loadAccounts().find(account => account.id === id) || null;
+    }
+
+    function roleLabel(role) {
+      return role === "personal" ? "Personal trainer" : "Aluno";
+    }
+
+    function authMessage(message) {
+      const toast = document.getElementById("toast");
+      if (toast) {
+        toast.textContent = message;
+        toast.classList.add("show");
+        setTimeout(() => toast.classList.remove("show"), 2200);
+      }
+    }
+
+    function renderClientList() {
+      const container = document.getElementById("clientList");
+      if (!container) return;
+      const user = currentAccount();
+      if (!user || user.role !== "personal") {
+        container.innerHTML = `<div class="panel"><div class="report-line">Área disponível para personal trainer.</div></div>`;
+        return;
+      }
+      const accounts = loadAccounts();
+      const students = accounts.filter(account => account.role === "student" && (account.trainerId === user.id || user.students?.includes(account.id)));
+      const checkins = lastThirtyCheckins();
+      const score = checkins[0]?.score || 0;
+      const missed = missedCheckinDays(checkins).length;
+      container.innerHTML = students.map(student => `
+        <article class="coach-card">
+          <div>
+            <div class="kicker">${escapeHTML(student.plan || "Aluno")}</div>
+            <h3>${escapeHTML(student.name)}</h3>
+            <p>${escapeHTML(student.email)} · ${checkins.length ? `${checkins.length} check-ins em 30 dias` : "Aguardando primeiro check-in"}</p>
+            <div class="pill-row">
+              <span class="pill">Score ${score}%</span>
+              <span class="pill">${missed} faltas</span>
+              <span class="pill">Relatório ativo</span>
+            </div>
+          </div>
+          <button class="ghost" type="button" data-screen-jump="stats">Ver evolução</button>
+        </article>
+      `).join("") || `<div class="panel"><div class="report-line">Nenhum aluno vinculado ainda. Use criar convite para simular um aluno.</div></div>`;
+    }
+
+    function applyAuthState() {
+      const user = currentAccount();
+      document.body.classList.toggle("authenticated", Boolean(user));
+      document.querySelectorAll("[data-role-only]").forEach(element => {
+        element.hidden = !user || element.dataset.roleOnly !== user.role;
+      });
+      if (user) {
+        const sessionName = document.getElementById("sessionName");
+        const sessionRole = document.getElementById("sessionRole");
+        if (sessionName) sessionName.textContent = user.name;
+        if (sessionRole) sessionRole.textContent = `${roleLabel(user.role)} · ${user.plan || "Local"}`;
+        renderClientList();
+      }
+    }
+
+    async function loginAccount(email, password) {
+      await ensureDemoAccounts();
+      const passwordHash = await hashPassword(password);
+      const account = loadAccounts().find(item => item.email.toLowerCase() === email.toLowerCase().trim() && item.passwordHash === passwordHash);
+      if (!account) {
+        authMessage("Login ou senha inválidos.");
+        return false;
+      }
+      localStorage.setItem("monolith.sessionUserId", account.id);
+      applyAuthState();
+      showScreen(account.role === "personal" ? "clients" : "home");
+      authMessage(`Bem-vindo, ${account.name}.`);
+      return true;
+    }
+
     const translations = {
       en: {
         "Idioma": "Language",
@@ -1721,14 +2106,31 @@
         "Medidas": "Measurements",
         "Treinos": "Workouts",
         "Programas": "Programs",
+        "Alunos": "Students",
         "Estatísticas": "Stats",
         "Backup": "Backup",
+        "Entrar, treinar, evoluir.": "Log in, train, evolve.",
+        "Separe o acesso de alunos e personais desde agora. Esta primeira camada cria o fluxo do produto; a segurança real entra quando conectarmos banco, backend e pagamentos.": "Separate student and trainer access from now. This first layer creates the product flow; real security comes when we connect database, backend and payments.",
+        "Protótipo local: contas salvas apenas neste aparelho. Não use senha real nesta fase.": "Local prototype: accounts are saved only on this device. Do not use a real password at this stage.",
+        "Entre como aluno ou personal para abrir o painel correto.": "Log in as a student or trainer to open the right dashboard.",
+        "Senha": "Password",
+        "Entrar": "Log in",
+        "Demo aluno": "Student demo",
+        "Demo personal": "Trainer demo",
+        "Criar conta": "Create account",
+        "Crie contas locais para testar a separação de experiência.": "Create local accounts to test the separated experience.",
+        "Tipo": "Type",
+        "Aluno": "Student",
+        "Criar e entrar": "Create and log in",
+        "Sair": "Log out",
         "Dashboard diário": "Daily dashboard",
         "Iniciar treino": "Start workout",
         "Check-in diário": "Daily check-in",
         "Salvar dia": "Save day",
         "Adicionar tarefa diária": "Add daily task",
         "Novo treino": "New workout",
+        "Painel inicial do personal trainer": "Initial trainer dashboard",
+        "Criar convite": "Create invite",
         "Estatísticas e evolução": "Stats and progress",
         "Frequência": "Frequency",
         "Últimos 30 dias": "Last 30 days",
@@ -1981,14 +2383,31 @@
         "Medidas": "Medidas",
         "Treinos": "Entrenos",
         "Programas": "Programas",
+        "Alunos": "Alumnos",
         "Estatísticas": "Estadísticas",
         "Backup": "Backup",
+        "Entrar, treinar, evoluir.": "Entrar, entrenar, evolucionar.",
+        "Separe o acesso de alunos e personais desde agora. Esta primeira camada cria o fluxo do produto; a segurança real entra quando conectarmos banco, backend e pagamentos.": "Separa el acceso de alumnos y entrenadores desde ahora. Esta primera capa crea el flujo del producto; la seguridad real llega cuando conectemos base de datos, backend y pagos.",
+        "Protótipo local: contas salvas apenas neste aparelho. Não use senha real nesta fase.": "Prototipo local: las cuentas se guardan solo en este dispositivo. No uses una contraseña real en esta fase.",
+        "Entre como aluno ou personal para abrir o painel correto.": "Entra como alumno o entrenador para abrir el panel correcto.",
+        "Senha": "Contraseña",
+        "Entrar": "Entrar",
+        "Demo aluno": "Demo alumno",
+        "Demo personal": "Demo entrenador",
+        "Criar conta": "Crear cuenta",
+        "Crie contas locais para testar a separação de experiência.": "Crea cuentas locales para probar la separación de experiencia.",
+        "Tipo": "Tipo",
+        "Aluno": "Alumno",
+        "Criar e entrar": "Crear y entrar",
+        "Sair": "Salir",
         "Dashboard diário": "Panel diario",
         "Iniciar treino": "Iniciar entreno",
         "Check-in diário": "Check-in diario",
         "Salvar dia": "Guardar día",
         "Adicionar tarefa diária": "Agregar tarea diaria",
         "Novo treino": "Nuevo entreno",
+        "Painel inicial do personal trainer": "Panel inicial del entrenador personal",
+        "Criar convite": "Crear invitación",
         "Estatísticas e evolução": "Estadísticas y evolución",
         "Frequência": "Frecuencia",
         "Últimos 30 dias": "Últimos 30 días",
@@ -2318,7 +2737,7 @@
       document.querySelectorAll(".language-button").forEach(button => {
         button.classList.toggle("active", button.dataset.lang === language);
       });
-      document.querySelectorAll("button:not(.language-button), h2, h3, h4, label, span, option, p, strong, .date, .kicker, .hero-title, .quote, .measure-note, .report-line").forEach(element => {
+      document.querySelectorAll("button:not(.language-button), h1, h2, h3, h4, label, span, option, p, strong, .date, .kicker, .hero-title, .quote, .measure-note, .report-line, .auth-warning").forEach(element => {
         const current = element.textContent.trim();
         if (!element.dataset.i18nKey && (translations.en[current] || translations.es[current])) {
           element.dataset.i18nKey = current;
@@ -3015,13 +3434,79 @@ ${bodyFatBars ? `<div class="chart">${bodyFatBars}</div>` : `<p class="muted">Ai
       if (!button) return;
       setWeightUnit(button.dataset.unit);
     });
+    document.getElementById("loginForm")?.addEventListener("submit", async event => {
+      event.preventDefault();
+      await loginAccount(document.getElementById("loginEmail").value, document.getElementById("loginPassword").value);
+    });
+    document.querySelectorAll(".demo-login").forEach(button => {
+      button.addEventListener("click", async () => {
+        document.getElementById("loginEmail").value = button.dataset.email;
+        document.getElementById("loginPassword").value = "123456";
+        await loginAccount(button.dataset.email, "123456");
+      });
+    });
+    document.getElementById("signupForm")?.addEventListener("submit", async event => {
+      event.preventDefault();
+      await ensureDemoAccounts();
+      const accounts = loadAccounts();
+      const email = document.getElementById("signupEmail").value.trim().toLowerCase();
+      if (accounts.some(account => account.email.toLowerCase() === email)) {
+        authMessage("Este e-mail já existe.");
+        return;
+      }
+      const activePersonal = currentAccount()?.role === "personal" ? currentAccount() : null;
+      const role = document.getElementById("signupRole").value;
+      const account = {
+        id: `${role}-${Date.now()}`,
+        role,
+        name: document.getElementById("signupName").value.trim(),
+        email,
+        passwordHash: await hashPassword(document.getElementById("signupPassword").value),
+        plan: role === "personal" ? "Personal Trainer Basic" : "Aluno",
+        trainerId: role === "student" ? activePersonal?.id || "personal-demo" : undefined
+      };
+      saveAccounts([account, ...accounts]);
+      localStorage.setItem("monolith.sessionUserId", account.id);
+      event.target.reset();
+      applyAuthState();
+      showScreen(role === "personal" ? "clients" : "home");
+      authMessage("Conta criada.");
+    });
+    document.getElementById("logoutButton")?.addEventListener("click", () => {
+      localStorage.removeItem("monolith.sessionUserId");
+      applyAuthState();
+      authMessage("Sessão encerrada.");
+    });
+    document.getElementById("inviteStudentButton")?.addEventListener("click", async () => {
+      const personal = currentAccount();
+      if (!personal || personal.role !== "personal") return;
+      const accounts = loadAccounts();
+      const count = accounts.filter(account => account.role === "student" && account.trainerId === personal.id).length + 1;
+      const id = `student-${Date.now()}`;
+      const student = {
+        id,
+        role: "student",
+        name: `Aluno ${count}`,
+        email: `aluno${count}@monolith.app`,
+        passwordHash: await hashPassword("123456"),
+        plan: "Aluno",
+        trainerId: personal.id
+      };
+      saveAccounts([student, ...accounts.map(account => account.id === personal.id ? { ...account, students: [...new Set([...(account.students || []), id])] } : account)]);
+      renderClientList();
+      authMessage("Aluno local criado com senha 123456.");
+    });
     updateWeightUnitUI();
     applyLanguage(currentLanguage);
     clearBodyMeasureForm();
+    ensureDemoAccounts().then(applyAuthState);
 
     function showScreen(id) {
+      const navTarget = document.querySelector(`.nav-btn[data-screen="${id}"]`);
+      if (navTarget?.dataset.roleOnly && navTarget.dataset.roleOnly !== currentAccount()?.role) id = "home";
       document.querySelectorAll(".screen").forEach(screen => screen.classList.toggle("active", screen.id === id));
       document.querySelectorAll(".nav-btn").forEach(btn => btn.classList.toggle("active", btn.dataset.screen === id));
+      if (id === "clients") renderClientList();
       window.scrollTo({ top: 0, behavior: "smooth" });
     }
 
