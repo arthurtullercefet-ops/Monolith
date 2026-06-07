@@ -144,26 +144,41 @@
       line-height: 1.45;
     }
 
-    .language-select {
+    .language-select,
+    .unit-select {
       display: grid;
       gap: 6px;
       padding: 0 8px;
     }
 
-    .language-select label {
+    .unit-select {
+      margin-top: 10px;
+    }
+
+    .language-select label,
+    .unit-select label {
       color: var(--muted);
       font-size: 11px;
       text-transform: uppercase;
       letter-spacing: 1px;
     }
 
-    .language-buttons {
+    .language-buttons,
+    .unit-buttons {
       display: grid;
-      grid-template-columns: repeat(3, 1fr);
       gap: 6px;
     }
 
-    .language-button {
+    .language-buttons {
+      grid-template-columns: repeat(3, 1fr);
+    }
+
+    .unit-buttons {
+      grid-template-columns: repeat(2, 1fr);
+    }
+
+    .language-button,
+    .unit-button {
       min-height: 36px;
       border: 1px solid var(--line);
       background: #101010;
@@ -174,7 +189,14 @@
       font-size: 17px;
     }
 
-    .language-button.active {
+    .unit-button {
+      font-size: 12px;
+      font-weight: 900;
+      letter-spacing: 1px;
+    }
+
+    .language-button.active,
+    .unit-button.active {
       border-color: var(--gold);
       background: rgba(201, 162, 39, .12);
     }
@@ -1285,6 +1307,14 @@
         </div>
       </div>
 
+      <div class="unit-select">
+        <label data-i18n="Unidade de peso">Unidade de peso</label>
+        <div class="unit-buttons" id="weightUnitSelect" aria-label="Unidade de peso">
+          <button class="unit-button" type="button" data-unit="kg" title="Quilos">KG</button>
+          <button class="unit-button" type="button" data-unit="lb" title="Libras">LB</button>
+        </div>
+      </div>
+
       <nav aria-label="Principal">
         <button class="nav-btn active" data-screen="home" title="Dashboard">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12l9-9 9 9"/><path d="M5 10v10h14V10"/></svg>
@@ -1373,7 +1403,7 @@
         <div class="panel">
           <div class="checkin-measure">
             <div class="measure-field">
-              <label for="dailyWeight">Peso de hoje</label>
+              <label id="dailyWeightLabel" for="dailyWeight" data-i18n="Peso de hoje">Peso de hoje</label>
               <input id="dailyWeight" inputmode="decimal" placeholder="Ex: 82.4" />
             </div>
             <div class="measure-note">O peso entra no relatório mensal e ajuda o personal a ver evolução, retenção e queda dia a dia.</div>
@@ -1422,7 +1452,7 @@
                 <input id="measureDate" type="date" />
               </div>
               <div class="field">
-                <label for="measureWeight">Peso corporal (kg)</label>
+                <label id="measureWeightLabel" for="measureWeight" data-i18n="Peso corporal">Peso corporal</label>
                 <input id="measureWeight" inputmode="decimal" placeholder="Ex: 82.4" data-i18n-placeholder="Ex: 82.4" />
               </div>
               <div class="field">
@@ -1683,6 +1713,9 @@
       en: {
         "Idioma": "Language",
         "Português": "Portuguese",
+        "Unidade de peso": "Weight unit",
+        "Quilos": "Kilograms",
+        "Libras": "Pounds",
         "Dashboard": "Dashboard",
         "Check-in": "Check-in",
         "Medidas": "Measurements",
@@ -1827,6 +1860,14 @@
         "Manteve ou igualou a melhor marca": "Matched or held the best mark",
         "Abaixo do registro anterior": "Below previous record",
         "Preencha hoje para comparar": "Fill today to compare",
+        "Respira, controla e faz a proxima repeticao valer.": "Breathe, control it, and make the next rep count.",
+        "Nao negocia com a vontade de parar. Executa limpo.": "Do not negotiate with the urge to stop. Keep the execution clean.",
+        "Voce nao precisa estar motivado, precisa terminar esta serie.": "You do not need to feel motivated, you need to finish this set.",
+        "Carga boa, forma melhor ainda. Domina o movimento.": "Good load, even better form. Own the movement.",
+        "Mais uma serie bem feita e voce fica mais perto do corpo que prometeu construir.": "One more well-done set and you are closer to the body you promised to build.",
+        "Foco no musculo, foco na tecnica, foco no proximo numero.": "Focus on the muscle, focus on technique, focus on the next number.",
+        "O treino de hoje vira evidencia. Continua.": "Today's workout becomes evidence. Keep going.",
+        "Sem pressa, sem ego: amplitude, controle e intensidade.": "No rush, no ego: range, control and intensity.",
         "Treino criado com exercícios e séries.": "Workout created with exercises and sets.",
         "Ramon Dino - Braço": "Ramon Dino - Arms",
         "Modelo público inspirado no dia de braços: bíceps, tríceps e finalizações isoladas.": "Public model inspired by arm day: biceps, triceps and isolated finishers.",
@@ -1896,7 +1937,7 @@
         "Novo registro físico": "New physical record",
         "Evolução corporal completa": "Complete body progress",
         "Data": "Date",
-        "Peso corporal (kg)": "Body weight (kg)",
+        "Peso corporal": "Body weight",
         "Gordura corporal (%)": "Body fat (%)",
         "Cintura (cm)": "Waist (cm)",
         "Peito (cm)": "Chest (cm)",
@@ -1932,6 +1973,9 @@
       es: {
         "Idioma": "Idioma",
         "Português": "Portugués",
+        "Unidade de peso": "Unidad de peso",
+        "Quilos": "Kilos",
+        "Libras": "Libras",
         "Dashboard": "Panel",
         "Check-in": "Check-in",
         "Medidas": "Medidas",
@@ -2076,6 +2120,14 @@
         "Manteve ou igualou a melhor marca": "Mantuvo o igualó la mejor marca",
         "Abaixo do registro anterior": "Por debajo del registro anterior",
         "Preencha hoje para comparar": "Completa hoy para comparar",
+        "Respira, controla e faz a proxima repeticao valer.": "Respira, controla y haz que la próxima repetición valga.",
+        "Nao negocia com a vontade de parar. Executa limpo.": "No negocies con las ganas de parar. Ejecuta limpio.",
+        "Voce nao precisa estar motivado, precisa terminar esta serie.": "No necesitas estar motivado, necesitas terminar esta serie.",
+        "Carga boa, forma melhor ainda. Domina o movimento.": "Buena carga, mejor técnica todavía. Domina el movimiento.",
+        "Mais uma serie bem feita e voce fica mais perto do corpo que prometeu construir.": "Una serie más bien hecha y estás más cerca del cuerpo que prometiste construir.",
+        "Foco no musculo, foco na tecnica, foco no proximo numero.": "Foco en el músculo, foco en la técnica, foco en el próximo número.",
+        "O treino de hoje vira evidencia. Continua.": "El entreno de hoy se convierte en evidencia. Continúa.",
+        "Sem pressa, sem ego: amplitude, controle e intensidade.": "Sin prisa, sin ego: amplitud, control e intensidad.",
         "Treino criado com exercícios e séries.": "Entreno creado con ejercicios y series.",
         "Ramon Dino - Braço": "Ramon Dino - Brazo",
         "Modelo público inspirado no dia de braços: bíceps, tríceps e finalizações isoladas.": "Modelo público inspirado en día de brazos: bíceps, tríceps y finalizaciones aisladas.",
@@ -2145,7 +2197,7 @@
         "Novo registro físico": "Nuevo registro físico",
         "Evolução corporal completa": "Evolución corporal completa",
         "Data": "Fecha",
-        "Peso corporal (kg)": "Peso corporal (kg)",
+        "Peso corporal": "Peso corporal",
         "Gordura corporal (%)": "Grasa corporal (%)",
         "Cintura (cm)": "Cintura (cm)",
         "Peito (cm)": "Pecho (cm)",
@@ -2184,6 +2236,82 @@
       return language === "pt" ? key : translations[language]?.[key] || key;
     }
 
+    function currentWeightUnit() {
+      return localStorage.getItem("monolith.weightUnit") === "lb" ? "lb" : "kg";
+    }
+
+    function weightUnitLabel(unit = currentWeightUnit()) {
+      return unit === "lb" ? "lb" : "kg";
+    }
+
+    function kgToDisplay(value, unit = currentWeightUnit()) {
+      if (value === null || value === undefined || value === "") return null;
+      const parsed = Number(String(value ?? "").replace(",", "."));
+      if (!Number.isFinite(parsed)) return null;
+      return unit === "lb" ? parsed * 2.2046226218 : parsed;
+    }
+
+    function displayToKg(value, unit = currentWeightUnit()) {
+      if (value === null || value === undefined || String(value).trim() === "") return null;
+      const parsed = Number(String(value ?? "").replace(",", "."));
+      if (!Number.isFinite(parsed)) return null;
+      return unit === "lb" ? parsed / 2.2046226218 : parsed;
+    }
+
+    function roundWeight(value) {
+      if (!Number.isFinite(Number(value))) return "";
+      const rounded = Math.round(Number(value) * 10) / 10;
+      return Number.isInteger(rounded) ? String(rounded) : rounded.toFixed(1);
+    }
+
+    function formatWeight(valueKg, options = {}) {
+      const display = kgToDisplay(valueKg);
+      if (display === null) return "--";
+      const separator = options.space === false ? "" : " ";
+      return `${roundWeight(display)}${separator}${weightUnitLabel()}`;
+    }
+
+    function weightInputValue(valueKg) {
+      const display = kgToDisplay(valueKg);
+      return display === null ? "" : roundWeight(display);
+    }
+
+    function parseWeightInput(value) {
+      const kg = displayToKg(value);
+      return kg === null ? null : Math.round(kg * 100) / 100;
+    }
+
+    function displayWeightSeries(series) {
+      return series
+        .map(item => ({ ...item, value: kgToDisplay(item.value) }))
+        .filter(item => item.value !== null)
+        .map(item => ({ ...item, value: roundWeight(item.value) }));
+    }
+
+    function updateWeightUnitUI() {
+      document.querySelectorAll(".unit-button").forEach(button => {
+        button.classList.toggle("active", button.dataset.unit === currentWeightUnit());
+      });
+    }
+
+    function updateWeightUnitLabels() {
+      const unit = weightUnitLabel();
+      const dailyLabel = document.getElementById("dailyWeightLabel");
+      const measureLabel = document.getElementById("measureWeightLabel");
+      if (dailyLabel) dailyLabel.textContent = `${t("Peso de hoje")} (${unit})`;
+      if (measureLabel) measureLabel.textContent = `${t("Peso corporal")} (${unit})`;
+    }
+
+    function setWeightUnit(unit) {
+      localStorage.setItem("monolith.weightUnit", unit === "lb" ? "lb" : "kg");
+      updateWeightUnitUI();
+      updateWeightUnitLabels();
+      renderBodyMeasures();
+      renderStats();
+      renderTrainerSummary();
+      window.dispatchEvent(new CustomEvent("monolith-weight-unit-change"));
+    }
+
     function applyLanguage(language) {
       localStorage.setItem("monolith.language", language);
       document.documentElement.lang = language === "pt" ? "pt-BR" : language;
@@ -2202,6 +2330,7 @@
       document.querySelectorAll("[data-i18n-placeholder]").forEach(element => {
         element.placeholder = t(element.dataset.i18nPlaceholder, language);
       });
+      updateWeightUnitLabels();
     }
 
     const workoutModal = document.getElementById("workoutModal");
@@ -2330,12 +2459,12 @@
         };
       });
       const completed = items.filter(item => item.completed).length;
-      const weight = document.getElementById("dailyWeight")?.value.trim() || "";
+      const weight = parseWeightInput(document.getElementById("dailyWeight")?.value.trim());
       return {
         date: todayKey(),
         label: new Intl.DateTimeFormat("pt-BR", { dateStyle: "short" }).format(new Date()),
         savedAt: new Date().toISOString(),
-        weight,
+        weight: weight ?? "",
         completed,
         total: items.length,
         score: items.length ? Math.round((completed / items.length) * 100) : 0,
@@ -2451,11 +2580,11 @@
         const target = document.getElementById(id);
         if (target) target.textContent = value;
       };
-      setText("latestMeasureWeight", latest?.weight ? `${latest.weight} kg` : "--");
+      setText("latestMeasureWeight", latest?.weight ? formatWeight(latest.weight) : "--");
       setText("latestBodyFat", latest?.bodyFat ? `${latest.bodyFat}%` : "--");
       setText("latestWaist", latest?.waist ? `${latest.waist} cm` : "--");
       setText("measureCount", String(entries.length));
-      renderMiniChart("measureWeightChart", bodyMeasureSeries("weight", entries), "kg", "Sem pesos salvos nas medidas.");
+      renderMiniChart("measureWeightChart", displayWeightSeries(bodyMeasureSeries("weight", entries)), weightUnitLabel(), "Sem pesos salvos nas medidas.");
       renderMiniChart("bodyFatChart", bodyMeasureSeries("bodyFat", entries), "%", "Sem percentual de gordura salvo.");
       const measureBars = document.getElementById("bodyMeasureBars");
       if (measureBars) {
@@ -2476,10 +2605,10 @@
       if (history) {
         history.innerHTML = entries.slice(0, 12).map(entry => {
           const tags = [
-            ["Peso", entry.weight, "kg"],
+            ["Peso", entry.weight, "weight"],
             ["Gordura", entry.bodyFat, "%"],
             ...bodyMeasureFields.map(field => [field.label, entry[field.key], field.unit])
-          ].filter(([, value]) => value !== null && value !== undefined && value !== "").map(([label, value, unit]) => `<span>${escapeHTML(t(label))}: ${value}${unit ? ` ${unit}` : ""}</span>`).join("");
+          ].filter(([, value]) => value !== null && value !== undefined && value !== "").map(([label, value, unit]) => `<span>${escapeHTML(t(label))}: ${unit === "weight" ? formatWeight(value) : `${value}${unit ? ` ${unit}` : ""}`}</span>`).join("");
           return `<article class="measure-entry"><header><strong>${escapeHTML(entry.date)}</strong><span>${escapeHTML(entry.notes || "")}</span></header><div class="measure-tags">${tags}</div></article>`;
         }).join("") || `<div class="report-line">${t("Nenhum registro físico salvo ainda.")}</div>`;
       }
@@ -2490,7 +2619,7 @@
       const entry = {
         id: `measure-${date}`,
         date,
-        weight: parseMeasureValue(document.getElementById("measureWeight").value),
+        weight: parseWeightInput(document.getElementById("measureWeight").value),
         bodyFat: parseMeasureValue(document.getElementById("measureBodyFat").value),
         notes: document.getElementById("measureNotes").value.trim()
       };
@@ -2648,9 +2777,9 @@
     function monthlyReportHTMLLegacy() {
       const report = monthlyReportData();
       const statsRows = report.stats.map(item => `<tr><td>${escapeHTML(item.name)}</td><td>${item.completed}/${item.total}</td><td>${Math.round((item.completed / Math.max(1, item.total)) * 100)}%</td></tr>`).join("");
-      const dayRows = report.checkins.map(day => `<tr><td>${escapeHTML(day.label || day.date)}</td><td>${day.weight ? `${escapeHTML(day.weight)} kg` : "Peso não registrado"}</td><td>${day.completed}/${day.total}</td><td>${day.score}%</td><td>${day.items.map(item => `${escapeHTML(item.name)}: ${item.completed ? "ok" : "não"}`).join("<br>")}</td></tr>`).join("");
+      const dayRows = report.checkins.map(day => `<tr><td>${escapeHTML(day.label || day.date)}</td><td>${day.weight ? formatWeight(day.weight) : "Peso não registrado"}</td><td>${day.completed}/${day.total}</td><td>${day.score}%</td><td>${day.items.map(item => `${escapeHTML(item.name)}: ${item.completed ? "ok" : "não"}`).join("<br>")}</td></tr>`).join("");
       const workoutRows = report.completedWorkouts.slice(0, 30).map(session => `<tr><td>${escapeHTML(session.date || session.completedAt || "-")}</td><td>${escapeHTML(session.workoutName || "Treino")}</td><td>${session.completedSets || 0}/${session.totalSets || 0} séries</td></tr>`).join("");
-      const evolutionRow = item => `<tr><td>${escapeHTML(item.name)}</td><td>${escapeHTML(item.first.date)}</td><td>${Math.round(item.first.volume)} vol / ${Math.round(item.first.bestE1rm)}kg e1RM</td><td>${escapeHTML(item.latest.date)}</td><td>${Math.round(item.latest.volume)} vol / ${Math.round(item.latest.bestE1rm)}kg e1RM</td><td>${item.percent > 0 ? "+" : ""}${item.percent}%</td></tr>`;
+      const evolutionRow = item => `<tr><td>${escapeHTML(item.name)}</td><td>${escapeHTML(item.first.date)}</td><td>${Math.round(item.first.volume)} vol / ${formatWeight(item.first.bestE1rm)} e1RM</td><td>${escapeHTML(item.latest.date)}</td><td>${Math.round(item.latest.volume)} vol / ${formatWeight(item.latest.bestE1rm)} e1RM</td><td>${item.percent > 0 ? "+" : ""}${item.percent}%</td></tr>`;
       const gainRows = report.evolution.topGains.map(evolutionRow).join("");
       const dropRows = report.evolution.topDrops.map(evolutionRow).join("");
       const minWeight = Math.min(...report.weights.map(item => item.value));
@@ -2658,7 +2787,7 @@
       const weightBars = report.weights.map(item => {
         const range = Math.max(.1, maxWeight - minWeight);
         const height = Math.max(8, Math.round(((item.value - minWeight) / range) * 84) + 8);
-        return `<div class="wbar" style="height:${height}px"><b>${item.value}kg</b><span>${escapeHTML(item.date)}</span></div>`;
+        return `<div class="wbar" style="height:${height}px"><b>${formatWeight(item.value)}</b><span>${escapeHTML(item.date)}</span></div>`;
       }).join("");
       const missedPreview = report.missedDays.slice(-7).map(day => escapeHTML(day)).join(", ");
       const alertLevel = report.missedDays.length >= 5 ? "drop" : "gain";
@@ -2680,14 +2809,14 @@
     function monthlyReportHTML() {
       const report = monthlyReportData();
       const statsRows = report.stats.map(item => `<tr><td>${escapeHTML(item.name)}</td><td>${item.completed}/${item.total}</td><td>${Math.round((item.completed / Math.max(1, item.total)) * 100)}%</td></tr>`).join("");
-      const dayRows = report.checkins.map(day => `<tr><td>${escapeHTML(day.label || day.date)}</td><td>${day.weight ? `${escapeHTML(day.weight)} kg` : "Peso não registrado"}</td><td>${day.completed}/${day.total}</td><td>${day.score}%</td><td>${day.items.map(item => `${escapeHTML(item.name)}: ${item.completed ? "ok" : "não"}`).join("<br>")}</td></tr>`).join("");
+      const dayRows = report.checkins.map(day => `<tr><td>${escapeHTML(day.label || day.date)}</td><td>${day.weight ? formatWeight(day.weight) : "Peso não registrado"}</td><td>${day.completed}/${day.total}</td><td>${day.score}%</td><td>${day.items.map(item => `${escapeHTML(item.name)}: ${item.completed ? "ok" : "não"}`).join("<br>")}</td></tr>`).join("");
       const workoutRows = report.completedWorkouts.slice(0, 30).map(session => `<tr><td>${escapeHTML(session.date || session.completedAt || "-")}</td><td>${escapeHTML(session.workoutName || "Treino")}</td><td>${session.completedSets || 0}/${session.totalSets || 0} séries</td></tr>`).join("");
-      const evolutionRow = item => `<tr><td>${escapeHTML(item.name)}</td><td>${escapeHTML(item.first.date)}</td><td>${Math.round(item.first.volume)} vol / ${Math.round(item.first.bestE1rm)}kg e1RM</td><td>${escapeHTML(item.latest.date)}</td><td>${Math.round(item.latest.volume)} vol / ${Math.round(item.latest.bestE1rm)}kg e1RM</td><td>${item.percent > 0 ? "+" : ""}${item.percent}%</td></tr>`;
+      const evolutionRow = item => `<tr><td>${escapeHTML(item.name)}</td><td>${escapeHTML(item.first.date)}</td><td>${Math.round(item.first.volume)} vol / ${formatWeight(item.first.bestE1rm)} e1RM</td><td>${escapeHTML(item.latest.date)}</td><td>${Math.round(item.latest.volume)} vol / ${formatWeight(item.latest.bestE1rm)} e1RM</td><td>${item.percent > 0 ? "+" : ""}${item.percent}%</td></tr>`;
       const gainRows = report.evolution.topGains.map(evolutionRow).join("");
       const dropRows = report.evolution.topDrops.map(evolutionRow).join("");
-      const weightBars = reportChartBars(report.weights, "kg");
+      const weightBars = reportChartBars(displayWeightSeries(report.weights), weightUnitLabel());
       const bodyFatBars = reportChartBars(bodyMeasureSeries("bodyFat", report.bodyMeasures), "%");
-      const measureRows = report.bodyMeasures.slice(0, 20).map(entry => `<tr><td>${escapeHTML(entry.date)}</td><td>${formatMeasureValue(entry.weight, "kg")}</td><td>${formatMeasureValue(entry.bodyFat, "%")}</td><td>${formatMeasureValue(entry.waist, "cm")}</td><td>${formatMeasureValue(entry.chest, "cm")}</td><td>${formatMeasureValue(entry.arm, "cm")}</td><td>${formatMeasureValue(entry.leg, "cm")}</td><td>${formatMeasureValue(entry.hip, "cm")}</td><td>${escapeHTML(entry.notes || "")}</td></tr>`).join("");
+      const measureRows = report.bodyMeasures.slice(0, 20).map(entry => `<tr><td>${escapeHTML(entry.date)}</td><td>${formatWeight(entry.weight)}</td><td>${formatMeasureValue(entry.bodyFat, "%")}</td><td>${formatMeasureValue(entry.waist, "cm")}</td><td>${formatMeasureValue(entry.chest, "cm")}</td><td>${formatMeasureValue(entry.arm, "cm")}</td><td>${formatMeasureValue(entry.leg, "cm")}</td><td>${formatMeasureValue(entry.hip, "cm")}</td><td>${escapeHTML(entry.notes || "")}</td></tr>`).join("");
       const measureDeltaRows = bodyMeasureFields.map(field => {
         const series = bodyMeasureSeries(field.key, report.bodyMeasures);
         const first = series[0];
@@ -2870,6 +2999,7 @@ ${bodyFatBars ? `<div class="chart">${bodyFatBars}</div>` : `<p class="muted">Ai
     renderBodyMeasures();
     renderTrainerSummary();
     const languageSelect = document.getElementById("languageSelect");
+    const weightUnitSelect = document.getElementById("weightUnitSelect");
     const currentLanguage = localStorage.getItem("monolith.language") || "pt";
     languageSelect.addEventListener("click", event => {
       const button = event.target.closest(".language-button");
@@ -2880,6 +3010,12 @@ ${bodyFatBars ? `<div class="chart">${bodyFatBars}</div>` : `<p class="muted">Ai
       renderBodyMeasures();
       renderPhotoVault();
     });
+    weightUnitSelect?.addEventListener("click", event => {
+      const button = event.target.closest(".unit-button");
+      if (!button) return;
+      setWeightUnit(button.dataset.unit);
+    });
+    updateWeightUnitUI();
     applyLanguage(currentLanguage);
     clearBodyMeasureForm();
 
@@ -3435,10 +3571,10 @@ ${bodyFatBars ? `<div class="chart">${bodyFatBars}</div>` : `<p class="muted">Ai
         if (!previousSet) return "";
         const previousWeight = numberValueV2(previousSet.weight);
         const previousReps = numberValueV2(previousSet.reps);
-        const weight = numberValueV2(currentWeight);
+        const weight = numberValueV2(parseWeightInput(currentWeight));
         const reps = numberValueV2(currentReps);
         if (!weight && !reps) return textV2("Preencha hoje para comparar");
-        if (weight > previousWeight) return `${textV2("Subiu carga")}: ${previousWeight || 0}kg -> ${weight}kg`;
+        if (weight > previousWeight) return `${textV2("Subiu carga")}: ${formatWeight(previousWeight || 0)} -> ${formatWeight(weight)}`;
         if (weight === previousWeight && reps > previousReps) return `${textV2("Subiu repetições")}: ${previousReps || 0} -> ${reps}`;
         if (weight >= previousWeight && reps >= previousReps && (weight || reps)) return textV2("Manteve ou igualou a melhor marca");
         return textV2("Abaixo do registro anterior");
@@ -3495,7 +3631,7 @@ ${bodyFatBars ? `<div class="chart">${bodyFatBars}</div>` : `<p class="muted">Ai
         row.className = "set-row";
         row.innerHTML = `
           <span class="set-index">${htmlT("Série")}</span>
-          <input class="set-weight" placeholder="${htmlT("Peso")}" inputmode="decimal" maxlength="5" value="${html(set.weight || "")}" />
+          <input class="set-weight" placeholder="${htmlT("Peso")} ${weightUnitLabel()}" inputmode="decimal" maxlength="6" value="${html(weightInputValue(set.weight))}" />
           <input class="set-reps" placeholder="Reps" inputmode="numeric" maxlength="2" value="${html(set.reps || "")}" />
           <select class="set-type">${typeOptions(set.type)}</select>
           <input class="set-rest" placeholder="${htmlT("Descanso s")}" inputmode="numeric" maxlength="3" value="${html(set.rest || "90")}" />
@@ -3534,7 +3670,7 @@ ${bodyFatBars ? `<div class="chart">${bodyFatBars}</div>` : `<p class="muted">Ai
         const exercises = [...builder.querySelectorAll(".exercise-editor")].map((editor, index) => {
           const name = editor.querySelector(".exercise-name").value.trim() || `Exercício ${index + 1}`;
           const sets = [...editor.querySelectorAll(".set-row")].map(row => ({
-            weight: row.querySelector(".set-weight").value.trim(),
+            weight: parseWeightInput(row.querySelector(".set-weight").value.trim()) ?? "",
             reps: row.querySelector(".set-reps").value.trim(),
             type: row.querySelector(".set-type").value,
             rest: row.querySelector(".set-rest").value.trim() || "90"
@@ -3552,12 +3688,12 @@ ${bodyFatBars ? `<div class="chart">${bodyFatBars}</div>` : `<p class="muted">Ai
 
       function sessionSetRowV2(exerciseIndex, setIndex, set = {}, previousSet = null) {
         const previousLine = previousSet
-          ? `<tr class="previous-row"><td colspan="6"><div class="previous-strip"><span>${htmlT("Anterior")}: ${html(previousSet.weight || "0")}kg x ${html(previousSet.reps || "0")} reps (${htmlT(previousSet.type || "Normal")})</span><span class="progress-hint">${htmlT("Preencha hoje para comparar")}</span></div></td></tr>`
+          ? `<tr class="previous-row"><td colspan="6"><div class="previous-strip"><span>${htmlT("Anterior")}: ${html(formatWeight(previousSet.weight || 0))} x ${html(previousSet.reps || "0")} reps (${htmlT(previousSet.type || "Normal")})</span><span class="progress-hint">${htmlT("Preencha hoje para comparar")}</span></div></td></tr>`
           : "";
         return `
           <tr data-exercise-index="${exerciseIndex}" data-set-index="${setIndex}" data-prev-weight="${html(previousSet?.weight || "")}" data-prev-reps="${html(previousSet?.reps || "")}">
             <td class="series-cell">${setIndex + 1}</td>
-            <td class="weight-cell"><input class="session-weight" value="${html(set.weight || "")}" placeholder="${htmlT("Peso")}" inputmode="decimal" maxlength="5" /></td>
+            <td class="weight-cell"><input class="session-weight" value="${html(weightInputValue(set.weight))}" placeholder="${htmlT("Peso")} ${weightUnitLabel()}" inputmode="decimal" maxlength="6" /></td>
             <td class="reps-cell"><input class="session-reps" value="${html(set.reps || "")}" placeholder="Reps" inputmode="numeric" maxlength="2" /></td>
             <td class="type-cell"><select class="session-type">${typeOptions(set.type)}</select></td>
             <td class="rest-cell">
@@ -3610,7 +3746,7 @@ ${bodyFatBars ? `<div class="chart">${bodyFatBars}</div>` : `<p class="muted">Ai
               </div>
             </div>
             <table class="exercise-table">
-              <thead><tr><th class="series-cell">${htmlT("Série")}</th><th class="weight-cell">${htmlT("Peso")}</th><th class="reps-cell">Reps</th><th class="type-cell">${htmlT("Técnica")}</th><th class="rest-cell">${htmlT("Descanso")}</th><th class="status-cell">Status</th></tr></thead>
+              <thead><tr><th class="series-cell">${htmlT("Série")}</th><th class="weight-cell">${htmlT("Peso")} (${weightUnitLabel()})</th><th class="reps-cell">Reps</th><th class="type-cell">${htmlT("Técnica")}</th><th class="rest-cell">${htmlT("Descanso")}</th><th class="status-cell">Status</th></tr></thead>
               <tbody>${exercise.sets.map((set, setIndex) => sessionSetRowV2(exerciseIndex, setIndex, set, previousExercise?.sets?.[setIndex]) + (setIndex < exercise.sets.length - 1 ? sessionMotivationRowV2(exerciseIndex, setIndex) : "")).join("")}</tbody>
             </table>
           `;
@@ -3650,7 +3786,7 @@ ${bodyFatBars ? `<div class="chart">${bodyFatBars}</div>` : `<p class="muted">Ai
           const sourceExercise = activeWorkoutV2.exercises[exerciseIndex];
           const sets = [...block.querySelectorAll("tr[data-set-index]")].map(row => ({
             set: Number(row.dataset.setIndex) + 1,
-            weight: row.querySelector(".session-weight").value.trim(),
+            weight: parseWeightInput(row.querySelector(".session-weight").value.trim()) ?? "",
             reps: row.querySelector(".session-reps").value.trim(),
             type: row.querySelector(".session-type").value,
             rest: row.querySelector(".session-rest").value.trim(),
@@ -3784,6 +3920,11 @@ ${bodyFatBars ? `<div class="chart">${bodyFatBars}</div>` : `<p class="muted">Ai
       applyLanguage(localStorage.getItem("monolith.language") || "pt");
       document.getElementById("languageSelect")?.addEventListener("click", event => {
         if (!event.target.closest(".language-button")) return;
+        renderWorkoutListV2();
+        if (activeWorkoutV2) renderSessionV2(activeWorkoutV2);
+        resetBuilderV2();
+      });
+      window.addEventListener("monolith-weight-unit-change", () => {
         renderWorkoutListV2();
         if (activeWorkoutV2) renderSessionV2(activeWorkoutV2);
         resetBuilderV2();
