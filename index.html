@@ -696,6 +696,116 @@
       background: var(--gold);
     }
 
+    .measure-layout {
+      grid-template-columns: minmax(320px, .82fr) minmax(0, 1.18fr);
+      align-items: start;
+    }
+
+    .measure-form-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 12px;
+    }
+
+    .measure-form-grid .field:first-child,
+    .measure-form-grid .field:last-child,
+    .measure-form-grid .action {
+      grid-column: 1 / -1;
+    }
+
+    .measure-charts {
+      display: grid;
+      gap: 14px;
+    }
+
+    .measure-chart-card {
+      border: 1px solid var(--line);
+      background: #101010;
+      padding: 14px;
+    }
+
+    .measure-chart-card h3 {
+      margin: 0 0 4px;
+      font-size: 15px;
+    }
+
+    .measure-chart-card p {
+      margin: 0 0 12px;
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.45;
+    }
+
+    .mini-chart {
+      min-height: 132px;
+      display: flex;
+      align-items: end;
+      gap: 8px;
+      overflow-x: auto;
+      border: 1px solid var(--line);
+      padding: 12px;
+      background: #0c0c0c;
+    }
+
+    .mini-bar {
+      min-width: 50px;
+      background: linear-gradient(180deg, var(--gold), #7f6418);
+      color: #0a0a0a;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      padding: 5px;
+      font-size: 10px;
+      font-weight: 800;
+    }
+
+    .mini-bar span {
+      color: rgba(10, 10, 10, .72);
+      writing-mode: vertical-rl;
+      transform: rotate(180deg);
+      font-weight: 700;
+    }
+
+    .measure-history {
+      display: grid;
+      gap: 8px;
+      max-height: 360px;
+      overflow: auto;
+    }
+
+    .measure-entry {
+      border: 1px solid var(--line);
+      background: #0f0f0f;
+      padding: 12px;
+      display: grid;
+      gap: 8px;
+    }
+
+    .measure-entry header {
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    .measure-entry strong {
+      color: var(--text);
+    }
+
+    .measure-tags {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+    }
+
+    .measure-tags span {
+      border: 1px solid var(--line);
+      color: var(--muted);
+      padding: 4px 7px;
+      font-size: 11px;
+    }
+
     .photo-grid {
       display: grid;
       grid-template-columns: repeat(3, 1fr);
@@ -860,6 +970,7 @@
     }
 
     .field input,
+    .field select,
     .field textarea {
       width: 100%;
       border: 1px solid var(--line);
@@ -1052,7 +1163,8 @@
 
       .dashboard,
       .hero,
-      .stats-layout {
+      .stats-layout,
+      .measure-layout {
         grid-template-columns: 1fr;
       }
 
@@ -1136,8 +1248,14 @@
         gap: 12px;
       }
 
+      .measure-form-grid {
+        grid-template-columns: 1fr;
+      }
+
       .factor-form .form-field:first-child,
-      .factor-form .action {
+      .factor-form .action,
+      .measure-form-grid .field,
+      .measure-form-grid .action {
         grid-column: 1 / -1;
       }
 
@@ -1175,6 +1293,10 @@
         <button class="nav-btn" data-screen="checkin" title="Check-in">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
           <span>Check-in</span>
+        </button>
+        <button class="nav-btn" data-screen="measures" title="Medidas">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19h16"/><path d="M6 17V8"/><path d="M10 17V5"/><path d="M14 17v-7"/><path d="M18 17V3"/></svg>
+          <span>Medidas</span>
         </button>
         <button class="nav-btn" data-screen="workouts" title="Treinos">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 7v10"/><path d="M18 7v10"/><path d="M3 9v6"/><path d="M21 9v6"/><path d="M6 12h12"/></svg>
@@ -1282,6 +1404,87 @@
           </form>
         </div>
         <div class="grid programs" id="checkinGroups"></div>
+      </section>
+
+      <section id="measures" class="screen">
+        <div class="topbar">
+          <div>
+            <h2>Medidas corporais</h2>
+            <div class="date">Peso, medidas e percentual de gordura em histórico separado</div>
+          </div>
+        </div>
+        <div class="grid measure-layout">
+          <div class="panel">
+            <div class="section-title"><h3>Novo registro físico</h3><span>Evolução corporal completa</span></div>
+            <form class="measure-form-grid" id="bodyMeasureForm">
+              <div class="field">
+                <label for="measureDate">Data</label>
+                <input id="measureDate" type="date" />
+              </div>
+              <div class="field">
+                <label for="measureWeight">Peso corporal (kg)</label>
+                <input id="measureWeight" inputmode="decimal" placeholder="Ex: 82.4" data-i18n-placeholder="Ex: 82.4" />
+              </div>
+              <div class="field">
+                <label for="measureBodyFat">Gordura corporal (%)</label>
+                <input id="measureBodyFat" inputmode="decimal" placeholder="Ex: 14.8" data-i18n-placeholder="Ex: 14.8" />
+              </div>
+              <div class="field">
+                <label for="measureWaist">Cintura (cm)</label>
+                <input id="measureWaist" inputmode="decimal" placeholder="Ex: 82" data-i18n-placeholder="Ex: 82" />
+              </div>
+              <div class="field">
+                <label for="measureChest">Peito (cm)</label>
+                <input id="measureChest" inputmode="decimal" placeholder="Ex: 106" data-i18n-placeholder="Ex: 106" />
+              </div>
+              <div class="field">
+                <label for="measureArm">Braço (cm)</label>
+                <input id="measureArm" inputmode="decimal" placeholder="Ex: 39" data-i18n-placeholder="Ex: 39" />
+              </div>
+              <div class="field">
+                <label for="measureLeg">Perna (cm)</label>
+                <input id="measureLeg" inputmode="decimal" placeholder="Ex: 61" data-i18n-placeholder="Ex: 61" />
+              </div>
+              <div class="field">
+                <label for="measureHip">Quadril (cm)</label>
+                <input id="measureHip" inputmode="decimal" placeholder="Ex: 98" data-i18n-placeholder="Ex: 98" />
+              </div>
+              <div class="field">
+                <label for="measureNotes">Observações</label>
+                <textarea id="measureNotes" placeholder="Ex: Medida em jejum, após descanso" data-i18n-placeholder="Ex: Medida em jejum, após descanso"></textarea>
+              </div>
+              <button class="action" type="submit">Salvar medidas</button>
+            </form>
+          </div>
+          <div class="measure-charts">
+            <div class="grid metrics">
+              <div class="metric"><span>Último peso</span><b id="latestMeasureWeight">--</b></div>
+              <div class="metric"><span>Gordura corporal</span><b id="latestBodyFat">--</b></div>
+              <div class="metric"><span>Cintura</span><b id="latestWaist">--</b></div>
+              <div class="metric"><span>Registros</span><b id="measureCount">0</b></div>
+            </div>
+            <div class="measure-chart-card">
+              <h3>Evolução de peso</h3>
+              <p>Peso registrado junto das medidas corporais.</p>
+              <div class="mini-chart" id="measureWeightChart"></div>
+            </div>
+            <div class="measure-chart-card">
+              <h3>Percentual de gordura</h3>
+              <p>Acompanhe queda ou retenção de gordura corporal ao longo do tempo.</p>
+              <div class="mini-chart" id="bodyFatChart"></div>
+            </div>
+            <div class="measure-chart-card">
+              <h3>Medidas principais</h3>
+              <p>Cintura, peito, braço, perna e quadril no mesmo histórico.</p>
+              <div class="bars" id="bodyMeasureBars"></div>
+            </div>
+            <div class="measure-chart-card">
+              <h3>Histórico físico</h3>
+              <p>Registros mais recentes para revisão do aluno e do personal.</p>
+              <div class="measure-history" id="bodyMeasureHistory"></div>
+            </div>
+          </div>
+        </div>
       </section>
 
       <section id="workouts" class="screen">
@@ -1422,11 +1625,11 @@
       <div class="form-grid">
         <div class="field">
           <label for="workoutName">Nome</label>
-          <input id="workoutName" required placeholder="Ex: Peito + Abdômen" />
+          <input id="workoutName" required placeholder="Ex: Peito + Abdômen" data-i18n-placeholder="Ex: Peito + Abdômen" />
         </div>
         <div class="field">
           <label for="workoutGoal">Objetivo</label>
-          <input id="workoutGoal" placeholder="Ex: Hipertrofia e progressão de carga" />
+          <input id="workoutGoal" placeholder="Ex: Hipertrofia e progressão de carga" data-i18n-placeholder="Ex: Hipertrofia e progressão de carga" />
         </div>
         <div class="field">
           <label>Exercícios</label>
@@ -1482,6 +1685,7 @@
         "Português": "Portuguese",
         "Dashboard": "Dashboard",
         "Check-in": "Check-in",
+        "Medidas": "Measurements",
         "Treinos": "Workouts",
         "Programas": "Programs",
         "Estatísticas": "Stats",
@@ -1557,13 +1761,180 @@
         "Relatório pronto para personal trainer: frequência dos últimos 30 dias, rotina diária e resumo de treinos concluídos.": "Trainer-ready report: last 30 days frequency, daily routine and completed workout summary.",
         "Relatório mensal pronto para personal trainer: estatísticas, check-ins dia a dia e resumo de treinos.": "Monthly report ready for trainers: stats, daily check-ins and workout summary.",
         "Relatório mensal criado. Abra e salve como PDF pelo navegador.": "Monthly report created. Open it and save as PDF in the browser.",
-        "Peso não registrado": "Weight not recorded"
+        "Peso não registrado": "Weight not recorded",
+        "Biblioteca ilimitada, histórico e progressão automática": "Unlimited library, history and automatic progression",
+        "Costas + Panturrilha": "Back + Calves",
+        "Puxadas, remadas e finalização de panturrilha com progressão de carga.": "Pulldowns, rows and calf finishers with load progression.",
+        "Pernas Pesado": "Heavy Legs",
+        "Agachamento, leg press, posterior e panturrilhas em alto esforço.": "Squats, leg press, hamstrings and calves at high effort.",
+        "Ombro + Bíceps": "Shoulders + Biceps",
+        "Deltoides completos, braços e controle de execução série a série.": "Full delts, arms and set-by-set execution control.",
+        "Força": "Strength",
+        "Hipertrofia": "Hypertrophy",
+        "Volume": "Volume",
+        "Conclua exercício por exercício": "Finish exercise by exercise",
+        "Execução do treino": "Workout execution",
+        "Registre série por série": "Log set by set",
+        "Progressão": "Progression",
+        "Automática": "Automatic",
+        "Último treino": "Last workout",
+        "Melhor treino": "Best workout",
+        "Sem registro": "No record",
+        "Nome": "Name",
+        "Objetivo": "Goal",
+        "Exercícios": "Exercises",
+        "Exercício": "Exercise",
+        "Adicionar exercício": "Add exercise",
+        "Cancelar": "Cancel",
+        "Criar treino": "Create workout",
+        "Ex: Peito + Abdômen": "Ex: Chest + Abs",
+        "Ex: Hipertrofia e progressão de carga": "Ex: Hypertrophy and load progression",
+        "exercícios": "exercises",
+        "séries": "sets",
+        "Local": "Local",
+        "Série": "Set",
+        "Peso": "Weight",
+        "Descanso s": "Rest s",
+        "Remover": "Remove",
+        "Remover exercício": "Remove exercise",
+        "Nome do exercício": "Exercise name",
+        "Normal": "Normal",
+        "Aquecimento": "Warm-up",
+        "Falha": "Failure",
+        "Anterior": "Previous",
+        "Descanso em segundos": "Rest in seconds",
+        "Concluir série": "Finish set",
+        "Técnica": "Technique",
+        "Descanso": "Rest",
+        "exercícios no treino": "exercises in workout",
+        "exercícios concluídos": "exercises finished",
+        "Concluída": "Finished",
+        "Exercício concluído": "Exercise finished",
+        "concluído. Descanso entre exercícios iniciado.": "finished. Rest between exercises started.",
+        "Treino salvo hoje": "Workout saved today",
+        "Treino do dia salvo no histórico local.": "Today's workout saved in local history.",
+        "Todos os exercícios já foram concluídos.": "All exercises are already finished.",
+        "Treino criado com exercícios, séries, peso e técnicas.": "Workout created with exercises, sets, weight and techniques.",
+        "Nova série adicionada em": "New set added to",
+        "Descanso de": "Rest of",
+        "iniciado.": "started.",
+        "Série registrada. Descanso iniciado.": "Set logged. Rest started.",
+        "Pronto": "Ready",
+        "Descanso finalizado. Próxima série.": "Rest finished. Next set.",
+        "excluído.": "deleted.",
+        "Subiu carga": "Load increased",
+        "Subiu repetições": "Reps increased",
+        "Manteve ou igualou a melhor marca": "Matched or held the best mark",
+        "Abaixo do registro anterior": "Below previous record",
+        "Preencha hoje para comparar": "Fill today to compare",
+        "Treino criado com exercícios e séries.": "Workout created with exercises and sets.",
+        "Ramon Dino - Braço": "Ramon Dino - Arms",
+        "Modelo público inspirado no dia de braços: bíceps, tríceps e finalizações isoladas.": "Public model inspired by arm day: biceps, triceps and isolated finishers.",
+        "CBUM - Peito 35 min": "CBUM - Chest 35 min",
+        "Rotina com tri-set de halteres e finalização no pec deck.": "Routine with dumbbell tri-set and pec deck finisher.",
+        "CBUM - Peito Hipertrofia.org": "CBUM - Chest Hypertrofia.org",
+        "Dia 1 da divisão de 8 dias: peito com progressão dupla e dropsets.": "Day 1 of the 8-day split: chest with double progression and dropsets.",
+        "CBUM - Quadríceps + Panturrilha": "CBUM - Quads + Calves",
+        "Dia 2 da divisão: extensora com dropset, smith e tri-set de perna.": "Day 2 of the split: leg extensions with dropset, smith and leg tri-set.",
+        "CBUM - Costas Espessura": "CBUM - Back Thickness",
+        "Dia 3 da divisão: remadas, puxadas e foco em densidade das costas.": "Day 3 of the split: rows, pulldowns and back-density focus.",
+        "CBUM - Ombros + Tríceps": "CBUM - Shoulders + Triceps",
+        "Dia 5 da divisão: deltoides com presses, laterais e tríceps em superset.": "Day 5 of the split: delts with presses, laterals and triceps supersets.",
+        "CBUM - Posterior + Costas Largura": "CBUM - Hamstrings + Back Width",
+        "Dia 6 adaptado: puxadas para largura e posterior em sessão separada.": "Adapted day 6: width pulldowns and hamstrings in a separate session.",
+        "CBUM - Braços": "CBUM - Arms",
+        "Dia 7 da divisão: bíceps e tríceps com dropsets e séries até a falha.": "Day 7 of the split: biceps and triceps with dropsets and sets to failure.",
+        "Hany Rambod - Ombro FST-7": "Hany Rambod - Shoulder FST-7",
+        "Ombros 3D usando o princípio FST-7: base pesada e sete séries finais de pump.": "3D shoulders using the FST-7 principle: heavy base and seven final pump sets.",
+        "Arnold - Peito + Costas": "Arnold - Chest + Back",
+        "Estilo old school: peito e costas no mesmo dia, com supersets e pirâmide.": "Old-school style: chest and back on the same day, with supersets and pyramids.",
+        "Tom Platz - Pernas": "Tom Platz - Legs",
+        "Treino de pernas com amplitude completa, alto volume e execução controlada.": "Leg workout with full range, high volume and controlled execution.",
+        "Dorian Yates - Costas": "Dorian Yates - Back",
+        "Costas no estilo Blood and Guts: aquecimento e séries efetivas muito intensas.": "Blood and Guts style back: warm-up and very intense working sets.",
+        "Mike Mentzer - Peito Heavy Duty": "Mike Mentzer - Chest Heavy Duty",
+        "Baixo volume, pré-exaustão e uma série real até a falha.": "Low volume, pre-exhaustion and one true set to failure.",
+        "Gabriel Ganley - Push Estruturado": "Gabriel Ganley - Structured Push",
+        "Modelo inspirado em progressão estruturada: peito, ombro e tríceps com carga rastreável.": "Model inspired by structured progression: chest, shoulders and triceps with trackable load.",
+        "Mathla - Upper Moderno": "Mathla - Modern Upper",
+        "Modelo inspirado em hipertrofia moderna: volume eficiente, cabos e controle.": "Model inspired by modern hypertrophy: efficient volume, cables and control.",
+        "Eduardo Correa - Braços Execução": "Eduardo Correa - Arms Execution",
+        "Bíceps e tríceps com variedade de ângulos, execução estrita e contração máxima.": "Biceps and triceps with varied angles, strict execution and maximum contraction.",
+        "Leandro Peres - Open Alta Intensidade": "Leandro Peres - Open High Intensity",
+        "Modelo inspirado no fisiculturismo Open: básicos pesados, máquinas e finalizações próximas da falha.": "Model inspired by Open bodybuilding: heavy basics, machines and finishers close to failure.",
+        "Supino inclinado com halteres": "Incline dumbbell press",
+        "Crucifixo inclinado com halteres": "Incline dumbbell fly",
+        "Supino inclinado Hammer Strength": "Incline Hammer Strength press",
+        "Flexões": "Push-ups",
+        "Cadeira extensora": "Leg extension",
+        "Agachamento smith": "Smith squat",
+        "Leg press unilateral": "Single-leg leg press",
+        "Agachamento sissy": "Sissy squat",
+        "Panturrilha sentado": "Seated calf raise",
+        "Puxada supinada fechada": "Close supinated pulldown",
+        "Remada com halteres apoiada": "Chest-supported dumbbell row",
+        "Remada cavalinho com apoio no peito": "Chest-supported T-bar row",
+        "Remada apoiada na máquina": "Machine-supported row",
+        "Desenvolvimento sentado com halteres": "Seated dumbbell shoulder press",
+        "Desenvolvimento Arnold": "Arnold press",
+        "Desenvolvimento na máquina": "Machine shoulder press",
+        "Elevação lateral": "Lateral raise",
+        "Tríceps corda": "Rope triceps pushdown",
+        "Tríceps na polia": "Cable triceps pushdown",
+        "Paralelas para tríceps": "Triceps dips",
+        "Puxada pronada": "Pronated pulldown",
+        "Puxada fechada": "Close-grip pulldown",
+        "Remada unilateral na máquina": "Single-arm machine row",
+        "Remada supinada": "Supinated row",
+        "Mesa flexora": "Lying leg curl",
+        "Rosca testa com halteres no banco inclinado": "Incline dumbbell skull crusher",
+        "Rosca Scott com barra W": "EZ-bar preacher curl",
+        "Rosca alternada": "Alternating dumbbell curl",
+        "Rosca direta na polia baixa": "Low-cable straight curl",
+        "Medidas corporais": "Body measurements",
+        "Peso, medidas e percentual de gordura em histórico separado": "Weight, measurements and body-fat percentage in a separate history",
+        "Novo registro físico": "New physical record",
+        "Evolução corporal completa": "Complete body progress",
+        "Data": "Date",
+        "Peso corporal (kg)": "Body weight (kg)",
+        "Gordura corporal (%)": "Body fat (%)",
+        "Cintura (cm)": "Waist (cm)",
+        "Peito (cm)": "Chest (cm)",
+        "Braço (cm)": "Arm (cm)",
+        "Perna (cm)": "Leg (cm)",
+        "Quadril (cm)": "Hip (cm)",
+        "Observações": "Notes",
+        "Ex: Medida em jejum, após descanso": "Ex: Fasted measurement after rest",
+        "Salvar medidas": "Save measurements",
+        "Último peso": "Latest weight",
+        "Gordura corporal": "Body fat",
+        "Cintura": "Waist",
+        "Peito": "Chest",
+        "Braço": "Arm",
+        "Perna": "Leg",
+        "Quadril": "Hip",
+        "Registros": "Records",
+        "Evolução de peso": "Weight progress",
+        "Peso registrado junto das medidas corporais.": "Weight recorded with body measurements.",
+        "Percentual de gordura": "Body-fat percentage",
+        "Acompanhe queda ou retenção de gordura corporal ao longo do tempo.": "Track body-fat loss or retention over time.",
+        "Medidas principais": "Main measurements",
+        "Cintura, peito, braço, perna e quadril no mesmo histórico.": "Waist, chest, arm, leg and hip in one history.",
+        "Histórico físico": "Physical history",
+        "Registros mais recentes para revisão do aluno e do personal.": "Recent records for student and trainer review.",
+        "Peso": "Weight",
+        "Gordura": "Fat",
+        "Salve um registro físico para começar os gráficos.": "Save a physical record to start the charts.",
+        "Nenhum registro físico salvo ainda.": "No physical records saved yet.",
+        "Sem pesos salvos nas medidas.": "No weights saved in measurements.",
+        "Sem percentual de gordura salvo.": "No body-fat percentage saved."
       },
       es: {
         "Idioma": "Idioma",
         "Português": "Portugués",
         "Dashboard": "Panel",
         "Check-in": "Check-in",
+        "Medidas": "Medidas",
         "Treinos": "Entrenos",
         "Programas": "Programas",
         "Estatísticas": "Estadísticas",
@@ -1639,7 +2010,173 @@
         "Relatório pronto para personal trainer: frequência dos últimos 30 dias, rotina diária e resumo de treinos concluídos.": "Informe listo para entrenador: frecuencia de los últimos 30 días, rutina diaria y resumen de entrenos completados.",
         "Relatório mensal pronto para personal trainer: estatísticas, check-ins dia a dia e resumo de treinos.": "Informe mensual listo para entrenadores: estadísticas, check-ins diarios y resumen de entrenos.",
         "Relatório mensal criado. Abra e salve como PDF pelo navegador.": "Informe mensual creado. Ábrelo y guárdalo como PDF en el navegador.",
-        "Peso não registrado": "Peso no registrado"
+        "Peso não registrado": "Peso no registrado",
+        "Biblioteca ilimitada, histórico e progressão automática": "Biblioteca ilimitada, historial y progresión automática",
+        "Costas + Panturrilha": "Espalda + Pantorrilla",
+        "Puxadas, remadas e finalização de panturrilha com progressão de carga.": "Jalones, remos y finalización de pantorrilla con progresión de carga.",
+        "Pernas Pesado": "Piernas Pesado",
+        "Agachamento, leg press, posterior e panturrilhas em alto esforço.": "Sentadilla, prensa, posterior y pantorrillas con alto esfuerzo.",
+        "Ombro + Bíceps": "Hombro + Bíceps",
+        "Deltoides completos, braços e controle de execução série a série.": "Deltoides completos, brazos y control de ejecución serie por serie.",
+        "Força": "Fuerza",
+        "Hipertrofia": "Hipertrofia",
+        "Volume": "Volumen",
+        "Conclua exercício por exercício": "Completa ejercicio por ejercicio",
+        "Execução do treino": "Ejecución del entreno",
+        "Registre série por série": "Registra serie por serie",
+        "Progressão": "Progresión",
+        "Automática": "Automática",
+        "Último treino": "Último entreno",
+        "Melhor treino": "Mejor entreno",
+        "Sem registro": "Sin registro",
+        "Nome": "Nombre",
+        "Objetivo": "Objetivo",
+        "Exercícios": "Ejercicios",
+        "Exercício": "Ejercicio",
+        "Adicionar exercício": "Agregar ejercicio",
+        "Cancelar": "Cancelar",
+        "Criar treino": "Crear entreno",
+        "Ex: Peito + Abdômen": "Ej: Pecho + Abdomen",
+        "Ex: Hipertrofia e progressão de carga": "Ej: Hipertrofia y progresión de carga",
+        "exercícios": "ejercicios",
+        "séries": "series",
+        "Local": "Local",
+        "Série": "Serie",
+        "Peso": "Peso",
+        "Descanso s": "Descanso s",
+        "Remover": "Quitar",
+        "Remover exercício": "Quitar ejercicio",
+        "Nome do exercício": "Nombre del ejercicio",
+        "Normal": "Normal",
+        "Aquecimento": "Calentamiento",
+        "Falha": "Fallo",
+        "Anterior": "Anterior",
+        "Descanso em segundos": "Descanso en segundos",
+        "Concluir série": "Completar serie",
+        "Técnica": "Técnica",
+        "Descanso": "Descanso",
+        "exercícios no treino": "ejercicios en el entreno",
+        "exercícios concluídos": "ejercicios completados",
+        "Concluída": "Completada",
+        "Exercício concluído": "Ejercicio completado",
+        "concluído. Descanso entre exercícios iniciado.": "completado. Descanso entre ejercicios iniciado.",
+        "Treino salvo hoje": "Entreno guardado hoy",
+        "Treino do dia salvo no histórico local.": "Entreno del día guardado en el historial local.",
+        "Todos os exercícios já foram concluídos.": "Todos los ejercicios ya fueron completados.",
+        "Treino criado com exercícios, séries, peso e técnicas.": "Entreno creado con ejercicios, series, peso y técnicas.",
+        "Nova série adicionada em": "Nueva serie agregada en",
+        "Descanso de": "Descanso de",
+        "iniciado.": "iniciado.",
+        "Série registrada. Descanso iniciado.": "Serie registrada. Descanso iniciado.",
+        "Pronto": "Listo",
+        "Descanso finalizado. Próxima série.": "Descanso finalizado. Próxima serie.",
+        "excluído.": "eliminado.",
+        "Subiu carga": "Subió carga",
+        "Subiu repetições": "Subió repeticiones",
+        "Manteve ou igualou a melhor marca": "Mantuvo o igualó la mejor marca",
+        "Abaixo do registro anterior": "Por debajo del registro anterior",
+        "Preencha hoje para comparar": "Completa hoy para comparar",
+        "Treino criado com exercícios e séries.": "Entreno creado con ejercicios y series.",
+        "Ramon Dino - Braço": "Ramon Dino - Brazo",
+        "Modelo público inspirado no dia de braços: bíceps, tríceps e finalizações isoladas.": "Modelo público inspirado en día de brazos: bíceps, tríceps y finalizaciones aisladas.",
+        "CBUM - Peito 35 min": "CBUM - Pecho 35 min",
+        "Rotina com tri-set de halteres e finalização no pec deck.": "Rutina con tri-set de mancuernas y finalización en pec deck.",
+        "CBUM - Peito Hipertrofia.org": "CBUM - Pecho Hipertrofia.org",
+        "Dia 1 da divisão de 8 dias: peito com progressão dupla e dropsets.": "Día 1 de la división de 8 días: pecho con progresión doble y dropsets.",
+        "CBUM - Quadríceps + Panturrilha": "CBUM - Cuádriceps + Pantorrilla",
+        "Dia 2 da divisão: extensora com dropset, smith e tri-set de perna.": "Día 2 de la división: extensora con dropset, smith y tri-set de pierna.",
+        "CBUM - Costas Espessura": "CBUM - Espalda Espesor",
+        "Dia 3 da divisão: remadas, puxadas e foco em densidade das costas.": "Día 3 de la división: remos, jalones y foco en densidad de espalda.",
+        "CBUM - Ombros + Tríceps": "CBUM - Hombros + Tríceps",
+        "Dia 5 da divisão: deltoides com presses, laterais e tríceps em superset.": "Día 5 de la división: deltoides con presses, laterales y tríceps en superset.",
+        "CBUM - Posterior + Costas Largura": "CBUM - Posterior + Espalda Anchura",
+        "Dia 6 adaptado: puxadas para largura e posterior em sessão separada.": "Día 6 adaptado: jalones para anchura y posterior en sesión separada.",
+        "CBUM - Braços": "CBUM - Brazos",
+        "Dia 7 da divisão: bíceps e tríceps com dropsets e séries até a falha.": "Día 7 de la división: bíceps y tríceps con dropsets y series hasta el fallo.",
+        "Hany Rambod - Ombro FST-7": "Hany Rambod - Hombro FST-7",
+        "Ombros 3D usando o princípio FST-7: base pesada e sete séries finais de pump.": "Hombros 3D usando el principio FST-7: base pesada y siete series finales de pump.",
+        "Arnold - Peito + Costas": "Arnold - Pecho + Espalda",
+        "Estilo old school: peito e costas no mesmo dia, com supersets e pirâmide.": "Estilo old school: pecho y espalda el mismo día, con supersets y pirámide.",
+        "Tom Platz - Pernas": "Tom Platz - Piernas",
+        "Treino de pernas com amplitude completa, alto volume e execução controlada.": "Entreno de piernas con amplitud completa, alto volumen y ejecución controlada.",
+        "Dorian Yates - Costas": "Dorian Yates - Espalda",
+        "Costas no estilo Blood and Guts: aquecimento e séries efetivas muito intensas.": "Espalda estilo Blood and Guts: calentamiento y series efectivas muy intensas.",
+        "Mike Mentzer - Peito Heavy Duty": "Mike Mentzer - Pecho Heavy Duty",
+        "Baixo volume, pré-exaustão e uma série real até a falha.": "Bajo volumen, preagotamiento y una serie real hasta el fallo.",
+        "Gabriel Ganley - Push Estruturado": "Gabriel Ganley - Push Estructurado",
+        "Modelo inspirado em progressão estruturada: peito, ombro e tríceps com carga rastreável.": "Modelo inspirado en progresión estructurada: pecho, hombro y tríceps con carga rastreable.",
+        "Mathla - Upper Moderno": "Mathla - Upper Moderno",
+        "Modelo inspirado em hipertrofia moderna: volume eficiente, cabos e controle.": "Modelo inspirado en hipertrofia moderna: volumen eficiente, cables y control.",
+        "Eduardo Correa - Braços Execução": "Eduardo Correa - Brazos Ejecución",
+        "Bíceps e tríceps com variedade de ângulos, execução estrita e contração máxima.": "Bíceps y tríceps con variedad de ángulos, ejecución estricta y contracción máxima.",
+        "Leandro Peres - Open Alta Intensidade": "Leandro Peres - Open Alta Intensidad",
+        "Modelo inspirado no fisiculturismo Open: básicos pesados, máquinas e finalizações próximas da falha.": "Modelo inspirado en el fisiculturismo Open: básicos pesados, máquinas y finalizaciones cerca del fallo.",
+        "Supino inclinado com halteres": "Press inclinado con mancuernas",
+        "Crucifixo inclinado com halteres": "Aperturas inclinadas con mancuernas",
+        "Supino inclinado Hammer Strength": "Press inclinado Hammer Strength",
+        "Flexões": "Flexiones",
+        "Cadeira extensora": "Extensión de piernas",
+        "Agachamento smith": "Sentadilla Smith",
+        "Leg press unilateral": "Prensa unilateral",
+        "Agachamento sissy": "Sentadilla sissy",
+        "Panturrilha sentado": "Pantorrilla sentado",
+        "Puxada supinada fechada": "Jalón supinado cerrado",
+        "Remada com halteres apoiada": "Remo con mancuernas apoyado",
+        "Remada cavalinho com apoio no peito": "Remo T con apoyo en el pecho",
+        "Remada apoiada na máquina": "Remo apoyado en máquina",
+        "Desenvolvimento sentado com halteres": "Press de hombro sentado con mancuernas",
+        "Desenvolvimento Arnold": "Press Arnold",
+        "Desenvolvimento na máquina": "Press de hombro en máquina",
+        "Elevação lateral": "Elevación lateral",
+        "Tríceps corda": "Tríceps con cuerda",
+        "Tríceps na polia": "Tríceps en polea",
+        "Paralelas para tríceps": "Fondos para tríceps",
+        "Puxada pronada": "Jalón pronado",
+        "Puxada fechada": "Jalón cerrado",
+        "Remada unilateral na máquina": "Remo unilateral en máquina",
+        "Remada supinada": "Remo supinado",
+        "Mesa flexora": "Curl femoral tumbado",
+        "Rosca testa com halteres no banco inclinado": "Extensión de tríceps con mancuernas en banco inclinado",
+        "Rosca Scott com barra W": "Curl predicador con barra EZ",
+        "Rosca alternada": "Curl alterno",
+        "Rosca direta na polia baixa": "Curl recto en polea baja",
+        "Medidas corporais": "Medidas corporales",
+        "Peso, medidas e percentual de gordura em histórico separado": "Peso, medidas y porcentaje de grasa en historial separado",
+        "Novo registro físico": "Nuevo registro físico",
+        "Evolução corporal completa": "Evolución corporal completa",
+        "Data": "Fecha",
+        "Peso corporal (kg)": "Peso corporal (kg)",
+        "Gordura corporal (%)": "Grasa corporal (%)",
+        "Cintura (cm)": "Cintura (cm)",
+        "Peito (cm)": "Pecho (cm)",
+        "Braço (cm)": "Brazo (cm)",
+        "Perna (cm)": "Pierna (cm)",
+        "Quadril (cm)": "Cadera (cm)",
+        "Observações": "Observaciones",
+        "Ex: Medida em jejum, após descanso": "Ej: Medida en ayunas, después de descansar",
+        "Salvar medidas": "Guardar medidas",
+        "Último peso": "Último peso",
+        "Gordura corporal": "Grasa corporal",
+        "Cintura": "Cintura",
+        "Peito": "Pecho",
+        "Braço": "Brazo",
+        "Perna": "Pierna",
+        "Quadril": "Cadera",
+        "Registros": "Registros",
+        "Evolução de peso": "Evolución de peso",
+        "Peso registrado junto das medidas corporais.": "Peso registrado junto con las medidas corporales.",
+        "Percentual de gordura": "Porcentaje de grasa",
+        "Acompanhe queda ou retenção de gordura corporal ao longo do tempo.": "Acompaña la caída o retención de grasa corporal con el tiempo.",
+        "Medidas principais": "Medidas principales",
+        "Cintura, peito, braço, perna e quadril no mesmo histórico.": "Cintura, pecho, brazo, pierna y cadera en el mismo historial.",
+        "Histórico físico": "Historial físico",
+        "Registros mais recentes para revisão do aluno e do personal.": "Registros recientes para revisión del alumno y del entrenador.",
+        "Peso": "Peso",
+        "Gordura": "Grasa",
+        "Salve um registro físico para começar os gráficos.": "Guarda un registro físico para empezar los gráficos.",
+        "Nenhum registro físico salvo ainda.": "Aún no hay registros físicos guardados.",
+        "Sem pesos salvos nas medidas.": "No hay pesos guardados en medidas.",
+        "Sem percentual de gordura salvo.": "No hay porcentaje de grasa guardado."
       }
     };
 
@@ -1653,7 +2190,7 @@
       document.querySelectorAll(".language-button").forEach(button => {
         button.classList.toggle("active", button.dataset.lang === language);
       });
-      document.querySelectorAll("button:not(.language-button), h2, h3, h4, label, span, option, p, strong, .kicker, .hero-title, .quote, .measure-note, .report-line").forEach(element => {
+      document.querySelectorAll("button:not(.language-button), h2, h3, h4, label, span, option, p, strong, .date, .kicker, .hero-title, .quote, .measure-note, .report-line").forEach(element => {
         const current = element.textContent.trim();
         if (!element.dataset.i18nKey && (translations.en[current] || translations.es[current])) {
           element.dataset.i18nKey = current;
@@ -1839,9 +2376,145 @@
         .filter(entry => Number.isFinite(Number(String(entry.weight || "").replace(",", "."))))
         .map(entry => ({
           date: entry.label || entry.date,
+          key: entry.date,
           value: Number(String(entry.weight).replace(",", "."))
         }))
         .sort((a, b) => a.date.localeCompare(b.date));
+    }
+
+    const bodyMeasureFields = [
+      { key: "waist", label: "Cintura", unit: "cm", input: "measureWaist" },
+      { key: "chest", label: "Peito", unit: "cm", input: "measureChest" },
+      { key: "arm", label: "Braço", unit: "cm", input: "measureArm" },
+      { key: "leg", label: "Perna", unit: "cm", input: "measureLeg" },
+      { key: "hip", label: "Quadril", unit: "cm", input: "measureHip" }
+    ];
+
+    function parseMeasureValue(value) {
+      const parsed = Number(String(value || "").replace(",", "."));
+      return Number.isFinite(parsed) ? parsed : null;
+    }
+
+    function formatMeasureValue(value, unit = "") {
+      if (value === null || value === undefined || value === "") return "--";
+      return unit === "%" ? `${value}%` : `${value}${unit ? ` ${unit}` : ""}`;
+    }
+
+    function loadBodyMeasures() {
+      try {
+        return JSON.parse(localStorage.getItem("monolith.bodyMeasures") || "[]")
+          .sort((a, b) => String(b.date || "").localeCompare(String(a.date || "")));
+      } catch {
+        return [];
+      }
+    }
+
+    function saveBodyMeasures(entries) {
+      localStorage.setItem("monolith.bodyMeasures", JSON.stringify(entries.slice(0, 365)));
+    }
+
+    function bodyMeasureSeries(key, entries = loadBodyMeasures()) {
+      return entries
+        .filter(entry => Number.isFinite(Number(entry[key])))
+        .map(entry => ({ date: entry.date, value: Number(entry[key]) }))
+        .sort((a, b) => a.date.localeCompare(b.date));
+    }
+
+    function physicalWeightSeries(checkins = lastThirtyCheckins(), entries = loadBodyMeasures()) {
+      const byDate = new Map(weightSeries(checkins).map(item => [item.key || item.date, item]));
+      bodyMeasureSeries("weight", entries).forEach(item => byDate.set(item.date, { ...item, key: item.date }));
+      return [...byDate.values()].sort((a, b) => String(a.key || a.date).localeCompare(String(b.key || b.date)));
+    }
+
+    function chartBars(series, suffix = "", emptyText = "Sem dados salvos.") {
+      if (!series.length) return `<div class="report-line">${escapeHTML(t(emptyText))}</div>`;
+      const values = series.map(item => item.value);
+      const min = Math.min(...values);
+      const max = Math.max(...values);
+      const range = Math.max(.1, max - min);
+      return series.map(item => {
+        const height = Math.max(22, Math.round(((item.value - min) / range) * 92) + 24);
+        return `<div class="mini-bar" style="height:${height}px"><b>${item.value}${suffix}</b><span>${escapeHTML(item.date)}</span></div>`;
+      }).join("");
+    }
+
+    function renderMiniChart(containerId, series, suffix, emptyText) {
+      const container = document.getElementById(containerId);
+      if (!container) return;
+      container.innerHTML = chartBars(series, suffix, emptyText);
+    }
+
+    function renderBodyMeasures() {
+      const entries = loadBodyMeasures();
+      const latest = entries[0];
+      const setText = (id, value) => {
+        const target = document.getElementById(id);
+        if (target) target.textContent = value;
+      };
+      setText("latestMeasureWeight", latest?.weight ? `${latest.weight} kg` : "--");
+      setText("latestBodyFat", latest?.bodyFat ? `${latest.bodyFat}%` : "--");
+      setText("latestWaist", latest?.waist ? `${latest.waist} cm` : "--");
+      setText("measureCount", String(entries.length));
+      renderMiniChart("measureWeightChart", bodyMeasureSeries("weight", entries), "kg", "Sem pesos salvos nas medidas.");
+      renderMiniChart("bodyFatChart", bodyMeasureSeries("bodyFat", entries), "%", "Sem percentual de gordura salvo.");
+      const measureBars = document.getElementById("bodyMeasureBars");
+      if (measureBars) {
+        if (!latest) {
+          measureBars.innerHTML = `<div class="report-line">${t("Salve um registro físico para começar os gráficos.")}</div>`;
+        } else {
+          measureBars.innerHTML = bodyMeasureFields.map(field => {
+            const series = bodyMeasureSeries(field.key, entries);
+            const first = series[0]?.value;
+            const current = latest[field.key];
+            const delta = current !== null && current !== undefined && first !== undefined ? current - first : 0;
+            const percent = first ? Math.max(0, Math.min(100, Math.round((current / first) * 100))) : 0;
+            return `<div class="bar"><span><b>${escapeHTML(t(field.label))}</b><b>${formatMeasureValue(current, field.unit)} ${delta ? `(${delta > 0 ? "+" : ""}${delta.toFixed(1)} ${field.unit})` : ""}</b></span><div class="track"><div class="fill" style="width:${percent}%"></div></div></div>`;
+          }).join("");
+        }
+      }
+      const history = document.getElementById("bodyMeasureHistory");
+      if (history) {
+        history.innerHTML = entries.slice(0, 12).map(entry => {
+          const tags = [
+            ["Peso", entry.weight, "kg"],
+            ["Gordura", entry.bodyFat, "%"],
+            ...bodyMeasureFields.map(field => [field.label, entry[field.key], field.unit])
+          ].filter(([, value]) => value !== null && value !== undefined && value !== "").map(([label, value, unit]) => `<span>${escapeHTML(t(label))}: ${value}${unit ? ` ${unit}` : ""}</span>`).join("");
+          return `<article class="measure-entry"><header><strong>${escapeHTML(entry.date)}</strong><span>${escapeHTML(entry.notes || "")}</span></header><div class="measure-tags">${tags}</div></article>`;
+        }).join("") || `<div class="report-line">${t("Nenhum registro físico salvo ainda.")}</div>`;
+      }
+    }
+
+    function readBodyMeasureForm() {
+      const date = document.getElementById("measureDate").value || todayKey();
+      const entry = {
+        id: `measure-${date}`,
+        date,
+        weight: parseMeasureValue(document.getElementById("measureWeight").value),
+        bodyFat: parseMeasureValue(document.getElementById("measureBodyFat").value),
+        notes: document.getElementById("measureNotes").value.trim()
+      };
+      bodyMeasureFields.forEach(field => {
+        entry[field.key] = parseMeasureValue(document.getElementById(field.input).value);
+      });
+      return entry;
+    }
+
+    function clearBodyMeasureForm() {
+      ["measureWeight", "measureBodyFat", "measureWaist", "measureChest", "measureArm", "measureLeg", "measureHip", "measureNotes"].forEach(id => {
+        const input = document.getElementById(id);
+        if (input) input.value = "";
+      });
+      const dateInput = document.getElementById("measureDate");
+      if (dateInput) dateInput.value = todayKey();
+    }
+
+    function upsertBodyMeasure(entry) {
+      const entries = loadBodyMeasures().filter(item => item.date !== entry.date);
+      entries.unshift(entry);
+      saveBodyMeasures(entries.sort((a, b) => String(b.date).localeCompare(String(a.date))));
+      renderBodyMeasures();
+      renderTrainerSummary();
     }
 
     function renderStats() {
@@ -1967,11 +2640,12 @@
       });
       const evolution = exerciseEvolutionReport(completedWorkouts);
       const missedDays = missedCheckinDays(checkins);
-      const weights = weightSeries(checkins);
-      return { checkins, completedWorkouts, stats, evolution, missedDays, weights, generatedAt: new Date().toLocaleString("pt-BR") };
+      const bodyMeasures = loadBodyMeasures();
+      const weights = physicalWeightSeries(checkins, bodyMeasures);
+      return { checkins, completedWorkouts, stats, evolution, missedDays, weights, bodyMeasures, generatedAt: new Date().toLocaleString("pt-BR") };
     }
 
-    function monthlyReportHTML() {
+    function monthlyReportHTMLLegacy() {
       const report = monthlyReportData();
       const statsRows = report.stats.map(item => `<tr><td>${escapeHTML(item.name)}</td><td>${item.completed}/${item.total}</td><td>${Math.round((item.completed / Math.max(1, item.total)) * 100)}%</td></tr>`).join("");
       const dayRows = report.checkins.map(day => `<tr><td>${escapeHTML(day.label || day.date)}</td><td>${day.weight ? `${escapeHTML(day.weight)} kg` : "Peso não registrado"}</td><td>${day.completed}/${day.total}</td><td>${day.score}%</td><td>${day.items.map(item => `${escapeHTML(item.name)}: ${item.completed ? "ok" : "não"}`).join("<br>")}</td></tr>`).join("");
@@ -1989,6 +2663,83 @@
       const missedPreview = report.missedDays.slice(-7).map(day => escapeHTML(day)).join(", ");
       const alertLevel = report.missedDays.length >= 5 ? "drop" : "gain";
       return `<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><title>Relatório mensal MONOLITH</title><style>body{font-family:Arial,sans-serif;margin:32px;color:#111}h1{margin-bottom:4px}table{width:100%;border-collapse:collapse;margin:18px 0}th,td{border:1px solid #ccc;padding:8px;text-align:left;vertical-align:top}th{background:#eee}.muted{color:#666}.gain{color:#137333;font-weight:700}.drop{color:#b3261e;font-weight:700}.alert{border-left:4px solid #b8911f;background:#f6f3eb;padding:12px;margin:14px 0}.weight-chart{height:140px;display:flex;align-items:end;gap:8px;border:1px solid #ccc;padding:12px;margin:12px 0}.wbar{min-width:54px;background:#b8911f;display:flex;flex-direction:column;justify-content:space-between;color:#111;padding:4px;font-size:10px}.wbar span{writing-mode:vertical-rl;transform:rotate(180deg);opacity:.7}@media print{button{display:none}}</style></head><body><button onclick="window.print()">Salvar como PDF</button><h1>Relatório mensal MONOLITH</h1><p class="muted">Gerado em ${escapeHTML(report.generatedAt)}. Use o botão do navegador para salvar como PDF.</p><h2>Alerta de check-in para o personal</h2><div class="alert"><strong class="${alertLevel}">${report.missedDays.length} dias sem check-in nos últimos 30 dias.</strong><br>${report.missedDays.length ? `Dias recentes sem registro: ${missedPreview}` : "Aluno manteve check-in completo no período."}</div><h2>Evolução de peso</h2>${weightBars ? `<div class="weight-chart">${weightBars}</div>` : `<p class="muted">Ainda não há pesos salvos no check-in diário.</p>`}<h2>Top 5 maiores evoluções</h2><table><thead><tr><th>Exercício</th><th>Base</th><th>Primeiro registro</th><th>Atual</th><th>Último registro</th><th>Delta</th></tr></thead><tbody>${gainRows || `<tr><td colspan="6">Ainda precisa de pelo menos duas sessões salvas do mesmo exercício.</td></tr>`}</tbody></table><h2>Top 5 maiores quedas</h2><table><thead><tr><th>Exercício</th><th>Base</th><th>Primeiro registro</th><th>Atual</th><th>Último registro</th><th>Delta</th></tr></thead><tbody>${dropRows || `<tr><td colspan="6">Nenhuma queda relevante detectada.</td></tr>`}</tbody></table><h2>Frequência dos últimos 30 dias</h2><table><thead><tr><th>Item</th><th>Concluído</th><th>Aderência</th></tr></thead><tbody>${statsRows || `<tr><td colspan="3">Sem check-ins salvos.</td></tr>`}</tbody></table><h2>Dia a dia</h2><table><thead><tr><th>Dia</th><th>Peso</th><th>Score</th><th>%</th><th>Itens</th></tr></thead><tbody>${dayRows || `<tr><td colspan="5">Sem check-ins salvos.</td></tr>`}</tbody></table><h2>Treinos concluídos</h2><table><thead><tr><th>Data</th><th>Treino</th><th>Séries</th></tr></thead><tbody>${workoutRows || `<tr><td colspan="3">Sem treinos concluídos salvos.</td></tr>`}</tbody></table></body></html>`;
+    }
+
+    function reportChartBars(series, suffix = "") {
+      if (!series.length) return "";
+      const values = series.map(item => item.value);
+      const min = Math.min(...values);
+      const max = Math.max(...values);
+      const range = Math.max(.1, max - min);
+      return series.map(item => {
+        const height = Math.max(14, Math.round(((item.value - min) / range) * 90) + 16);
+        return `<div class="wbar" style="height:${height}px"><b>${item.value}${suffix}</b><span>${escapeHTML(item.date)}</span></div>`;
+      }).join("");
+    }
+
+    function monthlyReportHTML() {
+      const report = monthlyReportData();
+      const statsRows = report.stats.map(item => `<tr><td>${escapeHTML(item.name)}</td><td>${item.completed}/${item.total}</td><td>${Math.round((item.completed / Math.max(1, item.total)) * 100)}%</td></tr>`).join("");
+      const dayRows = report.checkins.map(day => `<tr><td>${escapeHTML(day.label || day.date)}</td><td>${day.weight ? `${escapeHTML(day.weight)} kg` : "Peso não registrado"}</td><td>${day.completed}/${day.total}</td><td>${day.score}%</td><td>${day.items.map(item => `${escapeHTML(item.name)}: ${item.completed ? "ok" : "não"}`).join("<br>")}</td></tr>`).join("");
+      const workoutRows = report.completedWorkouts.slice(0, 30).map(session => `<tr><td>${escapeHTML(session.date || session.completedAt || "-")}</td><td>${escapeHTML(session.workoutName || "Treino")}</td><td>${session.completedSets || 0}/${session.totalSets || 0} séries</td></tr>`).join("");
+      const evolutionRow = item => `<tr><td>${escapeHTML(item.name)}</td><td>${escapeHTML(item.first.date)}</td><td>${Math.round(item.first.volume)} vol / ${Math.round(item.first.bestE1rm)}kg e1RM</td><td>${escapeHTML(item.latest.date)}</td><td>${Math.round(item.latest.volume)} vol / ${Math.round(item.latest.bestE1rm)}kg e1RM</td><td>${item.percent > 0 ? "+" : ""}${item.percent}%</td></tr>`;
+      const gainRows = report.evolution.topGains.map(evolutionRow).join("");
+      const dropRows = report.evolution.topDrops.map(evolutionRow).join("");
+      const weightBars = reportChartBars(report.weights, "kg");
+      const bodyFatBars = reportChartBars(bodyMeasureSeries("bodyFat", report.bodyMeasures), "%");
+      const measureRows = report.bodyMeasures.slice(0, 20).map(entry => `<tr><td>${escapeHTML(entry.date)}</td><td>${formatMeasureValue(entry.weight, "kg")}</td><td>${formatMeasureValue(entry.bodyFat, "%")}</td><td>${formatMeasureValue(entry.waist, "cm")}</td><td>${formatMeasureValue(entry.chest, "cm")}</td><td>${formatMeasureValue(entry.arm, "cm")}</td><td>${formatMeasureValue(entry.leg, "cm")}</td><td>${formatMeasureValue(entry.hip, "cm")}</td><td>${escapeHTML(entry.notes || "")}</td></tr>`).join("");
+      const measureDeltaRows = bodyMeasureFields.map(field => {
+        const series = bodyMeasureSeries(field.key, report.bodyMeasures);
+        const first = series[0];
+        const latest = series[series.length - 1];
+        const delta = first && latest ? latest.value - first.value : 0;
+        return `<tr><td>${escapeHTML(field.label)}</td><td>${first ? `${first.value} ${field.unit}` : "--"}</td><td>${latest ? `${latest.value} ${field.unit}` : "--"}</td><td>${first && latest ? `${delta > 0 ? "+" : ""}${delta.toFixed(1)} ${field.unit}` : "--"}</td></tr>`;
+      }).join("");
+      const missedPreview = report.missedDays.slice(-7).map(day => escapeHTML(day)).join(", ");
+      const alertLevel = report.missedDays.length >= 5 ? "drop" : "gain";
+      return `<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<title>Relatório mensal MONOLITH</title>
+<style>
+body{font-family:Arial,sans-serif;margin:32px;color:#111;line-height:1.35}
+h1{margin-bottom:4px}h2{margin-top:26px}
+table{width:100%;border-collapse:collapse;margin:14px 0 18px}
+th,td{border:1px solid #ccc;padding:8px;text-align:left;vertical-align:top;font-size:12px}
+th{background:#eee}.muted{color:#666}.gain{color:#137333;font-weight:700}.drop{color:#b3261e;font-weight:700}
+.alert{border-left:4px solid #b8911f;background:#f6f3eb;padding:12px;margin:14px 0}
+.chart{height:150px;display:flex;align-items:end;gap:8px;border:1px solid #ccc;padding:12px;margin:12px 0;overflow:hidden}
+.wbar{min-width:54px;background:#b8911f;display:flex;flex-direction:column;justify-content:space-between;color:#111;padding:4px;font-size:10px;font-weight:700}
+.wbar span{writing-mode:vertical-rl;transform:rotate(180deg);opacity:.75}
+@media print{button{display:none}body{margin:18px}}
+</style>
+</head>
+<body>
+<button onclick="window.print()">Salvar como PDF</button>
+<h1>Relatório mensal MONOLITH</h1>
+<p class="muted">Gerado em ${escapeHTML(report.generatedAt)}. Use o botão do navegador para salvar como PDF.</p>
+<h2>Alerta de check-in para o personal</h2>
+<div class="alert"><strong class="${alertLevel}">${report.missedDays.length} dias sem check-in nos últimos 30 dias.</strong><br>${report.missedDays.length ? `Dias recentes sem registro: ${missedPreview}` : "Aluno manteve check-in completo no período."}</div>
+<h2>Evolução de peso corporal</h2>
+${weightBars ? `<div class="chart">${weightBars}</div>` : `<p class="muted">Ainda não há pesos salvos no check-in ou nas medidas corporais.</p>`}
+<h2>Percentual de gordura corporal</h2>
+${bodyFatBars ? `<div class="chart">${bodyFatBars}</div>` : `<p class="muted">Ainda não há percentual de gordura salvo.</p>`}
+<h2>Medidas corporais</h2>
+<table><thead><tr><th>Medida</th><th>Primeiro registro</th><th>Atual</th><th>Delta</th></tr></thead><tbody>${measureDeltaRows}</tbody></table>
+<table><thead><tr><th>Data</th><th>Peso</th><th>Gordura</th><th>Cintura</th><th>Peito</th><th>Braço</th><th>Perna</th><th>Quadril</th><th>Obs.</th></tr></thead><tbody>${measureRows || `<tr><td colspan="9">Sem medidas corporais salvas.</td></tr>`}</tbody></table>
+<h2>Top 5 maiores evoluções</h2>
+<table><thead><tr><th>Exercício</th><th>Base</th><th>Primeiro registro</th><th>Atual</th><th>Último registro</th><th>Delta</th></tr></thead><tbody>${gainRows || `<tr><td colspan="6">Ainda precisa de pelo menos duas sessões salvas do mesmo exercício.</td></tr>`}</tbody></table>
+<h2>Top 5 maiores quedas</h2>
+<table><thead><tr><th>Exercício</th><th>Base</th><th>Primeiro registro</th><th>Atual</th><th>Último registro</th><th>Delta</th></tr></thead><tbody>${dropRows || `<tr><td colspan="6">Nenhuma queda relevante detectada.</td></tr>`}</tbody></table>
+<h2>Frequência dos últimos 30 dias</h2>
+<table><thead><tr><th>Item</th><th>Concluído</th><th>Aderência</th></tr></thead><tbody>${statsRows || `<tr><td colspan="3">Sem check-ins salvos.</td></tr>`}</tbody></table>
+<h2>Dia a dia</h2>
+<table><thead><tr><th>Dia</th><th>Peso simples</th><th>Score</th><th>%</th><th>Itens</th></tr></thead><tbody>${dayRows || `<tr><td colspan="5">Sem check-ins salvos.</td></tr>`}</tbody></table>
+<h2>Treinos concluídos</h2>
+<table><thead><tr><th>Data</th><th>Treino</th><th>Séries</th></tr></thead><tbody>${workoutRows || `<tr><td colspan="3">Sem treinos concluídos salvos.</td></tr>`}</tbody></table>
+</body>
+</html>`;
     }
 
     function downloadTextFile(filename, type, content) {
@@ -2011,7 +2762,7 @@
       if (!target) return;
       const report = monthlyReportData();
       const avg = report.checkins.length ? Math.round(report.checkins.reduce((total, item) => total + item.score, 0) / report.checkins.length) : 0;
-      target.textContent = `${report.checkins.length} check-ins nos últimos 30 dias, aderência média de ${avg}%, ${report.completedWorkouts.length} treinos concluídos e ${report.missedDays.length} dias sem check-in para o personal acompanhar.`;
+      target.textContent = `${report.checkins.length} check-ins nos últimos 30 dias, aderência média de ${avg}%, ${report.completedWorkouts.length} treinos concluídos, ${report.bodyMeasures.length} registros físicos e ${report.missedDays.length} dias sem check-in para o personal acompanhar.`;
     }
     function downloadExport(type) {
       const payload = {
@@ -2022,6 +2773,7 @@
         completedWorkouts: JSON.parse(localStorage.getItem("monolith.completedWorkouts") || "[]"),
         selectedCoach: document.querySelector(".coach-card.selected h3")?.textContent || "Nenhum coach selecionado",
         checkins: loadCheckins(),
+        bodyMeasures: loadBodyMeasures(),
         progressPhotos: loadProgressPhotos()
       };
       if (type === "report" || type === "pdf") {
@@ -2115,6 +2867,7 @@
     renderFactors();
     renderPhotoVault();
     renderStats();
+    renderBodyMeasures();
     renderTrainerSummary();
     const languageSelect = document.getElementById("languageSelect");
     const currentLanguage = localStorage.getItem("monolith.language") || "pt";
@@ -2124,9 +2877,11 @@
       applyLanguage(button.dataset.lang);
       renderFactors();
       renderStats();
+      renderBodyMeasures();
       renderPhotoVault();
     });
     applyLanguage(currentLanguage);
+    clearBodyMeasureForm();
 
     function showScreen(id) {
       document.querySelectorAll(".screen").forEach(screen => screen.classList.toggle("active", screen.id === id));
@@ -2186,6 +2941,7 @@
           renderStats();
           renderPhotoVault();
         }
+        if (nav.dataset.screen === "measures") renderBodyMeasures();
         if (nav.dataset.screen === "backup") renderTrainerSummary();
       }
 
@@ -2219,10 +2975,23 @@
       document.getElementById("dailyWeight").value = "";
       showToast(`Check-in salvo: ${entry.completed}/${entry.total} itens concluídos.`);
     });
+    document.getElementById("bodyMeasureForm").addEventListener("submit", event => {
+      event.preventDefault();
+      const entry = readBodyMeasureForm();
+      if (!entry.weight && !entry.bodyFat && !bodyMeasureFields.some(field => entry[field.key])) {
+        showToast("Preencha pelo menos uma medida física.");
+        return;
+      }
+      upsertBodyMeasure(entry);
+      clearBodyMeasureForm();
+      showToast("Medidas corporais salvas.");
+    });
     document.getElementById("clearHistoryButton").addEventListener("click", () => {
       localStorage.removeItem("monolith.completedWorkouts");
       localStorage.removeItem("monolith.checkins");
+      localStorage.removeItem("monolith.bodyMeasures");
       renderStats();
+      renderBodyMeasures();
       renderTrainerSummary();
       showToast("Histórico mensal limpo.");
     });
@@ -2522,6 +3291,14 @@
         }[char]));
       }
 
+      function textV2(value = "") {
+        return t(String(value));
+      }
+
+      function htmlT(value = "") {
+        return html(textV2(value));
+      }
+
       function toastV2(message) {
         const toast = document.getElementById("toast");
         toast.textContent = message;
@@ -2549,8 +3326,8 @@
           if (remaining <= 0) {
             clearInterval(timer);
             restTimersV2.delete(row);
-            display.textContent = "Pronto";
-            toastV2("Descanso finalizado. Próxima série.");
+            display.textContent = textV2("Pronto");
+            toastV2(textV2("Descanso finalizado. Próxima série."));
           }
         }, 1000);
         restTimersV2.set(row, timer);
@@ -2633,7 +3410,7 @@
           activeWorkoutV2 = workoutsV2[0];
           if (activeWorkoutV2) renderSessionV2(activeWorkoutV2);
         }
-        toastV2(`${workout.name} excluído.`);
+        toastV2(`${textV2(workout.name)} ${textV2("excluído.")}`);
       }
 
       function normalizeExerciseNameV2(name = "") {
@@ -2660,11 +3437,11 @@
         const previousReps = numberValueV2(previousSet.reps);
         const weight = numberValueV2(currentWeight);
         const reps = numberValueV2(currentReps);
-        if (!weight && !reps) return "Preencha hoje para comparar";
-        if (weight > previousWeight) return `Subiu carga: ${previousWeight || 0}kg -> ${weight}kg`;
-        if (weight === previousWeight && reps > previousReps) return `Subiu repetições: ${previousReps || 0} -> ${reps}`;
-        if (weight >= previousWeight && reps >= previousReps && (weight || reps)) return "Manteve ou igualou a melhor marca";
-        return "Abaixo do registro anterior";
+        if (!weight && !reps) return textV2("Preencha hoje para comparar");
+        if (weight > previousWeight) return `${textV2("Subiu carga")}: ${previousWeight || 0}kg -> ${weight}kg`;
+        if (weight === previousWeight && reps > previousReps) return `${textV2("Subiu repetições")}: ${previousReps || 0} -> ${reps}`;
+        if (weight >= previousWeight && reps >= previousReps && (weight || reps)) return textV2("Manteve ou igualou a melhor marca");
+        return textV2("Abaixo do registro anterior");
       }
 
       function updateSetProgressV2(row) {
@@ -2685,17 +3462,17 @@
           card.className = "workout";
           card.innerHTML = `
             <div>
-              <h3>${html(workout.name)}</h3>
-              <p>${html(workout.goal)}</p>
+              <h3>${htmlT(workout.name)}</h3>
+              <p>${htmlT(workout.goal)}</p>
               <div class="pill-row">
-                <span class="pill">${workout.exercises.length} exercícios</span>
-                <span class="pill">${totalSets} séries</span>
-                <span class="pill">${html(workout.tag || "Local")}</span>
+                <span class="pill">${workout.exercises.length} ${htmlT("exercícios")}</span>
+                <span class="pill">${totalSets} ${htmlT("séries")}</span>
+                <span class="pill">${htmlT(workout.tag || "Local")}</span>
               </div>
             </div>
             <div class="pill-row">
-              <button class="ghost open-workout-session-v2" type="button" data-workout-id="${workout.id}">Abrir sessão</button>
-              <button class="ghost delete-workout-v2" type="button" data-workout-id="${workout.id}">Excluir</button>
+              <button class="ghost open-workout-session-v2" type="button" data-workout-id="${workout.id}">${htmlT("Abrir sessão")}</button>
+              <button class="ghost delete-workout-v2" type="button" data-workout-id="${workout.id}">${htmlT("Excluir")}</button>
             </div>
           `;
           workoutListV2.appendChild(card);
@@ -2703,12 +3480,12 @@
       }
 
       function typeOptions(selected = "Normal") {
-        return setTypes.map(type => `<option ${type === selected ? "selected" : ""}>${type}</option>`).join("");
+        return setTypes.map(type => `<option value="${html(type)}" ${type === selected ? "selected" : ""}>${htmlT(type)}</option>`).join("");
       }
 
       function refreshEditorIndexes(editor) {
         editor.querySelectorAll(".set-row").forEach((row, index) => {
-          row.querySelector(".set-index").textContent = `Série ${index + 1}`;
+          row.querySelector(".set-index").textContent = `${textV2("Série")} ${index + 1}`;
         });
       }
 
@@ -2717,12 +3494,12 @@
         const row = document.createElement("div");
         row.className = "set-row";
         row.innerHTML = `
-          <span class="set-index">Série</span>
-          <input class="set-weight" placeholder="Peso" inputmode="decimal" maxlength="5" value="${html(set.weight || "")}" />
+          <span class="set-index">${htmlT("Série")}</span>
+          <input class="set-weight" placeholder="${htmlT("Peso")}" inputmode="decimal" maxlength="5" value="${html(set.weight || "")}" />
           <input class="set-reps" placeholder="Reps" inputmode="numeric" maxlength="2" value="${html(set.reps || "")}" />
           <select class="set-type">${typeOptions(set.type)}</select>
-          <input class="set-rest" placeholder="Descanso s" inputmode="numeric" maxlength="3" value="${html(set.rest || "90")}" />
-          <button class="ghost remove-set-v2" type="button">Remover</button>
+          <input class="set-rest" placeholder="${htmlT("Descanso s")}" inputmode="numeric" maxlength="3" value="${html(set.rest || "90")}" />
+          <button class="ghost remove-set-v2" type="button">${htmlT("Remover")}</button>
         `;
         sets.appendChild(row);
         refreshEditorIndexes(editor);
@@ -2733,11 +3510,11 @@
         editor.className = "exercise-editor";
         editor.innerHTML = `
           <div class="exercise-editor-head">
-            <input class="exercise-name" required placeholder="Nome do exercício" value="${html(exercise.name || "")}" />
-            <button class="ghost remove-exercise-v2" type="button">Remover exercício</button>
+            <input class="exercise-name" required placeholder="${htmlT("Nome do exercício")}" value="${html(exercise.name || "")}" />
+            <button class="ghost remove-exercise-v2" type="button">${htmlT("Remover exercício")}</button>
           </div>
           <div class="sets-editor"></div>
-          <button class="ghost add-set-v2" type="button">Adicionar série</button>
+          <button class="ghost add-set-v2" type="button">${htmlT("Adicionar série")}</button>
         `;
         builder.appendChild(editor);
         const sets = exercise.sets?.length ? exercise.sets : [
@@ -2766,8 +3543,8 @@
         });
         return {
           id: `custom-${Date.now()}`,
-          name: document.getElementById("workoutName").value.trim() || "Novo treino",
-          goal: document.getElementById("workoutGoal").value.trim() || "Treino criado com exercícios e séries.",
+          name: document.getElementById("workoutName").value.trim() || textV2("Novo treino"),
+          goal: document.getElementById("workoutGoal").value.trim() || textV2("Treino criado com exercícios e séries."),
           tag: "Local",
           exercises
         };
@@ -2775,17 +3552,17 @@
 
       function sessionSetRowV2(exerciseIndex, setIndex, set = {}, previousSet = null) {
         const previousLine = previousSet
-          ? `<tr class="previous-row"><td colspan="6"><div class="previous-strip"><span>Anterior: ${html(previousSet.weight || "0")}kg x ${html(previousSet.reps || "0")} reps (${html(previousSet.type || "Normal")})</span><span class="progress-hint">Preencha hoje para comparar</span></div></td></tr>`
+          ? `<tr class="previous-row"><td colspan="6"><div class="previous-strip"><span>${htmlT("Anterior")}: ${html(previousSet.weight || "0")}kg x ${html(previousSet.reps || "0")} reps (${htmlT(previousSet.type || "Normal")})</span><span class="progress-hint">${htmlT("Preencha hoje para comparar")}</span></div></td></tr>`
           : "";
         return `
           <tr data-exercise-index="${exerciseIndex}" data-set-index="${setIndex}" data-prev-weight="${html(previousSet?.weight || "")}" data-prev-reps="${html(previousSet?.reps || "")}">
             <td class="series-cell">${setIndex + 1}</td>
-            <td class="weight-cell"><input class="session-weight" value="${html(set.weight || "")}" placeholder="Peso" inputmode="decimal" maxlength="5" /></td>
+            <td class="weight-cell"><input class="session-weight" value="${html(set.weight || "")}" placeholder="${htmlT("Peso")}" inputmode="decimal" maxlength="5" /></td>
             <td class="reps-cell"><input class="session-reps" value="${html(set.reps || "")}" placeholder="Reps" inputmode="numeric" maxlength="2" /></td>
             <td class="type-cell"><select class="session-type">${typeOptions(set.type)}</select></td>
             <td class="rest-cell">
               <div class="rest-control">
-                <input class="session-rest" value="${html(set.rest || "90")}" aria-label="Descanso em segundos" inputmode="numeric" maxlength="3" />
+                <input class="session-rest" value="${html(set.rest || "90")}" aria-label="${htmlT("Descanso em segundos")}" inputmode="numeric" maxlength="3" />
                 <span class="rest-timer">--:--</span>
               </div>
               <div class="rest-quick">
@@ -2794,7 +3571,7 @@
                 <button class="mini-btn rest-preset-v2" type="button" data-rest="120">120s</button>
               </div>
             </td>
-            <td class="status-cell"><button class="ghost set-done-v2" type="button">Concluir série</button></td>
+            <td class="status-cell"><button class="ghost set-done-v2" type="button">${htmlT("Concluir série")}</button></td>
           </tr>
         ${previousLine}`;
       }
@@ -2803,7 +3580,7 @@
         const message = motivationMessagesV2[(exerciseIndex + setIndex) % motivationMessagesV2.length];
         return `
           <tr class="motivation-row">
-            <td colspan="6"><div class="motivation-strip">${html(message)}</div></td>
+            <td colspan="6"><div class="motivation-strip">${htmlT(message)}</div></td>
           </tr>
         `;
       }
@@ -2812,8 +3589,8 @@
         restTimersV2.forEach(timer => clearInterval(timer));
         restTimersV2.clear();
         activeWorkoutV2 = workout;
-        document.getElementById("sessionTitle").textContent = workout.name;
-        document.getElementById("sessionMeta").textContent = `${workout.exercises.length} exercícios no treino`;
+        document.getElementById("sessionTitle").textContent = textV2(workout.name);
+        document.getElementById("sessionMeta").textContent = `${workout.exercises.length} ${textV2("exercícios no treino")}`;
         const container = document.getElementById("sessionExercises");
         container.innerHTML = "";
         workout.exercises.forEach((exercise, exerciseIndex) => {
@@ -2824,16 +3601,16 @@
           block.innerHTML = `
             <div class="session-exercise-head">
               <div>
-                <div class="kicker">Exercício ${exerciseIndex + 1}</div>
-                <h3>${html(exercise.name)}</h3>
+                <div class="kicker">${htmlT("Exercício")} ${exerciseIndex + 1}</div>
+                <h3>${htmlT(exercise.name)}</h3>
               </div>
               <div class="pill-row">
-                <button class="ghost add-session-set-v2" type="button" data-exercise-index="${exerciseIndex}">Adicionar série</button>
-                <button class="ghost complete-exercise-v2" type="button" data-exercise-index="${exerciseIndex}">Concluir exercício</button>
+                <button class="ghost add-session-set-v2" type="button" data-exercise-index="${exerciseIndex}">${htmlT("Adicionar série")}</button>
+                <button class="ghost complete-exercise-v2" type="button" data-exercise-index="${exerciseIndex}">${htmlT("Concluir exercício")}</button>
               </div>
             </div>
             <table class="exercise-table">
-              <thead><tr><th class="series-cell">Série</th><th class="weight-cell">Peso</th><th class="reps-cell">Reps</th><th class="type-cell">Técnica</th><th class="rest-cell">Descanso</th><th class="status-cell">Status</th></tr></thead>
+              <thead><tr><th class="series-cell">${htmlT("Série")}</th><th class="weight-cell">${htmlT("Peso")}</th><th class="reps-cell">Reps</th><th class="type-cell">${htmlT("Técnica")}</th><th class="rest-cell">${htmlT("Descanso")}</th><th class="status-cell">Status</th></tr></thead>
               <tbody>${exercise.sets.map((set, setIndex) => sessionSetRowV2(exerciseIndex, setIndex, set, previousExercise?.sets?.[setIndex]) + (setIndex < exercise.sets.length - 1 ? sessionMotivationRowV2(exerciseIndex, setIndex) : "")).join("")}</tbody>
             </table>
           `;
@@ -2846,7 +3623,7 @@
       function updateSessionProgressV2() {
         const total = activeWorkoutV2.exercises.length;
         const done = document.querySelectorAll("#sessionExercises .session-exercise.done").length;
-        document.getElementById("sessionRecord").textContent = `${done}/${total} exercícios concluídos`;
+        document.getElementById("sessionRecord").textContent = `${done}/${total} ${textV2("exercícios concluídos")}`;
       }
 
       function completeExerciseV2(index) {
@@ -2855,16 +3632,16 @@
         block.classList.add("done");
         block.querySelectorAll(".set-done-v2").forEach(button => {
           button.classList.add("done");
-          button.textContent = "Concluída";
+          button.textContent = textV2("Concluída");
         });
         const completeButton = block.querySelector(".complete-exercise-v2");
         completeButton.classList.add("done");
-        completeButton.textContent = "Exercício concluído";
+        completeButton.textContent = textV2("Exercício concluído");
         const setRows = [...block.querySelectorAll("tbody tr[data-set-index]")];
         const lastSetRow = setRows[setRows.length - 1];
         if (lastSetRow) startRestTimerV2(lastSetRow);
         updateSessionProgressV2();
-        toastV2(`${activeWorkoutV2.exercises[index].name} concluído. Descanso entre exercícios iniciado.`);
+        toastV2(`${textV2(activeWorkoutV2.exercises[index].name)} ${textV2("concluído. Descanso entre exercícios iniciado.")}`);
       }
 
       function readCompletedSessionV2() {
@@ -2907,8 +3684,8 @@
         activeWorkoutV2.exercises.forEach((_, index) => completeExerciseV2(index));
         const session = readCompletedSessionV2();
         saveCompletedWorkoutV2(session);
-        document.getElementById("sessionMeta").textContent = `Treino salvo hoje: ${session.completedSets}/${session.totalSets} séries`;
-        toastV2("Treino do dia salvo no histórico local.");
+        document.getElementById("sessionMeta").textContent = `${textV2("Treino salvo hoje")}: ${session.completedSets}/${session.totalSets} ${textV2("séries")}`;
+        toastV2(textV2("Treino do dia salvo no histórico local."));
         showScreen("stats");
       }
 
@@ -2917,7 +3694,7 @@
         event.stopImmediatePropagation();
         const next = [...document.querySelectorAll("#sessionExercises .session-exercise")].find(block => !block.classList.contains("done"));
         if (!next) {
-          toastV2("Todos os exercícios já foram concluídos.");
+          toastV2(textV2("Todos os exercícios já foram concluídos."));
           return;
         }
         completeExerciseV2(Number(next.dataset.exerciseIndex));
@@ -2933,7 +3710,7 @@
         document.getElementById("workoutModal").classList.remove("active");
         formV2.reset();
         resetBuilderV2();
-        toastV2("Treino criado com exercícios, séries, peso e técnicas.");
+        toastV2(textV2("Treino criado com exercícios, séries, peso e técnicas."));
       }, true);
 
       document.getElementById("finishExercise").addEventListener("click", finishWorkoutV2, true);
@@ -2972,7 +3749,7 @@
           const index = Number(addSessionSet.dataset.exerciseIndex);
           activeWorkoutV2.exercises[index].sets.push({ weight: "", reps: "", type: "Normal", rest: "90" });
           renderSessionV2(activeWorkoutV2);
-          toastV2(`Nova série adicionada em ${activeWorkoutV2.exercises[index].name}.`);
+          toastV2(`${textV2("Nova série adicionada em")} ${textV2(activeWorkoutV2.exercises[index].name)}.`);
         }
 
         const restPreset = event.target.closest(".rest-preset-v2");
@@ -2980,7 +3757,7 @@
           const row = restPreset.closest("tr");
           row.querySelector(".session-rest").value = restPreset.dataset.rest;
           startRestTimerV2(row);
-          toastV2(`Descanso de ${restPreset.dataset.rest}s iniciado.`);
+          toastV2(`${textV2("Descanso de")} ${restPreset.dataset.rest}s ${textV2("iniciado.")}`);
         }
 
         const completeExercise = event.target.closest(".complete-exercise-v2");
@@ -2989,9 +3766,9 @@
         const setDone = event.target.closest(".set-done-v2");
         if (setDone) {
           setDone.classList.add("done");
-          setDone.textContent = "Concluída";
+          setDone.textContent = textV2("Concluída");
           startRestTimerV2(setDone.closest("tr"));
-          toastV2("Série registrada. Descanso iniciado.");
+          toastV2(textV2("Série registrada. Descanso iniciado."));
         }
       });
 
@@ -3005,6 +3782,12 @@
       renderSessionV2(activeWorkoutV2);
       resetBuilderV2();
       applyLanguage(localStorage.getItem("monolith.language") || "pt");
+      document.getElementById("languageSelect")?.addEventListener("click", event => {
+        if (!event.target.closest(".language-button")) return;
+        renderWorkoutListV2();
+        if (activeWorkoutV2) renderSessionV2(activeWorkoutV2);
+        resetBuilderV2();
+      });
 
       if ("serviceWorker" in navigator) {
         navigator.serviceWorker.register("sw.js").catch(() => {});
