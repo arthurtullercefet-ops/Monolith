@@ -66,6 +66,49 @@
       border-right: 1px solid var(--line);
     }
 
+    .auth-top {
+      display: grid;
+      gap: 26px;
+    }
+
+    .auth-hero .brand {
+      gap: 18px;
+      padding: 0;
+    }
+
+    .auth-hero .mark {
+      width: 58px;
+      height: 58px;
+      border-width: 2px;
+      font-size: 28px;
+    }
+
+    .auth-hero .brand h1 {
+      margin: 0;
+      font-size: 30px;
+      line-height: .95;
+      letter-spacing: 4px;
+    }
+
+    .auth-hero .brand p {
+      margin-top: 8px;
+      font-size: 14px;
+      line-height: 1.2;
+    }
+
+    .auth-language {
+      width: min(420px, 100%);
+      display: grid;
+      gap: 7px;
+    }
+
+    .auth-language label {
+      color: var(--muted);
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+
     .auth-hero h1 {
       margin: 24px 0 12px;
       font-size: clamp(42px, 6vw, 76px);
@@ -1359,6 +1402,19 @@
         padding: 20px;
       }
 
+      .auth-hero .mark {
+        width: 66px;
+        height: 66px;
+      }
+
+      .auth-hero .brand h1 {
+        font-size: 34px;
+      }
+
+      .auth-hero .brand p {
+        font-size: 15px;
+      }
+
       .auth-hero h1 {
         font-size: 42px;
       }
@@ -1455,11 +1511,21 @@
 <body>
   <section class="auth-screen" id="authScreen">
     <div class="auth-hero">
-      <div class="brand">
-        <div class="mark">M</div>
-        <div>
-          <h1>MONOLITH</h1>
-          <p>Built One Day At A Time.</p>
+      <div class="auth-top">
+        <div class="brand">
+          <div class="mark">M</div>
+          <div>
+            <h1>MONOLITH</h1>
+            <p>Built One Day At A Time.</p>
+          </div>
+        </div>
+        <div class="auth-language">
+          <label data-i18n="Idioma">Idioma</label>
+          <div class="language-buttons" id="authLanguageSelect" aria-label="Idioma">
+            <button class="language-button" type="button" data-lang="pt" title="Português">🇧🇷<span>PT</span></button>
+            <button class="language-button" type="button" data-lang="en" title="English">🇺🇸<span>EN</span></button>
+            <button class="language-button" type="button" data-lang="es" title="Español">🇪🇸<span>ES</span></button>
+          </div>
         </div>
       </div>
       <div>
@@ -3418,9 +3484,10 @@ ${bodyFatBars ? `<div class="chart">${bodyFatBars}</div>` : `<p class="muted">Ai
     renderBodyMeasures();
     renderTrainerSummary();
     const languageSelect = document.getElementById("languageSelect");
+    const authLanguageSelect = document.getElementById("authLanguageSelect");
     const weightUnitSelect = document.getElementById("weightUnitSelect");
     const currentLanguage = localStorage.getItem("monolith.language") || "pt";
-    languageSelect.addEventListener("click", event => {
+    function handleLanguageClick(event) {
       const button = event.target.closest(".language-button");
       if (!button) return;
       applyLanguage(button.dataset.lang);
@@ -3428,7 +3495,9 @@ ${bodyFatBars ? `<div class="chart">${bodyFatBars}</div>` : `<p class="muted">Ai
       renderStats();
       renderBodyMeasures();
       renderPhotoVault();
-    });
+    }
+    languageSelect.addEventListener("click", handleLanguageClick);
+    authLanguageSelect?.addEventListener("click", handleLanguageClick);
     weightUnitSelect?.addEventListener("click", event => {
       const button = event.target.closest(".unit-button");
       if (!button) return;
