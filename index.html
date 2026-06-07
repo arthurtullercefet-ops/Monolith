@@ -320,13 +320,14 @@
     }
 
     .score-ring {
+      --score-angle: 309.6deg;
       width: 190px;
       aspect-ratio: 1;
       border-radius: 999px;
       display: grid;
       place-items: center;
       margin-left: auto;
-      background: conic-gradient(var(--gold) 0 86%, #303030 86% 100%);
+      background: conic-gradient(var(--gold) 0deg var(--score-angle), #303030 var(--score-angle) 360deg);
       position: relative;
     }
 
@@ -442,9 +443,23 @@
 
     .factor-form {
       display: grid;
-      grid-template-columns: minmax(180px, 1fr) minmax(150px, .5fr) minmax(140px, .5fr) auto;
+      grid-template-columns: minmax(220px, 1fr) minmax(132px, .45fr) minmax(142px, .45fr) minmax(112px, auto);
       gap: 10px;
-      align-items: center;
+      align-items: end;
+    }
+
+    .form-field {
+      display: grid;
+      gap: 6px;
+      min-width: 0;
+    }
+
+    .form-field label {
+      color: var(--muted);
+      font-size: 10px;
+      font-weight: 800;
+      letter-spacing: .08em;
+      text-transform: uppercase;
     }
 
     .factor-form input,
@@ -455,6 +470,11 @@
       color: var(--text);
       padding: 0 10px;
       width: 100%;
+    }
+
+    .factor-form .action {
+      min-height: 40px;
+      white-space: nowrap;
     }
 
     .ghost.done {
@@ -1058,6 +1078,29 @@
         grid-template-columns: repeat(2, 1fr);
       }
 
+      .brand {
+        gap: 16px;
+        padding: 8px 12px 2px;
+      }
+
+      .mark {
+        width: 50px;
+        height: 50px;
+        font-size: 26px;
+        border-width: 2px;
+      }
+
+      .brand h1 {
+        font-size: 25px;
+        line-height: .95;
+        letter-spacing: 3px;
+      }
+
+      .brand p {
+        margin-top: 7px;
+        font-size: 14px;
+      }
+
       .metrics,
       .workouts,
       .programs,
@@ -1089,7 +1132,13 @@
       }
 
       .factor-form {
-        grid-template-columns: 1fr;
+        grid-template-columns: 1fr 1fr;
+        gap: 12px;
+      }
+
+      .factor-form .form-field:first-child,
+      .factor-form .action {
+        grid-column: 1 / -1;
       }
 
       .checkin-measure {
@@ -1209,17 +1258,26 @@
           </div>
           <div class="section-title"><h3>Adicionar tarefa diária</h3><span>O score se ajusta sozinho</span></div>
           <form class="factor-form" id="factorForm">
-            <input id="factorName" placeholder="Ex: Medir açúcar?" />
-            <select id="factorGroup">
-              <option>Saúde</option>
-              <option>Nutrição</option>
-              <option>Treino</option>
-              <option>Recuperação</option>
-            </select>
-            <select id="factorEffect">
-              <option value="positive">Sim soma</option>
-              <option value="negative">Sim desconta</option>
-            </select>
+            <div class="form-field">
+              <label for="factorName">Tarefa</label>
+              <input id="factorName" placeholder="Ex: Medir açúcar?" data-i18n-placeholder="Ex: Medir açúcar?" />
+            </div>
+            <div class="form-field">
+              <label for="factorGroup">Grupo</label>
+              <select id="factorGroup">
+                <option value="Saúde">Saúde</option>
+                <option value="Nutrição">Nutrição</option>
+                <option value="Treino">Treino</option>
+                <option value="Recuperação">Recuperação</option>
+              </select>
+            </div>
+            <div class="form-field">
+              <label for="factorEffect">Impacto</label>
+              <select id="factorEffect">
+                <option value="positive">Sim soma</option>
+                <option value="negative">Sim desconta</option>
+              </select>
+            </div>
             <button class="action" type="submit">Adicionar</button>
           </form>
         </div>
@@ -1480,6 +1538,16 @@
         "O peso entra no relatório mensal e ajuda o personal a ver evolução, retenção e queda dia a dia.": "Weight goes into the monthly report and helps the trainer see progress, retention and daily drops.",
         "Execução do plano físico e mental": "Physical and mental plan execution",
         "O score se ajusta sozinho": "The score adjusts automatically",
+        "Tarefa": "Task",
+        "Grupo": "Group",
+        "Impacto": "Impact",
+        "Ex: Medir açúcar?": "Ex: Check sugar?",
+        "Saúde": "Health",
+        "Nutrição": "Nutrition",
+        "Treino": "Workout",
+        "Recuperação": "Recovery",
+        "Sim soma": "Yes adds",
+        "Sim desconta": "Yes subtracts",
         "Adicionar": "Add",
         "Ver foto": "View photo",
         "Ocultar foto": "Hide photo",
@@ -1552,6 +1620,16 @@
         "O peso entra no relatório mensal e ajuda o personal a ver evolução, retenção e queda dia a dia.": "El peso entra en el informe mensual y ayuda al entrenador a ver evolución, retención y bajadas día a día.",
         "Execução do plano físico e mental": "Ejecución del plan físico y mental",
         "O score se ajusta sozinho": "El score se ajusta solo",
+        "Tarefa": "Tarea",
+        "Grupo": "Grupo",
+        "Impacto": "Impacto",
+        "Ex: Medir açúcar?": "Ej: Medir azúcar?",
+        "Saúde": "Salud",
+        "Nutrição": "Nutrición",
+        "Treino": "Entreno",
+        "Recuperação": "Recuperación",
+        "Sim soma": "Sí suma",
+        "Sim desconta": "Sí descuenta",
         "Adicionar": "Agregar",
         "Ver foto": "Ver foto",
         "Ocultar foto": "Ocultar foto",
@@ -1671,7 +1749,11 @@
       }).length;
       const percentage = rows.length ? Math.round((completed / rows.length) * 100) : 0;
       const pointsPerItem = rows.length ? Math.round(100 / rows.length) : 0;
-      document.getElementById("score").textContent = `${percentage}%`;
+      const score = document.getElementById("score");
+      const ring = document.querySelector(".score-ring");
+      score.textContent = `${percentage}%`;
+      ring.style.setProperty("--score-angle", `${Math.max(0, Math.min(100, percentage)) * 3.6}deg`);
+      ring.setAttribute("aria-label", `Pontuação do dia ${percentage}%`);
       document.querySelector(".score-ring span").textContent = rows.length ? `${pointsPerItem} pts por fator` : "Sem fatores";
     }
 
@@ -2019,7 +2101,7 @@
         const panel = document.createElement("article");
         panel.className = "coach-card";
         const list = document.createElement("div");
-        list.innerHTML = `<div class="kicker">${escapeHTML(group)}</div><div class="habit-list"></div>`;
+        list.innerHTML = `<div class="kicker">${escapeHTML(t(group))}</div><div class="habit-list"></div>`;
         const habitList = list.querySelector(".habit-list");
         items.forEach(item => habitList.appendChild(makeHabit(item, true)));
         panel.appendChild(list);
