@@ -131,6 +131,27 @@
       padding: 42px 0;
     }
 
+    .auth-tabs {
+      display: none;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+    }
+
+    .auth-tab {
+      min-height: 42px;
+      border: 1px solid var(--line);
+      background: #101010;
+      color: var(--muted);
+      cursor: pointer;
+      font-weight: 800;
+    }
+
+    .auth-tab.active {
+      border-color: var(--gold);
+      background: rgba(201, 162, 39, .13);
+      color: var(--text);
+    }
+
     .auth-card {
       border: 1px solid var(--line);
       background: rgba(15, 15, 15, .94);
@@ -418,6 +439,82 @@
       color: var(--muted);
       font-size: 13px;
       line-height: 1.45;
+    }
+
+    .nutrition-layout {
+      display: grid;
+      grid-template-columns: minmax(300px, .9fr) minmax(360px, 1.1fr);
+      gap: 14px;
+      align-items: start;
+    }
+
+    .nutrition-controls {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 10px;
+      margin-bottom: 14px;
+    }
+
+    .meal-stack,
+    .diet-view,
+    .food-log-list {
+      display: grid;
+      gap: 10px;
+    }
+
+    .meal-card {
+      border: 1px solid var(--line);
+      background: #101010;
+      padding: 12px;
+      display: grid;
+      gap: 10px;
+    }
+
+    .meal-card header {
+      display: flex;
+      justify-content: space-between;
+      gap: 10px;
+      align-items: center;
+    }
+
+    .meal-card h4 {
+      margin: 0;
+      font-size: 14px;
+    }
+
+    .meal-card textarea {
+      min-height: 74px;
+      border: 1px solid var(--line);
+      background: #0d0d0d;
+      color: var(--text);
+      padding: 10px;
+      resize: vertical;
+    }
+
+    .macro-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 8px;
+    }
+
+    .macro-grid input {
+      min-width: 0;
+    }
+
+    .locked-note {
+      border-left: 3px solid var(--gold);
+      background: rgba(201, 162, 39, .08);
+      color: var(--muted);
+      padding: 10px 12px;
+      font-size: 13px;
+      line-height: 1.45;
+    }
+
+    .food-log-row {
+      display: grid;
+      grid-template-columns: minmax(120px, 1fr) 90px 90px 90px 90px auto;
+      gap: 8px;
+      align-items: end;
     }
 
     main {
@@ -1381,7 +1478,8 @@
       .dashboard,
       .hero,
       .stats-layout,
-      .measure-layout {
+      .measure-layout,
+      .nutrition-layout {
         grid-template-columns: 1fr;
       }
 
@@ -1400,6 +1498,11 @@
     @media (max-width: 560px) {
       .auth-hero {
         padding: 20px;
+        gap: 18px;
+      }
+
+      .auth-top {
+        gap: 14px;
       }
 
       .auth-hero .mark {
@@ -1416,7 +1519,38 @@
       }
 
       .auth-hero h1 {
-        font-size: 42px;
+        margin: 10px 0 8px;
+        font-size: 38px;
+      }
+
+      .auth-hero p {
+        max-width: 34ch;
+        font-size: 14px;
+        line-height: 1.45;
+      }
+
+      .auth-warning {
+        font-size: 11px;
+        padding: 10px;
+      }
+
+      .auth-stack {
+        width: calc(100% - 32px);
+        padding: 18px 0 28px;
+        gap: 10px;
+      }
+
+      .auth-tabs {
+        display: grid;
+      }
+
+      .auth-card {
+        padding: 18px;
+      }
+
+      .auth-stack[data-auth-mode="login"] .auth-card[data-auth-panel="signup"],
+      .auth-stack[data-auth-mode="signup"] .auth-card[data-auth-panel="login"] {
+        display: none;
       }
 
       .auth-grid,
@@ -1505,6 +1639,12 @@
       .checkin-measure {
         grid-template-columns: 1fr;
       }
+
+      .nutrition-controls,
+      .macro-grid,
+      .food-log-row {
+        grid-template-columns: 1fr;
+      }
     }
   </style>
 </head>
@@ -1535,8 +1675,12 @@
       <div class="auth-warning">Protótipo local: contas salvas apenas neste aparelho. Não use senha real nesta fase.</div>
     </div>
 
-    <div class="auth-stack">
-      <div class="auth-card">
+    <div class="auth-stack" id="authStack" data-auth-mode="login">
+      <div class="auth-tabs" role="tablist" aria-label="Acesso">
+        <button class="auth-tab active" type="button" data-auth-tab="login">Login</button>
+        <button class="auth-tab" type="button" data-auth-tab="signup">Criar conta</button>
+      </div>
+      <div class="auth-card" data-auth-panel="login">
         <h2>Login</h2>
         <p>Entre como aluno ou personal para abrir o painel correto.</p>
         <form class="auth-form" id="loginForm">
@@ -1556,7 +1700,7 @@
         </div>
       </div>
 
-      <div class="auth-card">
+      <div class="auth-card" data-auth-panel="signup">
         <h3>Criar conta</h3>
         <p>Crie contas locais para testar a separação de experiência.</p>
         <form class="auth-form" id="signupForm">
@@ -1634,6 +1778,10 @@
         <button class="nav-btn" data-screen="measures" title="Medidas">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19h16"/><path d="M6 17V8"/><path d="M10 17V5"/><path d="M14 17v-7"/><path d="M18 17V3"/></svg>
           <span>Medidas</span>
+        </button>
+        <button class="nav-btn" data-screen="nutrition" title="Dieta">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 3a8 8 0 0 0-8 8c0 6 8 10 8 10s8-4 8-10a8 8 0 0 0-8-8Z"/><path d="M11 7v8"/><path d="M7 11h8"/></svg>
+          <span>Dieta</span>
         </button>
         <button class="nav-btn" data-screen="workouts" title="Treinos">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 7v10"/><path d="M18 7v10"/><path d="M3 9v6"/><path d="M21 9v6"/><path d="M6 12h12"/></svg>
@@ -1824,6 +1972,74 @@
               <p>Registros mais recentes para revisão do aluno e do personal.</p>
               <div class="measure-history" id="bodyMeasureHistory"></div>
             </div>
+          </div>
+        </div>
+      </section>
+
+      <section id="nutrition" class="screen">
+        <div class="topbar">
+          <div>
+            <h2>Dieta</h2>
+            <div class="date">Macros, refeições e plano alimentar mensal</div>
+          </div>
+        </div>
+
+        <div class="nutrition-layout" id="nutritionPersonalPanel">
+          <div class="panel">
+            <div class="section-title"><h3>Prescrição do personal</h3><span>1 a 10 refeições</span></div>
+            <form id="dietPlanForm">
+              <div class="nutrition-controls">
+                <div class="field">
+                  <label for="dietStudent">Aluno</label>
+                  <select id="dietStudent"></select>
+                </div>
+                <div class="field">
+                  <label for="dietMonth">Mês</label>
+                  <input id="dietMonth" type="month" />
+                </div>
+                <div class="field">
+                  <label for="dietMealCount">Refeições</label>
+                  <select id="dietMealCount">
+                    <option>1</option><option>2</option><option>3</option><option>4</option><option selected>5</option>
+                    <option>6</option><option>7</option><option>8</option><option>9</option><option>10</option>
+                  </select>
+                </div>
+              </div>
+              <div class="macro-grid">
+                <div class="field"><label for="dietCalories">Calorias</label><input id="dietCalories" inputmode="numeric" placeholder="2400" /></div>
+                <div class="field"><label for="dietProtein">Proteína</label><input id="dietProtein" inputmode="numeric" placeholder="180g" /></div>
+                <div class="field"><label for="dietCarbs">Carbo</label><input id="dietCarbs" inputmode="numeric" placeholder="260g" /></div>
+                <div class="field"><label for="dietFat">Gordura</label><input id="dietFat" inputmode="numeric" placeholder="70g" /></div>
+              </div>
+              <div class="meal-stack" id="dietMealBuilder"></div>
+              <button class="action" type="submit">Salvar dieta do aluno</button>
+            </form>
+          </div>
+
+          <div class="panel">
+            <div class="section-title"><h3>Prévia da dieta</h3><span>Visão do aluno</span></div>
+            <div class="diet-view" id="dietPreview"></div>
+          </div>
+        </div>
+
+        <div class="grid stats-layout" id="nutritionStudentPanel">
+          <div class="panel">
+            <div class="section-title"><h3>Dieta do mês</h3><span>Somente leitura</span></div>
+            <div class="locked-note" id="studentDietNote">Seu personal define esta dieta. Você pode visualizar, mas não redesenhar.</div>
+            <div class="diet-view" id="studentDietView"></div>
+          </div>
+          <div class="panel" id="selfNutritionPanel">
+            <div class="section-title"><h3>Contagem básica de calorias</h3><span>Aluno sem personal</span></div>
+            <form id="foodLogForm">
+              <div class="nutrition-controls">
+                <div class="field"><label for="foodLogDate">Data</label><input id="foodLogDate" type="date" /></div>
+                <div class="field"><label for="foodMealCount">Refeições</label><select id="foodMealCount"><option>1</option><option>2</option><option selected>3</option><option>4</option><option>5</option><option>6</option><option>7</option><option>8</option><option>9</option><option>10</option></select></div>
+                <div class="field"><label for="foodLogNote">Nota</label><input id="foodLogNote" placeholder="Ex: dia corrido" /></div>
+              </div>
+              <div class="food-log-list" id="foodLogMeals"></div>
+              <button class="action" type="submit">Salvar diário alimentar</button>
+            </form>
+            <div class="diet-view" id="foodLogSummary"></div>
           </div>
         </div>
       </section>
@@ -2142,6 +2358,7 @@
         if (sessionName) sessionName.textContent = user.name;
         if (sessionRole) sessionRole.textContent = `${roleLabel(user.role)} · ${user.plan || "Local"}`;
         renderClientList();
+        renderNutrition();
       }
     }
 
@@ -2160,6 +2377,199 @@
       return true;
     }
 
+    function currentMonthKey() {
+      return new Date().toISOString().slice(0, 7);
+    }
+
+    function loadDietPlans() {
+      try {
+        return JSON.parse(localStorage.getItem("monolith.dietPlans") || "{}");
+      } catch {
+        return {};
+      }
+    }
+
+    function saveDietPlans(plans) {
+      localStorage.setItem("monolith.dietPlans", JSON.stringify(plans));
+    }
+
+    function loadFoodLogs() {
+      try {
+        return JSON.parse(localStorage.getItem("monolith.foodLogs") || "{}");
+      } catch {
+        return {};
+      }
+    }
+
+    function saveFoodLogs(logs) {
+      localStorage.setItem("monolith.foodLogs", JSON.stringify(logs));
+    }
+
+    function dietPlanKey(studentId, month = currentMonthKey()) {
+      return `${studentId}:${month}`;
+    }
+
+    function studentsForPersonal(personalId) {
+      return loadAccounts().filter(account => account.role === "student" && (account.trainerId === personalId || loadAccounts().find(item => item.id === personalId)?.students?.includes(account.id)));
+    }
+
+    function selectedDietStudentId() {
+      return document.getElementById("dietStudent")?.value || studentsForPersonal(currentAccount()?.id)[0]?.id || "aluno-demo";
+    }
+
+    function activeDietForStudent(studentId, month = currentMonthKey()) {
+      return loadDietPlans()[dietPlanKey(studentId, month)] || null;
+    }
+
+    function defaultMeal(index = 0) {
+      const names = ["Café da manhã", "Lanche", "Almoço", "Pré-treino", "Jantar", "Ceia"];
+      return { name: t(names[index] || "Refeição"), items: "", substitutions: "", notes: "", calories: "", protein: "", carbs: "", fat: "", micros: "" };
+    }
+
+    function renderDietMealBuilder(meals = null) {
+      const container = document.getElementById("dietMealBuilder");
+      const count = Number(document.getElementById("dietMealCount")?.value || 5);
+      if (!container) return;
+      const source = meals || Array.from({ length: count }, (_, index) => defaultMeal(index));
+      container.innerHTML = source.slice(0, count).map((meal, index) => `
+        <article class="meal-card" data-meal-index="${index}">
+          <header><h4>${escapeHTML(t("Refeição"))} ${index + 1}</h4><span>${escapeHTML(t("Macros por refeição"))}</span></header>
+          <div class="field"><label>${escapeHTML(t("Nome da refeição"))}</label><input class="meal-name" value="${escapeHTML(meal.name || "")}" placeholder="${escapeHTML(t("Ex: Almoço"))}" /></div>
+          <div class="field"><label>${escapeHTML(t("Alimentos e quantidades"))}</label><textarea class="meal-items" placeholder="${escapeHTML(t("Ex: 150g arroz, 180g frango, salada"))}">${escapeHTML(meal.items || "")}</textarea></div>
+          <div class="macro-grid">
+            <div class="field"><label>${escapeHTML(t("Calorias"))}</label><input class="meal-calories" inputmode="numeric" value="${escapeHTML(meal.calories || "")}" placeholder="520" /></div>
+            <div class="field"><label>${escapeHTML(t("Proteína"))}</label><input class="meal-protein" value="${escapeHTML(meal.protein || "")}" placeholder="42g" /></div>
+            <div class="field"><label>${escapeHTML(t("Carbo"))}</label><input class="meal-carbs" value="${escapeHTML(meal.carbs || "")}" placeholder="58g" /></div>
+            <div class="field"><label>${escapeHTML(t("Gordura"))}</label><input class="meal-fat" value="${escapeHTML(meal.fat || "")}" placeholder="14g" /></div>
+          </div>
+          <div class="field"><label>${escapeHTML(t("Micros / observações nutricionais"))}</label><input class="meal-micros" value="${escapeHTML(meal.micros || "")}" placeholder="${escapeHTML(t("Ex: fibra, sódio, vegetais"))}" /></div>
+          <div class="field"><label>${escapeHTML(t("Substituições"))}</label><textarea class="meal-substitutions" placeholder="${escapeHTML(t("Ex: frango por peixe, arroz por batata"))}">${escapeHTML(meal.substitutions || "")}</textarea></div>
+          <div class="field"><label>${escapeHTML(t("Texto do personal"))}</label><textarea class="meal-notes" placeholder="${escapeHTML(t("Orientação específica para o aluno"))}">${escapeHTML(meal.notes || "")}</textarea></div>
+        </article>
+      `).join("");
+    }
+
+    function readDietPlanForm() {
+      const studentId = selectedDietStudentId();
+      const month = document.getElementById("dietMonth")?.value || currentMonthKey();
+      const meals = [...document.querySelectorAll("#dietMealBuilder .meal-card")].map(card => ({
+        name: card.querySelector(".meal-name").value.trim(),
+        items: card.querySelector(".meal-items").value.trim(),
+        substitutions: card.querySelector(".meal-substitutions").value.trim(),
+        notes: card.querySelector(".meal-notes").value.trim(),
+        calories: card.querySelector(".meal-calories").value.trim(),
+        protein: card.querySelector(".meal-protein").value.trim(),
+        carbs: card.querySelector(".meal-carbs").value.trim(),
+        fat: card.querySelector(".meal-fat").value.trim(),
+        micros: card.querySelector(".meal-micros").value.trim()
+      }));
+      return {
+        id: dietPlanKey(studentId, month),
+        studentId,
+        trainerId: currentAccount()?.id || "personal-demo",
+        month,
+        calories: document.getElementById("dietCalories").value.trim(),
+        protein: document.getElementById("dietProtein").value.trim(),
+        carbs: document.getElementById("dietCarbs").value.trim(),
+        fat: document.getElementById("dietFat").value.trim(),
+        meals
+      };
+    }
+
+    function renderDietPlan(containerId, plan, emptyText = "Nenhuma dieta prescrita para este mês.") {
+      const container = document.getElementById(containerId);
+      if (!container) return;
+      if (!plan) {
+        container.innerHTML = `<div class="report-line">${escapeHTML(t(emptyText))}</div>`;
+        return;
+      }
+      container.innerHTML = `
+        <div class="metric"><span>${escapeHTML(t("Meta mensal"))}</span><b>${escapeHTML(plan.calories || "--")} kcal</b></div>
+        <div class="pill-row">
+          <span class="pill">${escapeHTML(t("Proteína"))}: ${escapeHTML(plan.protein || "--")}</span>
+          <span class="pill">${escapeHTML(t("Carbo"))}: ${escapeHTML(plan.carbs || "--")}</span>
+          <span class="pill">${escapeHTML(t("Gordura"))}: ${escapeHTML(plan.fat || "--")}</span>
+          <span class="pill">${plan.meals?.length || 0} ${escapeHTML(t("refeições"))}</span>
+        </div>
+        ${(plan.meals || []).map((meal, index) => `
+          <article class="meal-card">
+            <header><h4>${escapeHTML(meal.name || `${t("Refeição")} ${index + 1}`)}</h4><span>${escapeHTML(meal.calories || "--")} kcal</span></header>
+            <p>${escapeHTML(meal.items || t("Sem alimentos cadastrados."))}</p>
+            <div class="pill-row">
+              <span class="pill">P ${escapeHTML(meal.protein || "--")}</span>
+              <span class="pill">C ${escapeHTML(meal.carbs || "--")}</span>
+              <span class="pill">G ${escapeHTML(meal.fat || "--")}</span>
+            </div>
+            ${meal.micros ? `<p><strong>${escapeHTML(t("Micros"))}:</strong> ${escapeHTML(meal.micros)}</p>` : ""}
+            ${meal.substitutions ? `<p><strong>${escapeHTML(t("Substituições"))}:</strong> ${escapeHTML(meal.substitutions)}</p>` : ""}
+            ${meal.notes ? `<p><strong>${escapeHTML(t("Personal"))}:</strong> ${escapeHTML(meal.notes)}</p>` : ""}
+          </article>
+        `).join("")}
+      `;
+    }
+
+    function renderFoodLogMeals() {
+      const container = document.getElementById("foodLogMeals");
+      if (!container) return;
+      const count = Number(document.getElementById("foodMealCount")?.value || 3);
+      container.innerHTML = Array.from({ length: count }, (_, index) => `
+        <div class="food-log-row" data-food-index="${index}">
+          <div class="field"><label>${escapeHTML(t("Refeição"))} ${index + 1}</label><input class="food-name" placeholder="${escapeHTML(t("O que comeu?"))}" /></div>
+          <div class="field"><label>${escapeHTML(t("Calorias"))}</label><input class="food-calories" inputmode="numeric" placeholder="450" /></div>
+          <div class="field"><label>${escapeHTML(t("Proteína"))}</label><input class="food-protein" placeholder="30g" /></div>
+          <div class="field"><label>${escapeHTML(t("Carbo"))}</label><input class="food-carbs" placeholder="50g" /></div>
+          <div class="field"><label>${escapeHTML(t("Gordura"))}</label><input class="food-fat" placeholder="12g" /></div>
+          <button class="ghost clear-food-row" type="button">DEL</button>
+        </div>
+      `).join("");
+    }
+
+    function renderFoodLogSummary() {
+      const user = currentAccount();
+      const container = document.getElementById("foodLogSummary");
+      if (!container || !user) return;
+      const logs = loadFoodLogs()[user.id] || [];
+      container.innerHTML = logs.slice(0, 7).map(log => {
+        const total = log.meals.reduce((sum, meal) => sum + (Number(String(meal.calories || "").replace(",", ".")) || 0), 0);
+        return `<article class="meal-card"><header><h4>${escapeHTML(log.date)}</h4><span>${total} kcal</span></header><p>${escapeHTML(log.note || t("Diário alimentar"))}</p><div class="pill-row"><span class="pill">${log.meals.length} ${escapeHTML(t("refeições"))}</span></div></article>`;
+      }).join("") || `<div class="report-line">${escapeHTML(t("Nenhum diário alimentar salvo ainda."))}</div>`;
+    }
+
+    function renderNutrition() {
+      const user = currentAccount();
+      const personalPanel = document.getElementById("nutritionPersonalPanel");
+      const studentPanel = document.getElementById("nutritionStudentPanel");
+      if (!user || !personalPanel || !studentPanel) return;
+      const monthInput = document.getElementById("dietMonth");
+      const foodDate = document.getElementById("foodLogDate");
+      if (monthInput && !monthInput.value) monthInput.value = currentMonthKey();
+      if (foodDate && !foodDate.value) foodDate.value = todayKey();
+      personalPanel.hidden = user.role !== "personal";
+      studentPanel.hidden = user.role === "personal";
+      if (user.role === "personal") {
+        const select = document.getElementById("dietStudent");
+        const students = studentsForPersonal(user.id);
+        select.innerHTML = students.map(student => `<option value="${escapeHTML(student.id)}">${escapeHTML(student.name)} - ${escapeHTML(student.email)}</option>`).join("");
+        if (!select.value && students[0]) select.value = students[0].id;
+        const plan = activeDietForStudent(selectedDietStudentId(), monthInput.value || currentMonthKey());
+        document.getElementById("dietMealCount").value = String(plan?.meals?.length || document.getElementById("dietMealCount").value || 5);
+        ["dietCalories", "dietProtein", "dietCarbs", "dietFat"].forEach(id => {
+          const key = id.replace("diet", "").toLowerCase();
+          const input = document.getElementById(id);
+          if (input) input.value = plan?.[key] || "";
+        });
+        renderDietMealBuilder(plan?.meals || null);
+        renderDietPlan("dietPreview", plan);
+      } else {
+        const plan = user.trainerId ? activeDietForStudent(user.id, currentMonthKey()) : null;
+        document.getElementById("selfNutritionPanel").hidden = Boolean(user.trainerId);
+        document.getElementById("studentDietNote").textContent = user.trainerId ? t("Seu personal define esta dieta. Você pode visualizar, mas não redesenhar.") : t("Sem personal vinculado: use a contagem básica para registrar seu dia.");
+        renderDietPlan("studentDietView", plan, user.trainerId ? "Nenhuma dieta prescrita para este mês." : "Nenhuma dieta de personal vinculada.");
+        renderFoodLogMeals();
+        renderFoodLogSummary();
+      }
+    }
+
     const translations = {
       en: {
         "Idioma": "Language",
@@ -2170,6 +2580,7 @@
         "Dashboard": "Dashboard",
         "Check-in": "Check-in",
         "Medidas": "Measurements",
+        "Dieta": "Diet",
         "Treinos": "Workouts",
         "Programas": "Programs",
         "Alunos": "Students",
@@ -2189,6 +2600,56 @@
         "Aluno": "Student",
         "Criar e entrar": "Create and log in",
         "Sair": "Log out",
+        "Macros, refeições e plano alimentar mensal": "Macros, meals and monthly nutrition plan",
+        "Prescrição do personal": "Trainer prescription",
+        "1 a 10 refeições": "1 to 10 meals",
+        "Aluno": "Student",
+        "Mês": "Month",
+        "Refeições": "Meals",
+        "Calorias": "Calories",
+        "Proteína": "Protein",
+        "Carbo": "Carbs",
+        "Gordura": "Fat",
+        "Salvar dieta do aluno": "Save student diet",
+        "Prévia da dieta": "Diet preview",
+        "Visão do aluno": "Student view",
+        "Dieta do mês": "Monthly diet",
+        "Somente leitura": "Read-only",
+        "Seu personal define esta dieta. Você pode visualizar, mas não redesenhar.": "Your trainer defines this diet. You can view it, but cannot redesign it.",
+        "Contagem básica de calorias": "Basic calorie counting",
+        "Aluno sem personal": "Student without trainer",
+        "Data": "Date",
+        "Nota": "Note",
+        "Salvar diário alimentar": "Save food diary",
+        "Refeição": "Meal",
+        "Café da manhã": "Breakfast",
+        "Lanche": "Snack",
+        "Almoço": "Lunch",
+        "Pré-treino": "Pre-workout",
+        "Jantar": "Dinner",
+        "Ceia": "Late snack",
+        "Macros por refeição": "Macros per meal",
+        "Nome da refeição": "Meal name",
+        "Ex: Almoço": "Ex: Lunch",
+        "Alimentos e quantidades": "Foods and amounts",
+        "Ex: 150g arroz, 180g frango, salada": "Ex: 150g rice, 180g chicken, salad",
+        "Micros / observações nutricionais": "Micros / nutrition notes",
+        "Ex: fibra, sódio, vegetais": "Ex: fiber, sodium, vegetables",
+        "Substituições": "Substitutions",
+        "Ex: frango por peixe, arroz por batata": "Ex: chicken for fish, rice for potato",
+        "Texto do personal": "Trainer note",
+        "Orientação específica para o aluno": "Specific guidance for the student",
+        "Nenhuma dieta prescrita para este mês.": "No diet prescribed for this month.",
+        "Meta mensal": "Monthly target",
+        "refeições": "meals",
+        "Sem alimentos cadastrados.": "No foods registered.",
+        "Micros": "Micros",
+        "Personal": "Trainer",
+        "O que comeu?": "What did you eat?",
+        "Diário alimentar": "Food diary",
+        "Nenhum diário alimentar salvo ainda.": "No food diary saved yet.",
+        "Sem personal vinculado: use a contagem básica para registrar seu dia.": "No trainer linked: use basic counting to log your day.",
+        "Nenhuma dieta de personal vinculada.": "No trainer diet linked.",
         "Dashboard diário": "Daily dashboard",
         "Iniciar treino": "Start workout",
         "Check-in diário": "Daily check-in",
@@ -2230,6 +2691,7 @@
         "Tomei vitaminas?": "Took vitamins?",
         "Próximo treino": "Next workout",
         "Escolher": "Choose",
+        "0 dias": "0 days",
         "Sequência": "Streak",
         "Recordes": "Records",
         "Volume semanal": "Weekly volume",
@@ -2447,6 +2909,7 @@
         "Dashboard": "Panel",
         "Check-in": "Check-in",
         "Medidas": "Medidas",
+        "Dieta": "Dieta",
         "Treinos": "Entrenos",
         "Programas": "Programas",
         "Alunos": "Alumnos",
@@ -2466,6 +2929,56 @@
         "Aluno": "Alumno",
         "Criar e entrar": "Crear y entrar",
         "Sair": "Salir",
+        "Macros, refeições e plano alimentar mensal": "Macros, comidas y plan alimentario mensual",
+        "Prescrição do personal": "Prescripción del entrenador",
+        "1 a 10 refeições": "1 a 10 comidas",
+        "Aluno": "Alumno",
+        "Mês": "Mes",
+        "Refeições": "Comidas",
+        "Calorias": "Calorías",
+        "Proteína": "Proteína",
+        "Carbo": "Carbo",
+        "Gordura": "Grasa",
+        "Salvar dieta do aluno": "Guardar dieta del alumno",
+        "Prévia da dieta": "Vista previa de la dieta",
+        "Visão do aluno": "Vista del alumno",
+        "Dieta do mês": "Dieta del mes",
+        "Somente leitura": "Solo lectura",
+        "Seu personal define esta dieta. Você pode visualizar, mas não redesenhar.": "Tu entrenador define esta dieta. Puedes verla, pero no rediseñarla.",
+        "Contagem básica de calorias": "Conteo básico de calorías",
+        "Aluno sem personal": "Alumno sin entrenador",
+        "Data": "Fecha",
+        "Nota": "Nota",
+        "Salvar diário alimentar": "Guardar diario alimentario",
+        "Refeição": "Comida",
+        "Café da manhã": "Desayuno",
+        "Lanche": "Merienda",
+        "Almoço": "Almuerzo",
+        "Pré-treino": "Pre-entreno",
+        "Jantar": "Cena",
+        "Ceia": "Colación nocturna",
+        "Macros por refeição": "Macros por comida",
+        "Nome da refeição": "Nombre de la comida",
+        "Ex: Almoço": "Ej: Almuerzo",
+        "Alimentos e quantidades": "Alimentos y cantidades",
+        "Ex: 150g arroz, 180g frango, salada": "Ej: 150g arroz, 180g pollo, ensalada",
+        "Micros / observações nutricionais": "Micros / observaciones nutricionales",
+        "Ex: fibra, sódio, vegetais": "Ej: fibra, sodio, vegetales",
+        "Substituições": "Sustituciones",
+        "Ex: frango por peixe, arroz por batata": "Ej: pollo por pescado, arroz por papa",
+        "Texto do personal": "Nota del entrenador",
+        "Orientação específica para o aluno": "Orientación específica para el alumno",
+        "Nenhuma dieta prescrita para este mês.": "No hay dieta prescrita para este mes.",
+        "Meta mensal": "Meta mensual",
+        "refeições": "comidas",
+        "Sem alimentos cadastrados.": "Sin alimentos registrados.",
+        "Micros": "Micros",
+        "Personal": "Entrenador",
+        "O que comeu?": "¿Qué comiste?",
+        "Diário alimentar": "Diario alimentario",
+        "Nenhum diário alimentar salvo ainda.": "Aún no hay diario alimentario guardado.",
+        "Sem personal vinculado: use a contagem básica para registrar seu dia.": "Sin entrenador vinculado: usa el conteo básico para registrar tu día.",
+        "Nenhuma dieta de personal vinculada.": "No hay dieta de entrenador vinculada.",
         "Dashboard diário": "Panel diario",
         "Iniciar treino": "Iniciar entreno",
         "Check-in diário": "Check-in diario",
@@ -2507,6 +3020,7 @@
         "Tomei vitaminas?": "¿Tomé vitaminas?",
         "Próximo treino": "Próximo entreno",
         "Escolher": "Elegir",
+        "0 dias": "0 días",
         "Sequência": "Racha",
         "Recordes": "Récords",
         "Volume semanal": "Volumen semanal",
@@ -2803,7 +3317,7 @@
       document.querySelectorAll(".language-button").forEach(button => {
         button.classList.toggle("active", button.dataset.lang === language);
       });
-      document.querySelectorAll("button:not(.language-button), h1, h2, h3, h4, label, span, option, p, strong, .date, .kicker, .hero-title, .quote, .measure-note, .report-line, .auth-warning").forEach(element => {
+      document.querySelectorAll("button:not(.language-button), h1, h2, h3, h4, label, span, option, p, strong, b, .date, .kicker, .hero-title, .quote, .measure-note, .report-line, .auth-warning").forEach(element => {
         const current = element.textContent.trim();
         if (!element.dataset.i18nKey && (translations.en[current] || translations.es[current])) {
           element.dataset.i18nKey = current;
@@ -3256,7 +3770,10 @@
       const missedDays = missedCheckinDays(checkins);
       const bodyMeasures = loadBodyMeasures();
       const weights = physicalWeightSeries(checkins, bodyMeasures);
-      return { checkins, completedWorkouts, stats, evolution, missedDays, weights, bodyMeasures, generatedAt: new Date().toLocaleString("pt-BR") };
+      const user = currentAccount();
+      const dietStudentId = user?.role === "student" ? user.id : selectedDietStudentId();
+      const activeDietPlan = activeDietForStudent(dietStudentId, currentMonthKey());
+      return { checkins, completedWorkouts, stats, evolution, missedDays, weights, bodyMeasures, activeDietPlan, generatedAt: new Date().toLocaleString("pt-BR") };
     }
 
     function monthlyReportHTMLLegacy() {
@@ -3291,31 +3808,163 @@
       }).join("");
     }
 
+    const reportTranslations = {
+      en: {
+        "Salvar como PDF": "Save as PDF",
+        "Relatório mensal MONOLITH": "MONOLITH Monthly Report",
+        "Gerado em": "Generated at",
+        "Use o botão do navegador para salvar como PDF.": "Use the browser button to save as PDF.",
+        "Alerta de check-in para o personal": "Trainer Check-in Alert",
+        "dias sem check-in nos últimos 30 dias.": "days without check-in in the last 30 days.",
+        "Dias recentes sem registro": "Recent missing days",
+        "Aluno manteve check-in completo no período.": "The student kept full check-in coverage during the period.",
+        "Evolução de peso corporal": "Body Weight Progress",
+        "Ainda não há pesos salvos no check-in ou nas medidas corporais.": "No weight records saved in check-ins or body measurements yet.",
+        "Percentual de gordura corporal": "Body Fat Percentage",
+        "Ainda não há percentual de gordura salvo.": "No body-fat percentage saved yet.",
+        "Medidas corporais": "Body Measurements",
+        "Medida": "Measurement",
+        "Primeiro registro": "First record",
+        "Atual": "Current",
+        "Data": "Date",
+        "Peso": "Weight",
+        "Gordura": "Body fat",
+        "Cintura": "Waist",
+        "Peito": "Chest",
+        "Braço": "Arm",
+        "Perna": "Leg",
+        "Quadril": "Hip",
+        "Obs.": "Note",
+        "Sem medidas corporais salvas.": "No body measurements saved.",
+        "Dieta ativa do mês": "Active Monthly Diet",
+        "Meta": "Target",
+        "Refeição": "Meal",
+        "Alimentos": "Foods",
+        "Substituições": "Substitutions",
+        "Observação": "Note",
+        "Nenhuma dieta ativa cadastrada para este mês.": "No active diet registered for this month.",
+        "Top 5 maiores evoluções": "Top 5 Biggest Improvements",
+        "Top 5 maiores quedas": "Top 5 Biggest Drops",
+        "Exercício": "Exercise",
+        "Base": "Baseline",
+        "Último registro": "Latest record",
+        "Ainda precisa de pelo menos duas sessões salvas do mesmo exercício.": "At least two saved sessions of the same exercise are still required.",
+        "Nenhuma queda relevante detectada.": "No relevant drop detected.",
+        "Frequência dos últimos 30 dias": "Last 30 Days Frequency",
+        "Item": "Item",
+        "Concluído": "Completed",
+        "Aderência": "Adherence",
+        "Sem check-ins salvos.": "No check-ins saved.",
+        "Dia a dia": "Daily Log",
+        "Dia": "Day",
+        "Peso simples": "Simple weight",
+        "Itens": "Items",
+        "Treinos concluídos": "Completed Workouts",
+        "Treino": "Workout",
+        "Séries": "Sets",
+        "Peso não registrado": "Weight not recorded",
+        "ok": "ok",
+        "não": "no",
+        "séries": "sets"
+      },
+      es: {
+        "Salvar como PDF": "Guardar como PDF",
+        "Relatório mensal MONOLITH": "Informe mensual MONOLITH",
+        "Gerado em": "Generado el",
+        "Use o botão do navegador para salvar como PDF.": "Usa el botón del navegador para guardar como PDF.",
+        "Alerta de check-in para o personal": "Alerta de check-in para el entrenador",
+        "dias sem check-in nos últimos 30 dias.": "días sin check-in en los últimos 30 días.",
+        "Dias recentes sem registro": "Días recientes sin registro",
+        "Aluno manteve check-in completo no período.": "El alumno mantuvo check-in completo en el período.",
+        "Evolução de peso corporal": "Evolución de peso corporal",
+        "Ainda não há pesos salvos no check-in ou nas medidas corporais.": "Aún no hay pesos guardados en check-in o medidas corporales.",
+        "Percentual de gordura corporal": "Porcentaje de grasa corporal",
+        "Ainda não há percentual de gordura salvo.": "Aún no hay porcentaje de grasa guardado.",
+        "Medidas corporais": "Medidas corporales",
+        "Medida": "Medida",
+        "Primeiro registro": "Primer registro",
+        "Atual": "Actual",
+        "Data": "Fecha",
+        "Peso": "Peso",
+        "Gordura": "Grasa",
+        "Cintura": "Cintura",
+        "Peito": "Pecho",
+        "Braço": "Brazo",
+        "Perna": "Pierna",
+        "Quadril": "Cadera",
+        "Obs.": "Obs.",
+        "Sem medidas corporais salvas.": "Sin medidas corporales guardadas.",
+        "Dieta ativa do mês": "Dieta activa del mes",
+        "Meta": "Meta",
+        "Refeição": "Comida",
+        "Alimentos": "Alimentos",
+        "Substituições": "Sustituciones",
+        "Observação": "Observación",
+        "Nenhuma dieta ativa cadastrada para este mês.": "No hay dieta activa registrada para este mes.",
+        "Top 5 maiores evoluções": "Top 5 mayores evoluciones",
+        "Top 5 maiores quedas": "Top 5 mayores caídas",
+        "Exercício": "Ejercicio",
+        "Base": "Base",
+        "Último registro": "Último registro",
+        "Ainda precisa de pelo menos duas sessões salvas do mesmo exercício.": "Aún se necesitan al menos dos sesiones guardadas del mismo ejercicio.",
+        "Nenhuma queda relevante detectada.": "No se detectó ninguna caída relevante.",
+        "Frequência dos últimos 30 dias": "Frecuencia de los últimos 30 días",
+        "Item": "Item",
+        "Concluído": "Completado",
+        "Aderência": "Adherencia",
+        "Sem check-ins salvos.": "Sin check-ins guardados.",
+        "Dia a dia": "Día a día",
+        "Dia": "Día",
+        "Peso simples": "Peso simple",
+        "Itens": "Ítems",
+        "Treinos concluídos": "Entrenos completados",
+        "Treino": "Entreno",
+        "Séries": "Series",
+        "Peso não registrado": "Peso no registrado",
+        "ok": "ok",
+        "não": "no",
+        "séries": "series"
+      }
+    };
+
+    function reportLanguage() {
+      const language = localStorage.getItem("monolith.language") || "pt";
+      return ["pt", "en", "es"].includes(language) ? language : "pt";
+    }
+
+    function reportText(key, language = reportLanguage()) {
+      return language === "pt" ? key : reportTranslations[language]?.[key] || t(key, language);
+    }
+
     function monthlyReportHTML() {
       const report = monthlyReportData();
-      const statsRows = report.stats.map(item => `<tr><td>${escapeHTML(item.name)}</td><td>${item.completed}/${item.total}</td><td>${Math.round((item.completed / Math.max(1, item.total)) * 100)}%</td></tr>`).join("");
-      const dayRows = report.checkins.map(day => `<tr><td>${escapeHTML(day.label || day.date)}</td><td>${day.weight ? formatWeight(day.weight) : "Peso não registrado"}</td><td>${day.completed}/${day.total}</td><td>${day.score}%</td><td>${day.items.map(item => `${escapeHTML(item.name)}: ${item.completed ? "ok" : "não"}`).join("<br>")}</td></tr>`).join("");
-      const workoutRows = report.completedWorkouts.slice(0, 30).map(session => `<tr><td>${escapeHTML(session.date || session.completedAt || "-")}</td><td>${escapeHTML(session.workoutName || "Treino")}</td><td>${session.completedSets || 0}/${session.totalSets || 0} séries</td></tr>`).join("");
+      const language = reportLanguage();
+      const rt = key => reportText(key, language);
+      const htmlLang = language === "pt" ? "pt-BR" : language;
+      const statsRows = report.stats.map(item => `<tr><td>${escapeHTML(t(item.name, language))}</td><td>${item.completed}/${item.total}</td><td>${Math.round((item.completed / Math.max(1, item.total)) * 100)}%</td></tr>`).join("");
+      const dayRows = report.checkins.map(day => `<tr><td>${escapeHTML(day.label || day.date)}</td><td>${day.weight ? formatWeight(day.weight) : rt("Peso não registrado")}</td><td>${day.completed}/${day.total}</td><td>${day.score}%</td><td>${day.items.map(item => `${escapeHTML(t(item.name, language))}: ${item.completed ? rt("ok") : rt("não")}`).join("<br>")}</td></tr>`).join("");
+      const workoutRows = report.completedWorkouts.slice(0, 30).map(session => `<tr><td>${escapeHTML(session.date || session.completedAt || "-")}</td><td>${escapeHTML(t(session.workoutName || "Treino", language))}</td><td>${session.completedSets || 0}/${session.totalSets || 0} ${rt("séries")}</td></tr>`).join("");
       const evolutionRow = item => `<tr><td>${escapeHTML(item.name)}</td><td>${escapeHTML(item.first.date)}</td><td>${Math.round(item.first.volume)} vol / ${formatWeight(item.first.bestE1rm)} e1RM</td><td>${escapeHTML(item.latest.date)}</td><td>${Math.round(item.latest.volume)} vol / ${formatWeight(item.latest.bestE1rm)} e1RM</td><td>${item.percent > 0 ? "+" : ""}${item.percent}%</td></tr>`;
       const gainRows = report.evolution.topGains.map(evolutionRow).join("");
       const dropRows = report.evolution.topDrops.map(evolutionRow).join("");
       const weightBars = reportChartBars(displayWeightSeries(report.weights), weightUnitLabel());
       const bodyFatBars = reportChartBars(bodyMeasureSeries("bodyFat", report.bodyMeasures), "%");
       const measureRows = report.bodyMeasures.slice(0, 20).map(entry => `<tr><td>${escapeHTML(entry.date)}</td><td>${formatWeight(entry.weight)}</td><td>${formatMeasureValue(entry.bodyFat, "%")}</td><td>${formatMeasureValue(entry.waist, "cm")}</td><td>${formatMeasureValue(entry.chest, "cm")}</td><td>${formatMeasureValue(entry.arm, "cm")}</td><td>${formatMeasureValue(entry.leg, "cm")}</td><td>${formatMeasureValue(entry.hip, "cm")}</td><td>${escapeHTML(entry.notes || "")}</td></tr>`).join("");
+      const dietRows = report.activeDietPlan?.meals?.map((meal, index) => `<tr><td>${index + 1}</td><td>${escapeHTML(meal.name || `${rt("Refeição")} ${index + 1}`)}</td><td>${escapeHTML(meal.items || "")}</td><td>${escapeHTML([meal.calories ? `${meal.calories} kcal` : "", meal.protein ? `P ${meal.protein}` : "", meal.carbs ? `C ${meal.carbs}` : "", meal.fat ? `G ${meal.fat}` : ""].filter(Boolean).join(" / "))}</td><td>${escapeHTML(meal.substitutions || "")}</td><td>${escapeHTML(meal.notes || "")}</td></tr>`).join("") || "";
       const measureDeltaRows = bodyMeasureFields.map(field => {
         const series = bodyMeasureSeries(field.key, report.bodyMeasures);
         const first = series[0];
         const latest = series[series.length - 1];
         const delta = first && latest ? latest.value - first.value : 0;
-        return `<tr><td>${escapeHTML(field.label)}</td><td>${first ? `${first.value} ${field.unit}` : "--"}</td><td>${latest ? `${latest.value} ${field.unit}` : "--"}</td><td>${first && latest ? `${delta > 0 ? "+" : ""}${delta.toFixed(1)} ${field.unit}` : "--"}</td></tr>`;
+        return `<tr><td>${escapeHTML(rt(field.label))}</td><td>${first ? `${first.value} ${field.unit}` : "--"}</td><td>${latest ? `${latest.value} ${field.unit}` : "--"}</td><td>${first && latest ? `${delta > 0 ? "+" : ""}${delta.toFixed(1)} ${field.unit}` : "--"}</td></tr>`;
       }).join("");
       const missedPreview = report.missedDays.slice(-7).map(day => escapeHTML(day)).join(", ");
       const alertLevel = report.missedDays.length >= 5 ? "drop" : "gain";
       return `<!doctype html>
-<html lang="pt-BR">
+<html lang="${htmlLang}">
 <head>
 <meta charset="utf-8">
-<title>Relatório mensal MONOLITH</title>
+<title>${rt("Relatório mensal MONOLITH")}</title>
 <style>
 body{font-family:Arial,sans-serif;margin:32px;color:#111;line-height:1.35}
 h1{margin-bottom:4px}h2{margin-top:26px}
@@ -3330,28 +3979,31 @@ th{background:#eee}.muted{color:#666}.gain{color:#137333;font-weight:700}.drop{c
 </style>
 </head>
 <body>
-<button onclick="window.print()">Salvar como PDF</button>
-<h1>Relatório mensal MONOLITH</h1>
-<p class="muted">Gerado em ${escapeHTML(report.generatedAt)}. Use o botão do navegador para salvar como PDF.</p>
-<h2>Alerta de check-in para o personal</h2>
-<div class="alert"><strong class="${alertLevel}">${report.missedDays.length} dias sem check-in nos últimos 30 dias.</strong><br>${report.missedDays.length ? `Dias recentes sem registro: ${missedPreview}` : "Aluno manteve check-in completo no período."}</div>
-<h2>Evolução de peso corporal</h2>
-${weightBars ? `<div class="chart">${weightBars}</div>` : `<p class="muted">Ainda não há pesos salvos no check-in ou nas medidas corporais.</p>`}
-<h2>Percentual de gordura corporal</h2>
-${bodyFatBars ? `<div class="chart">${bodyFatBars}</div>` : `<p class="muted">Ainda não há percentual de gordura salvo.</p>`}
-<h2>Medidas corporais</h2>
-<table><thead><tr><th>Medida</th><th>Primeiro registro</th><th>Atual</th><th>Delta</th></tr></thead><tbody>${measureDeltaRows}</tbody></table>
-<table><thead><tr><th>Data</th><th>Peso</th><th>Gordura</th><th>Cintura</th><th>Peito</th><th>Braço</th><th>Perna</th><th>Quadril</th><th>Obs.</th></tr></thead><tbody>${measureRows || `<tr><td colspan="9">Sem medidas corporais salvas.</td></tr>`}</tbody></table>
-<h2>Top 5 maiores evoluções</h2>
-<table><thead><tr><th>Exercício</th><th>Base</th><th>Primeiro registro</th><th>Atual</th><th>Último registro</th><th>Delta</th></tr></thead><tbody>${gainRows || `<tr><td colspan="6">Ainda precisa de pelo menos duas sessões salvas do mesmo exercício.</td></tr>`}</tbody></table>
-<h2>Top 5 maiores quedas</h2>
-<table><thead><tr><th>Exercício</th><th>Base</th><th>Primeiro registro</th><th>Atual</th><th>Último registro</th><th>Delta</th></tr></thead><tbody>${dropRows || `<tr><td colspan="6">Nenhuma queda relevante detectada.</td></tr>`}</tbody></table>
-<h2>Frequência dos últimos 30 dias</h2>
-<table><thead><tr><th>Item</th><th>Concluído</th><th>Aderência</th></tr></thead><tbody>${statsRows || `<tr><td colspan="3">Sem check-ins salvos.</td></tr>`}</tbody></table>
-<h2>Dia a dia</h2>
-<table><thead><tr><th>Dia</th><th>Peso simples</th><th>Score</th><th>%</th><th>Itens</th></tr></thead><tbody>${dayRows || `<tr><td colspan="5">Sem check-ins salvos.</td></tr>`}</tbody></table>
-<h2>Treinos concluídos</h2>
-<table><thead><tr><th>Data</th><th>Treino</th><th>Séries</th></tr></thead><tbody>${workoutRows || `<tr><td colspan="3">Sem treinos concluídos salvos.</td></tr>`}</tbody></table>
+<button onclick="window.print()">${rt("Salvar como PDF")}</button>
+<h1>${rt("Relatório mensal MONOLITH")}</h1>
+<p class="muted">${rt("Gerado em")} ${escapeHTML(report.generatedAt)}. ${rt("Use o botão do navegador para salvar como PDF.")}</p>
+<h2>${rt("Alerta de check-in para o personal")}</h2>
+<div class="alert"><strong class="${alertLevel}">${report.missedDays.length} ${rt("dias sem check-in nos últimos 30 dias.")}</strong><br>${report.missedDays.length ? `${rt("Dias recentes sem registro")}: ${missedPreview}` : rt("Aluno manteve check-in completo no período.")}</div>
+<h2>${rt("Evolução de peso corporal")}</h2>
+${weightBars ? `<div class="chart">${weightBars}</div>` : `<p class="muted">${rt("Ainda não há pesos salvos no check-in ou nas medidas corporais.")}</p>`}
+<h2>${rt("Percentual de gordura corporal")}</h2>
+${bodyFatBars ? `<div class="chart">${bodyFatBars}</div>` : `<p class="muted">${rt("Ainda não há percentual de gordura salvo.")}</p>`}
+<h2>${rt("Medidas corporais")}</h2>
+<table><thead><tr><th>${rt("Medida")}</th><th>${rt("Primeiro registro")}</th><th>${rt("Atual")}</th><th>Delta</th></tr></thead><tbody>${measureDeltaRows}</tbody></table>
+<table><thead><tr><th>${rt("Data")}</th><th>${rt("Peso")}</th><th>${rt("Gordura")}</th><th>${rt("Cintura")}</th><th>${rt("Peito")}</th><th>${rt("Braço")}</th><th>${rt("Perna")}</th><th>${rt("Quadril")}</th><th>${rt("Obs.")}</th></tr></thead><tbody>${measureRows || `<tr><td colspan="9">${rt("Sem medidas corporais salvas.")}</td></tr>`}</tbody></table>
+<h2>${rt("Dieta ativa do mês")}</h2>
+<p class="muted">${rt("Meta")}: ${escapeHTML(report.activeDietPlan?.calories || "--")} kcal / P ${escapeHTML(report.activeDietPlan?.protein || "--")} / C ${escapeHTML(report.activeDietPlan?.carbs || "--")} / G ${escapeHTML(report.activeDietPlan?.fat || "--")}</p>
+<table><thead><tr><th>#</th><th>${rt("Refeição")}</th><th>${rt("Alimentos")}</th><th>Macros</th><th>${rt("Substituições")}</th><th>${rt("Observação")}</th></tr></thead><tbody>${dietRows || `<tr><td colspan="6">${rt("Nenhuma dieta ativa cadastrada para este mês.")}</td></tr>`}</tbody></table>
+<h2>${rt("Top 5 maiores evoluções")}</h2>
+<table><thead><tr><th>${rt("Exercício")}</th><th>${rt("Base")}</th><th>${rt("Primeiro registro")}</th><th>${rt("Atual")}</th><th>${rt("Último registro")}</th><th>Delta</th></tr></thead><tbody>${gainRows || `<tr><td colspan="6">${rt("Ainda precisa de pelo menos duas sessões salvas do mesmo exercício.")}</td></tr>`}</tbody></table>
+<h2>${rt("Top 5 maiores quedas")}</h2>
+<table><thead><tr><th>${rt("Exercício")}</th><th>${rt("Base")}</th><th>${rt("Primeiro registro")}</th><th>${rt("Atual")}</th><th>${rt("Último registro")}</th><th>Delta</th></tr></thead><tbody>${dropRows || `<tr><td colspan="6">${rt("Nenhuma queda relevante detectada.")}</td></tr>`}</tbody></table>
+<h2>${rt("Frequência dos últimos 30 dias")}</h2>
+<table><thead><tr><th>${rt("Item")}</th><th>${rt("Concluído")}</th><th>${rt("Aderência")}</th></tr></thead><tbody>${statsRows || `<tr><td colspan="3">${rt("Sem check-ins salvos.")}</td></tr>`}</tbody></table>
+<h2>${rt("Dia a dia")}</h2>
+<table><thead><tr><th>${rt("Dia")}</th><th>${rt("Peso simples")}</th><th>Score</th><th>%</th><th>${rt("Itens")}</th></tr></thead><tbody>${dayRows || `<tr><td colspan="5">${rt("Sem check-ins salvos.")}</td></tr>`}</tbody></table>
+<h2>${rt("Treinos concluídos")}</h2>
+<table><thead><tr><th>${rt("Data")}</th><th>${rt("Treino")}</th><th>${rt("Séries")}</th></tr></thead><tbody>${workoutRows || `<tr><td colspan="3">${rt("Sem check-ins salvos.")}</td></tr>`}</tbody></table>
 </body>
 </html>`;
     }
@@ -3388,7 +4040,9 @@ ${bodyFatBars ? `<div class="chart">${bodyFatBars}</div>` : `<p class="muted">Ai
         selectedCoach: document.querySelector(".coach-card.selected h3")?.textContent || "Nenhum coach selecionado",
         checkins: loadCheckins(),
         bodyMeasures: loadBodyMeasures(),
-        progressPhotos: loadProgressPhotos()
+        progressPhotos: loadProgressPhotos(),
+        dietPlans: loadDietPlans(),
+        foodLogs: loadFoodLogs()
       };
       if (type === "report" || type === "pdf") {
         downloadTextFile("monolith-relatorio-mensal.html", "text/html;charset=utf-8", monthlyReportHTML());
@@ -3495,13 +4149,52 @@ ${bodyFatBars ? `<div class="chart">${bodyFatBars}</div>` : `<p class="muted">Ai
       renderStats();
       renderBodyMeasures();
       renderPhotoVault();
+      renderNutrition();
     }
     languageSelect.addEventListener("click", handleLanguageClick);
     authLanguageSelect?.addEventListener("click", handleLanguageClick);
+    document.querySelectorAll(".auth-tab").forEach(button => {
+      button.addEventListener("click", () => {
+        const mode = button.dataset.authTab;
+        document.getElementById("authStack").dataset.authMode = mode;
+        document.querySelectorAll(".auth-tab").forEach(tab => tab.classList.toggle("active", tab === button));
+      });
+    });
     weightUnitSelect?.addEventListener("click", event => {
       const button = event.target.closest(".unit-button");
       if (!button) return;
       setWeightUnit(button.dataset.unit);
+    });
+    document.getElementById("dietMealCount")?.addEventListener("change", () => renderDietMealBuilder());
+    document.getElementById("dietStudent")?.addEventListener("change", renderNutrition);
+    document.getElementById("dietMonth")?.addEventListener("change", renderNutrition);
+    document.getElementById("dietPlanForm")?.addEventListener("submit", event => {
+      event.preventDefault();
+      const plan = readDietPlanForm();
+      const plans = loadDietPlans();
+      plans[plan.id] = plan;
+      saveDietPlans(plans);
+      renderDietPlan("dietPreview", plan);
+      authMessage("Dieta do aluno salva.");
+    });
+    document.getElementById("foodMealCount")?.addEventListener("change", renderFoodLogMeals);
+    document.getElementById("foodLogForm")?.addEventListener("submit", event => {
+      event.preventDefault();
+      const user = currentAccount();
+      if (!user) return;
+      const logs = loadFoodLogs();
+      const meals = [...document.querySelectorAll("#foodLogMeals .food-log-row")].map(row => ({
+        name: row.querySelector(".food-name").value.trim(),
+        calories: row.querySelector(".food-calories").value.trim(),
+        protein: row.querySelector(".food-protein").value.trim(),
+        carbs: row.querySelector(".food-carbs").value.trim(),
+        fat: row.querySelector(".food-fat").value.trim()
+      })).filter(meal => meal.name || meal.calories);
+      const entry = { date: document.getElementById("foodLogDate").value || todayKey(), note: document.getElementById("foodLogNote").value.trim(), meals, savedAt: new Date().toISOString() };
+      logs[user.id] = [entry, ...(logs[user.id] || []).filter(item => item.date !== entry.date)].slice(0, 90);
+      saveFoodLogs(logs);
+      renderFoodLogSummary();
+      authMessage("Diário alimentar salvo.");
     });
     document.getElementById("loginForm")?.addEventListener("submit", async event => {
       event.preventDefault();
@@ -3591,6 +4284,11 @@ ${bodyFatBars ? `<div class="chart">${bodyFatBars}</div>` : `<p class="muted">Ai
         removeFactor(removeFactorButton.closest(".habit").dataset.factorId);
       }
 
+      const clearFoodRow = event.target.closest(".clear-food-row");
+      if (clearFoodRow) {
+        clearFoodRow.closest(".food-log-row").querySelectorAll("input").forEach(input => input.value = "");
+      }
+
       const setDone = event.target.closest(".set-done");
       if (setDone) {
         setDone.classList.add("done");
@@ -3627,11 +4325,12 @@ ${bodyFatBars ? `<div class="chart">${bodyFatBars}</div>` : `<p class="muted">Ai
       const nav = event.target.closest("[data-screen]");
       if (nav) {
         showScreen(nav.dataset.screen);
-        if (nav.dataset.screen === "stats") {
+      if (nav.dataset.screen === "stats") {
           renderStats();
           renderPhotoVault();
         }
         if (nav.dataset.screen === "measures") renderBodyMeasures();
+        if (nav.dataset.screen === "nutrition") renderNutrition();
         if (nav.dataset.screen === "backup") renderTrainerSummary();
       }
 

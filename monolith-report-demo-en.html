@@ -1,0 +1,343 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>MONOLITH - Monthly Student Report Demo</title>
+  <style>
+    :root {
+      --ink: #141414;
+      --muted: #666;
+      --line: #d8d8d8;
+      --gold: #b8911f;
+      --soft: #f6f3eb;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      background: #ececec;
+      color: var(--ink);
+      font-family: Arial, Helvetica, sans-serif;
+    }
+
+    .page {
+      width: min(960px, calc(100vw - 32px));
+      margin: 24px auto;
+      background: #fff;
+      padding: 34px;
+      box-shadow: 0 18px 60px rgba(0, 0, 0, .14);
+    }
+
+    header {
+      display: flex;
+      justify-content: space-between;
+      gap: 20px;
+      border-bottom: 3px solid var(--ink);
+      padding-bottom: 18px;
+      margin-bottom: 22px;
+    }
+
+    h1, h2, h3, p { margin-top: 0; }
+    h1 { font-size: 30px; letter-spacing: 1px; margin-bottom: 6px; }
+    h2 { font-size: 18px; margin: 24px 0 10px; }
+    h3 { font-size: 14px; margin-bottom: 6px; }
+    .muted { color: var(--muted); }
+    .brand { color: var(--gold); font-weight: 800; }
+
+    .metrics {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 10px;
+      margin-bottom: 18px;
+    }
+
+    .metric {
+      border: 1px solid var(--line);
+      background: var(--soft);
+      padding: 12px;
+      min-height: 86px;
+    }
+
+    .metric b {
+      display: block;
+      font-size: 25px;
+      margin-top: 12px;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 10px 0 18px;
+      font-size: 13px;
+    }
+
+    th, td {
+      border: 1px solid var(--line);
+      padding: 8px;
+      text-align: left;
+      vertical-align: top;
+    }
+
+    th { background: #f0f0f0; }
+
+    .photos {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 12px;
+    }
+
+    .photo {
+      border: 1px solid var(--line);
+      padding: 8px;
+      background: #fafafa;
+    }
+
+    .photo-art {
+      height: 210px;
+      display: grid;
+      place-items: center;
+      color: #fff;
+      font-weight: 700;
+      background:
+        radial-gradient(circle at 50% 24%, #f0c8a0 0 13px, transparent 14px),
+        linear-gradient(90deg, transparent 39%, #303030 40% 60%, transparent 61%),
+        linear-gradient(90deg, transparent 31%, #303030 32% 40%, transparent 41% 59%, #303030 60% 68%, transparent 69%),
+        linear-gradient(180deg, #202020, #585858);
+    }
+
+    .photo .caption {
+      display: flex;
+      justify-content: space-between;
+      margin-top: 8px;
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    .plans {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 10px;
+    }
+
+    .plan {
+      border: 1px solid var(--line);
+      padding: 10px;
+      background: #fff;
+    }
+
+    .plan strong { color: var(--gold); }
+
+    .note {
+      margin-top: 18px;
+      border-left: 4px solid var(--gold);
+      background: var(--soft);
+      padding: 12px;
+      color: #4a4024;
+      line-height: 1.45;
+    }
+
+    .gain { color: #137333; font-weight: 800; }
+    .drop { color: #b3261e; font-weight: 800; }
+
+    .alert {
+      border-left: 4px solid var(--gold);
+      background: var(--soft);
+      padding: 12px;
+      margin: 14px 0;
+      line-height: 1.45;
+    }
+
+    .weight-chart {
+      height: 150px;
+      display: flex;
+      align-items: end;
+      gap: 8px;
+      border: 1px solid var(--line);
+      padding: 12px;
+      margin: 10px 0 18px;
+      overflow-x: auto;
+    }
+
+    .wbar {
+      min-width: 54px;
+      background: var(--gold);
+      color: #111;
+      padding: 4px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      font-size: 10px;
+      font-weight: 700;
+    }
+
+    .wbar span {
+      writing-mode: vertical-rl;
+      transform: rotate(180deg);
+      opacity: .72;
+      font-weight: 400;
+    }
+
+    button {
+      border: 1px solid var(--ink);
+      background: var(--ink);
+      color: #fff;
+      min-height: 38px;
+      padding: 0 14px;
+      cursor: pointer;
+    }
+
+    @media print {
+      body { background: #fff; }
+      .page { width: auto; margin: 0; box-shadow: none; }
+      button { display: none; }
+    }
+
+    @media (max-width: 760px) {
+      header, .metrics, .photos, .plans { grid-template-columns: 1fr; display: grid; }
+    }
+  </style>
+</head>
+<body>
+  <main class="page">
+    <button onclick="window.print()">Save as PDF</button>
+    <header>
+      <div>
+        <div class="brand">MONOLITH</div>
+        <h1>Monthly Student Report</h1>
+        <p class="muted">Demo with fake data - May 2026</p>
+      </div>
+      <div>
+        <p><strong>Student:</strong> Lucas Andrade</p>
+        <p><strong>Trainer:</strong> Marina Costa</p>
+        <p><strong>Plan:</strong> Personal Trainer Plus</p>
+      </div>
+    </header>
+
+    <section class="metrics">
+      <div class="metric"><span>Saved check-ins</span><b>27/30</b></div>
+      <div class="metric"><span>Average adherence</span><b>84%</b></div>
+      <div class="metric"><span>Completed workouts</span><b>18</b></div>
+      <div class="metric"><span>Monthly volume</span><b>42.8t</b></div>
+    </section>
+
+    <h2>Trainer Check-in Alert</h2>
+    <div class="alert">
+      <strong class="drop">3 days without check-in in the last 30 days.</strong><br>
+      Recent missing days: 05/12, 05/19, 05/27. Recommendation: send a short message and check sleep, routine and motivation.
+    </div>
+
+    <h2>Body Weight Progress</h2>
+    <div class="weight-chart">
+      <div class="wbar" style="height:112px"><b>82.4kg</b><span>05/01</span></div>
+      <div class="wbar" style="height:104px"><b>82.0kg</b><span>05/06</span></div>
+      <div class="wbar" style="height:96px"><b>81.6kg</b><span>05/11</span></div>
+      <div class="wbar" style="height:88px"><b>81.2kg</b><span>05/16</span></div>
+      <div class="wbar" style="height:76px"><b>80.9kg</b><span>05/21</span></div>
+      <div class="wbar" style="height:70px"><b>80.7kg</b><span>05/28</span></div>
+    </div>
+
+    <h2>Body Fat Percentage</h2>
+    <div class="weight-chart">
+      <div class="wbar" style="height:118px"><b>16.2%</b><span>05/01</span></div>
+      <div class="wbar" style="height:106px"><b>15.7%</b><span>05/06</span></div>
+      <div class="wbar" style="height:98px"><b>15.2%</b><span>05/11</span></div>
+      <div class="wbar" style="height:88px"><b>14.8%</b><span>05/16</span></div>
+      <div class="wbar" style="height:78px"><b>14.3%</b><span>05/21</span></div>
+      <div class="wbar" style="height:72px"><b>14.0%</b><span>05/28</span></div>
+    </div>
+
+    <h2>Body Measurements</h2>
+    <table>
+      <thead><tr><th>Measurement</th><th>First record</th><th>Current</th><th>Delta</th><th>Trainer reading</th></tr></thead>
+      <tbody>
+        <tr><td>Waist</td><td>86.0 cm</td><td>82.0 cm</td><td class="gain">-4.0 cm</td><td>Strong abdominal reduction alongside lower body fat.</td></tr>
+        <tr><td>Chest</td><td>103.0 cm</td><td>106.5 cm</td><td class="gain">+3.5 cm</td><td>Possible hypertrophy in chest and back.</td></tr>
+        <tr><td>Arm</td><td>38.0 cm</td><td>39.4 cm</td><td class="gain">+1.4 cm</td><td>Arms responded well to the volume block.</td></tr>
+        <tr><td>Leg</td><td>59.0 cm</td><td>61.0 cm</td><td class="gain">+2.0 cm</td><td>Lower body is progressing with load progression.</td></tr>
+        <tr><td>Hip</td><td>99.0 cm</td><td>98.0 cm</td><td>-1.0 cm</td><td>Slight reduction expected during body recomposition.</td></tr>
+      </tbody>
+    </table>
+
+    <h2>Physical History</h2>
+    <table>
+      <thead><tr><th>Date</th><th>Weight</th><th>Body fat</th><th>Waist</th><th>Chest</th><th>Arm</th><th>Leg</th><th>Hip</th><th>Note</th></tr></thead>
+      <tbody>
+        <tr><td>05/01</td><td>82.4kg</td><td>16.2%</td><td>86cm</td><td>103cm</td><td>38cm</td><td>59cm</td><td>99cm</td><td>Fasted measurement.</td></tr>
+        <tr><td>05/11</td><td>81.6kg</td><td>15.2%</td><td>84cm</td><td>104.5cm</td><td>38.8cm</td><td>60cm</td><td>98.6cm</td><td>Consistent cardio week.</td></tr>
+        <tr><td>05/21</td><td>80.9kg</td><td>14.3%</td><td>82.8cm</td><td>106cm</td><td>39.2cm</td><td>60.8cm</td><td>98.2cm</td><td>Higher nutrition adherence.</td></tr>
+        <tr><td>05/28</td><td>80.7kg</td><td>14.0%</td><td>82cm</td><td>106.5cm</td><td>39.4cm</td><td>61cm</td><td>98cm</td><td>Strong recomposition: less fat and larger muscle measurements.</td></tr>
+      </tbody>
+    </table>
+
+    <h2>Top 5 Student Strength Improvements</h2>
+    <table>
+      <thead><tr><th>Exercise</th><th>Baseline round</th><th>Best/current</th><th>Progress</th><th>Trainer reading</th></tr></thead>
+      <tbody>
+        <tr><td>45-Degree Leg Press</td><td>220kg x 8 reps</td><td>280kg x 10 reps</td><td class="gain">+59% volume</td><td>Major lower-body response.</td></tr>
+        <tr><td>Incline Bench Press</td><td>26kg x 8 reps</td><td>34kg x 9 reps</td><td class="gain">+47% volume</td><td>Chest performance improving with consistent technique.</td></tr>
+        <tr><td>Lat Pulldown</td><td>50kg x 10 reps</td><td>65kg x 11 reps</td><td class="gain">+43% volume</td><td>Back is progressing well; keep full range.</td></tr>
+        <tr><td>Machine Shoulder Press</td><td>35kg x 8 reps</td><td>45kg x 9 reps</td><td class="gain">+45% volume</td><td>Strong shoulders; watch joint recovery.</td></tr>
+        <tr><td>Preacher Curl</td><td>22kg x 9 reps</td><td>28kg x 10 reps</td><td class="gain">+41% volume</td><td>Arms responded to the progression block.</td></tr>
+      </tbody>
+    </table>
+
+    <h2>Top 5 Drops or Alerts</h2>
+    <table>
+      <thead><tr><th>Exercise</th><th>Baseline round</th><th>Latest week</th><th>Drop</th><th>Trainer reading</th></tr></thead>
+      <tbody>
+        <tr><td>Back Squat</td><td>100kg x 6 reps</td><td>90kg x 5 reps</td><td class="drop">-25% volume</td><td>Check pain, sleep or systemic fatigue.</td></tr>
+        <tr><td>Romanian Deadlift</td><td>80kg x 8 reps</td><td>70kg x 7 reps</td><td class="drop">-23% volume</td><td>Hamstrings may be accumulating fatigue.</td></tr>
+        <tr><td>Bent-over Row</td><td>70kg x 8 reps</td><td>62kg x 8 reps</td><td class="drop">-11% volume</td><td>Possible lower-back impact after leg sessions.</td></tr>
+        <tr><td>Lateral Raise</td><td>12kg x 15 reps</td><td>10kg x 13 reps</td><td class="drop">-28% volume</td><td>Adjust shoulder volume next week.</td></tr>
+        <tr><td>Skull Crusher</td><td>30kg x 10 reps</td><td>26kg x 9 reps</td><td class="drop">-22% volume</td><td>Possible elbow irritation or pressing fatigue.</td></tr>
+      </tbody>
+    </table>
+
+    <h2>Check-in Frequency by Item</h2>
+    <table>
+      <thead><tr><th>Item</th><th>Completed</th><th>Adherence</th><th>Trainer reading</th></tr></thead>
+      <tbody>
+        <tr><td>Water</td><td>28/30</td><td>93%</td><td>Excellent consistency.</td></tr>
+        <tr><td>Workout</td><td>18/30</td><td>60%</td><td>Good hypertrophy frequency; keep progression.</td></tr>
+        <tr><td>Cardio</td><td>14/30</td><td>47%</td><td>Adjustment point for the next block.</td></tr>
+        <tr><td>Enough sleep</td><td>22/30</td><td>73%</td><td>Recovery is acceptable, still unstable on weekends.</td></tr>
+        <tr><td>Enough protein</td><td>25/30</td><td>83%</td><td>Strong nutrition base.</td></tr>
+      </tbody>
+    </table>
+
+    <h2>Daily Log</h2>
+    <table>
+      <thead><tr><th>Day</th><th>Score</th><th>Summary</th></tr></thead>
+      <tbody>
+        <tr><td>05/01</td><td>90%</td><td>Workout, water, protein and sleep completed.</td></tr>
+        <tr><td>05/02</td><td>70%</td><td>No cardio, sleep below target.</td></tr>
+        <tr><td>05/03</td><td>100%</td><td>Complete day, best score of the week.</td></tr>
+        <tr><td>05/04</td><td>80%</td><td>Workout completed, diet on plan.</td></tr>
+        <tr><td>05/05</td><td>60%</td><td>No workout, recovery focus.</td></tr>
+      </tbody>
+    </table>
+
+    <h2>Progress Photos</h2>
+    <div class="photos">
+      <article class="photo">
+        <div class="photo-art">Front</div>
+        <div class="caption"><span>Last month</span><span>82.4 kg</span></div>
+      </article>
+      <article class="photo">
+        <div class="photo-art">Side</div>
+        <div class="caption"><span>This month</span><span>80.9 kg</span></div>
+      </article>
+      <article class="photo">
+        <div class="photo-art">Back</div>
+        <div class="caption"><span>Comparison</span><span>-1.5 kg</span></div>
+      </article>
+    </div>
+
+    <div class="note">
+      Trainer recommendation: keep strength training 4x/week, increase cardio to 3x/week and protect the sleep routine. The next cycle should prioritize consistency before increasing volume.
+    </div>
+  </main>
+</body>
+</html>
