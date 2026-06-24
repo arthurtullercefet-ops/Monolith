@@ -1856,11 +1856,12 @@
       <div class="auth-card" data-auth-panel="signup">
         <h3>Criar conta</h3>
         <p>Crie uma conta real no Supabase para testar a experiência separada.</p>
+        <div class="auth-warning" data-i18n="Após criar conta, confirme o cadastro no e-mail antes de entrar.">Após criar conta, confirme o cadastro no e-mail antes de entrar.</div>
         <form class="auth-form" id="signupForm">
           <div class="auth-grid">
             <div>
               <label for="signupName">Nome</label>
-              <input id="signupName" required placeholder="Nome completo" />
+            <input id="signupName" required placeholder="Nome completo" data-i18n-placeholder="Nome completo" />
             </div>
             <div>
               <label for="signupRole">Tipo</label>
@@ -1876,7 +1877,7 @@
           </div>
           <div>
             <label for="signupPassword">Senha</label>
-            <input id="signupPassword" type="password" autocomplete="new-password" required minlength="6" placeholder="Mínimo 6 caracteres" />
+            <input id="signupPassword" type="password" autocomplete="new-password" required minlength="6" placeholder="Mínimo 6 caracteres" data-i18n-placeholder="Mínimo 6 caracteres" />
           </div>
           <button class="ghost" type="submit">Criar e entrar</button>
         </form>
@@ -2187,7 +2188,7 @@
               <div class="nutrition-controls">
                 <div class="field"><label for="foodLogDate">Data</label><input id="foodLogDate" type="date" /></div>
                 <div class="field"><label for="foodMealCount">Refeições</label><select id="foodMealCount"><option>1</option><option>2</option><option selected>3</option><option>4</option><option>5</option><option>6</option><option>7</option><option>8</option><option>9</option><option>10</option></select></div>
-                <div class="field"><label for="foodLogNote">Nota</label><input id="foodLogNote" placeholder="Ex: dia corrido" /></div>
+                <div class="field"><label for="foodLogNote">Nota</label><input id="foodLogNote" placeholder="Ex: dia corrido" data-i18n-placeholder="Ex: dia corrido" /></div>
               </div>
               <div class="food-log-list" id="foodLogMeals"></div>
               <button class="action" type="submit">Salvar diário alimentar</button>
@@ -2531,7 +2532,7 @@
     function authMessage(message) {
       const toast = document.getElementById("toast");
       if (toast) {
-        toast.textContent = message;
+        toast.textContent = t(message);
         toast.classList.add("show");
         setTimeout(() => toast.classList.remove("show"), 2200);
       }
@@ -2599,7 +2600,7 @@
           const account = cacheRemoteAccount(profile, data.user);
           applyAuthState();
           showScreen(account.role === "personal" ? "clients" : "home");
-          authMessage(`Bem-vindo, ${account.name}.`);
+          authMessage(`${t("Bem-vindo")}, ${account.name}.`);
           return true;
         } catch (profileError) {
           authMessage("Login feito, mas não consegui carregar o perfil.");
@@ -2618,7 +2619,7 @@
       localStorage.setItem("monolith.sessionUserId", account.id);
       applyAuthState();
       showScreen(account.role === "personal" ? "clients" : "home");
-      authMessage(`Bem-vindo, ${account.name}.`);
+      authMessage(`${t("Bem-vindo")}, ${account.name}.`);
       return true;
     }
 
@@ -2835,11 +2836,30 @@
         "Alunos": "Students",
         "Estatísticas": "Stats",
         "Backup": "Backup",
+        "Plano local": "Local plan",
+        "Crie treinos do zero com histórico e progressão automática": "Create workouts from scratch with history and automatic progression",
+        "Programas e coaches": "Programs and coaches",
+        "Filosofias de treino, intensidade e disciplina": "Training philosophies, intensity and discipline",
+        "Escola Clássica": "Classic School",
+        "Volume, estética e construção paciente de base muscular.": "Volume, aesthetics and patient base-building.",
+        "Classic Physique": "Classic Physique",
+        "Consistência, simetria e execução repetida com precisão.": "Consistency, symmetry and repeated precision.",
+        "Hipertrofia Moderna": "Modern Hypertrophy",
+        "Progressão estruturada, volume eficiente e registro inteligente.": "Structured progression, efficient volume and smart logging.",
+        "Intensidade Máxima": "Maximum Intensity",
+        "Menos distração, mais esforço real nas séries importantes.": "Less distraction, more real effort on important sets.",
+        "Execução": "Execution",
+        "Controle, conexão mente-músculo e repetição que vale.": "Control, mind-muscle connection and reps that count.",
+        "Mentalidade": "Mindset",
+        "Disciplina, responsabilidade e ação mesmo em dias ruins.": "Discipline, accountability and action even on bad days.",
+        "Registre série por série": "Log set by set",
+        "Automática": "Automatic",
         "Entrar, treinar, evoluir.": "Log in, train, evolve.",
         "Separe o acesso de alunos e personais desde agora. Esta primeira camada cria o fluxo do produto; a segurança real entra quando conectarmos banco, backend e pagamentos.": "Separate student and trainer access from now. This first layer creates the product flow; real security comes when we connect database, backend and payments.",
         "Protótipo local: contas salvas apenas neste aparelho. Não use senha real nesta fase.": "Local prototype: accounts are saved only on this device. Do not use a real password at this stage.",
         "Contas reais usam Supabase Auth. Os botões demo continuam locais para teste rápido.": "Real accounts use Supabase Auth. Demo buttons remain local for quick testing.",
         "Entre como aluno ou personal para abrir o painel correto.": "Log in as a student or trainer to open the right dashboard.",
+        "Após criar conta, confirme o cadastro no e-mail antes de entrar.": "After creating an account, confirm the signup in your email before logging in.",
         "Senha": "Password",
         "Entrar": "Log in",
         "Demo aluno": "Student demo",
@@ -2848,9 +2868,23 @@
         "Crie contas locais para testar a separação de experiência.": "Create local accounts to test the separated experience.",
         "Crie uma conta real no Supabase para testar a experiência separada.": "Create a real Supabase account to test the separated experience.",
         "Tipo": "Type",
+        "Nome completo": "Full name",
+        "Mínimo 6 caracteres": "Minimum 6 characters",
         "Aluno": "Student",
         "Criar e entrar": "Create and log in",
         "Sair": "Log out",
+        "Bem-vindo": "Welcome",
+        "Login remoto não autorizado.": "Remote login was not authorized.",
+        "Login feito, mas não consegui carregar o perfil.": "Login worked, but the profile could not be loaded.",
+        "Login ou senha inválidos.": "Invalid login or password.",
+        "Este e-mail já existe.": "This email already exists.",
+        "Não consegui criar a conta.": "Could not create the account.",
+        "Conta criada. Confira seu e-mail para confirmar o cadastro.": "Account created. Check your email to confirm the signup.",
+        "Conta criada no Supabase. Confira seu e-mail para confirmar o cadastro.": "Account created in Supabase. Check your email to confirm the signup.",
+        "Conta criada, mas não consegui salvar o perfil.": "Account created, but the profile could not be saved.",
+        "Conta criada.": "Account created.",
+        "Sessão encerrada.": "Session ended.",
+        "Aluno local criado com senha 123456.": "Local student created with password 123456.",
         "Macros, refeições e plano alimentar mensal": "Macros, meals and monthly nutrition plan",
         "Prescrição do personal": "Trainer prescription",
         "1 a 10 refeições": "1 to 10 meals",
@@ -2862,6 +2896,7 @@
         "Carbo": "Carbs",
         "Gordura": "Fat",
         "Salvar dieta do aluno": "Save student diet",
+        "Dieta do aluno salva.": "Student diet saved.",
         "Prévia da dieta": "Diet preview",
         "Visão do aluno": "Student view",
         "Dieta do mês": "Monthly diet",
@@ -2872,6 +2907,8 @@
         "Data": "Date",
         "Nota": "Note",
         "Salvar diário alimentar": "Save food diary",
+        "Ex: dia corrido": "Ex: busy day",
+        "Diário alimentar salvo.": "Food diary saved.",
         "Refeição": "Meal",
         "Café da manhã": "Breakfast",
         "Lanche": "Snack",
@@ -2975,6 +3012,19 @@
         "Relatório pronto para personal trainer: frequência dos últimos 30 dias, rotina diária e resumo de treinos concluídos.": "Trainer-ready report: last 30 days frequency, daily routine and completed workout summary.",
         "Relatório mensal pronto para personal trainer: estatísticas, check-ins dia a dia e resumo de treinos.": "Monthly report ready for trainers: stats, daily check-ins and workout summary.",
         "Relatório mensal criado. Abra e salve como PDF pelo navegador.": "Monthly report created. Open it and save as PDF in the browser.",
+        "Exportação": "Export",
+        "criada.": "created.",
+        "Fator removido. Pontuação recalculada.": "Factor removed. Score recalculated.",
+        "Fator adicionado. Pontuação recalculada.": "Factor added. Score recalculated.",
+        "Check-in salvo": "Check-in saved",
+        "itens concluídos.": "items completed.",
+        "Preencha pelo menos uma medida física.": "Fill at least one physical measurement.",
+        "Medidas corporais salvas.": "Body measurements saved.",
+        "Histórico mensal limpo.": "Monthly history cleared.",
+        "Foto salva protegida por blur.": "Photo saved and protected by blur.",
+        "Exercício concluído e progressão atualizada.": "Exercise finished and progress updated.",
+        "Treino criado na biblioteca.": "Workout created in the library.",
+        "definido como coach.": "set as coach.",
         "Peso não registrado": "Weight not recorded",
         "Biblioteca ilimitada, histórico e progressão automática": "Unlimited library, history and automatic progression",
         "Costas + Panturrilha": "Back + Calves",
@@ -3176,11 +3226,30 @@
         "Alunos": "Alumnos",
         "Estatísticas": "Estadísticas",
         "Backup": "Backup",
+        "Plano local": "Plan local",
+        "Crie treinos do zero com histórico e progressão automática": "Crea entrenos desde cero con historial y progresión automática",
+        "Programas e coaches": "Programas y coaches",
+        "Filosofias de treino, intensidade e disciplina": "Filosofías de entreno, intensidad y disciplina",
+        "Escola Clássica": "Escuela Clásica",
+        "Volume, estética e construção paciente de base muscular.": "Volumen, estética y construcción paciente de base muscular.",
+        "Classic Physique": "Classic Physique",
+        "Consistência, simetria e execução repetida com precisão.": "Consistencia, simetría y ejecución repetida con precisión.",
+        "Hipertrofia Moderna": "Hipertrofia Moderna",
+        "Progressão estruturada, volume eficiente e registro inteligente.": "Progresión estructurada, volumen eficiente y registro inteligente.",
+        "Intensidade Máxima": "Intensidad Máxima",
+        "Menos distração, mais esforço real nas séries importantes.": "Menos distracción, más esfuerzo real en las series importantes.",
+        "Execução": "Ejecución",
+        "Controle, conexão mente-músculo e repetição que vale.": "Control, conexión mente-músculo y repetición que vale.",
+        "Mentalidade": "Mentalidad",
+        "Disciplina, responsabilidade e ação mesmo em dias ruins.": "Disciplina, responsabilidad y acción incluso en días malos.",
+        "Registre série por série": "Registra serie por serie",
+        "Automática": "Automática",
         "Entrar, treinar, evoluir.": "Entrar, entrenar, evolucionar.",
         "Separe o acesso de alunos e personais desde agora. Esta primeira camada cria o fluxo do produto; a segurança real entra quando conectarmos banco, backend e pagamentos.": "Separa el acceso de alumnos y entrenadores desde ahora. Esta primera capa crea el flujo del producto; la seguridad real llega cuando conectemos base de datos, backend y pagos.",
         "Protótipo local: contas salvas apenas neste aparelho. Não use senha real nesta fase.": "Prototipo local: las cuentas se guardan solo en este dispositivo. No uses una contraseña real en esta fase.",
         "Contas reais usam Supabase Auth. Os botões demo continuam locais para teste rápido.": "Las cuentas reales usan Supabase Auth. Los botones demo siguen locales para pruebas rápidas.",
         "Entre como aluno ou personal para abrir o painel correto.": "Entra como alumno o entrenador para abrir el panel correcto.",
+        "Após criar conta, confirme o cadastro no e-mail antes de entrar.": "Después de crear la cuenta, confirma el registro en tu email antes de entrar.",
         "Senha": "Contraseña",
         "Entrar": "Entrar",
         "Demo aluno": "Demo alumno",
@@ -3189,9 +3258,23 @@
         "Crie contas locais para testar a separação de experiência.": "Crea cuentas locales para probar la separación de experiencia.",
         "Crie uma conta real no Supabase para testar a experiência separada.": "Crea una cuenta real en Supabase para probar la experiencia separada.",
         "Tipo": "Tipo",
+        "Nome completo": "Nombre completo",
+        "Mínimo 6 caracteres": "Mínimo 6 caracteres",
         "Aluno": "Alumno",
         "Criar e entrar": "Crear y entrar",
         "Sair": "Salir",
+        "Bem-vindo": "Bienvenido",
+        "Login remoto não autorizado.": "Login remoto no autorizado.",
+        "Login feito, mas não consegui carregar o perfil.": "El login funcionó, pero no pude cargar el perfil.",
+        "Login ou senha inválidos.": "Login o contraseña inválidos.",
+        "Este e-mail já existe.": "Este email ya existe.",
+        "Não consegui criar a conta.": "No pude crear la cuenta.",
+        "Conta criada. Confira seu e-mail para confirmar o cadastro.": "Cuenta creada. Revisa tu email para confirmar el registro.",
+        "Conta criada no Supabase. Confira seu e-mail para confirmar o cadastro.": "Cuenta creada en Supabase. Revisa tu email para confirmar el registro.",
+        "Conta criada, mas não consegui salvar o perfil.": "Cuenta creada, pero no pude guardar el perfil.",
+        "Conta criada.": "Cuenta creada.",
+        "Sessão encerrada.": "Sesión cerrada.",
+        "Aluno local criado com senha 123456.": "Alumno local creado con contraseña 123456.",
         "Macros, refeições e plano alimentar mensal": "Macros, comidas y plan alimentario mensual",
         "Prescrição do personal": "Prescripción del entrenador",
         "1 a 10 refeições": "1 a 10 comidas",
@@ -3203,6 +3286,7 @@
         "Carbo": "Carbo",
         "Gordura": "Grasa",
         "Salvar dieta do aluno": "Guardar dieta del alumno",
+        "Dieta do aluno salva.": "Dieta del alumno guardada.",
         "Prévia da dieta": "Vista previa de la dieta",
         "Visão do aluno": "Vista del alumno",
         "Dieta do mês": "Dieta del mes",
@@ -3213,6 +3297,8 @@
         "Data": "Fecha",
         "Nota": "Nota",
         "Salvar diário alimentar": "Guardar diario alimentario",
+        "Ex: dia corrido": "Ej: día ocupado",
+        "Diário alimentar salvo.": "Diario alimentario guardado.",
         "Refeição": "Comida",
         "Café da manhã": "Desayuno",
         "Lanche": "Merienda",
@@ -3316,6 +3402,19 @@
         "Relatório pronto para personal trainer: frequência dos últimos 30 dias, rotina diária e resumo de treinos concluídos.": "Informe listo para entrenador: frecuencia de los últimos 30 días, rutina diaria y resumen de entrenos completados.",
         "Relatório mensal pronto para personal trainer: estatísticas, check-ins dia a dia e resumo de treinos.": "Informe mensual listo para entrenadores: estadísticas, check-ins diarios y resumen de entrenos.",
         "Relatório mensal criado. Abra e salve como PDF pelo navegador.": "Informe mensual creado. Ábrelo y guárdalo como PDF en el navegador.",
+        "Exportação": "Exportación",
+        "criada.": "creada.",
+        "Fator removido. Pontuação recalculada.": "Factor quitado. Puntuación recalculada.",
+        "Fator adicionado. Pontuação recalculada.": "Factor agregado. Puntuación recalculada.",
+        "Check-in salvo": "Check-in guardado",
+        "itens concluídos.": "ítems completados.",
+        "Preencha pelo menos uma medida física.": "Completa al menos una medida física.",
+        "Medidas corporais salvas.": "Medidas corporales guardadas.",
+        "Histórico mensal limpo.": "Historial mensual limpiado.",
+        "Foto salva protegida por blur.": "Foto guardada y protegida con desenfoque.",
+        "Exercício concluído e progressão atualizada.": "Ejercicio completado y progresión actualizada.",
+        "Treino criado na biblioteca.": "Entreno creado en la biblioteca.",
+        "definido como coach.": "definido como coach.",
         "Peso não registrado": "Peso no registrado",
         "Biblioteca ilimitada, histórico e progressão automática": "Biblioteca ilimitada, historial y progresión automática",
         "Costas + Panturrilha": "Espalda + Pantorrilla",
@@ -3616,7 +3715,7 @@
 
     function showToast(message) {
       clearTimeout(toastTimer);
-      toast.textContent = message;
+      toast.textContent = t(message);
       toast.classList.add("active");
       toastTimer = setTimeout(() => toast.classList.remove("active"), 2400);
     }
@@ -4333,7 +4432,7 @@ ${bodyFatBars ? `<div class="chart">${bodyFatBars}</div>` : `<p class="muted">${
       link.download = config[0];
       link.click();
       URL.revokeObjectURL(link.href);
-      showToast(`Exportação ${config[0]} criada.`);
+      showToast(`${t("Exportação")} ${config[0]} ${t("criada.")}`);
     }
 
     const today = new Intl.DateTimeFormat("pt-BR", {
@@ -4510,7 +4609,7 @@ ${bodyFatBars ? `<div class="chart">${bodyFatBars}</div>` : `<p class="muted">${
         }
         if (!data.session) {
           event.target.reset();
-          authMessage("Conta criada. Confirme o e-mail e depois faça login.");
+          authMessage("Conta criada. Confira seu e-mail para confirmar o cadastro.");
           return;
         }
         try {
@@ -4519,7 +4618,7 @@ ${bodyFatBars ? `<div class="chart">${bodyFatBars}</div>` : `<p class="muted">${
           event.target.reset();
           applyAuthState();
           showScreen(account.role === "personal" ? "clients" : "home");
-          authMessage("Conta criada no Supabase.");
+          authMessage("Conta criada no Supabase. Confira seu e-mail para confirmar o cadastro.");
           return;
         } catch (profileError) {
           authMessage("Conta criada, mas não consegui salvar o perfil.");
@@ -4621,7 +4720,7 @@ ${bodyFatBars ? `<div class="chart">${bodyFatBars}</div>` : `<p class="muted">${
         card.classList.add("selected");
         selectCoach.classList.add("done");
         selectCoach.textContent = "Selecionado";
-        showToast(`${card.querySelector("h3").textContent} definido como coach.`);
+        showToast(`${card.querySelector("h3").textContent} ${t("definido como coach.")}`);
       }
 
       const exportButton = event.target.closest(".export-btn");
@@ -4676,7 +4775,7 @@ ${bodyFatBars ? `<div class="chart">${bodyFatBars}</div>` : `<p class="muted">${
       const entry = readCurrentCheckin();
       upsertTodayCheckin(entry);
       document.getElementById("dailyWeight").value = "";
-      showToast(`Check-in salvo: ${entry.completed}/${entry.total} itens concluídos.`);
+      showToast(`${t("Check-in salvo")}: ${entry.completed}/${entry.total} ${t("itens concluídos.")}`);
     });
     document.getElementById("bodyMeasureForm").addEventListener("submit", event => {
       event.preventDefault();
