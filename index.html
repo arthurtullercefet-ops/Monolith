@@ -875,7 +875,38 @@
     }
 
     .exercise-table .status-cell {
-      width: 132px;
+      width: 172px;
+    }
+
+    .status-actions {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .status-actions .set-done-v2 {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .icon-btn {
+      width: 34px;
+      min-height: 40px;
+      padding: 0;
+      display: grid;
+      place-items: center;
+    }
+
+    .icon-btn svg {
+      width: 15px;
+      height: 15px;
+      pointer-events: none;
+    }
+
+    .icon-btn.danger:hover {
+      color: var(--red);
+      border-color: rgba(224, 80, 80, .7);
+      background: rgba(224, 80, 80, .08);
     }
 
     .motivation-row td {
@@ -2767,6 +2798,8 @@
         "Anterior": "Previous",
         "Descanso em segundos": "Rest in seconds",
         "Concluir série": "Finish set",
+        "Remover série": "Remove set",
+        "Remover esta série?": "Remove this set?",
         "Técnica": "Technique",
         "Descanso": "Rest",
         "exercícios no treino": "exercises in workout",
@@ -2782,6 +2815,7 @@
         "Descanso de": "Rest of",
         "iniciado.": "started.",
         "Série registrada. Descanso iniciado.": "Set logged. Rest started.",
+        "Série removida.": "Set removed.",
         "Pronto": "Ready",
         "Descanso finalizado. Próxima série.": "Rest finished. Next set.",
         "excluído.": "deleted.",
@@ -3096,6 +3130,8 @@
         "Anterior": "Anterior",
         "Descanso em segundos": "Descanso en segundos",
         "Concluir série": "Completar serie",
+        "Remover série": "Quitar serie",
+        "Remover esta série?": "¿Quitar esta serie?",
         "Técnica": "Técnica",
         "Descanso": "Descanso",
         "exercícios no treino": "ejercicios en el entreno",
@@ -3111,6 +3147,7 @@
         "Descanso de": "Descanso de",
         "iniciado.": "iniciado.",
         "Série registrada. Descanso iniciado.": "Serie registrada. Descanso iniciado.",
+        "Série removida.": "Serie quitada.",
         "Pronto": "Listo",
         "Descanso finalizado. Próxima série.": "Descanso finalizado. Próxima serie.",
         "excluído.": "eliminado.",
@@ -4960,7 +4997,20 @@ ${bodyFatBars ? `<div class="chart">${bodyFatBars}</div>` : `<p class="muted">${
                 <button class="mini-btn rest-preset-v2" type="button" data-rest="120">120s</button>
               </div>
             </td>
-            <td class="status-cell"><button class="ghost set-done-v2" type="button">${htmlT("Concluir série")}</button></td>
+            <td class="status-cell">
+              <div class="status-actions">
+                <button class="ghost set-done-v2 ${set.done ? "done" : ""}" type="button">${htmlT(set.done ? "Concluída" : "Concluir série")}</button>
+                <button class="ghost icon-btn danger remove-session-set-v2" type="button" data-exercise-index="${exerciseIndex}" data-set-index="${setIndex}" aria-label="${htmlT("Remover série")}" title="${htmlT("Remover série")}">
+                  <svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M3 6h18"></path>
+                    <path d="M8 6V4h8v2"></path>
+                    <path d="M19 6l-1 14H6L5 6"></path>
+                    <path d="M10 11v5"></path>
+                    <path d="M14 11v5"></path>
+                  </svg>
+                </button>
+              </div>
+            </td>
           </tr>
         ${previousLine}`;
       }
@@ -5003,10 +5053,33 @@ ${bodyFatBars ? `<div class="chart">${bodyFatBars}</div>` : `<p class="muted">${
               <tbody>${exercise.sets.map((set, setIndex) => sessionSetRowV2(exerciseIndex, setIndex, set, previousExercise?.sets?.[setIndex]) + (setIndex < exercise.sets.length - 1 ? sessionMotivationRowV2(exerciseIndex, setIndex) : "")).join("")}</tbody>
             </table>
           `;
+          if (exercise.done) {
+            block.classList.add("done");
+            const completeButton = block.querySelector(".complete-exercise-v2");
+            completeButton.classList.add("done");
+            completeButton.textContent = textV2("Exercício concluído");
+          }
           container.appendChild(block);
         });
         document.querySelectorAll("#sessionExercises tr[data-set-index]").forEach(updateSetProgressV2);
         updateSessionProgressV2();
+      }
+
+      function syncActiveWorkoutFromSessionV2() {
+        if (!activeWorkoutV2) return;
+        document.querySelectorAll("#sessionExercises .session-exercise").forEach(block => {
+          const exerciseIndex = Number(block.dataset.exerciseIndex);
+          const exercise = activeWorkoutV2.exercises[exerciseIndex];
+          if (!exercise) return;
+          exercise.done = block.classList.contains("done");
+          exercise.sets = [...block.querySelectorAll("tr[data-set-index]")].map(row => ({
+            weight: parseWeightInput(row.querySelector(".session-weight")?.value.trim() || "") ?? "",
+            reps: row.querySelector(".session-reps")?.value.trim() || "",
+            type: row.querySelector(".session-type")?.value || "Normal",
+            rest: row.querySelector(".session-rest")?.value.trim() || "90",
+            done: row.querySelector(".set-done-v2")?.classList.contains("done") || false
+          }));
+        });
       }
 
       function updateSessionProgressV2() {
@@ -5136,9 +5209,25 @@ ${bodyFatBars ? `<div class="chart">${bodyFatBars}</div>` : `<p class="muted">${
         const addSessionSet = event.target.closest(".add-session-set-v2");
         if (addSessionSet) {
           const index = Number(addSessionSet.dataset.exerciseIndex);
-          activeWorkoutV2.exercises[index].sets.push({ weight: "", reps: "", type: "Normal", rest: "90" });
+          syncActiveWorkoutFromSessionV2();
+          const exercise = activeWorkoutV2.exercises[index];
+          const previousRest = exercise.sets[exercise.sets.length - 1]?.rest || "90";
+          exercise.sets.push({ weight: "", reps: "", type: "Normal", rest: previousRest });
           renderSessionV2(activeWorkoutV2);
-          toastV2(`${textV2("Nova série adicionada em")} ${textV2(activeWorkoutV2.exercises[index].name)}.`);
+          toastV2(`${textV2("Nova série adicionada em")} ${textV2(exercise.name)}.`);
+        }
+
+        const removeSessionSet = event.target.closest(".remove-session-set-v2");
+        if (removeSessionSet) {
+          const exerciseIndex = Number(removeSessionSet.dataset.exerciseIndex);
+          const setIndex = Number(removeSessionSet.dataset.setIndex);
+          if (!window.confirm(textV2("Remover esta série?"))) return;
+          syncActiveWorkoutFromSessionV2();
+          const exercise = activeWorkoutV2.exercises[exerciseIndex];
+          if (!exercise?.sets?.[setIndex]) return;
+          exercise.sets.splice(setIndex, 1);
+          renderSessionV2(activeWorkoutV2);
+          toastV2(textV2("Série removida."));
         }
 
         const restPreset = event.target.closest(".rest-preset-v2");
@@ -5173,11 +5262,13 @@ ${bodyFatBars ? `<div class="chart">${bodyFatBars}</div>` : `<p class="muted">${
       applyLanguage(localStorage.getItem("monolith.language") || "pt");
       document.getElementById("languageSelect")?.addEventListener("click", event => {
         if (!event.target.closest(".language-button")) return;
+        syncActiveWorkoutFromSessionV2();
         renderWorkoutListV2();
         if (activeWorkoutV2) renderSessionV2(activeWorkoutV2);
         resetBuilderV2();
       });
       window.addEventListener("monolith-weight-unit-change", () => {
+        syncActiveWorkoutFromSessionV2();
         renderWorkoutListV2();
         if (activeWorkoutV2) renderSessionV2(activeWorkoutV2);
         resetBuilderV2();
