@@ -1703,7 +1703,7 @@
         <h1>Entrar, treinar, evoluir.</h1>
         <p>Separe o acesso de alunos e personais desde agora. Esta primeira camada cria o fluxo do produto; a segurança real entra quando conectarmos banco, backend e pagamentos.</p>
       </div>
-      <div class="auth-warning">Protótipo local: contas salvas apenas neste aparelho. Não use senha real nesta fase.</div>
+      <div class="auth-warning">Contas reais usam Supabase Auth. Os botões demo continuam locais para teste rápido.</div>
     </div>
 
     <div class="auth-stack" id="authStack" data-auth-mode="login">
@@ -1733,7 +1733,7 @@
 
       <div class="auth-card" data-auth-panel="signup">
         <h3>Criar conta</h3>
-        <p>Crie contas locais para testar a separação de experiência.</p>
+        <p>Crie uma conta real no Supabase para testar a experiência separada.</p>
         <form class="auth-form" id="signupForm">
           <div class="auth-grid">
             <div>
@@ -2245,7 +2245,12 @@
 
   <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script>
+    const MONOLITH_SUPABASE_URL = "https://jhxasnxuvmkhntbwepau.supabase.co";
+    const MONOLITH_SUPABASE_KEY = "sb_publishable_lDtAXIOtkMwgwsAZyghBdg_gyLHGwpH";
+    const monolithSupabase = window.supabase?.createClient?.(MONOLITH_SUPABASE_URL, MONOLITH_SUPABASE_KEY) || null;
+
     const defaultFactors = [
       { id: "agua", group: "Saúde", name: "Água", active: true, positive: true },
       { id: "sono-7h", group: "Recuperação", name: "Dormi o suficiente?", active: true, positive: true },
@@ -2288,6 +2293,84 @@
 
     function saveAccounts(accounts) {
       localStorage.setItem("monolith.accounts", JSON.stringify(accounts));
+    }
+
+    function appRoleFromDb(role) {
+      return role?.startsWith("trainer") ? "personal" : "student";
+    }
+
+    function dbRoleFromApp(role) {
+      return role === "personal" ? "trainer_basic" : "student";
+    }
+
+    function planFromDbRole(role) {
+      if (role === "trainer_plus") return "Personal Trainer Plus";
+      if (role === "trainer_basic") return "Personal Trainer Basic";
+      if (role === "influencer") return "Influencer";
+      return "Aluno";
+    }
+
+    function cacheRemoteAccount(profile, authUser = null) {
+      if (!profile?.id) return null;
+      const account = {
+        id: profile.id,
+        role: appRoleFromDb(profile.role),
+        dbRole: profile.role,
+        name: profile.full_name || authUser?.email?.split("@")[0] || "Monolith User",
+        email: profile.email || authUser?.email || "",
+        plan: planFromDbRole(profile.role),
+        source: "supabase"
+      };
+      const accounts = loadAccounts();
+      saveAccounts([account, ...accounts.filter(item => item.id !== account.id)]);
+      localStorage.setItem("monolith.sessionUserId", account.id);
+      return account;
+    }
+
+    async function upsertRemoteProfile(authUser, fallback = {}) {
+      if (!monolithSupabase || !authUser?.id) return null;
+      const role = fallback.dbRole || dbRoleFromApp(fallback.role || "student");
+      const payload = {
+        id: authUser.id,
+        email: authUser.email || fallback.email || "",
+        full_name: fallback.name || authUser.user_metadata?.full_name || authUser.email?.split("@")[0] || "Monolith User",
+        role,
+        language: localStorage.getItem("monolith.language") || "pt",
+        weight_unit: localStorage.getItem("monolith.weightUnit") || "kg"
+      };
+      const { data, error } = await monolithSupabase
+        .from("profiles")
+        .upsert(payload, { onConflict: "id" })
+        .select()
+        .single();
+      if (error) throw error;
+      return data;
+    }
+
+    async function loadRemoteProfile(authUser, fallback = {}) {
+      if (!monolithSupabase || !authUser?.id) return null;
+      const { data, error } = await monolithSupabase
+        .from("profiles")
+        .select("*")
+        .eq("id", authUser.id)
+        .maybeSingle();
+      if (error) throw error;
+      return data || upsertRemoteProfile(authUser, fallback);
+    }
+
+    async function restoreSupabaseSession() {
+      if (!monolithSupabase) return false;
+      const { data } = await monolithSupabase.auth.getSession();
+      const authUser = data.session?.user;
+      if (!authUser) return false;
+      try {
+        const profile = await loadRemoteProfile(authUser);
+        cacheRemoteAccount(profile, authUser);
+        return true;
+      } catch (error) {
+        console.warn("Monolith Supabase profile restore failed", error);
+        return false;
+      }
     }
 
     async function hashPassword(password) {
@@ -2394,9 +2477,31 @@
     }
 
     async function loginAccount(email, password) {
+      const normalizedEmail = email.toLowerCase().trim();
+      const isDemoEmail = normalizedEmail.endsWith("@monolith.app");
+      if (monolithSupabase && !isDemoEmail) {
+        const { data, error } = await monolithSupabase.auth.signInWithPassword({ email: normalizedEmail, password });
+        if (error) {
+          authMessage(error.message || "Login remoto não autorizado.");
+          return false;
+        }
+        try {
+          const profile = await loadRemoteProfile(data.user, { email: normalizedEmail });
+          const account = cacheRemoteAccount(profile, data.user);
+          applyAuthState();
+          showScreen(account.role === "personal" ? "clients" : "home");
+          authMessage(`Bem-vindo, ${account.name}.`);
+          return true;
+        } catch (profileError) {
+          authMessage("Login feito, mas não consegui carregar o perfil.");
+          console.warn("Monolith Supabase profile login failed", profileError);
+          return false;
+        }
+      }
+
       await ensureDemoAccounts();
       const passwordHash = await hashPassword(password);
-      const account = loadAccounts().find(item => item.email.toLowerCase() === email.toLowerCase().trim() && item.passwordHash === passwordHash);
+      const account = loadAccounts().find(item => item.email.toLowerCase() === normalizedEmail && item.passwordHash === passwordHash);
       if (!account) {
         authMessage("Login ou senha inválidos.");
         return false;
@@ -2620,6 +2725,7 @@
         "Entrar, treinar, evoluir.": "Log in, train, evolve.",
         "Separe o acesso de alunos e personais desde agora. Esta primeira camada cria o fluxo do produto; a segurança real entra quando conectarmos banco, backend e pagamentos.": "Separate student and trainer access from now. This first layer creates the product flow; real security comes when we connect database, backend and payments.",
         "Protótipo local: contas salvas apenas neste aparelho. Não use senha real nesta fase.": "Local prototype: accounts are saved only on this device. Do not use a real password at this stage.",
+        "Contas reais usam Supabase Auth. Os botões demo continuam locais para teste rápido.": "Real accounts use Supabase Auth. Demo buttons remain local for quick testing.",
         "Entre como aluno ou personal para abrir o painel correto.": "Log in as a student or trainer to open the right dashboard.",
         "Senha": "Password",
         "Entrar": "Log in",
@@ -2627,6 +2733,7 @@
         "Demo personal": "Trainer demo",
         "Criar conta": "Create account",
         "Crie contas locais para testar a separação de experiência.": "Create local accounts to test the separated experience.",
+        "Crie uma conta real no Supabase para testar a experiência separada.": "Create a real Supabase account to test the separated experience.",
         "Tipo": "Type",
         "Aluno": "Student",
         "Criar e entrar": "Create and log in",
@@ -2952,6 +3059,7 @@
         "Entrar, treinar, evoluir.": "Entrar, entrenar, evolucionar.",
         "Separe o acesso de alunos e personais desde agora. Esta primeira camada cria o fluxo do produto; a segurança real entra quando conectarmos banco, backend e pagamentos.": "Separa el acceso de alumnos y entrenadores desde ahora. Esta primera capa crea el flujo del producto; la seguridad real llega cuando conectemos base de datos, backend y pagos.",
         "Protótipo local: contas salvas apenas neste aparelho. Não use senha real nesta fase.": "Prototipo local: las cuentas se guardan solo en este dispositivo. No uses una contraseña real en esta fase.",
+        "Contas reais usam Supabase Auth. Os botões demo continuam locais para teste rápido.": "Las cuentas reales usan Supabase Auth. Los botones demo siguen locales para pruebas rápidas.",
         "Entre como aluno ou personal para abrir o painel correto.": "Entra como alumno o entrenador para abrir el panel correcto.",
         "Senha": "Contraseña",
         "Entrar": "Entrar",
@@ -2959,6 +3067,7 @@
         "Demo personal": "Demo entrenador",
         "Criar conta": "Crear cuenta",
         "Crie contas locais para testar a separação de experiência.": "Crea cuentas locales para probar la separación de experiencia.",
+        "Crie uma conta real no Supabase para testar a experiência separada.": "Crea una cuenta real en Supabase para probar la experiencia separada.",
         "Tipo": "Tipo",
         "Aluno": "Alumno",
         "Criar e entrar": "Crear y entrar",
@@ -4255,12 +4364,49 @@ ${bodyFatBars ? `<div class="chart">${bodyFatBars}</div>` : `<p class="muted">${
       }
       const activePersonal = currentAccount()?.role === "personal" ? currentAccount() : null;
       const role = document.getElementById("signupRole").value;
+      const name = document.getElementById("signupName").value.trim();
+      const password = document.getElementById("signupPassword").value;
+      if (monolithSupabase && !email.endsWith("@monolith.app")) {
+        const { data, error } = await monolithSupabase.auth.signUp({
+          email,
+          password,
+          options: {
+            data: {
+              full_name: name,
+              role: dbRoleFromApp(role)
+            }
+          }
+        });
+        if (error) {
+          authMessage(error.message || "Não consegui criar a conta.");
+          return;
+        }
+        if (!data.session) {
+          event.target.reset();
+          authMessage("Conta criada. Confirme o e-mail e depois faça login.");
+          return;
+        }
+        try {
+          const profile = await upsertRemoteProfile(data.user, { name, email, role });
+          const account = cacheRemoteAccount(profile, data.user);
+          event.target.reset();
+          applyAuthState();
+          showScreen(account.role === "personal" ? "clients" : "home");
+          authMessage("Conta criada no Supabase.");
+          return;
+        } catch (profileError) {
+          authMessage("Conta criada, mas não consegui salvar o perfil.");
+          console.warn("Monolith Supabase profile signup failed", profileError);
+          return;
+        }
+      }
+
       const account = {
         id: `${role}-${Date.now()}`,
         role,
-        name: document.getElementById("signupName").value.trim(),
+        name,
         email,
-        passwordHash: await hashPassword(document.getElementById("signupPassword").value),
+        passwordHash: await hashPassword(password),
         plan: role === "personal" ? "Personal Trainer Basic" : "Aluno",
         trainerId: role === "student" ? activePersonal?.id || "personal-demo" : undefined
       };
@@ -4271,7 +4417,8 @@ ${bodyFatBars ? `<div class="chart">${bodyFatBars}</div>` : `<p class="muted">${
       showScreen(role === "personal" ? "clients" : "home");
       authMessage("Conta criada.");
     });
-    document.getElementById("logoutButton")?.addEventListener("click", () => {
+    document.getElementById("logoutButton")?.addEventListener("click", async () => {
+      if (monolithSupabase) await monolithSupabase.auth.signOut();
       localStorage.removeItem("monolith.sessionUserId");
       applyAuthState();
       authMessage("Sessão encerrada.");
@@ -4298,7 +4445,10 @@ ${bodyFatBars ? `<div class="chart">${bodyFatBars}</div>` : `<p class="muted">${
     updateWeightUnitUI();
     applyLanguage(currentLanguage);
     clearBodyMeasureForm();
-    ensureDemoAccounts().then(applyAuthState);
+    ensureDemoAccounts().then(async () => {
+      await restoreSupabaseSession();
+      applyAuthState();
+    });
 
     function showScreen(id) {
       const navTarget = document.querySelector(`.nav-btn[data-screen="${id}"]`);
