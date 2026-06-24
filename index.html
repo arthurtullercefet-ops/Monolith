@@ -1345,6 +1345,19 @@
       font-weight: 750;
     }
 
+    .exercise-toggle-v2,
+    .exercise-summary-v2,
+    .mobile-set-presets,
+    .mobile-workout-helper {
+      display: none;
+    }
+
+    .exercise-actions {
+      display: grid;
+      gap: 8px;
+      margin-top: 10px;
+    }
+
     .set-row {
       display: grid;
       grid-template-columns: 48px 72px 58px minmax(118px, 1fr) 70px auto;
@@ -1634,21 +1647,130 @@
       }
 
       .set-row {
-        grid-template-columns: 44px minmax(58px, .8fr) minmax(48px, .7fr);
-        gap: 7px;
+        grid-template-columns: 42px minmax(72px, 1fr) minmax(58px, .75fr);
+        gap: 8px;
+        border: 1px solid var(--line);
+        background: #0d0d0d;
+        padding: 9px;
       }
 
       .set-index {
-        grid-column: span 1;
+        grid-column: 1 / -1;
+        color: var(--gold);
+        font-weight: 800;
       }
 
       .set-row .set-type,
+      .set-row .set-rest,
+      .set-row .remove-set-v2 {
+        min-height: 40px;
+      }
+
+      .set-row .set-type {
+        grid-column: 1 / 3;
+      }
+
       .set-row .set-rest {
-        grid-column: span 3;
+        grid-column: 3 / 4;
       }
 
       .set-row .remove-set-v2 {
-        grid-column: span 3;
+        grid-column: 1 / -1;
+      }
+
+      .modal-backdrop {
+        align-items: stretch;
+        padding: 0;
+      }
+
+      .modal {
+        width: 100%;
+        max-height: none;
+        height: 100dvh;
+        border: 0;
+        padding: 16px;
+      }
+
+      .modal-head {
+        position: sticky;
+        top: -16px;
+        z-index: 2;
+        background: var(--panel);
+        padding: 4px 0 12px;
+      }
+
+      .mobile-workout-helper {
+        display: grid;
+        gap: 10px;
+        border: 1px solid var(--line);
+        background: #101010;
+        padding: 12px;
+      }
+
+      .mobile-workout-helper strong {
+        font-size: 14px;
+      }
+
+      .mobile-workout-helper span {
+        color: var(--muted);
+        font-size: 12px;
+        line-height: 1.4;
+      }
+
+      .mobile-preset-grid {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 8px;
+      }
+
+      .exercise-editor {
+        padding: 10px;
+      }
+
+      .exercise-editor-head {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) auto;
+        align-items: stretch;
+      }
+
+      .exercise-editor-head input {
+        grid-column: 1 / -1;
+      }
+
+      .exercise-editor-head .remove-exercise-v2 {
+        min-height: 40px;
+      }
+
+      .exercise-toggle-v2 {
+        display: inline-grid;
+        place-items: center;
+        min-width: 44px;
+        min-height: 40px;
+      }
+
+      .exercise-summary-v2 {
+        display: block;
+        color: var(--muted);
+        font-size: 12px;
+        line-height: 1.4;
+        margin: -4px 0 10px;
+      }
+
+      .mobile-set-presets {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 8px;
+        margin: 8px 0 10px;
+      }
+
+      .exercise-editor.collapsed .sets-editor,
+      .exercise-editor.collapsed .exercise-actions,
+      .exercise-editor.collapsed .mobile-set-presets {
+        display: none;
+      }
+
+      .exercise-actions {
+        grid-template-columns: 1fr;
       }
 
       .factor-form {
@@ -2079,36 +2201,11 @@
         <div class="topbar">
           <div>
             <h2>Treinos</h2>
-            <div class="date">Biblioteca ilimitada, histórico e progressão automática</div>
+            <div class="date">Crie treinos do zero com histórico e progressão automática</div>
           </div>
           <button class="action" id="newWorkoutButton">Novo treino</button>
         </div>
-        <div class="grid workouts" id="workoutList">
-          <article class="workout">
-            <div>
-              <h3>Costas + Panturrilha</h3>
-              <p>Puxadas, remadas e finalização de panturrilha com progressão de carga.</p>
-              <div class="pill-row"><span class="pill">6 exercícios</span><span class="pill">75 min</span><span class="pill">Força</span></div>
-            </div>
-            <button class="ghost" data-screen-jump="session">Abrir sessão</button>
-          </article>
-          <article class="workout">
-            <div>
-              <h3>Pernas Pesado</h3>
-              <p>Agachamento, leg press, posterior e panturrilhas em alto esforço.</p>
-              <div class="pill-row"><span class="pill">7 exercícios</span><span class="pill">90 min</span><span class="pill">Hipertrofia</span></div>
-            </div>
-            <button class="ghost" data-screen-jump="session">Abrir sessão</button>
-          </article>
-          <article class="workout">
-            <div>
-              <h3>Ombro + Bíceps</h3>
-              <p>Deltoides completos, braços e controle de execução série a série.</p>
-              <div class="pill-row"><span class="pill">8 exercícios</span><span class="pill">70 min</span><span class="pill">Volume</span></div>
-            </div>
-            <button class="ghost" data-screen-jump="session">Abrir sessão</button>
-          </article>
-        </div>
+        <div class="grid workouts" id="workoutList"></div>
       </section>
 
       <section id="session" class="screen">
@@ -2229,6 +2326,16 @@
         <div class="field">
           <label for="workoutGoal">Objetivo</label>
           <input id="workoutGoal" placeholder="Ex: Hipertrofia e progressão de carga" data-i18n-placeholder="Ex: Hipertrofia e progressão de carga" />
+        </div>
+        <div class="mobile-workout-helper">
+          <strong data-i18n="Criação rápida no celular">Criação rápida no celular</strong>
+          <span data-i18n="Adicione um exercício, escolha um modelo de séries e recolha o bloco para continuar limpo.">Adicione um exercício, escolha um modelo de séries e recolha o bloco para continuar limpo.</span>
+          <div class="mobile-preset-grid">
+            <button class="ghost add-exercise-preset-v2" type="button" data-preset="3x10">+ 3x10</button>
+            <button class="ghost add-exercise-preset-v2" type="button" data-preset="4x8">+ 4x8</button>
+            <button class="ghost add-exercise-preset-v2" type="button" data-preset="5x5">+ 5x5</button>
+            <button class="ghost add-exercise-preset-v2" type="button" data-preset="warmup3">+ Aquecimento</button>
+          </div>
         </div>
         <div class="field">
           <label>Exercícios</label>
@@ -2439,7 +2546,9 @@
         return;
       }
       const accounts = loadAccounts();
-      const students = accounts.filter(account => account.role === "student" && (account.trainerId === user.id || user.students?.includes(account.id)));
+      const students = accounts
+        .filter(account => account.role === "student" && (account.trainerId === user.id || user.students?.includes(account.id)))
+        .sort((a, b) => a.name.localeCompare(b.name, undefined, { sensitivity: "base" }));
       const checkins = lastThirtyCheckins();
       const score = checkins[0]?.score || 0;
       const missed = missedCheckinDays(checkins).length;
@@ -2546,7 +2655,11 @@
     }
 
     function studentsForPersonal(personalId) {
-      return loadAccounts().filter(account => account.role === "student" && (account.trainerId === personalId || loadAccounts().find(item => item.id === personalId)?.students?.includes(account.id)));
+      const accounts = loadAccounts();
+      const personal = accounts.find(item => item.id === personalId);
+      return accounts
+        .filter(account => account.role === "student" && (account.trainerId === personalId || personal?.students?.includes(account.id)))
+        .sort((a, b) => a.name.localeCompare(b.name, undefined, { sensitivity: "base" }));
     }
 
     function selectedDietStudentId() {
@@ -2888,6 +3001,13 @@
         "Adicionar exercício": "Add exercise",
         "Cancelar": "Cancel",
         "Criar treino": "Create workout",
+        "Criação rápida no celular": "Fast mobile creation",
+        "Adicione um exercício, escolha um modelo de séries e recolha o bloco para continuar limpo.": "Add an exercise, choose a set model and collapse the block to keep going cleanly.",
+        "Nenhum treino criado": "No workout created",
+        "Crie seu primeiro treino do zero. No celular, use os modelos rápidos dentro do editor.": "Create your first workout from scratch. On mobile, use the quick models inside the editor.",
+        "Crie um treino antes de abrir a sessão.": "Create a workout before opening the session.",
+        "Recolher": "Collapse",
+        "Editar": "Edit",
         "Ex: Peito + Abdômen": "Ex: Chest + Abs",
         "Ex: Hipertrofia e progressão de carga": "Ex: Hypertrophy and load progression",
         "exercícios": "exercises",
@@ -3222,6 +3342,13 @@
         "Adicionar exercício": "Agregar ejercicio",
         "Cancelar": "Cancelar",
         "Criar treino": "Crear entreno",
+        "Criação rápida no celular": "Creación rápida en celular",
+        "Adicione um exercício, escolha um modelo de séries e recolha o bloco para continuar limpo.": "Agrega un ejercicio, elige un modelo de series y recoge el bloque para seguir limpio.",
+        "Nenhum treino criado": "Ningún entreno creado",
+        "Crie seu primeiro treino do zero. No celular, use os modelos rápidos dentro do editor.": "Crea tu primer entreno desde cero. En celular, usa los modelos rápidos dentro del editor.",
+        "Crie um treino antes de abrir a sessão.": "Crea un entreno antes de abrir la sesión.",
+        "Recolher": "Recoger",
+        "Editar": "Editar",
         "Ex: Peito + Abdômen": "Ej: Pecho + Abdomen",
         "Ex: Hipertrofia e progressão de carga": "Ej: Hipertrofia y progresión de carga",
         "exercícios": "ejercicios",
@@ -4853,7 +4980,7 @@ ${bodyFatBars ? `<div class="chart">${bodyFatBars}</div>` : `<p class="muted">${
       const builder = document.getElementById("exerciseBuilder");
       const workoutListV2 = document.getElementById("workoutList");
       const formV2 = document.getElementById("workoutForm");
-      let workoutsV2 = [...defaultWorkoutsV2.filter(workout => !deletedLibraryWorkoutsV2().includes(workout.id)), ...loadWorkoutsV2()];
+      let workoutsV2 = loadWorkoutsV2();
       let activeWorkoutV2 = workoutsV2[0];
       let restTimersV2 = new Map();
 
@@ -5032,6 +5159,10 @@ ${bodyFatBars ? `<div class="chart">${bodyFatBars}</div>` : `<p class="muted">${
 
       function renderWorkoutListV2() {
         workoutListV2.innerHTML = "";
+        if (!workoutsV2.length) {
+          workoutListV2.innerHTML = `<article class="workout"><div><h3>${htmlT("Nenhum treino criado")}</h3><p>${htmlT("Crie seu primeiro treino do zero. No celular, use os modelos rápidos dentro do editor.")}</p></div></article>`;
+          return;
+        }
         workoutsV2.forEach(workout => {
           const totalSets = workout.exercises.reduce((total, exercise) => total + exercise.sets.length, 0);
           const card = document.createElement("article");
@@ -5063,6 +5194,51 @@ ${bodyFatBars ? `<div class="chart">${bodyFatBars}</div>` : `<p class="muted">${
         editor.querySelectorAll(".set-row").forEach((row, index) => {
           row.querySelector(".set-index").textContent = `${textV2("Série")} ${index + 1}`;
         });
+        const summary = editor.querySelector(".exercise-summary-v2");
+        if (summary) {
+          const name = editor.querySelector(".exercise-name")?.value.trim() || textV2("Exercício");
+          const sets = editor.querySelectorAll(".set-row").length;
+          const rest = editor.querySelector(".set-rest")?.value || "90";
+          summary.textContent = `${name} · ${sets} ${textV2("séries")} · ${rest}s`;
+        }
+      }
+
+      function presetSetsV2(preset = "3x10") {
+        const presets = {
+          "3x10": [
+            { weight: "", reps: "10", type: "Normal", rest: "90" },
+            { weight: "", reps: "10", type: "Normal", rest: "90" },
+            { weight: "", reps: "10", type: "Normal", rest: "90" }
+          ],
+          "4x8": [
+            { weight: "", reps: "8", type: "Normal", rest: "120" },
+            { weight: "", reps: "8", type: "Normal", rest: "120" },
+            { weight: "", reps: "8", type: "Normal", rest: "120" },
+            { weight: "", reps: "8", type: "Falha", rest: "120" }
+          ],
+          "5x5": [
+            { weight: "", reps: "5", type: "Normal", rest: "180" },
+            { weight: "", reps: "5", type: "Normal", rest: "180" },
+            { weight: "", reps: "5", type: "Normal", rest: "180" },
+            { weight: "", reps: "5", type: "Normal", rest: "180" },
+            { weight: "", reps: "5", type: "Falha", rest: "180" }
+          ],
+          warmup3: [
+            { weight: "", reps: "12", type: "Aquecimento", rest: "60" },
+            { weight: "", reps: "10", type: "Normal", rest: "90" },
+            { weight: "", reps: "10", type: "Normal", rest: "90" },
+            { weight: "", reps: "8", type: "Falha", rest: "120" }
+          ]
+        };
+        return presets[preset] || presets["3x10"];
+      }
+
+      function applyPresetToEditorV2(editor, preset) {
+        const sets = editor.querySelector(".sets-editor");
+        sets.innerHTML = "";
+        presetSetsV2(preset).forEach(set => addSetEditorV2(editor, set));
+        editor.classList.remove("collapsed");
+        editor.querySelector(".exercise-toggle-v2").textContent = textV2("Recolher");
       }
 
       function addSetEditorV2(editor, set = {}) {
@@ -5087,10 +5263,20 @@ ${bodyFatBars ? `<div class="chart">${bodyFatBars}</div>` : `<p class="muted">${
         editor.innerHTML = `
           <div class="exercise-editor-head">
             <input class="exercise-name" required placeholder="${htmlT("Nome do exercício")}" value="${html(exercise.name || "")}" />
+            <button class="ghost exercise-toggle-v2" type="button">${htmlT("Recolher")}</button>
             <button class="ghost remove-exercise-v2" type="button">${htmlT("Remover exercício")}</button>
           </div>
+          <div class="exercise-summary-v2"></div>
+          <div class="mobile-set-presets">
+            <button class="ghost apply-set-preset-v2" type="button" data-preset="3x10">3x10</button>
+            <button class="ghost apply-set-preset-v2" type="button" data-preset="4x8">4x8</button>
+            <button class="ghost apply-set-preset-v2" type="button" data-preset="5x5">5x5</button>
+            <button class="ghost apply-set-preset-v2" type="button" data-preset="warmup3">${htmlT("Aquecimento")}</button>
+          </div>
           <div class="sets-editor"></div>
-          <button class="ghost add-set-v2" type="button">${htmlT("Adicionar série")}</button>
+          <div class="exercise-actions">
+            <button class="ghost add-set-v2" type="button">${htmlT("Adicionar série")}</button>
+          </div>
         `;
         builder.appendChild(editor);
         const sets = exercise.sets?.length ? exercise.sets : [
@@ -5177,6 +5363,14 @@ ${bodyFatBars ? `<div class="chart">${bodyFatBars}</div>` : `<p class="muted">${
       function renderSessionV2(workout) {
         restTimersV2.forEach(timer => clearInterval(timer));
         restTimersV2.clear();
+        if (!workout) {
+          activeWorkoutV2 = null;
+          document.getElementById("sessionTitle").textContent = textV2("Nenhum treino criado");
+          document.getElementById("sessionMeta").textContent = textV2("Crie um treino antes de abrir a sessão.");
+          document.getElementById("sessionExercises").innerHTML = "";
+          updateSessionProgressV2();
+          return;
+        }
         activeWorkoutV2 = workout;
         document.getElementById("sessionTitle").textContent = textV2(workout.name);
         document.getElementById("sessionMeta").textContent = `${workout.exercises.length} ${textV2("exercícios no treino")}`;
@@ -5233,6 +5427,10 @@ ${bodyFatBars ? `<div class="chart">${bodyFatBars}</div>` : `<p class="muted">${
       }
 
       function updateSessionProgressV2() {
+        if (!activeWorkoutV2) {
+          document.getElementById("sessionRecord").textContent = `0/0 ${textV2("exercícios concluídos")}`;
+          return;
+        }
         const total = activeWorkoutV2.exercises.length;
         const done = document.querySelectorAll("#sessionExercises .session-exercise.done").length;
         document.getElementById("sessionRecord").textContent = `${done}/${total} ${textV2("exercícios concluídos")}`;
@@ -5293,6 +5491,11 @@ ${bodyFatBars ? `<div class="chart">${bodyFatBars}</div>` : `<p class="muted">${
       function finishWorkoutV2(event) {
         event.preventDefault();
         event.stopImmediatePropagation();
+        if (!activeWorkoutV2) {
+          toastV2(textV2("Crie um treino antes de abrir a sessão."));
+          showScreen("workouts");
+          return;
+        }
         activeWorkoutV2.exercises.forEach((_, index) => completeExerciseV2(index));
         const session = readCompletedSessionV2();
         saveCompletedWorkoutV2(session);
@@ -5332,6 +5535,11 @@ ${bodyFatBars ? `<div class="chart">${bodyFatBars}</div>` : `<p class="muted">${
         const open = event.target.closest(".open-workout-session-v2");
         if (open) {
           const workout = workoutsV2.find(item => item.id === open.dataset.workoutId) || workoutsV2[0];
+          if (!workout) {
+            toastV2(textV2("Crie um treino antes de abrir a sessão."));
+            showScreen("workouts");
+            return;
+          }
           renderSessionV2(workout);
           showScreen("session");
         }
@@ -5345,6 +5553,25 @@ ${bodyFatBars ? `<div class="chart">${bodyFatBars}</div>` : `<p class="muted">${
 
         const addSet = event.target.closest(".add-set-v2");
         if (addSet) addSetEditorV2(addSet.closest(".exercise-editor"));
+
+        const applyPreset = event.target.closest(".apply-set-preset-v2");
+        if (applyPreset) {
+          applyPresetToEditorV2(applyPreset.closest(".exercise-editor"), applyPreset.dataset.preset);
+        }
+
+        const addExercisePreset = event.target.closest(".add-exercise-preset-v2");
+        if (addExercisePreset) {
+          addExerciseEditorV2({ sets: presetSetsV2(addExercisePreset.dataset.preset) });
+          builder.lastElementChild?.scrollIntoView({ behavior: "smooth", block: "center" });
+        }
+
+        const exerciseToggle = event.target.closest(".exercise-toggle-v2");
+        if (exerciseToggle) {
+          const editor = exerciseToggle.closest(".exercise-editor");
+          editor.classList.toggle("collapsed");
+          exerciseToggle.textContent = textV2(editor.classList.contains("collapsed") ? "Editar" : "Recolher");
+          refreshEditorIndexes(editor);
+        }
 
         const removeSet = event.target.closest(".remove-set-v2");
         if (removeSet) {
@@ -5403,6 +5630,10 @@ ${bodyFatBars ? `<div class="chart">${bodyFatBars}</div>` : `<p class="muted">${
       document.addEventListener("input", event => {
         if (event.target.matches(".session-weight, .session-reps")) {
           updateSetProgressV2(event.target.closest("tr[data-set-index]"));
+        }
+        if (event.target.matches(".exercise-name, .set-rest")) {
+          const editor = event.target.closest(".exercise-editor");
+          if (editor) refreshEditorIndexes(editor);
         }
       });
 
