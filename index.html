@@ -2002,6 +2002,20 @@
             </div>
             <div class="habit-list" id="quickHabits"></div>
           </div>
+          <div class="panel" id="trainerLinkPanel" data-role-only="student">
+            <div class="section-title">
+              <h3>Vincular personal</h3>
+              <span>Convite</span>
+            </div>
+            <form class="factor-form" id="trainerLinkForm">
+              <div class="form-field">
+                <label for="trainerInviteCode">Código do personal</label>
+                <input id="trainerInviteCode" placeholder="Cole o código de convite" data-i18n-placeholder="Cole o código de convite" />
+              </div>
+              <button class="action" type="submit">Vincular</button>
+            </form>
+            <div class="report-line" id="trainerLinkStatus">Sem personal vinculado.</div>
+          </div>
         </div>
       </section>
 
@@ -2538,36 +2552,93 @@
       }
     }
 
-    function renderClientList() {
+    async function loadRemoteLinkedStudents(trainerId) {
+      if (!monolithSupabase || !trainerId || trainerId.endsWith?.("-demo")) return null;
+      const { data: links, error } = await monolithSupabase
+        .from("trainer_students")
+        .select("student_id,status,created_at")
+        .eq("trainer_id", trainerId)
+        .eq("status", "active");
+      if (error) throw error;
+      const ids = [...new Set((links || []).map(link => link.student_id).filter(Boolean))];
+      if (!ids.length) return [];
+      const { data: profiles, error: profileError } = await monolithSupabase
+        .from("profiles")
+        .select("id,email,full_name,role")
+        .in("id", ids);
+      if (profileError) throw profileError;
+      return (profiles || [])
+        .map(profile => ({
+          id: profile.id,
+          role: appRoleFromDb(profile.role),
+          dbRole: profile.role,
+          name: profile.full_name || profile.email || "Aluno",
+          email: profile.email || "",
+          plan: planFromDbRole(profile.role),
+          source: "supabase",
+          trainerId
+        }))
+        .sort((a, b) => a.name.localeCompare(b.name, undefined, { sensitivity: "base" }));
+    }
+
+    function saveRemoteStudentsToCache(students = []) {
+      if (!students.length) return;
+      const accounts = loadAccounts();
+      const remoteIds = new Set(students.map(student => student.id));
+      saveAccounts([...students, ...accounts.filter(account => !remoteIds.has(account.id))]);
+    }
+
+    async function renderClientList() {
       const container = document.getElementById("clientList");
       if (!container) return;
       const user = currentAccount();
       if (!user || user.role !== "personal") {
-        container.innerHTML = `<div class="panel"><div class="report-line">Área disponível para personal trainer.</div></div>`;
+        container.innerHTML = `<div class="panel"><div class="report-line">${escapeHTML(t("Área disponível para personal trainer."))}</div></div>`;
         return;
+      }
+      if (user.source === "supabase") {
+        container.innerHTML = `<div class="panel"><div class="report-line">${escapeHTML(t("Carregando alunos vinculados..."))}</div></div>`;
+        try {
+          const remoteStudents = await loadRemoteLinkedStudents(user.id);
+          if (remoteStudents) {
+            saveRemoteStudentsToCache(remoteStudents);
+            renderClientCards(remoteStudents);
+            return;
+          }
+        } catch (error) {
+          console.warn("Monolith linked students load failed", error);
+          container.innerHTML = `<div class="panel"><div class="report-line">${escapeHTML(t("Não consegui carregar alunos vinculados agora."))}</div></div>`;
+          return;
+        }
       }
       const accounts = loadAccounts();
       const students = accounts
         .filter(account => account.role === "student" && (account.trainerId === user.id || user.students?.includes(account.id)))
         .sort((a, b) => a.name.localeCompare(b.name, undefined, { sensitivity: "base" }));
+      renderClientCards(students);
+    }
+
+    function renderClientCards(students = []) {
+      const container = document.getElementById("clientList");
+      if (!container) return;
       const checkins = lastThirtyCheckins();
       const score = checkins[0]?.score || 0;
       const missed = missedCheckinDays(checkins).length;
       container.innerHTML = students.map(student => `
         <article class="coach-card">
           <div>
-            <div class="kicker">${escapeHTML(student.plan || "Aluno")}</div>
+            <div class="kicker">${escapeHTML(t(student.plan || "Aluno"))}</div>
             <h3>${escapeHTML(student.name)}</h3>
-            <p>${escapeHTML(student.email)} · ${checkins.length ? `${checkins.length} check-ins em 30 dias` : "Aguardando primeiro check-in"}</p>
+            <p>${escapeHTML(student.email)} · ${checkins.length ? `${checkins.length} ${t("check-ins em 30 dias")}` : t("Aguardando primeiro check-in")}</p>
             <div class="pill-row">
               <span class="pill">Score ${score}%</span>
-              <span class="pill">${missed} faltas</span>
-              <span class="pill">Relatório ativo</span>
+              <span class="pill">${missed} ${t("faltas")}</span>
+              <span class="pill">${t("Relatório ativo")}</span>
             </div>
           </div>
-          <button class="ghost" type="button" data-screen-jump="stats">Ver evolução</button>
+          <button class="ghost" type="button" data-screen-jump="stats">${escapeHTML(t("Ver evolução"))}</button>
         </article>
-      `).join("") || `<div class="panel"><div class="report-line">Nenhum aluno vinculado ainda. Use criar convite para simular um aluno.</div></div>`;
+      `).join("") || `<div class="panel"><div class="report-line">${escapeHTML(t("Nenhum aluno vinculado ainda. Gere um convite e envie o código para o aluno."))}</div></div>`;
     }
 
     function applyAuthState() {
@@ -2582,8 +2653,107 @@
         if (sessionName) sessionName.textContent = user.name;
         if (sessionRole) sessionRole.textContent = `${roleLabel(user.role)} · ${user.plan || "Local"}`;
         renderClientList();
+        renderTrainerLinkPanel();
         renderNutrition();
       }
+    }
+
+    async function renderTrainerLinkPanel() {
+      const panel = document.getElementById("trainerLinkPanel");
+      const status = document.getElementById("trainerLinkStatus");
+      if (!panel || !status) return;
+      const user = currentAccount();
+      panel.hidden = !user || user.role !== "student";
+      if (!user || user.role !== "student") return;
+      if (user.trainerId) {
+        const trainer = loadAccounts().find(account => account.id === user.trainerId);
+        status.textContent = trainer ? `${t("Vinculado a")} ${trainer.name}.` : t("Aluno vinculado a um personal.");
+        return;
+      }
+      if (user.source === "supabase" && monolithSupabase) {
+        status.textContent = t("Verificando vínculo com personal...");
+        try {
+          const { data: links, error } = await monolithSupabase
+            .from("trainer_students")
+            .select("trainer_id,status")
+            .eq("student_id", user.id)
+            .eq("status", "active")
+            .limit(1);
+          if (error) throw error;
+          const trainerId = links?.[0]?.trainer_id;
+          if (trainerId) {
+            const { data: trainer } = await monolithSupabase
+              .from("profiles")
+              .select("id,email,full_name,role")
+              .eq("id", trainerId)
+              .maybeSingle();
+            const accounts = loadAccounts();
+            const trainerAccount = trainer ? {
+              id: trainer.id,
+              role: appRoleFromDb(trainer.role),
+              dbRole: trainer.role,
+              name: trainer.full_name || trainer.email || "Personal",
+              email: trainer.email || "",
+              plan: planFromDbRole(trainer.role),
+              source: "supabase"
+            } : null;
+            saveAccounts([
+              ...(trainerAccount ? [trainerAccount] : []),
+              ...accounts
+                .filter(account => account.id !== trainerId)
+                .map(account => account.id === user.id ? { ...account, trainerId } : account)
+            ]);
+            status.textContent = `${t("Vinculado a")} ${trainer?.full_name || trainer?.email || t("personal")}.`;
+            return;
+          }
+        } catch (error) {
+          console.warn("Monolith trainer link status failed", error);
+          status.textContent = t("Não consegui verificar o vínculo agora.");
+          return;
+        }
+      }
+      status.textContent = t("Sem personal vinculado.");
+    }
+
+    async function linkStudentToTrainer(inviteCode) {
+      const user = currentAccount();
+      const trainerId = inviteCode.trim();
+      if (!user || user.role !== "student") {
+        authMessage("Entre como aluno para vincular um personal.");
+        return;
+      }
+      if (!trainerId) {
+        authMessage("Cole o código de convite do personal.");
+        return;
+      }
+      if (user.source === "supabase" && monolithSupabase) {
+        const { error } = await monolithSupabase
+          .from("trainer_students")
+          .insert({ trainer_id: trainerId, student_id: user.id, status: "active" });
+        if (error && error.code !== "23505") {
+          console.warn("Monolith trainer link failed", error);
+          authMessage("Não consegui vincular este personal. Confira o código.");
+          return;
+        }
+        const accounts = loadAccounts();
+        saveAccounts(accounts.map(account => account.id === user.id ? { ...account, trainerId } : account));
+        await renderTrainerLinkPanel();
+        authMessage("Personal vinculado com sucesso.");
+        return;
+      }
+      const accounts = loadAccounts();
+      const trainer = accounts.find(account => account.id === trainerId && account.role === "personal");
+      if (!trainer) {
+        authMessage("Não consegui vincular este personal. Confira o código.");
+        return;
+      }
+      saveAccounts(accounts.map(account => {
+        if (account.id === user.id) return { ...account, trainerId: trainer.id };
+        if (account.id === trainer.id) return { ...account, students: [...new Set([...(account.students || []), user.id])] };
+        return account;
+      }));
+      await renderTrainerLinkPanel();
+      authMessage("Personal vinculado com sucesso.");
     }
 
     async function loginAccount(email, password) {
@@ -2946,6 +3116,32 @@
         "Novo treino": "New workout",
         "Painel inicial do personal trainer": "Initial trainer dashboard",
         "Criar convite": "Create invite",
+        "Vincular personal": "Link trainer",
+        "Convite": "Invite",
+        "Código do personal": "Trainer code",
+        "Cole o código de convite": "Paste the invite code",
+        "Vincular": "Link",
+        "Sem personal vinculado.": "No trainer linked.",
+        "Vinculado a": "Linked to",
+        "Aluno vinculado a um personal.": "Student linked to a trainer.",
+        "Verificando vínculo com personal...": "Checking trainer link...",
+        "Não consegui verificar o vínculo agora.": "Could not check the link right now.",
+        "Entre como aluno para vincular um personal.": "Log in as a student to link a trainer.",
+        "Cole o código de convite do personal.": "Paste the trainer invite code.",
+        "Não consegui vincular este personal. Confira o código.": "Could not link this trainer. Check the code.",
+        "Personal vinculado com sucesso.": "Trainer linked successfully.",
+        "Código de convite copiado. Envie para o aluno.": "Invite code copied. Send it to the student.",
+        "Copie este código e envie para o aluno.": "Copy this code and send it to the student.",
+        "Área disponível para personal trainer.": "Area available for trainers.",
+        "Carregando alunos vinculados...": "Loading linked students...",
+        "Não consegui carregar alunos vinculados agora.": "Could not load linked students right now.",
+        "Nenhum aluno vinculado ainda. Gere um convite e envie o código para o aluno.": "No linked students yet. Generate an invite and send the code to the student.",
+        "check-ins em 30 dias": "check-ins in 30 days",
+        "Aguardando primeiro check-in": "Waiting for first check-in",
+        "faltas": "misses",
+        "Relatório ativo": "Active report",
+        "Ver evolução": "View progress",
+        "personal": "trainer",
         "Estatísticas e evolução": "Stats and progress",
         "Frequência": "Frequency",
         "Últimos 30 dias": "Last 30 days",
@@ -3336,6 +3532,32 @@
         "Novo treino": "Nuevo entreno",
         "Painel inicial do personal trainer": "Panel inicial del entrenador personal",
         "Criar convite": "Crear invitación",
+        "Vincular personal": "Vincular entrenador",
+        "Convite": "Invitación",
+        "Código do personal": "Código del entrenador",
+        "Cole o código de convite": "Pega el código de invitación",
+        "Vincular": "Vincular",
+        "Sem personal vinculado.": "Sin entrenador vinculado.",
+        "Vinculado a": "Vinculado a",
+        "Aluno vinculado a um personal.": "Alumno vinculado a un entrenador.",
+        "Verificando vínculo com personal...": "Verificando vínculo con entrenador...",
+        "Não consegui verificar o vínculo agora.": "No pude verificar el vínculo ahora.",
+        "Entre como aluno para vincular um personal.": "Entra como alumno para vincular un entrenador.",
+        "Cole o código de convite do personal.": "Pega el código de invitación del entrenador.",
+        "Não consegui vincular este personal. Confira o código.": "No pude vincular este entrenador. Revisa el código.",
+        "Personal vinculado com sucesso.": "Entrenador vinculado con éxito.",
+        "Código de convite copiado. Envie para o aluno.": "Código de invitación copiado. Envíalo al alumno.",
+        "Copie este código e envie para o aluno.": "Copia este código y envíalo al alumno.",
+        "Área disponível para personal trainer.": "Área disponible para entrenador.",
+        "Carregando alunos vinculados...": "Cargando alumnos vinculados...",
+        "Não consegui carregar alunos vinculados agora.": "No pude cargar alumnos vinculados ahora.",
+        "Nenhum aluno vinculado ainda. Gere um convite e envie o código para o aluno.": "Aún no hay alumnos vinculados. Genera una invitación y envía el código al alumno.",
+        "check-ins em 30 dias": "check-ins en 30 días",
+        "Aguardando primeiro check-in": "Esperando el primer check-in",
+        "faltas": "faltas",
+        "Relatório ativo": "Informe activo",
+        "Ver evolução": "Ver evolución",
+        "personal": "entrenador",
         "Estatísticas e evolução": "Estadísticas y evolución",
         "Frequência": "Frecuencia",
         "Últimos 30 dias": "Últimos 30 días",
@@ -4649,24 +4871,21 @@ ${bodyFatBars ? `<div class="chart">${bodyFatBars}</div>` : `<p class="muted">${
       applyAuthState();
       authMessage("Sessão encerrada.");
     });
+    document.getElementById("trainerLinkForm")?.addEventListener("submit", async event => {
+      event.preventDefault();
+      await linkStudentToTrainer(document.getElementById("trainerInviteCode").value);
+      event.target.reset();
+    });
     document.getElementById("inviteStudentButton")?.addEventListener("click", async () => {
       const personal = currentAccount();
       if (!personal || personal.role !== "personal") return;
-      const accounts = loadAccounts();
-      const count = accounts.filter(account => account.role === "student" && account.trainerId === personal.id).length + 1;
-      const id = `student-${Date.now()}`;
-      const student = {
-        id,
-        role: "student",
-        name: `Aluno ${count}`,
-        email: `aluno${count}@monolith.app`,
-        passwordHash: await hashPassword("123456"),
-        plan: "Aluno",
-        trainerId: personal.id
-      };
-      saveAccounts([student, ...accounts.map(account => account.id === personal.id ? { ...account, students: [...new Set([...(account.students || []), id])] } : account)]);
-      renderClientList();
-      authMessage("Aluno local criado com senha 123456.");
+      const inviteCode = personal.id;
+      try {
+        await navigator.clipboard?.writeText(inviteCode);
+        authMessage("Código de convite copiado. Envie para o aluno.");
+      } catch {
+        window.prompt(t("Copie este código e envie para o aluno."), inviteCode);
+      }
     });
     updateWeightUnitUI();
     applyLanguage(currentLanguage);

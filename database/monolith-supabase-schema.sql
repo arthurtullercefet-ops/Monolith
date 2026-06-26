@@ -208,6 +208,13 @@ create policy "trainer_students_insert_trainer"
 on public.trainer_students for insert
 with check (trainer_id = auth.uid());
 
+create policy "trainer_students_insert_student_accept"
+on public.trainer_students for insert
+with check (
+  student_id = auth.uid()
+  and status in ('pending', 'active')
+);
+
 create policy "trainer_students_update_trainer"
 on public.trainer_students for update
 using (trainer_id = auth.uid())
