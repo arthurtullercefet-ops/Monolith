@@ -2275,6 +2275,17 @@
           </div>
           <button class="action" id="inviteStudentButton" type="button">Criar convite</button>
         </div>
+        <div class="panel" id="inviteCodePanel" hidden>
+          <div class="section-title"><h3>Código de convite</h3><span>Envie para o aluno</span></div>
+          <div class="factor-form">
+            <div class="form-field">
+              <label for="inviteCodeDisplay">Código</label>
+              <input id="inviteCodeDisplay" readonly />
+            </div>
+            <button class="action" id="copyInviteCodeButton" type="button">Copiar código</button>
+          </div>
+          <div class="report-line">O aluno entra no próprio login, cola este código em Vincular personal e confirma o vínculo.</div>
+        </div>
         <div class="grid programs" id="clientList"></div>
       </section>
 
@@ -2552,6 +2563,38 @@
       }
     }
 
+    function isRealSupabaseAccount(account) {
+      return account?.source === "supabase" || (account?.id?.includes("-") && !account?.email?.endsWith("@monolith.app"));
+    }
+
+    function inviteCodeForPersonal(personal) {
+      return personal?.id ? `MONOLITH-${personal.id}` : "";
+    }
+
+    function trainerIdFromInviteCode(code = "") {
+      return String(code).trim().replace(/^MONOLITH[-:\s]*/i, "").trim();
+    }
+
+    async function copyText(value) {
+      if (navigator.clipboard?.writeText) {
+        await navigator.clipboard.writeText(value);
+        return true;
+      }
+      return false;
+    }
+
+    function showInviteCodeForPersonal(personal = currentAccount()) {
+      const panel = document.getElementById("inviteCodePanel");
+      const input = document.getElementById("inviteCodeDisplay");
+      if (!panel || !input || !personal || personal.role !== "personal") return "";
+      const inviteCode = inviteCodeForPersonal(personal);
+      panel.hidden = false;
+      input.value = inviteCode;
+      input.focus();
+      input.select();
+      return inviteCode;
+    }
+
     async function loadRemoteLinkedStudents(trainerId) {
       if (!monolithSupabase || !trainerId || trainerId.endsWith?.("-demo")) return null;
       const { data: links, error } = await monolithSupabase
@@ -2614,6 +2657,7 @@
       const accounts = loadAccounts();
       const students = accounts
         .filter(account => account.role === "student" && (account.trainerId === user.id || user.students?.includes(account.id)))
+        .filter(account => !isRealSupabaseAccount(user) || !account.email?.endsWith("@monolith.app"))
         .sort((a, b) => a.name.localeCompare(b.name, undefined, { sensitivity: "base" }));
       renderClientCards(students);
     }
@@ -2647,6 +2691,8 @@
       document.querySelectorAll("[data-role-only]").forEach(element => {
         element.hidden = !user || element.dataset.roleOnly !== user.role;
       });
+      const invitePanel = document.getElementById("inviteCodePanel");
+      if (invitePanel && (!user || user.role !== "personal")) invitePanel.hidden = true;
       if (user) {
         const sessionName = document.getElementById("sessionName");
         const sessionRole = document.getElementById("sessionRole");
@@ -2717,7 +2763,7 @@
 
     async function linkStudentToTrainer(inviteCode) {
       const user = currentAccount();
-      const trainerId = inviteCode.trim();
+      const trainerId = trainerIdFromInviteCode(inviteCode);
       if (!user || user.role !== "student") {
         authMessage("Entre como aluno para vincular um personal.");
         return;
@@ -3116,6 +3162,11 @@
         "Novo treino": "New workout",
         "Painel inicial do personal trainer": "Initial trainer dashboard",
         "Criar convite": "Create invite",
+        "Código de convite": "Invite code",
+        "Envie para o aluno": "Send to the student",
+        "Código": "Code",
+        "Copiar código": "Copy code",
+        "O aluno entra no próprio login, cola este código em Vincular personal e confirma o vínculo.": "The student logs into their own account, pastes this code in Link trainer and confirms the link.",
         "Vincular personal": "Link trainer",
         "Convite": "Invite",
         "Código do personal": "Trainer code",
@@ -3532,6 +3583,11 @@
         "Novo treino": "Nuevo entreno",
         "Painel inicial do personal trainer": "Panel inicial del entrenador personal",
         "Criar convite": "Crear invitación",
+        "Código de convite": "Código de invitación",
+        "Envie para o aluno": "Envíalo al alumno",
+        "Código": "Código",
+        "Copiar código": "Copiar código",
+        "O aluno entra no próprio login, cola este código em Vincular personal e confirma o vínculo.": "El alumno entra con su propio login, pega este código en Vincular entrenador y confirma el vínculo.",
         "Vincular personal": "Vincular entrenador",
         "Convite": "Invitación",
         "Código do personal": "Código del entrenador",
@@ -4879,9 +4935,20 @@ ${bodyFatBars ? `<div class="chart">${bodyFatBars}</div>` : `<p class="muted">${
     document.getElementById("inviteStudentButton")?.addEventListener("click", async () => {
       const personal = currentAccount();
       if (!personal || personal.role !== "personal") return;
-      const inviteCode = personal.id;
+      const inviteCode = showInviteCodeForPersonal(personal);
       try {
-        await navigator.clipboard?.writeText(inviteCode);
+        if (!await copyText(inviteCode)) throw new Error("clipboard unavailable");
+        authMessage("Código de convite copiado. Envie para o aluno.");
+      } catch {
+        window.prompt(t("Copie este código e envie para o aluno."), inviteCode);
+      }
+    });
+    document.getElementById("copyInviteCodeButton")?.addEventListener("click", async () => {
+      const personal = currentAccount();
+      const inviteCode = showInviteCodeForPersonal(personal);
+      if (!inviteCode) return;
+      try {
+        if (!await copyText(inviteCode)) throw new Error("clipboard unavailable");
         authMessage("Código de convite copiado. Envie para o aluno.");
       } catch {
         window.prompt(t("Copie este código e envie para o aluno."), inviteCode);
