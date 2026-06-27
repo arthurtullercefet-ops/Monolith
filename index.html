@@ -1859,6 +1859,7 @@
         <p>Separe o acesso de alunos e personais desde agora. Esta primeira camada cria o fluxo do produto; a segurança real entra quando conectarmos banco, backend e pagamentos.</p>
       </div>
       <div class="auth-warning">Contas reais usam Supabase Auth. Os botões demo continuam locais para teste rápido.</div>
+      <button class="ghost" type="button" id="resetLoginCache">Limpar cache de login</button>
     </div>
 
     <div class="auth-stack" id="authStack" data-auth-mode="login">
@@ -2460,6 +2461,29 @@
     const MONOLITH_SUPABASE_URL = "https://jhxasnxuvmkhntbwepau.supabase.co";
     const MONOLITH_SUPABASE_KEY = "sb_publishable_lDtAXIOtkMwgwsAZyghBdg_gyLHGwpH";
     const monolithSupabase = window.supabase?.createClient?.(MONOLITH_SUPABASE_URL, MONOLITH_SUPABASE_KEY) || null;
+
+    async function resetMonolithLoginCache() {
+      try {
+        localStorage.removeItem("monolith.sessionUserId");
+        localStorage.removeItem("monolith.accounts");
+        if ("caches" in window) {
+          const keys = await caches.keys();
+          await Promise.all(keys.filter(key => key.startsWith("monolith-")).map(key => caches.delete(key)));
+        }
+        if ("serviceWorker" in navigator) {
+          const registrations = await navigator.serviceWorker.getRegistrations();
+          await Promise.all(registrations.map(registration => registration.unregister()));
+        }
+      } catch (error) {
+        console.warn("Monolith cache reset failed", error);
+      }
+    }
+
+    if (new URLSearchParams(window.location.search).get("reset") === "1") {
+      resetMonolithLoginCache().then(() => {
+        window.location.replace(`${window.location.pathname}?v=monolith-v36-clean`);
+      });
+    }
 
     const defaultFactors = [
       { id: "agua", group: "Saúde", name: "Água", active: true, positive: true },
@@ -5385,6 +5409,10 @@ ${photoSections}
         button.setAttribute("aria-label", label);
         button.setAttribute("title", label);
       });
+    });
+    document.getElementById("resetLoginCache")?.addEventListener("click", async () => {
+      await resetMonolithLoginCache();
+      window.location.replace(`${window.location.pathname}?v=monolith-v36-clean`);
     });
     weightUnitSelect?.addEventListener("click", event => {
       const button = event.target.closest(".unit-button");
