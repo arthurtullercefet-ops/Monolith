@@ -194,6 +194,39 @@
       padding: 0 11px;
     }
 
+    .password-field {
+      position: relative;
+    }
+
+    .password-field input {
+      padding-right: 48px;
+    }
+
+    .password-toggle {
+      position: absolute;
+      right: 6px;
+      bottom: 6px;
+      width: 32px;
+      height: 30px;
+      border: 1px solid var(--line);
+      background: #151515;
+      color: var(--muted);
+      display: grid;
+      place-items: center;
+      cursor: pointer;
+    }
+
+    .password-toggle:hover,
+    .password-toggle.active {
+      color: var(--gold);
+      border-color: var(--gold);
+    }
+
+    .password-toggle svg {
+      width: 17px;
+      height: 17px;
+    }
+
     .auth-grid {
       display: grid;
       grid-template-columns: 1fr 1fr;
@@ -1841,10 +1874,17 @@
             <label for="loginEmail">E-mail</label>
             <input id="loginEmail" type="email" autocomplete="email" required placeholder="email@monolith.app" />
           </div>
-          <div>
+          <div class="password-field">
             <label for="loginPassword">Senha</label>
             <input id="loginPassword" type="password" autocomplete="current-password" required placeholder="123456" />
+            <button class="password-toggle" type="button" data-password-target="loginPassword" aria-label="Mostrar senha" title="Mostrar senha">
+              <svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12z"></path>
+                <circle cx="12" cy="12" r="3"></circle>
+              </svg>
+            </button>
           </div>
+          <div class="auth-warning" id="loginNotice" hidden></div>
           <button class="action" type="submit">Entrar</button>
         </form>
         <div class="auth-demo">
@@ -1875,13 +1915,25 @@
             <label for="signupEmail">E-mail</label>
             <input id="signupEmail" type="email" autocomplete="email" required placeholder="novo@monolith.app" />
           </div>
-          <div>
+          <div class="password-field">
             <label for="signupPassword">Senha</label>
             <input id="signupPassword" type="password" autocomplete="new-password" required minlength="6" placeholder="Mínimo 6 caracteres" data-i18n-placeholder="Mínimo 6 caracteres" />
+            <button class="password-toggle" type="button" data-password-target="signupPassword" aria-label="Mostrar senha" title="Mostrar senha">
+              <svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12z"></path>
+                <circle cx="12" cy="12" r="3"></circle>
+              </svg>
+            </button>
           </div>
-          <div>
+          <div class="password-field">
             <label for="signupPasswordConfirm">Confirmar senha</label>
             <input id="signupPasswordConfirm" type="password" autocomplete="new-password" required minlength="6" placeholder="Repita a senha" data-i18n-placeholder="Repita a senha" />
+            <button class="password-toggle" type="button" data-password-target="signupPasswordConfirm" aria-label="Mostrar senha" title="Mostrar senha">
+              <svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12z"></path>
+                <circle cx="12" cy="12" r="3"></circle>
+              </svg>
+            </button>
           </div>
           <div>
             <label for="signupPersonalCode">Código do personal</label>
@@ -2485,6 +2537,16 @@
       return account;
     }
 
+    function fallbackRemoteProfile(authUser, fallback = {}) {
+      const metadata = authUser?.user_metadata || {};
+      return {
+        id: authUser?.id,
+        email: authUser?.email || fallback.email || "",
+        full_name: metadata.full_name || fallback.name || authUser?.email?.split("@")[0] || "Monolith User",
+        role: metadata.role || fallback.dbRole || dbRoleFromApp(fallback.role || "student")
+      };
+    }
+
     async function upsertRemoteProfile(authUser, fallback = {}) {
       if (!monolithSupabase || !authUser?.id) return null;
       const role = fallback.dbRole || dbRoleFromApp(fallback.role || "student");
@@ -2527,7 +2589,8 @@
         return true;
       } catch (error) {
         console.warn("Monolith Supabase profile restore failed", error);
-        return false;
+        const account = cacheRemoteAccount(fallbackRemoteProfile(authUser), authUser);
+        return Boolean(account);
       }
     }
 
@@ -2593,6 +2656,13 @@
       if (!notice) return;
       notice.hidden = false;
       notice.textContent = t(message);
+    }
+
+    function showLoginNotice(message = "") {
+      const notice = document.getElementById("loginNotice");
+      if (!notice) return;
+      notice.hidden = !message;
+      notice.textContent = message ? t(message) : "";
     }
 
     function isRealSupabaseAccount(account) {
@@ -2840,9 +2910,17 @@
       if (monolithSupabase && !isDemoEmail) {
         const { data, error } = await monolithSupabase.auth.signInWithPassword({ email: normalizedEmail, password });
         if (error) {
-          authMessage(error.message || "Login remoto não autorizado.");
+          const rawMessage = error.message || "";
+          const message = /invalid login credentials|invalid/i.test(rawMessage)
+            ? "E-mail ou senha incorretos. Confira os dados e tente novamente."
+            : /confirm|verified/i.test(rawMessage)
+            ? "Confirme seu e-mail antes de entrar."
+            : rawMessage || "Login remoto não autorizado.";
+          showLoginNotice(message);
+          authMessage(message);
           return false;
         }
+        showLoginNotice("");
         try {
           const profile = await loadRemoteProfile(data.user, { email: normalizedEmail });
           const account = cacheRemoteAccount(profile, data.user);
@@ -2851,9 +2929,16 @@
           authMessage(`${t("Bem-vindo")}, ${account.name}.`);
           return true;
         } catch (profileError) {
-          authMessage("Login feito, mas não consegui carregar o perfil.");
           console.warn("Monolith Supabase profile login failed", profileError);
-          return false;
+          const account = cacheRemoteAccount(fallbackRemoteProfile(data.user, { email: normalizedEmail }), data.user);
+          if (!account) {
+            authMessage("Login feito, mas não consegui carregar o perfil.");
+            return false;
+          }
+          applyAuthState();
+          showScreen(account.role === "personal" ? "clients" : "home");
+          authMessage("Login feito. Perfil remoto pendente de sincronização.");
+          return true;
         }
       }
 
@@ -2861,9 +2946,11 @@
       const passwordHash = await hashPassword(password);
       const account = loadAccounts().find(item => item.email.toLowerCase() === normalizedEmail && item.passwordHash === passwordHash);
       if (!account) {
-        authMessage("Login ou senha inválidos.");
+        showLoginNotice("E-mail ou senha incorretos. Confira os dados e tente novamente.");
+        authMessage("E-mail ou senha incorretos. Confira os dados e tente novamente.");
         return false;
       }
+      showLoginNotice("");
       localStorage.setItem("monolith.sessionUserId", account.id);
       applyAuthState();
       showScreen(account.role === "personal" ? "clients" : "home");
@@ -2941,6 +3028,272 @@
 
     function selectedDietStudentId() {
       return document.getElementById("dietStudent")?.value || selectedStudentForPersonal() || "aluno-demo";
+    }
+
+    function activeDataStudentId(student = null) {
+      if (student?.id) return student.id;
+      const user = currentAccount();
+      if (!user) return "";
+      return user.role === "personal" ? selectedStudentForPersonal() : user.id;
+    }
+
+    function localDateLabel(dateKey) {
+      const [year, month, day] = String(dateKey || "").split("-").map(Number);
+      if (!year || !month || !day) return dateKey || "";
+      return new Intl.DateTimeFormat("pt-BR", { dateStyle: "short" }).format(new Date(year, month - 1, day));
+    }
+
+    function lastMonthKey() {
+      const date = new Date();
+      date.setMonth(date.getMonth() - 1);
+      return date.toISOString().slice(0, 7);
+    }
+
+    function photoMonthFromPeriod(period) {
+      return period === "last" ? lastMonthKey() : currentMonthKey();
+    }
+
+    function photoPeriodFromMonth(monthKey) {
+      if (monthKey === currentMonthKey()) return "current";
+      if (monthKey === lastMonthKey()) return "last";
+      return monthKey;
+    }
+
+    const photoSlotToAngle = { frente: "front", lado: "side", costas: "back" };
+    const photoAngleToSlot = { front: "frente", side: "lado", back: "costas" };
+
+    function mergeByKey(existing, incoming, keyFn) {
+      const map = new Map();
+      existing.forEach(item => map.set(keyFn(item), item));
+      incoming.forEach(item => map.set(keyFn(item), item));
+      return [...map.values()];
+    }
+
+    function cacheRemoteCheckins(entries = []) {
+      if (!entries.length) return;
+      const merged = mergeByKey(loadCheckins(null), entries, item => `${item.studentId || "local"}:${item.date}`);
+      saveCheckins(merged.sort((a, b) => String(b.date).localeCompare(String(a.date))).slice(0, 365));
+    }
+
+    function cacheRemoteBodyMeasures(entries = []) {
+      if (!entries.length) return;
+      const merged = mergeByKey(loadBodyMeasures(null), entries, item => `${item.studentId || "local"}:${item.date}`);
+      saveBodyMeasures(merged.sort((a, b) => String(b.date).localeCompare(String(a.date))).slice(0, 365));
+    }
+
+    function cacheRemoteCompletedWorkouts(entries = []) {
+      if (!entries.length) return;
+      let local = [];
+      try {
+        local = JSON.parse(localStorage.getItem("monolith.completedWorkouts") || "[]");
+      } catch {}
+      const merged = mergeByKey(local, entries, item => item.id || `${item.studentId || "local"}:${item.completedAt}:${item.workoutName}`);
+      localStorage.setItem("monolith.completedWorkouts", JSON.stringify(merged.slice(0, 250)));
+    }
+
+    function remoteCheckinFromRow(row) {
+      return {
+        id: row.id,
+        studentId: row.student_id,
+        date: row.checkin_date,
+        label: localDateLabel(row.checkin_date),
+        savedAt: row.updated_at || row.created_at,
+        weight: row.weight_kg ?? "",
+        completed: row.completed || 0,
+        total: row.total || 0,
+        score: row.score || 0,
+        items: row.items || []
+      };
+    }
+
+    function remoteBodyMeasureFromRow(row) {
+      return {
+        id: row.id,
+        studentId: row.student_id,
+        date: row.measurement_date,
+        weight: row.weight_kg ?? null,
+        bodyFat: row.body_fat_percent ?? null,
+        waist: row.waist_cm ?? null,
+        chest: row.chest_cm ?? null,
+        arm: row.arm_cm ?? null,
+        leg: row.leg_cm ?? null,
+        hip: row.hip_cm ?? null,
+        notes: row.notes || ""
+      };
+    }
+
+    function remoteCompletedWorkoutFromRow(row) {
+      return {
+        id: row.id,
+        studentId: row.student_id,
+        workoutId: row.workout_template_id || "",
+        workoutName: row.workout_name || "Treino",
+        completedAt: row.completed_at,
+        date: row.completed_at ? new Intl.DateTimeFormat("pt-BR", { dateStyle: "medium", timeStyle: "short" }).format(new Date(row.completed_at)) : "",
+        completedExercises: row.completed_exercises || 0,
+        totalExercises: row.total_exercises || 0,
+        completedSets: row.completed_sets || 0,
+        totalSets: row.total_sets || 0,
+        exercises: row.exercises || []
+      };
+    }
+
+    async function loadRemoteCheckins(studentId = activeDataStudentId()) {
+      if (!monolithSupabase || !studentId || !isRealSupabaseAccount(currentAccount())) return [];
+      const { data, error } = await monolithSupabase
+        .from("daily_checkins")
+        .select("id,student_id,checkin_date,weight_kg,score,completed,total,items,created_at,updated_at")
+        .eq("student_id", studentId)
+        .order("checkin_date", { ascending: false })
+        .limit(365);
+      if (error) throw error;
+      const entries = (data || []).map(remoteCheckinFromRow);
+      cacheRemoteCheckins(entries);
+      return entries;
+    }
+
+    async function saveRemoteCheckin(entry) {
+      const user = currentAccount();
+      if (!monolithSupabase || !isRealSupabaseAccount(user) || user.role !== "student") return;
+      const payload = {
+        student_id: user.id,
+        checkin_date: entry.date,
+        weight_kg: entry.weight || null,
+        score: entry.score || 0,
+        completed: entry.completed || 0,
+        total: entry.total || 0,
+        items: entry.items || []
+      };
+      const { error } = await monolithSupabase.from("daily_checkins").upsert(payload, { onConflict: "student_id,checkin_date" });
+      if (error) throw error;
+    }
+
+    async function loadRemoteBodyMeasures(studentId = activeDataStudentId()) {
+      if (!monolithSupabase || !studentId || !isRealSupabaseAccount(currentAccount())) return [];
+      const { data, error } = await monolithSupabase
+        .from("body_measurements")
+        .select("id,student_id,measurement_date,weight_kg,body_fat_percent,waist_cm,chest_cm,arm_cm,leg_cm,hip_cm,notes,created_at")
+        .eq("student_id", studentId)
+        .order("measurement_date", { ascending: false })
+        .limit(365);
+      if (error) throw error;
+      const entries = (data || []).map(remoteBodyMeasureFromRow);
+      cacheRemoteBodyMeasures(entries);
+      return entries;
+    }
+
+    async function saveRemoteBodyMeasure(entry) {
+      const user = currentAccount();
+      if (!monolithSupabase || !isRealSupabaseAccount(user) || user.role !== "student") return;
+      const payload = {
+        student_id: user.id,
+        measurement_date: entry.date,
+        weight_kg: entry.weight || null,
+        body_fat_percent: entry.bodyFat || null,
+        waist_cm: entry.waist || null,
+        chest_cm: entry.chest || null,
+        arm_cm: entry.arm || null,
+        leg_cm: entry.leg || null,
+        hip_cm: entry.hip || null,
+        notes: entry.notes || null
+      };
+      const { error } = await monolithSupabase.from("body_measurements").insert(payload);
+      if (error) throw error;
+    }
+
+    async function loadRemoteCompletedWorkouts(studentId = activeDataStudentId()) {
+      if (!monolithSupabase || !studentId || !isRealSupabaseAccount(currentAccount())) return [];
+      const { data, error } = await monolithSupabase
+        .from("completed_workouts")
+        .select("id,student_id,workout_template_id,workout_name,completed_at,completed_exercises,total_exercises,completed_sets,total_sets,exercises,created_at")
+        .eq("student_id", studentId)
+        .order("completed_at", { ascending: false })
+        .limit(250);
+      if (error) throw error;
+      const entries = (data || []).map(remoteCompletedWorkoutFromRow);
+      cacheRemoteCompletedWorkouts(entries);
+      return entries;
+    }
+
+    async function saveRemoteCompletedWorkout(session) {
+      const user = currentAccount();
+      if (!monolithSupabase || !isRealSupabaseAccount(user) || user.role !== "student") return;
+      const payload = {
+        student_id: user.id,
+        workout_template_id: /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(session.workoutId || "") ? session.workoutId : null,
+        workout_name: session.workoutName || "Treino",
+        completed_at: session.completedAt || new Date().toISOString(),
+        completed_exercises: session.completedExercises || 0,
+        total_exercises: session.totalExercises || 0,
+        completed_sets: session.completedSets || 0,
+        total_sets: session.totalSets || 0,
+        exercises: session.exercises || []
+      };
+      const { error } = await monolithSupabase.from("completed_workouts").insert(payload);
+      if (error) throw error;
+    }
+
+    async function loadRemoteProgressPhotos(studentId = activeDataStudentId()) {
+      if (!monolithSupabase || !studentId || !isRealSupabaseAccount(currentAccount())) return {};
+      const { data, error } = await monolithSupabase
+        .from("progress_photos")
+        .select("id,student_id,photo_month,angle,storage_path,created_at")
+        .eq("student_id", studentId)
+        .in("photo_month", [currentMonthKey(), lastMonthKey()]);
+      if (error) throw error;
+      const photos = loadProgressPhotos();
+      for (const row of data || []) {
+        const period = photoPeriodFromMonth(row.photo_month);
+        const slot = photoAngleToSlot[row.angle] || row.angle;
+        const { data: signed, error: signedError } = await monolithSupabase.storage
+          .from("progress-photos")
+          .createSignedUrl(row.storage_path, 60 * 60);
+        if (signedError) throw signedError;
+        photos[period] = photos[period] || {};
+        photos[period][slot] = signed.signedUrl;
+      }
+      saveProgressPhotos(photos);
+      return photos;
+    }
+
+    async function saveRemoteProgressPhoto(period, slot, file) {
+      const user = currentAccount();
+      if (!monolithSupabase || !isRealSupabaseAccount(user) || user.role !== "student") return null;
+      const angle = photoSlotToAngle[slot] || slot;
+      const month = photoMonthFromPeriod(period);
+      const extension = file.name?.split(".").pop()?.toLowerCase() || "jpg";
+      const path = `${user.id}/${month}/${angle}-${Date.now()}.${extension}`;
+      const { error: uploadError } = await monolithSupabase.storage.from("progress-photos").upload(path, file, {
+        cacheControl: "3600",
+        upsert: true
+      });
+      if (uploadError) throw uploadError;
+      const { error } = await monolithSupabase.from("progress_photos").upsert({
+        student_id: user.id,
+        photo_month: month,
+        angle,
+        storage_path: path
+      }, { onConflict: "student_id,photo_month,angle" });
+      if (error) throw error;
+      const { data: signed, error: signedError } = await monolithSupabase.storage.from("progress-photos").createSignedUrl(path, 60 * 60);
+      if (signedError) throw signedError;
+      return signed.signedUrl;
+    }
+
+    async function hydrateRemoteReportData(student = null) {
+      const studentId = activeDataStudentId(student);
+      if (!studentId || !isRealSupabaseAccount(currentAccount())) return;
+      try {
+        await Promise.all([
+          loadRemoteCheckins(studentId),
+          loadRemoteBodyMeasures(studentId),
+          loadRemoteCompletedWorkouts(studentId),
+          loadRemoteProgressPhotos(studentId)
+        ]);
+      } catch (error) {
+        console.warn("Monolith remote report hydration failed", error);
+        showToast("Não consegui carregar todos os dados remotos agora. Usei o cache local.");
+      }
     }
 
     function activeDietForStudent(studentId, month = currentMonthKey()) {
@@ -3140,6 +3493,8 @@
         "Entre como aluno ou personal para abrir o painel correto.": "Log in as a student or trainer to open the right dashboard.",
         "Após criar conta, confirme o cadastro no e-mail antes de entrar.": "After creating an account, confirm the signup in your email before logging in.",
         "Senha": "Password",
+        "Mostrar senha": "Show password",
+        "Ocultar senha": "Hide password",
         "Entrar": "Log in",
         "Demo aluno": "Student demo",
         "Demo personal": "Trainer demo",
@@ -3157,6 +3512,8 @@
         "Login remoto não autorizado.": "Remote login was not authorized.",
         "Login feito, mas não consegui carregar o perfil.": "Login worked, but the profile could not be loaded.",
         "Login ou senha inválidos.": "Invalid login or password.",
+        "E-mail ou senha incorretos. Confira os dados e tente novamente.": "Email or password is incorrect. Check the details and try again.",
+        "Confirme seu e-mail antes de entrar.": "Confirm your email before logging in.",
         "Este e-mail já existe.": "This email already exists.",
         "Não consegui criar a conta.": "Could not create the account.",
         "Conta criada. Confira seu e-mail para confirmar o cadastro.": "Account created. Check your email to confirm the signup.",
@@ -3570,6 +3927,8 @@
         "Após criar conta, confirme o cadastro no e-mail antes de entrar.": "Después de crear la cuenta, confirma el registro en tu email antes de entrar.",
         "Senha": "Contraseña",
         "Entrar": "Entrar",
+        "Mostrar senha": "Mostrar contraseña",
+        "Ocultar senha": "Ocultar contraseña",
         "Demo aluno": "Demo alumno",
         "Demo personal": "Demo entrenador",
         "Criar conta": "Crear cuenta",
@@ -3586,6 +3945,8 @@
         "Login remoto não autorizado.": "Login remoto no autorizado.",
         "Login feito, mas não consegui carregar o perfil.": "El login funcionó, pero no pude cargar el perfil.",
         "Login ou senha inválidos.": "Login o contraseña inválidos.",
+        "E-mail ou senha incorretos. Confira os dados e tente novamente.": "Email o contraseña incorrectos. Revisa los datos e inténtalo de nuevo.",
+        "Confirme seu e-mail antes de entrar.": "Confirma tu email antes de entrar.",
         "Este e-mail já existe.": "Este email ya existe.",
         "Não consegui criar a conta.": "No pude crear la cuenta.",
         "Conta criada. Confira seu e-mail para confirmar o cadastro.": "Cuenta creada. Revisa tu email para confirmar el registro.",
@@ -4178,9 +4539,11 @@
       return date.toISOString().slice(0, 10);
     }
 
-    function loadCheckins() {
+    function loadCheckins(studentId = activeDataStudentId()) {
       try {
-        return JSON.parse(localStorage.getItem("monolith.checkins") || "[]");
+        const entries = JSON.parse(localStorage.getItem("monolith.checkins") || "[]");
+        if (!studentId) return entries;
+        return entries.filter(entry => !entry.studentId || entry.studentId === studentId);
       } catch {
         return [];
       }
@@ -4213,6 +4576,7 @@
       const weight = parseWeightInput(document.getElementById("dailyWeight")?.value.trim());
       return {
         date: todayKey(),
+        studentId: currentAccount()?.id || "",
         label: new Intl.DateTimeFormat("pt-BR", { dateStyle: "short" }).format(new Date()),
         savedAt: new Date().toISOString(),
         weight: weight ?? "",
@@ -4223,10 +4587,17 @@
       };
     }
 
-    function upsertTodayCheckin(entry) {
+    async function upsertTodayCheckin(entry) {
       const checkins = loadCheckins().filter(item => item.date !== entry.date);
       checkins.unshift(entry);
-      saveCheckins(checkins.slice(0, 365));
+      const allCheckins = loadCheckins(null).filter(item => `${item.studentId || ""}:${item.date}` !== `${entry.studentId || ""}:${entry.date}`);
+      saveCheckins([entry, ...allCheckins].slice(0, 365));
+      try {
+        await saveRemoteCheckin(entry);
+      } catch (error) {
+        console.warn("Monolith remote check-in save failed", error);
+        showToast("Check-in salvo localmente. Não consegui sincronizar agora.");
+      }
       renderStats();
       renderTrainerSummary();
     }
@@ -4280,9 +4651,10 @@
       return unit === "%" ? `${value}%` : `${value}${unit ? ` ${unit}` : ""}`;
     }
 
-    function loadBodyMeasures() {
+    function loadBodyMeasures(studentId = activeDataStudentId()) {
       try {
         return JSON.parse(localStorage.getItem("monolith.bodyMeasures") || "[]")
+          .filter(entry => !studentId || !entry.studentId || entry.studentId === studentId)
           .sort((a, b) => String(b.date || "").localeCompare(String(a.date || "")));
       } catch {
         return [];
@@ -4369,6 +4741,7 @@
       const date = document.getElementById("measureDate").value || todayKey();
       const entry = {
         id: `measure-${date}`,
+        studentId: currentAccount()?.id || "",
         date,
         weight: parseWeightInput(document.getElementById("measureWeight").value),
         bodyFat: parseMeasureValue(document.getElementById("measureBodyFat").value),
@@ -4389,10 +4762,16 @@
       if (dateInput) dateInput.value = todayKey();
     }
 
-    function upsertBodyMeasure(entry) {
-      const entries = loadBodyMeasures().filter(item => item.date !== entry.date);
-      entries.unshift(entry);
-      saveBodyMeasures(entries.sort((a, b) => String(b.date).localeCompare(String(a.date))));
+    async function upsertBodyMeasure(entry) {
+      const allEntries = loadBodyMeasures(null).filter(item => `${item.studentId || ""}:${item.date}` !== `${entry.studentId || ""}:${entry.date}`);
+      const entries = [entry, ...allEntries].sort((a, b) => String(b.date).localeCompare(String(a.date)));
+      saveBodyMeasures(entries);
+      try {
+        await saveRemoteBodyMeasure(entry);
+      } catch (error) {
+        console.warn("Monolith remote body measurement save failed", error);
+        showToast("Medidas salvas localmente. Não consegui sincronizar agora.");
+      }
       renderBodyMeasures();
       renderTrainerSummary();
     }
@@ -4517,8 +4896,17 @@
     }
 
     function monthlyReportData(student = null) {
-      const checkins = lastThirtyCheckins();
-      const completedWorkouts = JSON.parse(localStorage.getItem("monolith.completedWorkouts") || "[]");
+      const user = currentAccount();
+      const reportStudent = student || (user?.role === "student" ? user : reportStudentFromId(selectedDietStudentId()));
+      const reportStudentId = activeDataStudentId(reportStudent);
+      const checkins = lastThirtyCheckins().filter(entry => !reportStudentId || !entry.studentId || entry.studentId === reportStudentId);
+      let completedWorkouts = [];
+      try {
+        completedWorkouts = JSON.parse(localStorage.getItem("monolith.completedWorkouts") || "[]")
+          .filter(session => !reportStudentId || !session.studentId || session.studentId === reportStudentId);
+      } catch {
+        completedWorkouts = [];
+      }
       const stats = factors.map(factor => {
         const appearances = checkins.filter(entry => entry.items?.some(item => item.id === factor.id));
         const completed = appearances.filter(entry => entry.items?.some(item => item.id === factor.id && item.completed)).length;
@@ -4526,13 +4914,12 @@
       });
       const evolution = exerciseEvolutionReport(completedWorkouts);
       const missedDays = missedCheckinDays(checkins);
-      const bodyMeasures = loadBodyMeasures();
+      const bodyMeasures = loadBodyMeasures(reportStudentId);
       const weights = physicalWeightSeries(checkins, bodyMeasures);
-      const user = currentAccount();
-      const reportStudent = student || (user?.role === "student" ? user : reportStudentFromId(selectedDietStudentId()));
       const dietStudentId = reportStudent?.id || (user?.role === "student" ? user.id : selectedDietStudentId());
       const activeDietPlan = activeDietForStudent(dietStudentId, currentMonthKey());
-      return { student: reportStudent, checkins, completedWorkouts, stats, evolution, missedDays, weights, bodyMeasures, activeDietPlan, generatedAt: new Date().toLocaleString("pt-BR") };
+      const progressPhotos = loadProgressPhotos();
+      return { student: reportStudent, checkins, completedWorkouts, stats, evolution, missedDays, weights, bodyMeasures, progressPhotos, activeDietPlan, generatedAt: new Date().toLocaleString("pt-BR") };
     }
 
     function monthlyReportHTMLLegacy() {
@@ -4603,6 +4990,13 @@
         "Substituições": "Substitutions",
         "Observação": "Note",
         "Nenhuma dieta ativa cadastrada para este mês.": "No active diet registered for this month.",
+        "Fotos de evolução": "Progress Photos",
+        "Mês passado": "Last month",
+        "Este mês": "This month",
+        "Frente": "Front",
+        "Lado": "Side",
+        "Costas": "Back",
+        "Sem foto salva.": "No photo saved.",
         "Top 5 maiores evoluções": "Top 5 Biggest Improvements",
         "Top 5 maiores quedas": "Top 5 Biggest Drops",
         "Exercício": "Exercise",
@@ -4662,6 +5056,13 @@
         "Substituições": "Sustituciones",
         "Observação": "Observación",
         "Nenhuma dieta ativa cadastrada para este mês.": "No hay dieta activa registrada para este mes.",
+        "Fotos de evolução": "Fotos de evolución",
+        "Mês passado": "Mes pasado",
+        "Este mês": "Este mes",
+        "Frente": "Frente",
+        "Lado": "Lado",
+        "Costas": "Espalda",
+        "Sem foto salva.": "Sin foto guardada.",
         "Top 5 maiores evoluções": "Top 5 mayores evoluciones",
         "Top 5 maiores quedas": "Top 5 mayores caídas",
         "Exercício": "Ejercicio",
@@ -4714,6 +5115,14 @@
       const bodyFatBars = reportChartBars(bodyMeasureSeries("bodyFat", report.bodyMeasures), "%");
       const measureRows = report.bodyMeasures.slice(0, 20).map(entry => `<tr><td>${escapeHTML(entry.date)}</td><td>${formatWeight(entry.weight)}</td><td>${formatMeasureValue(entry.bodyFat, "%")}</td><td>${formatMeasureValue(entry.waist, "cm")}</td><td>${formatMeasureValue(entry.chest, "cm")}</td><td>${formatMeasureValue(entry.arm, "cm")}</td><td>${formatMeasureValue(entry.leg, "cm")}</td><td>${formatMeasureValue(entry.hip, "cm")}</td><td>${escapeHTML(entry.notes || "")}</td></tr>`).join("");
       const dietRows = report.activeDietPlan?.meals?.map((meal, index) => `<tr><td>${index + 1}</td><td>${escapeHTML(meal.name || `${rt("Refeição")} ${index + 1}`)}</td><td>${escapeHTML(meal.items || "")}</td><td>${escapeHTML([meal.calories ? `${meal.calories} kcal` : "", meal.protein ? `P ${meal.protein}` : "", meal.carbs ? `C ${meal.carbs}` : "", meal.fat ? `G ${meal.fat}` : ""].filter(Boolean).join(" / "))}</td><td>${escapeHTML(meal.substitutions || "")}</td><td>${escapeHTML(meal.notes || "")}</td></tr>`).join("") || "";
+      const photoSlots = [["frente", rt("Frente")], ["lado", rt("Lado")], ["costas", rt("Costas")]];
+      const photoSections = [["last", rt("Mês passado")], ["current", rt("Este mês")]].map(([period, label]) => {
+        const cards = photoSlots.map(([slot, slotLabel]) => {
+          const src = report.progressPhotos?.[period]?.[slot];
+          return `<div class="photo-report-card"><strong>${escapeHTML(slotLabel)}</strong>${src ? `<img src="${src}" alt="${escapeHTML(slotLabel)}">` : `<span>${rt("Sem foto salva.")}</span>`}</div>`;
+        }).join("");
+        return `<h3>${escapeHTML(label)}</h3><div class="photo-report-grid">${cards}</div>`;
+      }).join("");
       const measureDeltaRows = bodyMeasureFields.map(field => {
         const series = bodyMeasureSeries(field.key, report.bodyMeasures);
         const first = series[0];
@@ -4738,6 +5147,10 @@ th{background:#eee}.muted{color:#666}.gain{color:#137333;font-weight:700}.drop{c
 .chart{height:150px;display:flex;align-items:end;gap:8px;border:1px solid #ccc;padding:12px;margin:12px 0;overflow:hidden}
 .wbar{min-width:54px;background:#b8911f;display:flex;flex-direction:column;justify-content:space-between;color:#111;padding:4px;font-size:10px;font-weight:700}
 .wbar span{writing-mode:vertical-rl;transform:rotate(180deg);opacity:.75}
+.photo-report-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin:10px 0 16px}
+.photo-report-card{border:1px solid #ccc;min-height:170px;padding:8px;display:flex;flex-direction:column;gap:8px;justify-content:center}
+.photo-report-card img{width:100%;height:150px;object-fit:cover}
+.photo-report-card span{color:#666;font-size:12px}
 @media print{button{display:none}body{margin:18px}}
 </style>
 </head>
@@ -4758,6 +5171,8 @@ ${bodyFatBars ? `<div class="chart">${bodyFatBars}</div>` : `<p class="muted">${
 <h2>${rt("Dieta ativa do mês")}</h2>
 <p class="muted">${rt("Meta")}: ${escapeHTML(report.activeDietPlan?.calories || "--")} kcal / P ${escapeHTML(report.activeDietPlan?.protein || "--")} / C ${escapeHTML(report.activeDietPlan?.carbs || "--")} / G ${escapeHTML(report.activeDietPlan?.fat || "--")}</p>
 <table><thead><tr><th>#</th><th>${rt("Refeição")}</th><th>${rt("Alimentos")}</th><th>Macros</th><th>${rt("Substituições")}</th><th>${rt("Observação")}</th></tr></thead><tbody>${dietRows || `<tr><td colspan="6">${rt("Nenhuma dieta ativa cadastrada para este mês.")}</td></tr>`}</tbody></table>
+<h2>${rt("Fotos de evolução")}</h2>
+${photoSections}
 <h2>${rt("Top 5 maiores evoluções")}</h2>
 <table><thead><tr><th>${rt("Exercício")}</th><th>${rt("Base")}</th><th>${rt("Primeiro registro")}</th><th>${rt("Atual")}</th><th>${rt("Último registro")}</th><th>Delta</th></tr></thead><tbody>${gainRows || `<tr><td colspan="6">${rt("Ainda precisa de pelo menos duas sessões salvas do mesmo exercício.")}</td></tr>`}</tbody></table>
 <h2>${rt("Top 5 maiores quedas")}</h2>
@@ -4781,15 +5196,19 @@ ${bodyFatBars ? `<div class="chart">${bodyFatBars}</div>` : `<p class="muted">${
       URL.revokeObjectURL(link.href);
     }
 
-    function openMonthlyReport(student = null) {
+    async function openMonthlyReport(student = null) {
       const reportWindow = window.open("", "_blank");
+      reportWindow.document.write(`<!doctype html><html><head><meta charset="utf-8"><title>MONOLITH</title></head><body style="font-family:Arial,sans-serif;margin:32px">Carregando relatório...</body></html>`);
+      reportWindow.document.close();
+      await hydrateRemoteReportData(student);
+      reportWindow.document.open();
       reportWindow.document.write(monthlyReportHTML(student));
       reportWindow.document.close();
     }
 
-    function openStudentReport(studentId) {
+    async function openStudentReport(studentId) {
       const student = reportStudentFromId(studentId);
-      openMonthlyReport(student);
+      await openMonthlyReport(student);
     }
 
     function renderTrainerSummary() {
@@ -4944,6 +5363,18 @@ ${bodyFatBars ? `<div class="chart">${bodyFatBars}</div>` : `<p class="muted">${
         document.querySelectorAll(".auth-tab").forEach(tab => tab.classList.toggle("active", tab === button));
       });
     });
+    document.querySelectorAll(".password-toggle").forEach(button => {
+      button.addEventListener("click", () => {
+        const input = document.getElementById(button.dataset.passwordTarget);
+        if (!input) return;
+        const visible = input.type === "text";
+        input.type = visible ? "password" : "text";
+        button.classList.toggle("active", !visible);
+        const label = t(visible ? "Mostrar senha" : "Ocultar senha");
+        button.setAttribute("aria-label", label);
+        button.setAttribute("title", label);
+      });
+    });
     weightUnitSelect?.addEventListener("click", event => {
       const button = event.target.closest(".unit-button");
       if (!button) return;
@@ -4985,6 +5416,7 @@ ${bodyFatBars ? `<div class="chart">${bodyFatBars}</div>` : `<p class="muted">${
     });
     document.getElementById("loginForm")?.addEventListener("submit", async event => {
       event.preventDefault();
+      showLoginNotice("");
       await loginAccount(document.getElementById("loginEmail").value, document.getElementById("loginPassword").value);
     });
     document.querySelectorAll(".demo-login").forEach(button => {
@@ -5135,7 +5567,15 @@ ${bodyFatBars ? `<div class="chart">${bodyFatBars}</div>` : `<p class="muted">${
           window.monolithRefreshWorkoutView?.();
         });
       }
-      if (id === "stats") renderStats();
+      if (id === "stats") {
+        renderStats();
+        hydrateRemoteReportData().then(() => {
+          renderStats();
+          renderBodyMeasures();
+          renderPhotoVault();
+          renderTrainerSummary();
+        });
+      }
       if (id === "nutrition") renderNutrition();
       window.scrollTo({ top: 0, behavior: "smooth" });
     }
@@ -5231,20 +5671,20 @@ ${bodyFatBars ? `<div class="chart">${bodyFatBars}</div>` : `<p class="muted">${
       nameInput.value = "";
       showToast("Fator adicionado. Pontuação recalculada.");
     });
-    document.getElementById("saveCheckin").addEventListener("click", () => {
+    document.getElementById("saveCheckin").addEventListener("click", async () => {
       const entry = readCurrentCheckin();
-      upsertTodayCheckin(entry);
+      await upsertTodayCheckin(entry);
       document.getElementById("dailyWeight").value = "";
       showToast(`${t("Check-in salvo")}: ${entry.completed}/${entry.total} ${t("itens concluídos.")}`);
     });
-    document.getElementById("bodyMeasureForm").addEventListener("submit", event => {
+    document.getElementById("bodyMeasureForm").addEventListener("submit", async event => {
       event.preventDefault();
       const entry = readBodyMeasureForm();
       if (!entry.weight && !entry.bodyFat && !bodyMeasureFields.some(field => entry[field.key])) {
         showToast("Preencha pelo menos uma medida física.");
         return;
       }
-      upsertBodyMeasure(entry);
+      await upsertBodyMeasure(entry);
       clearBodyMeasureForm();
       showToast("Medidas corporais salvas.");
     });
@@ -5264,7 +5704,15 @@ ${bodyFatBars ? `<div class="chart">${bodyFatBars}</div>` : `<p class="muted">${
       const card = input.closest(".photo-card");
       const photos = loadProgressPhotos();
       photos[card.dataset.period] = photos[card.dataset.period] || {};
-      photos[card.dataset.period][card.dataset.slot] = await readFileAsDataURL(input.files[0]);
+      const localDataUrl = await readFileAsDataURL(input.files[0]);
+      photos[card.dataset.period][card.dataset.slot] = localDataUrl;
+      try {
+        const signedUrl = await saveRemoteProgressPhoto(card.dataset.period, card.dataset.slot, input.files[0]);
+        if (signedUrl) photos[card.dataset.period][card.dataset.slot] = signedUrl;
+      } catch (error) {
+        console.warn("Monolith remote progress photo save failed", error);
+        showToast("Foto salva localmente. Não consegui sincronizar agora.");
+      }
       saveProgressPhotos(photos);
       renderPhotoVault();
       showToast("Foto salva protegida por blur.");
@@ -5760,16 +6208,27 @@ ${bodyFatBars ? `<div class="chart">${bodyFatBars}</div>` : `<p class="muted">${
 
       function loadCompletedWorkoutsV2() {
         try {
-          return JSON.parse(localStorage.getItem("monolith.completedWorkouts") || "[]");
+          const studentId = activeDataStudentId();
+          return JSON.parse(localStorage.getItem("monolith.completedWorkouts") || "[]")
+            .filter(session => !studentId || !session.studentId || session.studentId === studentId);
         } catch {
           return [];
         }
       }
 
-      function saveCompletedWorkoutV2(session) {
-        const completed = loadCompletedWorkoutsV2();
+      async function saveCompletedWorkoutV2(session) {
+        let completed = [];
+        try {
+          completed = JSON.parse(localStorage.getItem("monolith.completedWorkouts") || "[]");
+        } catch {}
         completed.unshift(session);
         localStorage.setItem("monolith.completedWorkouts", JSON.stringify(completed.slice(0, 250)));
+        try {
+          await saveRemoteCompletedWorkout(session);
+        } catch (error) {
+          console.warn("Monolith remote completed workout save failed", error);
+          toastV2(textV2("Treino salvo localmente. Não consegui sincronizar agora."));
+        }
       }
 
       function deleteCustomWorkoutV2(id) {
@@ -6158,6 +6617,7 @@ ${bodyFatBars ? `<div class="chart">${bodyFatBars}</div>` : `<p class="muted">${
         const totalSets = exercises.reduce((total, exercise) => total + exercise.sets.length, 0);
         return {
           id: `session-${Date.now()}`,
+          studentId: currentAccount()?.role === "student" ? currentAccount().id : activeWorkoutV2.assignedStudentId || "",
           workoutId: activeWorkoutV2.id,
           workoutName: activeWorkoutV2.name,
           completedAt: new Date().toISOString(),
@@ -6170,7 +6630,7 @@ ${bodyFatBars ? `<div class="chart">${bodyFatBars}</div>` : `<p class="muted">${
         };
       }
 
-      function finishWorkoutV2(event) {
+      async function finishWorkoutV2(event) {
         event.preventDefault();
         event.stopImmediatePropagation();
         if (!activeWorkoutV2) {
@@ -6180,7 +6640,7 @@ ${bodyFatBars ? `<div class="chart">${bodyFatBars}</div>` : `<p class="muted">${
         }
         activeWorkoutV2.exercises.forEach((_, index) => completeExerciseV2(index));
         const session = readCompletedSessionV2();
-        saveCompletedWorkoutV2(session);
+        await saveCompletedWorkoutV2(session);
         document.getElementById("sessionMeta").textContent = `${textV2("Treino salvo hoje")}: ${session.completedSets}/${session.totalSets} ${textV2("séries")}`;
         toastV2(textV2("Treino do dia salvo no histórico local."));
         showScreen("stats");
