@@ -2607,7 +2607,6 @@
 
     async function ensureDemoAccounts() {
       const accounts = loadAccounts();
-      if (accounts.length) return accounts;
       const demoPassword = await hashPassword("123456");
       const seeded = [
         {
@@ -2629,8 +2628,12 @@
           trainerId: "personal-demo"
         }
       ];
-      saveAccounts(seeded);
-      return seeded;
+      const merged = [
+        ...seeded.map(demo => ({ ...demo, passwordHash: demoPassword })),
+        ...accounts.filter(account => !seeded.some(demo => demo.id === account.id || demo.email === account.email))
+      ];
+      saveAccounts(merged);
+      return merged;
     }
 
     function currentAccount() {
