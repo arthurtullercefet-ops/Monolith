@@ -1,4 +1,4 @@
-const CACHE_NAME = "monolith-v36";
+const CACHE_NAME = "monolith-v37";
 const ASSETS = [
   "./",
   "./index.html",
@@ -24,9 +24,6 @@ self.addEventListener("activate", event => {
 
 self.addEventListener("fetch", event => {
   if (event.request.mode === "navigate" || event.request.destination === "document") {
-    event.respondWith(
-      fetch(event.request, { cache: "no-store" }).catch(() => caches.match("./index.html"))
-    );
     return;
   }
 
