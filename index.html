@@ -2345,6 +2345,10 @@
         <button class="icon-btn" type="button" id="closeWorkoutModal" aria-label="Fechar">×</button>
       </div>
       <div class="form-grid">
+        <div class="field" id="workoutStudentField" hidden>
+          <label for="workoutStudent">Aluno</label>
+          <select id="workoutStudent"></select>
+        </div>
         <div class="field">
           <label for="workoutName">Nome</label>
           <input id="workoutName" required placeholder="Ex: Peito + Abdômen" data-i18n-placeholder="Ex: Peito + Abdômen" />
@@ -2680,7 +2684,7 @@
               <span class="pill">${t("Relatório ativo")}</span>
             </div>
           </div>
-          <button class="ghost" type="button" data-screen-jump="stats">${escapeHTML(t("Ver evolução"))}</button>
+          <button class="ghost open-student-report" type="button" data-student-id="${escapeHTML(student.id)}">${escapeHTML(t("Ver evolução"))}</button>
         </article>
       `).join("") || `<div class="panel"><div class="report-line">${escapeHTML(t("Nenhum aluno vinculado ainda. Gere um convite e envie o código para o aluno."))}</div></div>`;
     }
@@ -2876,11 +2880,24 @@
       const personal = accounts.find(item => item.id === personalId);
       return accounts
         .filter(account => account.role === "student" && (account.trainerId === personalId || personal?.students?.includes(account.id)))
+        .filter(account => !isRealSupabaseAccount(personal) || !account.email?.endsWith("@monolith.app"))
         .sort((a, b) => a.name.localeCompare(b.name, undefined, { sensitivity: "base" }));
     }
 
+    async function ensureLinkedStudentsForPersonal(personalId = currentAccount()?.id) {
+      const personal = loadAccounts().find(account => account.id === personalId) || currentAccount();
+      if (!personal || personal.role !== "personal" || !isRealSupabaseAccount(personal)) return studentsForPersonal(personalId);
+      try {
+        const remoteStudents = await loadRemoteLinkedStudents(personalId);
+        if (remoteStudents) saveRemoteStudentsToCache(remoteStudents);
+      } catch (error) {
+        console.warn("Monolith linked students refresh failed", error);
+      }
+      return studentsForPersonal(personalId);
+    }
+
     function selectedDietStudentId() {
-      return document.getElementById("dietStudent")?.value || studentsForPersonal(currentAccount()?.id)[0]?.id || "aluno-demo";
+      return document.getElementById("dietStudent")?.value || localStorage.getItem("monolith.selectedDietStudentId") || studentsForPersonal(currentAccount()?.id)[0]?.id || "aluno-demo";
     }
 
     function activeDietForStudent(studentId, month = currentMonthKey()) {
@@ -3001,7 +3018,7 @@
       }).join("") || `<div class="report-line">${escapeHTML(t("Nenhum diário alimentar salvo ainda."))}</div>`;
     }
 
-    function renderNutrition() {
+    async function renderNutrition() {
       const user = currentAccount();
       const personalPanel = document.getElementById("nutritionPersonalPanel");
       const studentPanel = document.getElementById("nutritionStudentPanel");
@@ -3014,9 +3031,12 @@
       studentPanel.hidden = user.role === "personal";
       if (user.role === "personal") {
         const select = document.getElementById("dietStudent");
-        const students = studentsForPersonal(user.id);
+        const previousStudentId = select.value || localStorage.getItem("monolith.selectedDietStudentId");
+        const students = await ensureLinkedStudentsForPersonal(user.id);
         select.innerHTML = students.map(student => `<option value="${escapeHTML(student.id)}">${escapeHTML(student.name)} - ${escapeHTML(student.email)}</option>`).join("");
-        if (!select.value && students[0]) select.value = students[0].id;
+        if (students.some(student => student.id === previousStudentId)) select.value = previousStudentId;
+        else if (students[0]) select.value = students[0].id;
+        if (select.value) localStorage.setItem("monolith.selectedDietStudentId", select.value);
         const plan = activeDietForStudent(selectedDietStudentId(), monthInput.value || currentMonthKey());
         document.getElementById("dietMealCount").value = String(plan?.meals?.length || document.getElementById("dietMealCount").value || 5);
         ["dietCalories", "dietProtein", "dietCarbs", "dietFat"].forEach(id => {
@@ -3086,6 +3106,7 @@
         "Tipo": "Type",
         "Nome completo": "Full name",
         "Mínimo 6 caracteres": "Minimum 6 characters",
+        "Aluno": "Student",
         "Aluno": "Student",
         "Criar e entrar": "Create and log in",
         "Sair": "Log out",
@@ -3507,6 +3528,7 @@
         "Tipo": "Tipo",
         "Nome completo": "Nombre completo",
         "Mínimo 6 caracteres": "Mínimo 6 caracteres",
+        "Aluno": "Alumno",
         "Aluno": "Alumno",
         "Criar e entrar": "Crear y entrar",
         "Sair": "Salir",
@@ -4022,7 +4044,30 @@
       localStorage.setItem("monolith.workouts", JSON.stringify(list));
     }
 
-    function openWorkoutModal() {
+    function selectedWorkoutStudentId() {
+      return document.getElementById("workoutStudent")?.value || localStorage.getItem("monolith.selectedWorkoutStudentId") || studentsForPersonal(currentAccount()?.id)[0]?.id || "";
+    }
+
+    async function renderWorkoutStudentSelect() {
+      const field = document.getElementById("workoutStudentField");
+      const select = document.getElementById("workoutStudent");
+      const user = currentAccount();
+      if (!field || !select) return;
+      field.hidden = !user || user.role !== "personal";
+      if (!user || user.role !== "personal") {
+        select.innerHTML = "";
+        return;
+      }
+      const previousStudentId = select.value || localStorage.getItem("monolith.selectedWorkoutStudentId") || localStorage.getItem("monolith.selectedDietStudentId");
+      const students = await ensureLinkedStudentsForPersonal(user.id);
+      select.innerHTML = students.map(student => `<option value="${escapeHTML(student.id)}">${escapeHTML(student.name)} - ${escapeHTML(student.email)}</option>`).join("");
+      if (students.some(student => student.id === previousStudentId)) select.value = previousStudentId;
+      else if (students[0]) select.value = students[0].id;
+      if (select.value) localStorage.setItem("monolith.selectedWorkoutStudentId", select.value);
+    }
+
+    async function openWorkoutModal() {
+      await renderWorkoutStudentSelect();
       workoutModal.classList.add("active");
       workoutName.focus();
     }
@@ -4408,7 +4453,12 @@
       };
     }
 
-    function monthlyReportData() {
+    function reportStudentFromId(studentId) {
+      if (!studentId) return currentAccount();
+      return loadAccounts().find(account => account.id === studentId) || { id: studentId, name: "Aluno", email: "" };
+    }
+
+    function monthlyReportData(student = null) {
       const checkins = lastThirtyCheckins();
       const completedWorkouts = JSON.parse(localStorage.getItem("monolith.completedWorkouts") || "[]");
       const stats = factors.map(factor => {
@@ -4421,9 +4471,10 @@
       const bodyMeasures = loadBodyMeasures();
       const weights = physicalWeightSeries(checkins, bodyMeasures);
       const user = currentAccount();
-      const dietStudentId = user?.role === "student" ? user.id : selectedDietStudentId();
+      const reportStudent = student || (user?.role === "student" ? user : reportStudentFromId(selectedDietStudentId()));
+      const dietStudentId = reportStudent?.id || (user?.role === "student" ? user.id : selectedDietStudentId());
       const activeDietPlan = activeDietForStudent(dietStudentId, currentMonthKey());
-      return { checkins, completedWorkouts, stats, evolution, missedDays, weights, bodyMeasures, activeDietPlan, generatedAt: new Date().toLocaleString("pt-BR") };
+      return { student: reportStudent, checkins, completedWorkouts, stats, evolution, missedDays, weights, bodyMeasures, activeDietPlan, generatedAt: new Date().toLocaleString("pt-BR") };
     }
 
     function monthlyReportHTMLLegacy() {
@@ -4462,6 +4513,7 @@
       en: {
         "Salvar como PDF": "Save as PDF",
         "Relatório mensal MONOLITH": "MONOLITH Monthly Report",
+        "Aluno": "Student",
         "Gerado em": "Generated at",
         "Use o botão do navegador para salvar como PDF.": "Use the browser button to save as PDF.",
         "Alerta de check-in para o personal": "Trainer Check-in Alert",
@@ -4520,6 +4572,7 @@
       es: {
         "Salvar como PDF": "Guardar como PDF",
         "Relatório mensal MONOLITH": "Informe mensual MONOLITH",
+        "Aluno": "Alumno",
         "Gerado em": "Generado el",
         "Use o botão do navegador para salvar como PDF.": "Usa el botón del navegador para guardar como PDF.",
         "Alerta de check-in para o personal": "Alerta de check-in para el entrenador",
@@ -4586,11 +4639,13 @@
       return language === "pt" ? key : reportTranslations[language]?.[key] || t(key, language);
     }
 
-    function monthlyReportHTML() {
-      const report = monthlyReportData();
+    function monthlyReportHTML(student = null) {
+      const report = monthlyReportData(student);
       const language = reportLanguage();
       const rt = key => reportText(key, language);
       const htmlLang = language === "pt" ? "pt-BR" : language;
+      const studentName = report.student?.name || report.student?.full_name || rt("Aluno");
+      const studentEmail = report.student?.email || "";
       const statsRows = report.stats.map(item => `<tr><td>${escapeHTML(t(item.name, language))}</td><td>${item.completed}/${item.total}</td><td>${Math.round((item.completed / Math.max(1, item.total)) * 100)}%</td></tr>`).join("");
       const dayRows = report.checkins.map(day => `<tr><td>${escapeHTML(day.label || day.date)}</td><td>${day.weight ? formatWeight(day.weight) : rt("Peso não registrado")}</td><td>${day.completed}/${day.total}</td><td>${day.score}%</td><td>${day.items.map(item => `${escapeHTML(t(item.name, language))}: ${item.completed ? rt("ok") : rt("não")}`).join("<br>")}</td></tr>`).join("");
       const workoutRows = report.completedWorkouts.slice(0, 30).map(session => `<tr><td>${escapeHTML(session.date || session.completedAt || "-")}</td><td>${escapeHTML(t(session.workoutName || "Treino", language))}</td><td>${session.completedSets || 0}/${session.totalSets || 0} ${rt("séries")}</td></tr>`).join("");
@@ -4631,6 +4686,7 @@ th{background:#eee}.muted{color:#666}.gain{color:#137333;font-weight:700}.drop{c
 <body>
 <button onclick="window.print()">${rt("Salvar como PDF")}</button>
 <h1>${rt("Relatório mensal MONOLITH")}</h1>
+<p><strong>${rt("Aluno")}:</strong> ${escapeHTML(studentName)}${studentEmail ? ` · ${escapeHTML(studentEmail)}` : ""}</p>
 <p class="muted">${rt("Gerado em")} ${escapeHTML(report.generatedAt)}. ${rt("Use o botão do navegador para salvar como PDF.")}</p>
 <h2>${rt("Alerta de check-in para o personal")}</h2>
 <div class="alert"><strong class="${alertLevel}">${report.missedDays.length} ${rt("dias sem check-in nos últimos 30 dias.")}</strong><br>${report.missedDays.length ? `${rt("Dias recentes sem registro")}: ${missedPreview}` : rt("Aluno manteve check-in completo no período.")}</div>
@@ -4667,10 +4723,15 @@ ${bodyFatBars ? `<div class="chart">${bodyFatBars}</div>` : `<p class="muted">${
       URL.revokeObjectURL(link.href);
     }
 
-    function openMonthlyReport() {
+    function openMonthlyReport(student = null) {
       const reportWindow = window.open("", "_blank");
-      reportWindow.document.write(monthlyReportHTML());
+      reportWindow.document.write(monthlyReportHTML(student));
       reportWindow.document.close();
+    }
+
+    function openStudentReport(studentId) {
+      const student = reportStudentFromId(studentId);
+      openMonthlyReport(student);
     }
 
     function renderTrainerSummary() {
@@ -4816,7 +4877,11 @@ ${bodyFatBars ? `<div class="chart">${bodyFatBars}</div>` : `<p class="muted">${
       setWeightUnit(button.dataset.unit);
     });
     document.getElementById("dietMealCount")?.addEventListener("change", () => renderDietMealBuilder());
-    document.getElementById("dietStudent")?.addEventListener("change", renderNutrition);
+    document.getElementById("dietStudent")?.addEventListener("change", event => {
+      localStorage.setItem("monolith.selectedDietStudentId", event.target.value);
+      localStorage.setItem("monolith.selectedWorkoutStudentId", event.target.value);
+      renderNutrition();
+    });
     document.getElementById("dietMonth")?.addEventListener("change", renderNutrition);
     document.getElementById("dietPlanForm")?.addEventListener("submit", event => {
       event.preventDefault();
@@ -4932,6 +4997,10 @@ ${bodyFatBars ? `<div class="chart">${bodyFatBars}</div>` : `<p class="muted">${
       await linkStudentToTrainer(document.getElementById("trainerInviteCode").value);
       event.target.reset();
     });
+    document.getElementById("workoutStudent")?.addEventListener("change", event => {
+      localStorage.setItem("monolith.selectedWorkoutStudentId", event.target.value);
+      localStorage.setItem("monolith.selectedDietStudentId", event.target.value);
+    });
     document.getElementById("inviteStudentButton")?.addEventListener("click", async () => {
       const personal = currentAccount();
       if (!personal || personal.role !== "personal") return;
@@ -4986,6 +5055,11 @@ ${bodyFatBars ? `<div class="chart">${bodyFatBars}</div>` : `<p class="muted">${
       const clearFoodRow = event.target.closest(".clear-food-row");
       if (clearFoodRow) {
         clearFoodRow.closest(".food-log-row").querySelectorAll("input").forEach(input => input.value = "");
+      }
+
+      const studentReportButton = event.target.closest(".open-student-report");
+      if (studentReportButton) {
+        openStudentReport(studentReportButton.dataset.studentId);
       }
 
       const setDone = event.target.closest(".set-done");
@@ -5083,7 +5157,7 @@ ${bodyFatBars ? `<div class="chart">${bodyFatBars}</div>` : `<p class="muted">${
       renderTrainerSummary();
       showToast("Histórico mensal limpo.");
     });
-    document.getElementById("openMonthlyReport").addEventListener("click", openMonthlyReport);
+    document.getElementById("openMonthlyReport").addEventListener("click", () => openMonthlyReport());
     document.addEventListener("change", async event => {
       const input = event.target.closest(".photo-card input[type='file']");
       if (!input || !input.files?.[0]) return;
@@ -5548,8 +5622,10 @@ ${bodyFatBars ? `<div class="chart">${bodyFatBars}</div>` : `<p class="muted">${
           workoutListV2.innerHTML = `<article class="workout"><div><h3>${htmlT("Nenhum treino criado")}</h3><p>${htmlT("Crie seu primeiro treino do zero. No celular, use os modelos rápidos dentro do editor.")}</p></div></article>`;
           return;
         }
+        const accounts = loadAccounts();
         workoutsV2.forEach(workout => {
           const totalSets = workout.exercises.reduce((total, exercise) => total + exercise.sets.length, 0);
+          const assignedStudent = accounts.find(account => account.id === workout.assignedStudentId);
           const card = document.createElement("article");
           card.className = "workout";
           card.innerHTML = `
@@ -5559,6 +5635,7 @@ ${bodyFatBars ? `<div class="chart">${bodyFatBars}</div>` : `<p class="muted">${
               <div class="pill-row">
                 <span class="pill">${workout.exercises.length} ${htmlT("exercícios")}</span>
                 <span class="pill">${totalSets} ${htmlT("séries")}</span>
+                ${assignedStudent ? `<span class="pill">${htmlT("Aluno")}: ${html(assignedStudent.name)}</span>` : ""}
                 <span class="pill">${htmlT(workout.tag || "Local")}</span>
               </div>
             </div>
@@ -5692,6 +5769,7 @@ ${bodyFatBars ? `<div class="chart">${bodyFatBars}</div>` : `<p class="muted">${
           id: `custom-${Date.now()}`,
           name: document.getElementById("workoutName").value.trim() || textV2("Novo treino"),
           goal: document.getElementById("workoutGoal").value.trim() || textV2("Treino criado com exercícios e séries."),
+          assignedStudentId: currentAccount()?.role === "personal" ? selectedWorkoutStudentId() : currentAccount()?.id,
           tag: "Local",
           exercises
         };
@@ -5906,6 +5984,10 @@ ${bodyFatBars ? `<div class="chart">${bodyFatBars}</div>` : `<p class="muted">${
         const workout = readWorkoutV2();
         workoutsV2.unshift(workout);
         saveCustomWorkoutV2(workout);
+        if (workout.assignedStudentId) {
+          localStorage.setItem("monolith.selectedWorkoutStudentId", workout.assignedStudentId);
+          localStorage.setItem("monolith.selectedDietStudentId", workout.assignedStudentId);
+        }
         renderWorkoutListV2();
         document.getElementById("workoutModal").classList.remove("active");
         formV2.reset();
