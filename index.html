@@ -1869,7 +1869,7 @@
       <div class="auth-card" data-auth-panel="login">
         <h2>Login</h2>
         <p>Entre como aluno ou personal para abrir o painel correto.</p>
-        <form class="auth-form" id="loginForm">
+        <form class="auth-form" id="loginForm" action="javascript:void(0)" onsubmit="return false">
           <div>
             <label for="loginEmail">E-mail</label>
             <input id="loginEmail" type="email" autocomplete="email" required placeholder="email@monolith.app" />
@@ -1888,8 +1888,8 @@
           <button class="action" type="submit">Entrar</button>
         </form>
         <div class="auth-demo">
-          <button class="ghost demo-login" type="button" data-email="aluno@monolith.app">Demo aluno</button>
-          <button class="ghost demo-login" type="button" data-email="personal@monolith.app">Demo personal</button>
+          <button class="ghost demo-login" type="button" data-email="aluno@monolith.app" onclick="window.monolithDemoLogin?.(this.dataset.email); return false;">Demo aluno</button>
+          <button class="ghost demo-login" type="button" data-email="personal@monolith.app" onclick="window.monolithDemoLogin?.(this.dataset.email); return false;">Demo personal</button>
         </div>
       </div>
 
@@ -1897,7 +1897,7 @@
         <h3>Criar conta</h3>
         <p>Crie uma conta real no Supabase para testar a experiência separada.</p>
         <div class="auth-warning" data-i18n="Após criar conta, confirme o cadastro no e-mail antes de entrar.">Após criar conta, confirme o cadastro no e-mail antes de entrar.</div>
-        <form class="auth-form" id="signupForm">
+        <form class="auth-form" id="signupForm" action="javascript:void(0)" onsubmit="return false">
           <div class="auth-grid">
             <div>
               <label for="signupName">Nome</label>
@@ -2960,6 +2960,14 @@
       authMessage(`${t("Bem-vindo")}, ${account.name}.`);
       return true;
     }
+
+    window.monolithDemoLogin = async email => {
+      const emailInput = document.getElementById("loginEmail");
+      const passwordInput = document.getElementById("loginPassword");
+      if (emailInput) emailInput.value = email;
+      if (passwordInput) passwordInput.value = "123456";
+      await loginAccount(email, "123456");
+    };
 
     function currentMonthKey() {
       return new Date().toISOString().slice(0, 7);
