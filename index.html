@@ -39,13 +39,6 @@
       display: none;
     }
 
-    body.authenticated .app {
-      display: grid;
-      position: relative;
-      z-index: 10;
-      pointer-events: auto;
-    }
-
     button, input, textarea {
       font: inherit;
     }
@@ -61,12 +54,7 @@
     }
 
     body.authenticated .auth-screen {
-      display: none !important;
-      visibility: hidden;
-      pointer-events: none;
-      position: absolute;
-      inset: auto;
-      z-index: -1;
+      display: none;
     }
 
     .auth-hero {
@@ -232,16 +220,6 @@
       min-height: 100vh;
       display: grid;
       grid-template-columns: 276px minmax(0, 1fr);
-      position: relative;
-      z-index: 1;
-    }
-
-    body.authenticated .app button,
-    body.authenticated .app a,
-    body.authenticated .app input,
-    body.authenticated .app select,
-    body.authenticated .app textarea {
-      pointer-events: auto;
     }
 
     aside {
@@ -584,12 +562,10 @@
 
     .screen {
       display: none;
-      pointer-events: none;
     }
 
     .screen.active {
       display: block;
-      pointer-events: auto;
     }
 
     .grid {
@@ -1265,12 +1241,10 @@
       padding: 18px;
       background: rgba(0, 0, 0, .72);
       z-index: 20;
-      pointer-events: none;
     }
 
     .modal-backdrop.active {
       display: grid;
-      pointer-events: auto;
     }
 
     .modal {
@@ -1862,7 +1836,7 @@
       <div class="auth-card" data-auth-panel="login">
         <h2>Login</h2>
         <p>Entre como aluno ou personal para abrir o painel correto.</p>
-        <form class="auth-form" id="loginForm" action="javascript:void(0)" onsubmit="return false">
+        <form class="auth-form" id="loginForm">
           <div>
             <label for="loginEmail">E-mail</label>
             <input id="loginEmail" type="email" autocomplete="email" required placeholder="email@monolith.app" />
@@ -1872,7 +1846,7 @@
             <input id="loginPassword" type="password" autocomplete="current-password" required placeholder="123456" />
           </div>
           <div class="auth-warning" id="loginNotice" hidden></div>
-          <button class="action" type="submit">Entrar</button>
+          <button class="action" id="loginButton" type="button">Entrar</button>
         </form>
         <div class="auth-demo">
           <button class="ghost demo-login" type="button" data-email="aluno@monolith.app">Demo aluno</button>
@@ -1884,7 +1858,7 @@
         <h3>Criar conta</h3>
         <p>Crie uma conta real no Supabase para testar a experiência separada.</p>
         <div class="auth-warning" data-i18n="Após criar conta, confirme o cadastro no e-mail antes de entrar.">Após criar conta, confirme o cadastro no e-mail antes de entrar.</div>
-        <form class="auth-form" id="signupForm" action="javascript:void(0)" onsubmit="return false">
+        <form class="auth-form" id="signupForm">
           <div class="auth-grid">
             <div>
               <label for="signupName">Nome</label>
@@ -2436,19 +2410,6 @@
     const MONOLITH_SUPABASE_KEY = "sb_publishable_lDtAXIOtkMwgwsAZyghBdg_gyLHGwpH";
     const monolithSupabase = window.supabase?.createClient?.(MONOLITH_SUPABASE_URL, MONOLITH_SUPABASE_KEY) || null;
 
-    (() => {
-      if ("serviceWorker" in navigator) {
-        navigator.serviceWorker.getRegistrations?.().then(registrations => {
-          registrations.forEach(registration => registration.unregister());
-        }).catch(() => {});
-      }
-      if ("caches" in window) {
-        caches.keys().then(keys => {
-          keys.filter(key => key.startsWith("monolith-")).forEach(key => caches.delete(key));
-        }).catch(() => {});
-      }
-    })();
-
     const defaultFactors = [
       { id: "agua", group: "Saúde", name: "Água", active: true, positive: true },
       { id: "sono-7h", group: "Recuperação", name: "Dormi o suficiente?", active: true, positive: true },
@@ -2637,8 +2598,8 @@
       const toast = document.getElementById("toast");
       if (toast) {
         toast.textContent = t(message);
-        toast.classList.add("show");
-        setTimeout(() => toast.classList.remove("show"), 2200);
+        toast.classList.add("active");
+        setTimeout(() => toast.classList.remove("active"), 2200);
       }
     }
 
@@ -5389,10 +5350,20 @@ ${photoSections}
       renderFoodLogSummary();
       authMessage("Diário alimentar salvo.");
     });
-    document.getElementById("loginForm")?.addEventListener("submit", async event => {
-      event.preventDefault();
+    async function submitLogin() {
       showLoginNotice("");
       await loginAccount(document.getElementById("loginEmail").value, document.getElementById("loginPassword").value);
+    }
+
+    document.getElementById("loginButton")?.addEventListener("click", submitLogin);
+    document.getElementById("loginForm")?.addEventListener("submit", async event => {
+      event.preventDefault();
+      await submitLogin();
+    });
+    document.getElementById("loginPassword")?.addEventListener("keydown", event => {
+      if (event.key !== "Enter") return;
+      event.preventDefault();
+      submitLogin();
     });
     document.querySelectorAll(".demo-login").forEach(button => {
       button.addEventListener("click", async () => {
@@ -5555,6 +5526,27 @@ ${photoSections}
       window.scrollTo({ top: 0, behavior: "smooth" });
     }
 
+    document.querySelectorAll("[data-screen]").forEach(nav => {
+      nav.addEventListener("click", event => {
+        event.preventDefault();
+        showScreen(nav.dataset.screen);
+        if (nav.dataset.screen === "stats") {
+          renderStats();
+          renderPhotoVault();
+        }
+        if (nav.dataset.screen === "measures") renderBodyMeasures();
+        if (nav.dataset.screen === "nutrition") renderNutrition();
+        if (nav.dataset.screen === "backup") renderTrainerSummary();
+      });
+    });
+
+    document.querySelectorAll("[data-screen-jump]").forEach(jump => {
+      jump.addEventListener("click", event => {
+        event.preventDefault();
+        showScreen(jump.dataset.screenJump);
+      });
+    });
+
     document.addEventListener("click", event => {
       const toggle = event.target.closest(".toggle");
       if (toggle) {
@@ -5610,20 +5602,6 @@ ${photoSections}
         revealPhoto.textContent = preview.classList.contains("revealed") ? "Ocultar foto" : "Ver foto";
       }
 
-      const nav = event.target.closest("[data-screen]");
-      if (nav) {
-        showScreen(nav.dataset.screen);
-      if (nav.dataset.screen === "stats") {
-          renderStats();
-          renderPhotoVault();
-        }
-        if (nav.dataset.screen === "measures") renderBodyMeasures();
-        if (nav.dataset.screen === "nutrition") renderNutrition();
-        if (nav.dataset.screen === "backup") renderTrainerSummary();
-      }
-
-      const jump = event.target.closest("[data-screen-jump]");
-      if (jump) showScreen(jump.dataset.screenJump);
     });
 
     document.getElementById("newWorkoutButton").addEventListener("click", openWorkoutModal);
