@@ -39,6 +39,13 @@
       display: none;
     }
 
+    body.authenticated .app {
+      display: grid;
+      position: relative;
+      z-index: 10;
+      pointer-events: auto;
+    }
+
     button, input, textarea {
       font: inherit;
     }
@@ -54,7 +61,12 @@
     }
 
     body.authenticated .auth-screen {
-      display: none;
+      display: none !important;
+      visibility: hidden;
+      pointer-events: none;
+      position: absolute;
+      inset: auto;
+      z-index: -1;
     }
 
     .auth-hero {
@@ -220,6 +232,16 @@
       min-height: 100vh;
       display: grid;
       grid-template-columns: 276px minmax(0, 1fr);
+      position: relative;
+      z-index: 1;
+    }
+
+    body.authenticated .app button,
+    body.authenticated .app a,
+    body.authenticated .app input,
+    body.authenticated .app select,
+    body.authenticated .app textarea {
+      pointer-events: auto;
     }
 
     aside {
@@ -562,10 +584,12 @@
 
     .screen {
       display: none;
+      pointer-events: none;
     }
 
     .screen.active {
       display: block;
+      pointer-events: auto;
     }
 
     .grid {
@@ -1241,10 +1265,12 @@
       padding: 18px;
       background: rgba(0, 0, 0, .72);
       z-index: 20;
+      pointer-events: none;
     }
 
     .modal-backdrop.active {
       display: grid;
+      pointer-events: auto;
     }
 
     .modal {
