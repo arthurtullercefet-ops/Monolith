@@ -1879,6 +1879,19 @@
             <label for="signupPassword">Senha</label>
             <input id="signupPassword" type="password" autocomplete="new-password" required minlength="6" placeholder="Mínimo 6 caracteres" data-i18n-placeholder="Mínimo 6 caracteres" />
           </div>
+          <div>
+            <label for="signupPasswordConfirm">Confirmar senha</label>
+            <input id="signupPasswordConfirm" type="password" autocomplete="new-password" required minlength="6" placeholder="Repita a senha" data-i18n-placeholder="Repita a senha" />
+          </div>
+          <div>
+            <label for="signupPersonalCode">Código do personal</label>
+            <input id="signupPersonalCode" placeholder="Opcional para aluno" data-i18n-placeholder="Opcional para aluno" />
+          </div>
+          <div>
+            <label for="signupInfluencerCode">Código do influencer</label>
+            <input id="signupInfluencerCode" placeholder="Opcional" data-i18n-placeholder="Opcional" />
+          </div>
+          <div class="auth-warning" id="signupNotice" hidden></div>
           <button class="ghost" type="submit">Criar e entrar</button>
         </form>
       </div>
@@ -2296,6 +2309,14 @@
             <div class="date">Treinos, cardio, medidas, fotos e recordes</div>
           </div>
         </div>
+        <div class="panel" id="statsStudentPanel" hidden>
+          <div class="factor-form">
+            <div class="form-field">
+              <label for="statsStudent">Aluno</label>
+              <select id="statsStudent"></select>
+            </div>
+          </div>
+        </div>
         <div class="grid stats-layout">
           <div class="panel">
             <div class="section-title"><h3>Frequência</h3><span>Últimos 30 dias</span></div>
@@ -2565,6 +2586,13 @@
         toast.classList.add("show");
         setTimeout(() => toast.classList.remove("show"), 2200);
       }
+    }
+
+    function showSignupNotice(message) {
+      const notice = document.getElementById("signupNotice");
+      if (!notice) return;
+      notice.hidden = false;
+      notice.textContent = t(message);
     }
 
     function isRealSupabaseAccount(account) {
@@ -2884,6 +2912,21 @@
         .sort((a, b) => a.name.localeCompare(b.name, undefined, { sensitivity: "base" }));
     }
 
+    function selectedStudentForPersonal() {
+      return localStorage.getItem("monolith.selectedStudentId")
+        || localStorage.getItem("monolith.selectedDietStudentId")
+        || localStorage.getItem("monolith.selectedWorkoutStudentId")
+        || studentsForPersonal(currentAccount()?.id)[0]?.id
+        || "";
+    }
+
+    function setSelectedStudentForPersonal(studentId) {
+      if (!studentId) return;
+      localStorage.setItem("monolith.selectedStudentId", studentId);
+      localStorage.setItem("monolith.selectedDietStudentId", studentId);
+      localStorage.setItem("monolith.selectedWorkoutStudentId", studentId);
+    }
+
     async function ensureLinkedStudentsForPersonal(personalId = currentAccount()?.id) {
       const personal = loadAccounts().find(account => account.id === personalId) || currentAccount();
       if (!personal || personal.role !== "personal" || !isRealSupabaseAccount(personal)) return studentsForPersonal(personalId);
@@ -2897,7 +2940,7 @@
     }
 
     function selectedDietStudentId() {
-      return document.getElementById("dietStudent")?.value || localStorage.getItem("monolith.selectedDietStudentId") || studentsForPersonal(currentAccount()?.id)[0]?.id || "aluno-demo";
+      return document.getElementById("dietStudent")?.value || selectedStudentForPersonal() || "aluno-demo";
     }
 
     function activeDietForStudent(studentId, month = currentMonthKey()) {
@@ -3031,12 +3074,12 @@
       studentPanel.hidden = user.role === "personal";
       if (user.role === "personal") {
         const select = document.getElementById("dietStudent");
-        const previousStudentId = select.value || localStorage.getItem("monolith.selectedDietStudentId");
+        const previousStudentId = select.value || selectedStudentForPersonal();
         const students = await ensureLinkedStudentsForPersonal(user.id);
         select.innerHTML = students.map(student => `<option value="${escapeHTML(student.id)}">${escapeHTML(student.name)} - ${escapeHTML(student.email)}</option>`).join("");
         if (students.some(student => student.id === previousStudentId)) select.value = previousStudentId;
         else if (students[0]) select.value = students[0].id;
-        if (select.value) localStorage.setItem("monolith.selectedDietStudentId", select.value);
+        if (select.value) setSelectedStudentForPersonal(select.value);
         const plan = activeDietForStudent(selectedDietStudentId(), monthInput.value || currentMonthKey());
         document.getElementById("dietMealCount").value = String(plan?.meals?.length || document.getElementById("dietMealCount").value || 5);
         ["dietCalories", "dietProtein", "dietCarbs", "dietFat"].forEach(id => {
@@ -3190,7 +3233,14 @@
         "O aluno entra no próprio login, cola este código em Vincular personal e confirma o vínculo.": "The student logs into their own account, pastes this code in Link trainer and confirms the link.",
         "Vincular personal": "Link trainer",
         "Convite": "Invite",
+        "Confirmar senha": "Confirm password",
+        "Repita a senha": "Repeat password",
         "Código do personal": "Trainer code",
+        "Código do influencer": "Influencer code",
+        "Opcional para aluno": "Optional for students",
+        "Opcional": "Optional",
+        "As senhas não conferem.": "Passwords do not match.",
+        "Enviamos um e-mail de confirmação. Acesse sua caixa de entrada e confirme o cadastro para entrar.": "We sent a confirmation email. Open your inbox and confirm your account to log in.",
         "Cole o código de convite": "Paste the invite code",
         "Vincular": "Link",
         "Sem personal vinculado.": "No trainer linked.",
@@ -3612,7 +3662,14 @@
         "O aluno entra no próprio login, cola este código em Vincular personal e confirma o vínculo.": "El alumno entra con su propio login, pega este código en Vincular entrenador y confirma el vínculo.",
         "Vincular personal": "Vincular entrenador",
         "Convite": "Invitación",
+        "Confirmar senha": "Confirmar contraseña",
+        "Repita a senha": "Repite la contraseña",
         "Código do personal": "Código del entrenador",
+        "Código do influencer": "Código del influencer",
+        "Opcional para aluno": "Opcional para alumno",
+        "Opcional": "Opcional",
+        "As senhas não conferem.": "Las contraseñas no coinciden.",
+        "Enviamos um e-mail de confirmação. Acesse sua caixa de entrada e confirme o cadastro para entrar.": "Enviamos un correo de confirmación. Abre tu bandeja de entrada y confirma tu cuenta para entrar.",
         "Cole o código de convite": "Pega el código de invitación",
         "Vincular": "Vincular",
         "Sem personal vinculado.": "Sin entrenador vinculado.",
@@ -4045,7 +4102,7 @@
     }
 
     function selectedWorkoutStudentId() {
-      return document.getElementById("workoutStudent")?.value || localStorage.getItem("monolith.selectedWorkoutStudentId") || studentsForPersonal(currentAccount()?.id)[0]?.id || "";
+      return document.getElementById("workoutStudent")?.value || selectedStudentForPersonal() || "";
     }
 
     async function renderWorkoutStudentSelect() {
@@ -4058,12 +4115,12 @@
         select.innerHTML = "";
         return;
       }
-      const previousStudentId = select.value || localStorage.getItem("monolith.selectedWorkoutStudentId") || localStorage.getItem("monolith.selectedDietStudentId");
+      const previousStudentId = select.value || selectedStudentForPersonal();
       const students = await ensureLinkedStudentsForPersonal(user.id);
       select.innerHTML = students.map(student => `<option value="${escapeHTML(student.id)}">${escapeHTML(student.name)} - ${escapeHTML(student.email)}</option>`).join("");
       if (students.some(student => student.id === previousStudentId)) select.value = previousStudentId;
       else if (students[0]) select.value = students[0].id;
-      if (select.value) localStorage.setItem("monolith.selectedWorkoutStudentId", select.value);
+      if (select.value) setSelectedStudentForPersonal(select.value);
     }
 
     async function openWorkoutModal() {
@@ -4343,6 +4400,7 @@
     function renderStats() {
       const container = document.getElementById("frequencyBars");
       if (!container) return;
+      renderStatsStudentSelect();
       const checkins = lastThirtyCheckins();
       container.innerHTML = "";
       factors.forEach(factor => {
@@ -4843,6 +4901,21 @@ ${bodyFatBars ? `<div class="chart">${bodyFatBars}</div>` : `<p class="muted">${
       renderTrainerSummary();
     }
 
+    async function renderStatsStudentSelect() {
+      const panel = document.getElementById("statsStudentPanel");
+      const select = document.getElementById("statsStudent");
+      const user = currentAccount();
+      if (!panel || !select) return;
+      panel.hidden = !user || user.role !== "personal";
+      if (!user || user.role !== "personal") return;
+      const previousStudentId = select.value || selectedStudentForPersonal();
+      const students = await ensureLinkedStudentsForPersonal(user.id);
+      select.innerHTML = students.map(student => `<option value="${escapeHTML(student.id)}">${escapeHTML(student.name)} - ${escapeHTML(student.email)}</option>`).join("");
+      if (students.some(student => student.id === previousStudentId)) select.value = previousStudentId;
+      else if (students[0]) select.value = students[0].id;
+      if (select.value) setSelectedStudentForPersonal(select.value);
+    }
+
     renderFactors();
     renderPhotoVault();
     renderStats();
@@ -4878,8 +4951,7 @@ ${bodyFatBars ? `<div class="chart">${bodyFatBars}</div>` : `<p class="muted">${
     });
     document.getElementById("dietMealCount")?.addEventListener("change", () => renderDietMealBuilder());
     document.getElementById("dietStudent")?.addEventListener("change", event => {
-      localStorage.setItem("monolith.selectedDietStudentId", event.target.value);
-      localStorage.setItem("monolith.selectedWorkoutStudentId", event.target.value);
+      setSelectedStudentForPersonal(event.target.value);
       renderNutrition();
     });
     document.getElementById("dietMonth")?.addEventListener("change", renderNutrition);
@@ -4924,6 +4996,8 @@ ${bodyFatBars ? `<div class="chart">${bodyFatBars}</div>` : `<p class="muted">${
     });
     document.getElementById("signupForm")?.addEventListener("submit", async event => {
       event.preventDefault();
+      const signupNotice = document.getElementById("signupNotice");
+      if (signupNotice) signupNotice.hidden = true;
       await ensureDemoAccounts();
       const accounts = loadAccounts();
       const email = document.getElementById("signupEmail").value.trim().toLowerCase();
@@ -4935,6 +5009,16 @@ ${bodyFatBars ? `<div class="chart">${bodyFatBars}</div>` : `<p class="muted">${
       const role = document.getElementById("signupRole").value;
       const name = document.getElementById("signupName").value.trim();
       const password = document.getElementById("signupPassword").value;
+      const passwordConfirm = document.getElementById("signupPasswordConfirm").value;
+      const personalCode = document.getElementById("signupPersonalCode").value.trim();
+      const influencerCode = document.getElementById("signupInfluencerCode").value.trim();
+      if (password !== passwordConfirm) {
+        showSignupNotice("As senhas não conferem.");
+        authMessage("As senhas não conferem.");
+        return;
+      }
+      if (personalCode) localStorage.setItem(`monolith.pendingTrainerInvite:${email}`, personalCode);
+      if (influencerCode) localStorage.setItem(`monolith.pendingInfluencerCode:${email}`, influencerCode);
       if (monolithSupabase && !email.endsWith("@monolith.app")) {
         const { data, error } = await monolithSupabase.auth.signUp({
           email,
@@ -4952,16 +5036,19 @@ ${bodyFatBars ? `<div class="chart">${bodyFatBars}</div>` : `<p class="muted">${
         }
         if (!data.session) {
           event.target.reset();
-          authMessage("Conta criada. Confira seu e-mail para confirmar o cadastro.");
+          showSignupNotice("Enviamos um e-mail de confirmação. Acesse sua caixa de entrada e confirme o cadastro para entrar.");
+          authMessage("Enviamos um e-mail de confirmação. Acesse sua caixa de entrada e confirme o cadastro para entrar.");
           return;
         }
         try {
           const profile = await upsertRemoteProfile(data.user, { name, email, role });
           const account = cacheRemoteAccount(profile, data.user);
+          if (account.role === "student" && personalCode) await linkStudentToTrainer(personalCode);
           event.target.reset();
           applyAuthState();
           showScreen(account.role === "personal" ? "clients" : "home");
-          authMessage("Conta criada no Supabase. Confira seu e-mail para confirmar o cadastro.");
+          showSignupNotice("Enviamos um e-mail de confirmação. Acesse sua caixa de entrada e confirme o cadastro para entrar.");
+          authMessage("Enviamos um e-mail de confirmação. Acesse sua caixa de entrada e confirme o cadastro para entrar.");
           return;
         } catch (profileError) {
           authMessage("Conta criada, mas não consegui salvar o perfil.");
@@ -4977,7 +5064,8 @@ ${bodyFatBars ? `<div class="chart">${bodyFatBars}</div>` : `<p class="muted">${
         email,
         passwordHash: await hashPassword(password),
         plan: role === "personal" ? "Personal Trainer Basic" : "Aluno",
-        trainerId: role === "student" ? activePersonal?.id || "personal-demo" : undefined
+        trainerId: role === "student" ? trainerIdFromInviteCode(personalCode) || activePersonal?.id || "personal-demo" : undefined,
+        influencerCode: influencerCode || undefined
       };
       saveAccounts([account, ...accounts]);
       localStorage.setItem("monolith.sessionUserId", account.id);
@@ -4998,8 +5086,13 @@ ${bodyFatBars ? `<div class="chart">${bodyFatBars}</div>` : `<p class="muted">${
       event.target.reset();
     });
     document.getElementById("workoutStudent")?.addEventListener("change", event => {
-      localStorage.setItem("monolith.selectedWorkoutStudentId", event.target.value);
-      localStorage.setItem("monolith.selectedDietStudentId", event.target.value);
+      setSelectedStudentForPersonal(event.target.value);
+      window.monolithRefreshWorkoutView?.();
+    });
+    document.getElementById("statsStudent")?.addEventListener("change", event => {
+      setSelectedStudentForPersonal(event.target.value);
+      renderStats();
+      renderTrainerSummary();
     });
     document.getElementById("inviteStudentButton")?.addEventListener("click", async () => {
       const personal = currentAccount();
@@ -5037,6 +5130,13 @@ ${bodyFatBars ? `<div class="chart">${bodyFatBars}</div>` : `<p class="muted">${
       document.querySelectorAll(".screen").forEach(screen => screen.classList.toggle("active", screen.id === id));
       document.querySelectorAll(".nav-btn").forEach(btn => btn.classList.toggle("active", btn.dataset.screen === id));
       if (id === "clients") renderClientList();
+      if (id === "workouts" && typeof renderWorkoutStudentSelect === "function") {
+        renderWorkoutStudentSelect().then(() => {
+          window.monolithRefreshWorkoutView?.();
+        });
+      }
+      if (id === "stats") renderStats();
+      if (id === "nutrition") renderNutrition();
       window.scrollTo({ top: 0, behavior: "smooth" });
     }
 
@@ -5496,22 +5596,36 @@ ${bodyFatBars ? `<div class="chart">${bodyFatBars}</div>` : `<p class="muted">${
       }
 
       function normalizeWorkoutV2(workout) {
-        if (Array.isArray(workout.exercises) && workout.exercises[0]?.sets) return workout;
+        if (Array.isArray(workout.exercises) && workout.exercises[0]?.sets) {
+          return {
+            id: workout.id || `custom-${Date.now()}`,
+            ownerId: workout.ownerId || workout.owner_id || "",
+            assignedStudentId: workout.assignedStudentId || workout.assigned_student_id || "",
+            name: workout.name || "Treino",
+            goal: workout.goal || "Treino local",
+            tag: workout.tag || "Local",
+            source: workout.source || "local",
+            exercises: workout.exercises
+          };
+        }
         const names = String(workout.exercises || "Exercício").split(",").map(item => item.trim()).filter(Boolean);
         return {
           id: workout.id || `custom-${Date.now()}`,
+          ownerId: workout.ownerId || workout.owner_id || "",
+          assignedStudentId: workout.assignedStudentId || workout.assigned_student_id || "",
           name: workout.name || "Treino",
           goal: workout.goal || "Treino local",
           tag: "Local",
-        exercises: names.map(name => ({
-          name,
-          sets: [
+          source: workout.source || "local",
+          exercises: names.map(name => ({
+            name,
+            sets: [
               { weight: "", reps: "10", type: "Aquecimento", rest: "60" },
               { weight: "", reps: "10", type: "Normal", rest: "90" },
               { weight: "", reps: "8", type: "Falha", rest: "120" }
-          ]
-        }))
-      };
+            ]
+          }))
+        };
       }
 
       function loadWorkoutsV2() {
@@ -5536,10 +5650,112 @@ ${bodyFatBars ? `<div class="chart">${bodyFatBars}</div>` : `<p class="muted">${
         localStorage.setItem("monolith.deletedLibraryWorkouts", JSON.stringify(deleted));
       }
 
-      function saveCustomWorkoutV2(workout) {
+      function workoutFromRemoteV2(row) {
+        return normalizeWorkoutV2({
+          id: row.id,
+          ownerId: row.owner_id,
+          assignedStudentId: row.assigned_student_id,
+          name: row.name,
+          goal: row.goal,
+          tag: row.tag || "Supabase",
+          source: "supabase",
+          exercises: row.exercises || []
+        });
+      }
+
+      async function loadRemoteWorkoutsV2() {
+        const user = currentAccount();
+        if (!monolithSupabase || !isRealSupabaseAccount(user)) return [];
+        const { data, error } = await monolithSupabase
+          .from("workout_templates")
+          .select("id,owner_id,assigned_student_id,name,goal,tag,exercises,is_library,created_at")
+          .order("created_at", { ascending: false });
+        if (error) {
+          console.warn("Monolith Supabase workouts load failed", error);
+          return [];
+        }
+        return (data || []).map(workoutFromRemoteV2);
+      }
+
+      async function saveCustomWorkoutV2(workout) {
+        const user = currentAccount();
+        const localWorkout = normalizeWorkoutV2({ ...workout, ownerId: workout.ownerId || user?.id || "" });
+        if (monolithSupabase && isRealSupabaseAccount(user)) {
+          const payload = {
+            owner_id: user.id,
+            assigned_student_id: localWorkout.assignedStudentId || null,
+            name: localWorkout.name,
+            goal: localWorkout.goal,
+            tag: localWorkout.tag || "Local",
+            exercises: localWorkout.exercises || [],
+            is_library: false
+          };
+          const { data, error } = await monolithSupabase
+            .from("workout_templates")
+            .insert(payload)
+            .select("id,owner_id,assigned_student_id,name,goal,tag,exercises,is_library,created_at")
+            .single();
+          if (error) {
+            console.warn("Monolith Supabase workout save failed", error);
+          } else if (data) {
+            Object.assign(localWorkout, workoutFromRemoteV2(data));
+          }
+        }
         const saved = loadWorkoutsV2();
-        saved.unshift(workout);
-        localStorage.setItem("monolith.workouts", JSON.stringify(saved));
+        const withoutDuplicate = saved.filter(item => item.id !== localWorkout.id);
+        withoutDuplicate.unshift(localWorkout);
+        localStorage.setItem("monolith.workouts", JSON.stringify(withoutDuplicate));
+        return localWorkout;
+      }
+
+      function saveWorkoutsV2(workouts) {
+        localStorage.setItem("monolith.workouts", JSON.stringify(workouts.map(normalizeWorkoutV2)));
+      }
+
+      async function refreshWorkoutsV2() {
+        const remote = await loadRemoteWorkoutsV2();
+        const local = loadWorkoutsV2();
+        const merged = [...remote];
+        local.forEach(workout => {
+          if (!merged.some(item => item.id === workout.id)) merged.push(workout);
+        });
+        workoutsV2 = merged;
+        saveWorkoutsV2(workoutsV2);
+        renderWorkoutListV2();
+        const visible = workoutsForCurrentUserV2();
+        if (activeWorkoutV2 && visible.some(workout => workout.id === activeWorkoutV2.id)) {
+          renderSessionV2(activeWorkoutV2);
+          return;
+        }
+        activeWorkoutV2 = visible[0] || null;
+        renderSessionV2(activeWorkoutV2);
+      }
+
+      function workoutsForCurrentUserV2() {
+        const user = currentAccount();
+        if (!user) return workoutsV2;
+        if (user.role === "personal") {
+          const selectedStudentId = selectedWorkoutStudentId() || selectedStudentForPersonal();
+          return workoutsV2.filter(workout => selectedStudentId
+            ? workout.assignedStudentId === selectedStudentId
+            : workout.ownerId === user.id && !workout.assignedStudentId);
+        }
+        if (user.role === "student") {
+          if (user.trainerId) return workoutsV2.filter(workout => workout.assignedStudentId === user.id);
+          return workoutsV2.filter(workout => {
+            const ownerIsUser = !workout.ownerId || workout.ownerId === user.id;
+            const assignedToUser = !workout.assignedStudentId || workout.assignedStudentId === user.id;
+            return ownerIsUser && assignedToUser;
+          });
+        }
+        return workoutsV2;
+      }
+
+      async function deleteRemoteWorkoutV2(id) {
+        const user = currentAccount();
+        if (!monolithSupabase || !isRealSupabaseAccount(user)) return;
+        const { error } = await monolithSupabase.from("workout_templates").delete().eq("id", id);
+        if (error) console.warn("Monolith Supabase workout delete failed", error);
       }
 
       function loadCompletedWorkoutsV2() {
@@ -5561,16 +5777,17 @@ ${bodyFatBars ? `<div class="chart">${bodyFatBars}</div>` : `<p class="muted">${
         localStorage.setItem("monolith.workouts", JSON.stringify(saved));
       }
 
-      function deleteWorkoutV2(id) {
+      async function deleteWorkoutV2(id) {
         const workout = workoutsV2.find(item => item.id === id);
         if (!workout) return;
         workoutsV2 = workoutsV2.filter(item => item.id !== id);
         if (id.startsWith("library-")) rememberDeletedLibraryWorkoutV2(id);
         else deleteCustomWorkoutV2(id);
+        if (workout.source === "supabase") await deleteRemoteWorkoutV2(id);
         renderWorkoutListV2();
         if (activeWorkoutV2?.id === id) {
-          activeWorkoutV2 = workoutsV2[0];
-          if (activeWorkoutV2) renderSessionV2(activeWorkoutV2);
+          activeWorkoutV2 = workoutsForCurrentUserV2()[0] || null;
+          renderSessionV2(activeWorkoutV2);
         }
         toastV2(`${textV2(workout.name)} ${textV2("excluído.")}`);
       }
@@ -5618,12 +5835,13 @@ ${bodyFatBars ? `<div class="chart">${bodyFatBars}</div>` : `<p class="muted">${
 
       function renderWorkoutListV2() {
         workoutListV2.innerHTML = "";
-        if (!workoutsV2.length) {
+        const visibleWorkouts = workoutsForCurrentUserV2();
+        if (!visibleWorkouts.length) {
           workoutListV2.innerHTML = `<article class="workout"><div><h3>${htmlT("Nenhum treino criado")}</h3><p>${htmlT("Crie seu primeiro treino do zero. No celular, use os modelos rápidos dentro do editor.")}</p></div></article>`;
           return;
         }
         const accounts = loadAccounts();
-        workoutsV2.forEach(workout => {
+        visibleWorkouts.forEach(workout => {
           const totalSets = workout.exercises.reduce((total, exercise) => total + exercise.sets.length, 0);
           const assignedStudent = accounts.find(account => account.id === workout.assignedStudentId);
           const card = document.createElement("article");
@@ -5767,6 +5985,7 @@ ${bodyFatBars ? `<div class="chart">${bodyFatBars}</div>` : `<p class="muted">${
         });
         return {
           id: `custom-${Date.now()}`,
+          ownerId: currentAccount()?.id || "",
           name: document.getElementById("workoutName").value.trim() || textV2("Novo treino"),
           goal: document.getElementById("workoutGoal").value.trim() || textV2("Treino criado com exercícios e séries."),
           assignedStudentId: currentAccount()?.role === "personal" ? selectedWorkoutStudentId() : currentAccount()?.id,
@@ -5978,17 +6197,15 @@ ${bodyFatBars ? `<div class="chart">${bodyFatBars}</div>` : `<p class="muted">${
         completeExerciseV2(Number(next.dataset.exerciseIndex));
       }
 
-      formV2.addEventListener("submit", event => {
+      formV2.addEventListener("submit", async event => {
         event.preventDefault();
         event.stopImmediatePropagation();
-        const workout = readWorkoutV2();
-        workoutsV2.unshift(workout);
-        saveCustomWorkoutV2(workout);
-        if (workout.assignedStudentId) {
-          localStorage.setItem("monolith.selectedWorkoutStudentId", workout.assignedStudentId);
-          localStorage.setItem("monolith.selectedDietStudentId", workout.assignedStudentId);
+        const draftWorkout = readWorkoutV2();
+        const workout = await saveCustomWorkoutV2(draftWorkout);
+        if (workout.assignedStudentId && currentAccount()?.role === "personal") {
+          setSelectedStudentForPersonal(workout.assignedStudentId);
         }
-        renderWorkoutListV2();
+        await refreshWorkoutsV2();
         document.getElementById("workoutModal").classList.remove("active");
         formV2.reset();
         resetBuilderV2();
@@ -6001,7 +6218,8 @@ ${bodyFatBars ? `<div class="chart">${bodyFatBars}</div>` : `<p class="muted">${
       document.addEventListener("click", event => {
         const open = event.target.closest(".open-workout-session-v2");
         if (open) {
-          const workout = workoutsV2.find(item => item.id === open.dataset.workoutId) || workoutsV2[0];
+          const visibleWorkouts = workoutsForCurrentUserV2();
+          const workout = visibleWorkouts.find(item => item.id === open.dataset.workoutId) || visibleWorkouts[0];
           if (!workout) {
             toastV2(textV2("Crie um treino antes de abrir a sessão."));
             showScreen("workouts");
@@ -6104,8 +6322,15 @@ ${bodyFatBars ? `<div class="chart">${bodyFatBars}</div>` : `<p class="muted">${
         }
       });
 
+      window.monolithRefreshWorkoutView = () => {
+        renderWorkoutListV2();
+        activeWorkoutV2 = workoutsForCurrentUserV2()[0] || null;
+        renderSessionV2(activeWorkoutV2);
+      };
+
       renderWorkoutListV2();
-      renderSessionV2(activeWorkoutV2);
+      renderSessionV2(workoutsForCurrentUserV2()[0] || null);
+      refreshWorkoutsV2();
       resetBuilderV2();
       applyLanguage(localStorage.getItem("monolith.language") || "pt");
       document.getElementById("languageSelect")?.addEventListener("click", event => {
