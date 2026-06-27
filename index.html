@@ -2410,6 +2410,19 @@
     const MONOLITH_SUPABASE_KEY = "sb_publishable_lDtAXIOtkMwgwsAZyghBdg_gyLHGwpH";
     const monolithSupabase = window.supabase?.createClient?.(MONOLITH_SUPABASE_URL, MONOLITH_SUPABASE_KEY) || null;
 
+    (() => {
+      if ("serviceWorker" in navigator) {
+        navigator.serviceWorker.getRegistrations?.().then(registrations => {
+          registrations.forEach(registration => registration.unregister());
+        }).catch(() => {});
+      }
+      if ("caches" in window) {
+        caches.keys().then(keys => {
+          keys.filter(key => key.startsWith("monolith-")).forEach(key => caches.delete(key));
+        }).catch(() => {});
+      }
+    })();
+
     const defaultFactors = [
       { id: "agua", group: "Saúde", name: "Água", active: true, positive: true },
       { id: "sono-7h", group: "Recuperação", name: "Dormi o suficiente?", active: true, positive: true },
@@ -6743,9 +6756,6 @@ ${photoSections}
         resetBuilderV2();
       });
 
-      if ("serviceWorker" in navigator) {
-        navigator.serviceWorker.register("sw.js").catch(() => {});
-      }
     })();
   </script>
 </body>

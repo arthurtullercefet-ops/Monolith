@@ -1,33 +1,15 @@
-const CACHE_NAME = "monolith-v37";
-const ASSETS = [
-  "./",
-  "./index.html",
-  "./manifest.webmanifest",
-  "./monolith-icon.svg"
-];
+const CACHE_NAME = "monolith-v38-disabled";
 
 self.addEventListener("install", event => {
-  event.waitUntil(
-    caches.open(CACHE_NAME).then(cache => cache.addAll(ASSETS))
-  );
   self.skipWaiting();
 });
 
 self.addEventListener("activate", event => {
   event.waitUntil(
-    caches.keys().then(keys =>
-      Promise.all(keys.filter(key => key !== CACHE_NAME).map(key => caches.delete(key)))
-    )
-  );
-  self.clients.claim();
-});
-
-self.addEventListener("fetch", event => {
-  if (event.request.mode === "navigate" || event.request.destination === "document") {
-    return;
-  }
-
-  event.respondWith(
-    caches.match(event.request).then(cached => cached || fetch(event.request))
+    caches.keys()
+      .then(keys => Promise.all(keys.filter(key => key.startsWith("monolith-")).map(key => caches.delete(key))))
+      .then(() => self.registration.unregister())
+      .then(() => self.clients.matchAll({ type: "window" }))
+      .then(clients => clients.forEach(client => client.navigate(client.url)))
   );
 });
