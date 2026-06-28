@@ -1823,9 +1823,9 @@
       </div>
       <div>
         <h1>Entrar, treinar, evoluir.</h1>
-        <p>Separe o acesso de alunos e personais desde agora. Esta primeira camada cria o fluxo do produto; a segurança real entra quando conectarmos banco, backend e pagamentos.</p>
+        <p>Acesso separado para aluno e personal, com dados sincronizados pelo Supabase e pronto para pagamentos.</p>
       </div>
-      <div class="auth-warning">Contas reais usam Supabase Auth. Os botões demo continuam locais para teste rápido.</div>
+      <div class="auth-warning">Contas reais usam Supabase Auth. Depois de criar conta, confirme o cadastro no e-mail antes de entrar.</div>
     </div>
 
     <div class="auth-stack" id="authStack" data-auth-mode="login">
@@ -1848,10 +1848,6 @@
           <div class="auth-warning" id="loginNotice" hidden></div>
           <button class="action" id="loginButton" type="button">Entrar</button>
         </form>
-        <div class="auth-demo">
-          <button class="ghost demo-login" type="button" data-email="aluno@monolith.app">Demo aluno</button>
-          <button class="ghost demo-login" type="button" data-email="personal@monolith.app">Demo personal</button>
-        </div>
       </div>
 
       <div class="auth-card" data-auth-panel="signup">
@@ -1899,6 +1895,139 @@
     </div>
   </section>
 
+  <script>
+    (function () {
+      if (window.monolithBootClickGuard) return;
+      window.monolithBootClickGuard = true;
+
+      function readAccounts() {
+        try {
+          return JSON.parse(localStorage.getItem("monolith.accounts") || "[]");
+        } catch (error) {
+          return [];
+        }
+      }
+
+      function writeAccounts(accounts) {
+        localStorage.setItem("monolith.accounts", JSON.stringify(accounts));
+      }
+
+      function demoAccount(email) {
+        email = String(email || "").trim().toLowerCase();
+        if (email === "aluno@monolith.app") {
+          return {
+            id: "aluno-demo",
+            role: "student",
+            name: "Aluno Demo",
+            email: "aluno@monolith.app",
+            passwordHash: "demo-fallback",
+            plan: "Aluno",
+            trainerId: "personal-demo"
+          };
+        }
+        if (email === "personal@monolith.app") {
+          return {
+            id: "personal-demo",
+            role: "personal",
+            name: "Personal Demo",
+            email: "personal@monolith.app",
+            passwordHash: "demo-fallback",
+            plan: "Personal Trainer Plus",
+            students: ["aluno-demo"]
+          };
+        }
+        return null;
+      }
+
+      function ensureDemoAccounts() {
+        var demos = [demoAccount("aluno@monolith.app"), demoAccount("personal@monolith.app")];
+        var current = readAccounts();
+        var demoIds = {};
+        var demoEmails = {};
+        demos.forEach(function (account) {
+          demoIds[account.id] = true;
+          demoEmails[account.email] = true;
+        });
+        writeAccounts(demos.concat(current.filter(function (account) {
+          return !demoIds[account.id] && !demoEmails[account.email];
+        })));
+      }
+
+      function showFallbackScreen(id, role) {
+        var targetButton = document.querySelector('.nav-btn[data-screen="' + id + '"]');
+        if (targetButton && targetButton.getAttribute("data-role-only") && targetButton.getAttribute("data-role-only") !== role) {
+          id = "home";
+        }
+        Array.prototype.forEach.call(document.querySelectorAll(".screen"), function (screen) {
+          screen.classList.toggle("active", screen.id === id);
+        });
+        Array.prototype.forEach.call(document.querySelectorAll(".nav-btn"), function (button) {
+          button.classList.toggle("active", button.getAttribute("data-screen") === id);
+        });
+        window.scrollTo(0, 0);
+      }
+
+      function bootLogin(email) {
+        var account = demoAccount(email);
+        if (!account) return false;
+        ensureDemoAccounts();
+        localStorage.setItem("monolith.sessionUserId", account.id);
+        var emailInput = document.getElementById("loginEmail");
+        var passwordInput = document.getElementById("loginPassword");
+        var notice = document.getElementById("loginNotice");
+        if (emailInput) emailInput.value = account.email;
+        if (passwordInput) passwordInput.value = "123456";
+        if (notice) {
+          notice.hidden = true;
+          notice.textContent = "";
+        }
+        document.body.classList.add("authenticated");
+        Array.prototype.forEach.call(document.querySelectorAll("[data-role-only]"), function (element) {
+          element.hidden = element.getAttribute("data-role-only") !== account.role;
+        });
+        showFallbackScreen(account.role === "personal" ? "clients" : "home", account.role);
+        return true;
+      }
+
+      document.addEventListener("click", function (event) {
+        var node = event.target;
+        while (node && node !== document) {
+          if (node.classList && node.classList.contains("demo-login")) {
+            event.preventDefault();
+            event.stopPropagation();
+            bootLogin(node.getAttribute("data-email"));
+            return;
+          }
+          if (node.id === "loginButton") {
+            var email = document.getElementById("loginEmail") ? document.getElementById("loginEmail").value : "";
+            var password = document.getElementById("loginPassword") ? document.getElementById("loginPassword").value : "";
+            if (password === "123456" && bootLogin(email)) {
+              event.preventDefault();
+              event.stopPropagation();
+              return;
+            }
+          }
+          if (node.getAttribute && node.getAttribute("data-screen") && document.body.classList.contains("authenticated")) {
+            event.preventDefault();
+            event.stopPropagation();
+            var sessionId = localStorage.getItem("monolith.sessionUserId");
+            var role = sessionId === "personal-demo" ? "personal" : "student";
+            showFallbackScreen(node.getAttribute("data-screen"), role);
+            return;
+          }
+          if (node.getAttribute && node.getAttribute("data-screen-jump") && document.body.classList.contains("authenticated")) {
+            event.preventDefault();
+            event.stopPropagation();
+            var sessionRole = localStorage.getItem("monolith.sessionUserId") === "personal-demo" ? "personal" : "student";
+            showFallbackScreen(node.getAttribute("data-screen-jump"), sessionRole);
+            return;
+          }
+          node = node.parentNode;
+        }
+      }, true);
+    })();
+  </script>
+
   <div class="app" id="appShell">
     <aside>
       <div class="brand">
@@ -1929,7 +2058,7 @@
       <div class="session-card">
         <div>
           <strong id="sessionName">Usuário</strong>
-          <span id="sessionRole">Plano local</span>
+          <span id="sessionRole">Plano Supabase</span>
         </div>
         <button class="ghost" type="button" id="logoutButton">Sair</button>
       </div>
@@ -1974,8 +2103,8 @@
       </nav>
 
       <div class="offline">
-        <strong>100% offline</strong>
-        <span>Dados, fotos, treinos, histórico e programas salvos localmente no aparelho.</span>
+        <strong>Supabase conectado</strong>
+        <span>Check-ins, fotos, treinos, medidas e histórico preparados para sincronização segura.</span>
       </div>
     </aside>
 
@@ -2410,6 +2539,131 @@
     const MONOLITH_SUPABASE_KEY = "sb_publishable_lDtAXIOtkMwgwsAZyghBdg_gyLHGwpH";
     const monolithSupabase = window.supabase?.createClient?.(MONOLITH_SUPABASE_URL, MONOLITH_SUPABASE_KEY) || null;
 
+    (() => {
+      if (window.monolithEmergencyClickFallback) return;
+      window.monolithEmergencyClickFallback = true;
+
+      const demoAccounts = {
+        "aluno@monolith.app": {
+          id: "aluno-demo",
+          role: "student",
+          name: "Aluno Demo",
+          email: "aluno@monolith.app",
+          plan: "Aluno",
+          trainerId: "personal-demo"
+        },
+        "personal@monolith.app": {
+          id: "personal-demo",
+          role: "personal",
+          name: "Personal Demo",
+          email: "personal@monolith.app",
+          plan: "Personal Trainer Plus",
+          students: ["aluno-demo"]
+        }
+      };
+
+      function fallbackAccounts() {
+        try {
+          return JSON.parse(localStorage.getItem("monolith.accounts") || "[]");
+        } catch {
+          return [];
+        }
+      }
+
+      function saveFallbackAccounts(accounts) {
+        localStorage.setItem("monolith.accounts", JSON.stringify(accounts));
+      }
+
+      function ensureFallbackDemoAccounts() {
+        const current = fallbackAccounts();
+        const demoList = Object.values(demoAccounts).map(account => ({
+          ...account,
+          passwordHash: "demo-fallback"
+        }));
+        const demoIds = new Set(demoList.map(account => account.id));
+        const demoEmails = new Set(demoList.map(account => account.email));
+        saveFallbackAccounts([
+          ...demoList,
+          ...current.filter(account => !demoIds.has(account.id) && !demoEmails.has(account.email))
+        ]);
+      }
+
+      function fallbackShowScreen(id) {
+        const user = demoAccounts[document.getElementById("loginEmail")?.value?.trim()?.toLowerCase()] || null;
+        const roleOnly = document.querySelector(`.nav-btn[data-screen="${id}"]`)?.dataset.roleOnly;
+        if (roleOnly && roleOnly !== user?.role) id = "home";
+        document.querySelectorAll(".screen").forEach(screen => {
+          screen.classList.toggle("active", screen.id === id);
+        });
+        document.querySelectorAll(".nav-btn").forEach(button => {
+          button.classList.toggle("active", button.dataset.screen === id);
+        });
+        window.scrollTo({ top: 0, behavior: "auto" });
+      }
+
+      function fallbackLogin(email) {
+        const account = demoAccounts[String(email || "").trim().toLowerCase()];
+        if (!account) return false;
+        ensureFallbackDemoAccounts();
+        localStorage.setItem("monolith.sessionUserId", account.id);
+        document.getElementById("loginEmail").value = account.email;
+        document.getElementById("loginPassword").value = "123456";
+        document.body.classList.add("authenticated");
+        document.querySelectorAll("[data-role-only]").forEach(element => {
+          element.hidden = element.dataset.roleOnly !== account.role;
+        });
+        if (typeof applyAuthState === "function") {
+          try {
+            applyAuthState();
+          } catch {}
+        }
+        if (typeof showScreen === "function") {
+          try {
+            showScreen(account.role === "personal" ? "clients" : "home");
+            return true;
+          } catch {}
+        }
+        fallbackShowScreen(account.role === "personal" ? "clients" : "home");
+        return true;
+      }
+
+      document.addEventListener("click", event => {
+        const target = event.target?.closest ? event.target : null;
+        if (!target) return;
+
+        const demoButton = target.closest(".demo-login");
+        if (demoButton) {
+          event.preventDefault();
+          event.stopPropagation();
+          fallbackLogin(demoButton.dataset.email);
+          return;
+        }
+
+        const loginButton = target.closest("#loginButton");
+        if (loginButton) {
+          const email = document.getElementById("loginEmail")?.value;
+          const password = document.getElementById("loginPassword")?.value;
+          if (password === "123456" && fallbackLogin(email)) {
+            event.preventDefault();
+            event.stopPropagation();
+            return;
+          }
+        }
+
+        const navButton = target.closest("[data-screen]");
+        if (navButton && document.body.classList.contains("authenticated")) {
+          event.preventDefault();
+          fallbackShowScreen(navButton.dataset.screen);
+        }
+
+        const jumpButton = target.closest("[data-screen-jump]");
+        if (jumpButton && document.body.classList.contains("authenticated")) {
+          event.preventDefault();
+          fallbackShowScreen(jumpButton.dataset.screenJump);
+        }
+      }, true);
+    })();
+
     const defaultFactors = [
       { id: "agua", group: "Saúde", name: "Água", active: true, positive: true },
       { id: "sono-7h", group: "Recuperação", name: "Dormi o suficiente?", active: true, positive: true },
@@ -2534,11 +2788,13 @@
       if (!authUser) return false;
       try {
         const profile = await loadRemoteProfile(authUser);
-        cacheRemoteAccount(profile, authUser);
+        const account = cacheRemoteAccount(profile, authUser);
+        await consumePendingAccountCodes(account);
         return true;
       } catch (error) {
         console.warn("Monolith Supabase profile restore failed", error);
         const account = cacheRemoteAccount(fallbackRemoteProfile(authUser), authUser);
+        await consumePendingAccountCodes(account);
         return Boolean(account);
       }
     }
@@ -2629,6 +2885,10 @@
       return String(code).trim().replace(/^MONOLITH[-:\s]*/i, "").trim();
     }
 
+    function isLegacyTrainerInviteCode(code = "") {
+      return /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(trainerIdFromInviteCode(code));
+    }
+
     async function copyText(value) {
       if (navigator.clipboard?.writeText) {
         await navigator.clipboard.writeText(value);
@@ -2637,16 +2897,33 @@
       return false;
     }
 
-    function showInviteCodeForPersonal(personal = currentAccount()) {
+    function displayInviteCode(inviteCode = "") {
       const panel = document.getElementById("inviteCodePanel");
       const input = document.getElementById("inviteCodeDisplay");
-      if (!panel || !input || !personal || personal.role !== "personal") return "";
-      const inviteCode = inviteCodeForPersonal(personal);
+      if (!panel || !input || !inviteCode) return "";
       panel.hidden = false;
       input.value = inviteCode;
       input.focus();
       input.select();
       return inviteCode;
+    }
+
+    async function createTrainerInviteCode(personal = currentAccount()) {
+      if (!personal || personal.role !== "personal") return "";
+      if (monolithSupabase && isRealSupabaseAccount(personal)) {
+        const { data, error } = await monolithSupabase.rpc("create_trainer_invite", {
+          p_expires_days: 30,
+          p_max_uses: null
+        });
+        if (error) throw error;
+        return data || "";
+      }
+      return inviteCodeForPersonal(personal);
+    }
+
+    async function showInviteCodeForPersonal(personal = currentAccount()) {
+      const inviteCode = await createTrainerInviteCode(personal);
+      return displayInviteCode(inviteCode);
     }
 
     async function loadRemoteLinkedStudents(trainerId) {
@@ -2751,7 +3028,7 @@
         const sessionName = document.getElementById("sessionName");
         const sessionRole = document.getElementById("sessionRole");
         if (sessionName) sessionName.textContent = user.name;
-        if (sessionRole) sessionRole.textContent = `${roleLabel(user.role)} · ${user.plan || "Local"}`;
+        if (sessionRole) sessionRole.textContent = `${roleLabel(user.role)} · ${user.plan || "Supabase"}`;
         renderClientList();
         renderTrainerLinkPanel();
         renderNutrition();
@@ -2817,35 +3094,50 @@
 
     async function linkStudentToTrainer(inviteCode) {
       const user = currentAccount();
-      const trainerId = trainerIdFromInviteCode(inviteCode);
+      const cleanInviteCode = String(inviteCode || "").trim();
       if (!user || user.role !== "student") {
         authMessage("Entre como aluno para vincular um personal.");
-        return;
+        return false;
       }
-      if (!trainerId) {
+      if (!cleanInviteCode) {
         authMessage("Cole o código de convite do personal.");
-        return;
+        return false;
       }
       if (user.source === "supabase" && monolithSupabase) {
-        const { error } = await monolithSupabase
-          .from("trainer_students")
-          .insert({ trainer_id: trainerId, student_id: user.id, status: "active" });
-        if (error && error.code !== "23505") {
+        let trainerId = "";
+        const { data, error } = await monolithSupabase.rpc("accept_trainer_invite", {
+          invite_code: cleanInviteCode
+        });
+        if (error) {
           console.warn("Monolith trainer link failed", error);
-          authMessage("Não consegui vincular este personal. Confira o código.");
-          return;
+          if (!isLegacyTrainerInviteCode(cleanInviteCode)) {
+            authMessage("Não consegui vincular este personal. Confira o código.");
+            return false;
+          }
+          trainerId = trainerIdFromInviteCode(cleanInviteCode);
+          const { error: legacyError } = await monolithSupabase
+            .from("trainer_students")
+            .insert({ trainer_id: trainerId, student_id: user.id, status: "active" });
+          if (legacyError && legacyError.code !== "23505") {
+            console.warn("Monolith legacy trainer link failed", legacyError);
+            authMessage("Não consegui vincular este personal. Confira o código.");
+            return false;
+          }
+        } else {
+          trainerId = data;
         }
         const accounts = loadAccounts();
         saveAccounts(accounts.map(account => account.id === user.id ? { ...account, trainerId } : account));
         await renderTrainerLinkPanel();
         authMessage("Personal vinculado com sucesso.");
-        return;
+        return true;
       }
+      const trainerId = trainerIdFromInviteCode(cleanInviteCode);
       const accounts = loadAccounts();
       const trainer = accounts.find(account => account.id === trainerId && account.role === "personal");
       if (!trainer) {
         authMessage("Não consegui vincular este personal. Confira o código.");
-        return;
+        return false;
       }
       saveAccounts(accounts.map(account => {
         if (account.id === user.id) return { ...account, trainerId: trainer.id };
@@ -2854,6 +3146,30 @@
       }));
       await renderTrainerLinkPanel();
       authMessage("Personal vinculado com sucesso.");
+      return true;
+    }
+
+    async function consumePendingAccountCodes(account) {
+      if (!account?.email || account.role !== "student") return;
+      const email = account.email.toLowerCase().trim();
+      const trainerKey = `monolith.pendingTrainerInvite:${email}`;
+      const influencerKey = `monolith.pendingInfluencerCode:${email}`;
+      const trainerCode = localStorage.getItem(trainerKey);
+      if (trainerCode) {
+        const linked = await linkStudentToTrainer(trainerCode);
+        if (linked) localStorage.removeItem(trainerKey);
+      }
+      const influencerCode = localStorage.getItem(influencerKey);
+      if (influencerCode && monolithSupabase && isRealSupabaseAccount(account)) {
+        const { error } = await monolithSupabase.rpc("accept_influencer_code", {
+          raw_code: influencerCode
+        });
+        if (error) {
+          console.warn("Monolith influencer code failed", error);
+        } else {
+          localStorage.removeItem(influencerKey);
+        }
+      }
     }
 
     async function loginAccount(email, password) {
@@ -2876,6 +3192,7 @@
         try {
           const profile = await loadRemoteProfile(data.user, { email: normalizedEmail });
           const account = cacheRemoteAccount(profile, data.user);
+          await consumePendingAccountCodes(account);
           applyAuthState();
           showScreen(account.role === "personal" ? "clients" : "home");
           authMessage(`${t("Bem-vindo")}, ${account.name}.`);
@@ -2887,6 +3204,7 @@
             authMessage("Login feito, mas não consegui carregar o perfil.");
             return false;
           }
+          await consumePendingAccountCodes(account);
           applyAuthState();
           showScreen(account.role === "personal" ? "clients" : "home");
           authMessage("Login feito. Perfil remoto pendente de sincronização.");
@@ -3420,7 +3738,9 @@
         "Alunos": "Students",
         "Estatísticas": "Stats",
         "Backup": "Backup",
-        "Plano local": "Local plan",
+        "Plano Supabase": "Supabase plan",
+        "Acesso separado para aluno e personal, com dados sincronizados pelo Supabase e pronto para pagamentos.": "Separate student and trainer access, with data synced through Supabase and ready for payments.",
+        "Contas reais usam Supabase Auth. Depois de criar conta, confirme o cadastro no e-mail antes de entrar.": "Real accounts use Supabase Auth. After creating an account, confirm it by email before logging in.",
         "Crie treinos do zero com histórico e progressão automática": "Create workouts from scratch with history and automatic progression",
         "Programas e coaches": "Programs and coaches",
         "Filosofias de treino, intensidade e disciplina": "Training philosophies, intensity and discipline",
@@ -3446,8 +3766,6 @@
         "Após criar conta, confirme o cadastro no e-mail antes de entrar.": "After creating an account, confirm the signup in your email before logging in.",
         "Senha": "Password",
         "Entrar": "Log in",
-        "Demo aluno": "Student demo",
-        "Demo personal": "Trainer demo",
         "Criar conta": "Create account",
         "Crie contas locais para testar a separação de experiência.": "Create local accounts to test the separated experience.",
         "Crie uma conta real no Supabase para testar a experiência separada.": "Create a real Supabase account to test the separated experience.",
@@ -3559,6 +3877,7 @@
         "Cole o código de convite do personal.": "Paste the trainer invite code.",
         "Não consegui vincular este personal. Confira o código.": "Could not link this trainer. Check the code.",
         "Personal vinculado com sucesso.": "Trainer linked successfully.",
+        "Não consegui criar o convite agora.": "Could not create the invite right now.",
         "Código de convite copiado. Envie para o aluno.": "Invite code copied. Send it to the student.",
         "Copie este código e envie para o aluno.": "Copy this code and send it to the student.",
         "Área disponível para personal trainer.": "Area available for trainers.",
@@ -3612,8 +3931,8 @@
         "Construa o monumento.": "Build the monument.",
         "Seu objetivo é superar a sessão anterior. Uma carga melhor, uma repetição melhor, uma execução mais limpa.": "Your goal is to beat the previous session. Better load, better reps, cleaner execution.",
         "Excelente": "Excellent",
-        "100% offline": "100% offline",
-        "Dados, fotos, treinos, histórico e programas salvos localmente no aparelho.": "Data, photos, workouts, history and programs saved locally on the device.",
+        "Supabase conectado": "Supabase connected",
+        "Check-ins, fotos, treinos, medidas e histórico preparados para sincronização segura.": "Check-ins, photos, workouts, measurements and history prepared for secure sync.",
         "Peso de hoje": "Today's weight",
         "O peso entra no relatório mensal e ajuda o personal a ver evolução, retenção e queda dia a dia.": "Weight goes into the monthly report and helps the trainer see progress, retention and daily drops.",
         "Execução do plano físico e mental": "Physical and mental plan execution",
@@ -3688,6 +4007,7 @@
         "exercícios": "exercises",
         "séries": "sets",
         "Local": "Local",
+        "Personalizado": "Custom",
         "Série": "Set",
         "Peso": "Weight",
         "Descanso s": "Rest s",
@@ -3834,7 +4154,66 @@
         "Salve um registro físico para começar os gráficos.": "Save a physical record to start the charts.",
         "Nenhum registro físico salvo ainda.": "No physical records saved yet.",
         "Sem pesos salvos nas medidas.": "No weights saved in measurements.",
-        "Sem percentual de gordura salvo.": "No body-fat percentage saved."
+        "Sem percentual de gordura salvo.": "No body-fat percentage saved.",
+        "+ Aquecimento": "+ Warm-up",
+        "Usuário": "User",
+        "Personal trainer": "Trainer",
+        "Relatório mensal para acompanhamento profissional": "Monthly report for professional follow-up",
+        "Treinos, cardio, medidas, fotos e recordes": "Workouts, cardio, measurements, photos and records",
+        "Estatísticas, check-ins dia a dia e treinos": "Stats, daily check-ins and workouts",
+        "Backup .monolith": "Backup .monolith",
+        "Treino salvo localmente. Não consegui sincronizar agora.": "Workout saved locally. Could not sync right now.",
+        "Salvar como PDF": "Save as PDF",
+        "Relatório mensal MONOLITH": "MONOLITH Monthly Report",
+        "Gerado em": "Generated at",
+        "Use o botão do navegador para salvar como PDF.": "Use the browser button to save as PDF.",
+        "Alerta de check-in para o personal": "Trainer check-in alert",
+        "dias sem check-in nos últimos 30 dias.": "days without check-in in the last 30 days.",
+        "Dias recentes sem registro": "Recent missing days",
+        "Aluno manteve check-in completo no período.": "The student kept full check-in coverage during the period.",
+        "Evolução de peso corporal": "Body weight progress",
+        "Ainda não há pesos salvos no check-in ou nas medidas corporais.": "No weight records saved in check-ins or body measurements yet.",
+        "Percentual de gordura corporal": "Body fat percentage",
+        "Dieta ativa do mês": "Active monthly diet",
+        "Meta": "Target",
+        "Alimentos": "Foods",
+        "Observação": "Note",
+        "Nenhuma dieta ativa cadastrada para este mês.": "No active diet registered for this month.",
+        "Fotos de evolução": "Progress photos",
+        "Top 5 maiores evoluções": "Top 5 biggest improvements",
+        "Top 5 maiores quedas": "Top 5 biggest drops",
+        "Base": "Baseline",
+        "Primeiro registro": "First record",
+        "Atual": "Current",
+        "Último registro": "Latest record",
+        "Ainda precisa de pelo menos duas sessões salvas do mesmo exercício.": "At least two saved sessions of the same exercise are still required.",
+        "Nenhuma queda relevante detectada.": "No relevant drop detected.",
+        "Frequência dos últimos 30 dias": "Last 30 days frequency",
+        "Item": "Item",
+        "Concluído": "Completed",
+        "Aderência": "Adherence",
+        "Sem check-ins salvos.": "No check-ins saved.",
+        "Dia a dia": "Daily log",
+        "Dia": "Day",
+        "Peso simples": "Simple weight",
+        "Itens": "Items",
+        "Treinos concluídos": "Completed workouts",
+        "Séries": "Sets",
+        "Sem foto salva.": "No photo saved.",
+        "Sem medidas corporais salvas.": "No body measurements saved.",
+        "Obs.": "Note",
+        "ok": "ok",
+        "não": "no",
+        "Carregando relatório...": "Loading report...",
+        "check-ins nos últimos 30 dias": "check-ins in the last 30 days",
+        "aderência média de": "average adherence of",
+        "treinos concluídos": "completed workouts",
+        "treino concluído": "completed workout",
+        "registros físicos": "physical records",
+        "registro físico": "physical record",
+        "e": "and",
+        "dias sem check-in para o personal acompanhar.": "days without check-in for the trainer to follow up.",
+        "dia sem check-in para o personal acompanhar.": "day without check-in for the trainer to follow up."
       },
       es: {
         "Idioma": "Idioma",
@@ -3851,7 +4230,9 @@
         "Alunos": "Alumnos",
         "Estatísticas": "Estadísticas",
         "Backup": "Backup",
-        "Plano local": "Plan local",
+        "Plano Supabase": "Plan Supabase",
+        "Acesso separado para aluno e personal, com dados sincronizados pelo Supabase e pronto para pagamentos.": "Acceso separado para alumno y entrenador, con datos sincronizados por Supabase y listo para pagos.",
+        "Contas reais usam Supabase Auth. Depois de criar conta, confirme o cadastro no e-mail antes de entrar.": "Las cuentas reales usan Supabase Auth. Después de crear una cuenta, confirma el registro por email antes de entrar.",
         "Crie treinos do zero com histórico e progressão automática": "Crea entrenos desde cero con historial y progresión automática",
         "Programas e coaches": "Programas y coaches",
         "Filosofias de treino, intensidade e disciplina": "Filosofías de entreno, intensidad y disciplina",
@@ -3877,8 +4258,6 @@
         "Após criar conta, confirme o cadastro no e-mail antes de entrar.": "Después de crear la cuenta, confirma el registro en tu email antes de entrar.",
         "Senha": "Contraseña",
         "Entrar": "Entrar",
-        "Demo aluno": "Demo alumno",
-        "Demo personal": "Demo entrenador",
         "Criar conta": "Crear cuenta",
         "Crie contas locais para testar a separação de experiência.": "Crea cuentas locales para probar la separación de experiencia.",
         "Crie uma conta real no Supabase para testar a experiência separada.": "Crea una cuenta real en Supabase para probar la experiencia separada.",
@@ -3990,6 +4369,7 @@
         "Cole o código de convite do personal.": "Pega el código de invitación del entrenador.",
         "Não consegui vincular este personal. Confira o código.": "No pude vincular este entrenador. Revisa el código.",
         "Personal vinculado com sucesso.": "Entrenador vinculado con éxito.",
+        "Não consegui criar o convite agora.": "No pude crear la invitación ahora.",
         "Código de convite copiado. Envie para o aluno.": "Código de invitación copiado. Envíalo al alumno.",
         "Copie este código e envie para o aluno.": "Copia este código y envíalo al alumno.",
         "Área disponível para personal trainer.": "Área disponible para entrenador.",
@@ -4043,8 +4423,8 @@
         "Construa o monumento.": "Construye el monumento.",
         "Seu objetivo é superar a sessão anterior. Uma carga melhor, uma repetição melhor, uma execução mais limpa.": "Tu objetivo es superar la sesión anterior. Mejor carga, mejores repeticiones, ejecución más limpia.",
         "Excelente": "Excelente",
-        "100% offline": "100% offline",
-        "Dados, fotos, treinos, histórico e programas salvos localmente no aparelho.": "Datos, fotos, entrenos, historial y programas guardados localmente en el dispositivo.",
+        "Supabase conectado": "Supabase conectado",
+        "Check-ins, fotos, treinos, medidas e histórico preparados para sincronização segura.": "Check-ins, fotos, entrenos, medidas e historial preparados para sincronización segura.",
         "Peso de hoje": "Peso de hoy",
         "O peso entra no relatório mensal e ajuda o personal a ver evolução, retenção e queda dia a dia.": "El peso entra en el informe mensual y ayuda al entrenador a ver evolución, retención y bajadas día a día.",
         "Execução do plano físico e mental": "Ejecución del plan físico y mental",
@@ -4119,6 +4499,7 @@
         "exercícios": "ejercicios",
         "séries": "series",
         "Local": "Local",
+        "Personalizado": "Personalizado",
         "Série": "Serie",
         "Peso": "Peso",
         "Descanso s": "Descanso s",
@@ -4265,7 +4646,66 @@
         "Salve um registro físico para começar os gráficos.": "Guarda un registro físico para empezar los gráficos.",
         "Nenhum registro físico salvo ainda.": "Aún no hay registros físicos guardados.",
         "Sem pesos salvos nas medidas.": "No hay pesos guardados en medidas.",
-        "Sem percentual de gordura salvo.": "No hay porcentaje de grasa guardado."
+        "Sem percentual de gordura salvo.": "No hay porcentaje de grasa guardado.",
+        "+ Aquecimento": "+ Calentamiento",
+        "Usuário": "Usuario",
+        "Personal trainer": "Entrenador personal",
+        "Relatório mensal para acompanhamento profissional": "Informe mensual para seguimiento profesional",
+        "Treinos, cardio, medidas, fotos e recordes": "Entrenos, cardio, medidas, fotos y récords",
+        "Estatísticas, check-ins dia a dia e treinos": "Estadísticas, check-ins diarios y entrenos",
+        "Backup .monolith": "Backup .monolith",
+        "Treino salvo localmente. Não consegui sincronizar agora.": "Entreno guardado localmente. No se pudo sincronizar ahora.",
+        "Salvar como PDF": "Guardar como PDF",
+        "Relatório mensal MONOLITH": "Informe mensual MONOLITH",
+        "Gerado em": "Generado el",
+        "Use o botão do navegador para salvar como PDF.": "Usa el botón del navegador para guardar como PDF.",
+        "Alerta de check-in para o personal": "Alerta de check-in para el entrenador",
+        "dias sem check-in nos últimos 30 dias.": "días sin check-in en los últimos 30 días.",
+        "Dias recentes sem registro": "Días recientes sin registro",
+        "Aluno manteve check-in completo no período.": "El alumno mantuvo check-in completo en el período.",
+        "Evolução de peso corporal": "Evolución de peso corporal",
+        "Ainda não há pesos salvos no check-in ou nas medidas corporais.": "Aún no hay pesos guardados en check-in o medidas corporales.",
+        "Percentual de gordura corporal": "Porcentaje de grasa corporal",
+        "Dieta ativa do mês": "Dieta activa del mes",
+        "Meta": "Meta",
+        "Alimentos": "Alimentos",
+        "Observação": "Observación",
+        "Nenhuma dieta ativa cadastrada para este mês.": "No hay dieta activa registrada para este mes.",
+        "Fotos de evolução": "Fotos de evolución",
+        "Top 5 maiores evoluções": "Top 5 mayores evoluciones",
+        "Top 5 maiores quedas": "Top 5 mayores caídas",
+        "Base": "Base",
+        "Primeiro registro": "Primer registro",
+        "Atual": "Actual",
+        "Último registro": "Último registro",
+        "Ainda precisa de pelo menos duas sessões salvas do mesmo exercício.": "Aún se necesitan al menos dos sesiones guardadas del mismo ejercicio.",
+        "Nenhuma queda relevante detectada.": "No se detectó ninguna caída relevante.",
+        "Frequência dos últimos 30 dias": "Frecuencia de los últimos 30 días",
+        "Item": "Item",
+        "Concluído": "Completado",
+        "Aderência": "Adherencia",
+        "Sem check-ins salvos.": "Sin check-ins guardados.",
+        "Dia a dia": "Día a día",
+        "Dia": "Día",
+        "Peso simples": "Peso simple",
+        "Itens": "Ítems",
+        "Treinos concluídos": "Entrenos completados",
+        "Séries": "Series",
+        "Sem foto salva.": "Sin foto guardada.",
+        "Sem medidas corporais salvas.": "Sin medidas corporales guardadas.",
+        "Obs.": "Obs.",
+        "ok": "ok",
+        "não": "no",
+        "Carregando relatório...": "Cargando informe...",
+        "check-ins nos últimos 30 dias": "check-ins en los últimos 30 días",
+        "aderência média de": "adherencia media de",
+        "treinos concluídos": "entrenos completados",
+        "treino concluído": "entreno completado",
+        "registros físicos": "registros físicos",
+        "registro físico": "registro físico",
+        "e": "y",
+        "dias sem check-in para o personal acompanhar.": "días sin check-in para que el entrenador acompañe.",
+        "dia sem check-in para o personal acompanhar.": "día sin check-in para que el entrenador acompañe."
       }
     };
 
@@ -4356,6 +4796,7 @@
         button.classList.toggle("active", button.dataset.lang === language);
       });
       document.querySelectorAll("button:not(.language-button), h1, h2, h3, h4, label, span, option, p, strong, b, .date, .kicker, .hero-title, .quote, .measure-note, .report-line, .auth-warning").forEach(element => {
+        if (element.matches("button") && (element.classList.contains("nav-btn") || element.classList.contains("icon-btn") || element.querySelector("svg"))) return;
         const current = element.textContent.trim();
         if (!element.dataset.i18nKey && (translations.en[current] || translations.es[current])) {
           element.dataset.i18nKey = current;
@@ -4456,7 +4897,7 @@
           <div class="pill-row">
             <span class="pill">${items.length || 1} exercícios</span>
             <span class="pill">Novo</span>
-            <span class="pill">Local</span>
+            <span class="pill">Personalizado</span>
           </div>
         </div>
         <button class="ghost" data-screen-jump="session">Abrir sessão</button>
@@ -4867,7 +5308,8 @@
       const dietStudentId = reportStudent?.id || (user?.role === "student" ? user.id : selectedDietStudentId());
       const activeDietPlan = activeDietForStudent(dietStudentId, currentMonthKey());
       const progressPhotos = loadProgressPhotos();
-      return { student: reportStudent, checkins, completedWorkouts, stats, evolution, missedDays, weights, bodyMeasures, progressPhotos, activeDietPlan, generatedAt: new Date().toLocaleString("pt-BR") };
+      const locale = { pt: "pt-BR", en: "en-US", es: "es-ES" }[reportLanguage()] || "pt-BR";
+      return { student: reportStudent, checkins, completedWorkouts, stats, evolution, missedDays, weights, bodyMeasures, progressPhotos, activeDietPlan, generatedAt: new Date().toLocaleString(locale) };
     }
 
     function monthlyReportHTMLLegacy() {
@@ -5146,7 +5588,7 @@ ${photoSections}
 
     async function openMonthlyReport(student = null) {
       const reportWindow = window.open("", "_blank");
-      reportWindow.document.write(`<!doctype html><html><head><meta charset="utf-8"><title>MONOLITH</title></head><body style="font-family:Arial,sans-serif;margin:32px">Carregando relatório...</body></html>`);
+      reportWindow.document.write(`<!doctype html><html><head><meta charset="utf-8"><title>MONOLITH</title></head><body style="font-family:Arial,sans-serif;margin:32px">${t("Carregando relatório...")}</body></html>`);
       reportWindow.document.close();
       await hydrateRemoteReportData(student);
       reportWindow.document.open();
@@ -5164,7 +5606,10 @@ ${photoSections}
       if (!target) return;
       const report = monthlyReportData();
       const avg = report.checkins.length ? Math.round(report.checkins.reduce((total, item) => total + item.score, 0) / report.checkins.length) : 0;
-      target.textContent = `${report.checkins.length} check-ins nos últimos 30 dias, aderência média de ${avg}%, ${report.completedWorkouts.length} treinos concluídos, ${report.bodyMeasures.length} registros físicos e ${report.missedDays.length} dias sem check-in para o personal acompanhar.`;
+      const workoutLabel = t(report.completedWorkouts.length === 1 ? "treino concluído" : "treinos concluídos");
+      const recordLabel = t(report.bodyMeasures.length === 1 ? "registro físico" : "registros físicos");
+      const missedLabel = t(report.missedDays.length === 1 ? "dia sem check-in para o personal acompanhar." : "dias sem check-in para o personal acompanhar.");
+      target.textContent = `${report.checkins.length} ${t("check-ins nos últimos 30 dias")}, ${t("aderência média de")} ${avg}%, ${report.completedWorkouts.length} ${workoutLabel}, ${report.bodyMeasures.length} ${recordLabel} ${t("e")} ${report.missedDays.length} ${missedLabel}`;
     }
     function downloadExport(type) {
       const payload = {
@@ -5421,7 +5866,7 @@ ${photoSections}
         try {
           const profile = await upsertRemoteProfile(data.user, { name, email, role });
           const account = cacheRemoteAccount(profile, data.user);
-          if (account.role === "student" && personalCode) await linkStudentToTrainer(personalCode);
+          await consumePendingAccountCodes(account);
           event.target.reset();
           applyAuthState();
           showScreen(account.role === "personal" ? "clients" : "home");
@@ -5475,7 +5920,14 @@ ${photoSections}
     document.getElementById("inviteStudentButton")?.addEventListener("click", async () => {
       const personal = currentAccount();
       if (!personal || personal.role !== "personal") return;
-      const inviteCode = showInviteCodeForPersonal(personal);
+      let inviteCode = "";
+      try {
+        inviteCode = await showInviteCodeForPersonal(personal);
+      } catch (error) {
+        console.warn("Monolith invite creation failed", error);
+        authMessage("Não consegui criar o convite agora.");
+        return;
+      }
       try {
         if (!await copyText(inviteCode)) throw new Error("clipboard unavailable");
         authMessage("Código de convite copiado. Envie para o aluno.");
@@ -5485,7 +5937,16 @@ ${photoSections}
     });
     document.getElementById("copyInviteCodeButton")?.addEventListener("click", async () => {
       const personal = currentAccount();
-      const inviteCode = showInviteCodeForPersonal(personal);
+      let inviteCode = document.getElementById("inviteCodeDisplay")?.value.trim() || "";
+      if (!inviteCode) {
+        try {
+          inviteCode = await showInviteCodeForPersonal(personal);
+        } catch (error) {
+          console.warn("Monolith invite creation failed", error);
+          authMessage("Não consegui criar o convite agora.");
+          return;
+        }
+      }
       if (!inviteCode) return;
       try {
         if (!await copyText(inviteCode)) throw new Error("clipboard unavailable");

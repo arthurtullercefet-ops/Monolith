@@ -20,9 +20,12 @@ Official docs:
 1. Create a Supabase project.
 2. Open SQL Editor.
 3. Paste and run `monolith-supabase-schema.sql`.
-4. Confirm these tables exist:
+4. Paste and run `monolith-production-step-01.sql`.
+   This adds production invite codes, signup profile sync, plans, subscriptions and influencer attribution.
+5. Confirm these tables exist:
    - `profiles`
    - `trainer_students`
+   - `trainer_invites`
    - `daily_checkins`
    - `body_measurements`
    - `workout_templates`
@@ -30,7 +33,15 @@ Official docs:
    - `diet_plans`
    - `food_logs`
    - `progress_photos`
-5. Confirm Storage has a private bucket called `progress-photos`.
+   - `app_plans`
+   - `subscriptions`
+   - `influencer_codes`
+   - `referral_attributions`
+6. Confirm these functions exist:
+   - `create_trainer_invite`
+   - `accept_trainer_invite`
+   - `accept_influencer_code`
+7. Confirm Storage has a private bucket called `progress-photos`.
 
 ## Step 2: connect the frontend
 

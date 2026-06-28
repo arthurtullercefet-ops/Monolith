@@ -1,4 +1,4 @@
-const CACHE_NAME = "monolith-v40-disabled";
+const CACHE_NAME = "monolith-v44-supabase";
 
 self.addEventListener("install", event => {
   self.skipWaiting();
