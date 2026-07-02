@@ -22,10 +22,13 @@ Official docs:
 3. Paste and run `monolith-supabase-schema.sql`.
 4. Paste and run `monolith-production-step-01.sql`.
    This adds production invite codes, signup profile sync, plans, subscriptions and influencer attribution.
-5. Confirm these tables exist:
+5. Paste and run `monolith-production-step-02-trainer-map.sql`.
+   This adds the one-time trainer professional profile used by the future trainer map/search.
+6. Confirm these tables exist:
    - `profiles`
    - `trainer_students`
    - `trainer_invites`
+   - `trainer_public_profiles`
    - `daily_checkins`
    - `body_measurements`
    - `workout_templates`
@@ -37,11 +40,11 @@ Official docs:
    - `subscriptions`
    - `influencer_codes`
    - `referral_attributions`
-6. Confirm these functions exist:
+7. Confirm these functions exist:
    - `create_trainer_invite`
    - `accept_trainer_invite`
    - `accept_influencer_code`
-7. Confirm Storage has a private bucket called `progress-photos`.
+8. Confirm Storage has a private bucket called `progress-photos`.
 
 ## Step 2: connect the frontend
 

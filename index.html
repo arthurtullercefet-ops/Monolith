@@ -216,6 +216,106 @@
       line-height: 1.45;
     }
 
+    .trainer-profile-form {
+      display: grid;
+      gap: 16px;
+    }
+
+    .trainer-profile-section {
+      border: 1px solid var(--line);
+      background: #101010;
+      padding: 16px;
+      display: grid;
+      gap: 12px;
+    }
+
+    .trainer-profile-section h3 {
+      margin: 0;
+      font-size: 17px;
+      letter-spacing: 0;
+    }
+
+    .trainer-profile-section p {
+      margin: 0;
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.45;
+    }
+
+    .trainer-profile-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 10px;
+    }
+
+    .trainer-profile-grid.three {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+
+    .trainer-profile-grid .field.full,
+    .trainer-profile-grid .choice-card.full,
+    .trainer-profile-actions,
+    .choice-group.full {
+      grid-column: 1 / -1;
+    }
+
+    .choice-group {
+      display: grid;
+      gap: 8px;
+      min-width: 0;
+    }
+
+    .choice-group > label {
+      color: var(--muted);
+      font-size: 11px;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+
+    .choice-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 8px;
+    }
+
+    .choice-card {
+      min-height: 42px;
+      border: 1px solid var(--line);
+      background: #0d0d0d;
+      color: var(--text);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 9px 10px;
+      cursor: pointer;
+      font-size: 13px;
+      line-height: 1.25;
+    }
+
+    .choice-card input {
+      accent-color: var(--gold);
+      flex: 0 0 auto;
+    }
+
+    .choice-card:has(input:checked) {
+      border-color: var(--gold);
+      background: rgba(201, 162, 39, .12);
+    }
+
+    .trainer-profile-actions {
+      display: flex;
+      justify-content: flex-end;
+      gap: 10px;
+      align-items: center;
+    }
+
+    .profile-required {
+      color: var(--gold);
+      font-size: 12px;
+      font-weight: 800;
+    }
+
     .app {
       min-height: 100vh;
       display: grid;
@@ -1795,8 +1895,20 @@
 
       .nutrition-controls,
       .macro-grid,
-      .food-log-row {
+      .food-log-row,
+      .trainer-profile-grid,
+      .trainer-profile-grid.three,
+      .choice-grid {
         grid-template-columns: 1fr;
+      }
+
+      .trainer-profile-section {
+        padding: 14px;
+      }
+
+      .trainer-profile-actions {
+        align-items: stretch;
+        flex-direction: column;
       }
     }
   </style>
@@ -2410,6 +2522,194 @@
         </div>
       </section>
 
+      <section id="trainerProfileOnboarding" class="screen" data-role-only="personal">
+        <div class="topbar">
+          <div>
+            <h2>Perfil profissional</h2>
+            <div class="date">Cadastro único para o mapa de personais</div>
+          </div>
+        </div>
+        <div class="panel">
+          <div class="section-title">
+            <h3>Antes de continuar</h3>
+            <span>Primeiro acesso</span>
+          </div>
+          <div class="locked-note">Preencha uma vez para criar seu perfil profissional. Se não quiser aparecer no mapa, marque "Não" na participação do mapa.</div>
+        </div>
+        <form class="trainer-profile-form" id="trainerProfileForm">
+          <div class="trainer-profile-section">
+            <h3>Atendimento e mapa</h3>
+            <div class="trainer-profile-grid">
+              <div class="choice-group full" id="trainerServiceTypes"></div>
+              <div class="field">
+                <label for="trainerAppearOnMap">Deseja aparecer no mapa?</label>
+                <select id="trainerAppearOnMap" required>
+                  <option value="">Selecione</option>
+                  <option value="yes">Sim</option>
+                  <option value="no">Não</option>
+                </select>
+              </div>
+            </div>
+          </div>
+
+          <div class="trainer-profile-section">
+            <h3>Perfil básico</h3>
+            <div class="trainer-profile-grid">
+              <div class="field">
+                <label for="trainerFullName">Nome completo</label>
+                <input id="trainerFullName" required placeholder="Ex: Arthur Tuller" data-i18n-placeholder="Ex: Arthur Tuller" />
+              </div>
+              <div class="field">
+                <label for="trainerProfessionalName">Nome profissional</label>
+                <input id="trainerProfessionalName" required placeholder="Ex: Coach Arthur" data-i18n-placeholder="Ex: Coach Arthur" />
+              </div>
+              <div class="field full">
+                <label for="trainerSocialUrl">Instagram ou rede social</label>
+                <input id="trainerSocialUrl" required placeholder="@seuperfil ou https://instagram.com/seuperfil" data-i18n-placeholder="@seuperfil ou https://instagram.com/seuperfil" />
+              </div>
+              <div class="field full">
+                <label for="trainerBio">Bio curta</label>
+                <textarea id="trainerBio" required maxlength="360" placeholder="Personal trainer focado em força, emagrecimento e transformação de estilo de vida." data-i18n-placeholder="Personal trainer focado em força, emagrecimento e transformação de estilo de vida."></textarea>
+              </div>
+            </div>
+          </div>
+
+          <div class="trainer-profile-section">
+            <h3>Formato e localização</h3>
+            <div class="trainer-profile-grid three">
+              <div class="choice-group full" id="trainerTrainingFormats"></div>
+              <div class="field">
+                <label for="trainerCity">Cidade principal</label>
+                <input id="trainerCity" required placeholder="Ex: Miami" data-i18n-placeholder="Ex: Miami" />
+              </div>
+              <div class="field">
+                <label for="trainerState">Estado</label>
+                <input id="trainerState" required placeholder="Ex: FL" data-i18n-placeholder="Ex: FL" />
+              </div>
+              <div class="field">
+                <label for="trainerZipCode">CEP</label>
+                <input id="trainerZipCode" required placeholder="Ex: 33101" data-i18n-placeholder="Ex: 33101" />
+              </div>
+              <div class="field">
+                <label for="trainerTravelAvailability">Deslocamento</label>
+                <select id="trainerTravelAvailability" required>
+                  <option value="">Selecione</option>
+                  <option value="no">Não</option>
+                  <option value="short">Sim, curta distância</option>
+                  <option value="long">Sim, longa distância</option>
+                  <option value="depends">Depende da distância, pacote ou cliente</option>
+                </select>
+              </div>
+              <div class="field full">
+                <label for="trainerTravelNotes">Observações sobre deslocamento</label>
+                <textarea id="trainerTravelNotes" placeholder="Ex: Posso me deslocar para cidades próximas dependendo da agenda e do pacote." data-i18n-placeholder="Ex: Posso me deslocar para cidades próximas dependendo da agenda e do pacote."></textarea>
+              </div>
+            </div>
+          </div>
+
+          <div class="trainer-profile-section">
+            <h3>Preços</h3>
+            <div class="trainer-profile-grid three">
+              <div class="field">
+                <label for="trainerHourlyPrice">Valor por hora-aula</label>
+                <input id="trainerHourlyPrice" required inputmode="decimal" placeholder="Ex: 80" data-i18n-placeholder="Ex: 80" />
+              </div>
+              <div class="field">
+                <label for="trainerMonthlyPrice">Valor mensal</label>
+                <input id="trainerMonthlyPrice" required inputmode="decimal" placeholder="Ex: 350" data-i18n-placeholder="Ex: 350" />
+              </div>
+              <div class="field">
+                <label for="trainerOnlineMonthlyPrice">Valor mensal online</label>
+                <input id="trainerOnlineMonthlyPrice" inputmode="decimal" placeholder="Opcional" data-i18n-placeholder="Opcional" />
+              </div>
+              <div class="field">
+                <label for="trainerFreeConsultation">Primeira consulta gratuita?</label>
+                <select id="trainerFreeConsultation">
+                  <option value="">Opcional</option>
+                  <option value="yes">Sim</option>
+                  <option value="no">Não</option>
+                </select>
+              </div>
+              <div class="field">
+                <label for="trainerPackageDiscounts">Desconto em pacotes?</label>
+                <select id="trainerPackageDiscounts">
+                  <option value="">Opcional</option>
+                  <option value="yes">Sim</option>
+                  <option value="no">Não</option>
+                </select>
+              </div>
+            </div>
+          </div>
+
+          <div class="trainer-profile-section">
+            <h3>Especialidades e alunos</h3>
+            <div class="trainer-profile-grid">
+              <div class="choice-group full" id="trainerSpecialties"></div>
+              <div class="choice-group full" id="trainerTargetClients"></div>
+            </div>
+          </div>
+
+          <div class="trainer-profile-section">
+            <h3>Responsabilidade profissional</h3>
+            <p>O personal trainer é responsável pela veracidade de todas as informações profissionais fornecidas. O Monolith não verifica certificações, licenças, seguro, histórico profissional ou autorização legal nesta fase.</p>
+            <div class="trainer-profile-grid three">
+              <div class="field">
+                <label for="trainerCertifiedStatus">Certificação</label>
+                <select id="trainerCertifiedStatus">
+                  <option value="">Opcional</option>
+                  <option value="yes">Sim</option>
+                  <option value="no">Não</option>
+                  <option value="in_progress">Em andamento</option>
+                </select>
+              </div>
+              <div class="field">
+                <label for="trainerCertificationName">Nome da certificação</label>
+                <input id="trainerCertificationName" placeholder="Opcional" data-i18n-placeholder="Opcional" />
+              </div>
+              <div class="field">
+                <label for="trainerYearsExperience">Anos de experiência</label>
+                <input id="trainerYearsExperience" type="number" min="0" step="1" placeholder="Opcional" data-i18n-placeholder="Opcional" />
+              </div>
+              <div class="field">
+                <label for="trainerLiabilityInsurance">Seguro profissional</label>
+                <select id="trainerLiabilityInsurance">
+                  <option value="">Opcional</option>
+                  <option value="yes">Sim</option>
+                  <option value="no">Não</option>
+                  <option value="prefer_not">Prefiro não informar</option>
+                </select>
+              </div>
+              <div class="choice-group full" id="trainerAvailability"></div>
+              <div class="choice-group full" id="trainerLanguages"></div>
+              <label class="choice-card full">
+                <input id="trainerResponsibilityAccepted" type="checkbox" required />
+                <span>Eu concordo com o aviso de responsabilidade.</span>
+              </label>
+            </div>
+          </div>
+
+          <div class="trainer-profile-section">
+            <h3>Autorização</h3>
+            <p>O Monolith poderá traduzir as informações do perfil exibidas aos clientes em inglês, português e espanhol, mas não funcionará como tradutor em tempo real.</p>
+            <div class="trainer-profile-grid">
+              <div class="field">
+                <label for="trainerAuthorization">Autorização de exibição</label>
+                <select id="trainerAuthorization" required>
+                  <option value="">Selecione</option>
+                  <option value="app_only">Sim, apenas dentro do app</option>
+                  <option value="app_and_social">Sim, dentro do app e nas redes sociais</option>
+                  <option value="no">Não</option>
+                </select>
+              </div>
+              <div class="trainer-profile-actions">
+                <span class="profile-required">Campos obrigatórios para continuar</span>
+                <button class="action" type="submit">Salvar perfil profissional</button>
+              </div>
+            </div>
+          </div>
+        </form>
+      </section>
+
       <section id="clients" class="screen">
         <div class="topbar">
           <div>
@@ -2589,7 +2889,10 @@
       }
 
       function fallbackShowScreen(id) {
-        const user = demoAccounts[document.getElementById("loginEmail")?.value?.trim()?.toLowerCase()] || null;
+        if (window.monolithTrainerProfileRequired && id !== "trainerProfileOnboarding") id = "trainerProfileOnboarding";
+        const sessionId = localStorage.getItem("monolith.sessionUserId");
+        const sessionAccount = fallbackAccounts().find(account => account.id === sessionId) || null;
+        const user = demoAccounts[document.getElementById("loginEmail")?.value?.trim()?.toLowerCase()] || sessionAccount;
         const roleOnly = document.querySelector(`.nav-btn[data-screen="${id}"]`)?.dataset.roleOnly;
         if (roleOnly && roleOnly !== user?.role) id = "home";
         document.querySelectorAll(".screen").forEach(screen => {
@@ -2877,6 +3180,323 @@
       return account?.source === "supabase" || (account?.id?.includes("-") && !account?.email?.endsWith("@monolith.app"));
     }
 
+    let trainerProfileOnboardingRequired = false;
+    window.monolithTrainerProfileRequired = false;
+
+    const trainerProfileOptionGroups = {
+      serviceTypes: {
+        containerId: "trainerServiceTypes",
+        name: "trainerServiceTypes",
+        label: "Qual tipo de atendimento você oferece?",
+        required: true,
+        options: [
+          ["online", "A distância"],
+          ["private", "Particular"],
+          ["group", "Grupo"],
+          ["hybrid", "Híbrido"]
+        ]
+      },
+      trainingFormats: {
+        containerId: "trainerTrainingFormats",
+        name: "trainerTrainingFormats",
+        label: "Como você atende seus clientes?",
+        required: true,
+        options: [
+          ["online_coaching", "Online"],
+          ["in_person", "Presencial"],
+          ["hybrid", "Híbrido"],
+          ["gym_based", "Em academia"],
+          ["home_training", "Treino em casa"],
+          ["outdoor", "Ao ar livre"]
+        ]
+      },
+      specialties: {
+        containerId: "trainerSpecialties",
+        name: "trainerSpecialties",
+        label: "Quais são suas principais especialidades?",
+        required: true,
+        options: [
+          ["weight_loss", "Emagrecimento"],
+          ["muscle_gain", "Hipertrofia"],
+          ["strength", "Força"],
+          ["bodybuilding", "Musculação"],
+          ["functional", "Funcional"],
+          ["mobility", "Mobilidade"],
+          ["beginner", "Iniciantes"],
+          ["womens_fitness", "Treino feminino"],
+          ["senior", "Terceira idade"],
+          ["sports_performance", "Performance esportiva"],
+          ["injury_recovery", "Suporte pós-lesão"],
+          ["lifestyle", "Hábitos e rotina"],
+          ["nutrition_guidance", "Orientação nutricional"]
+        ]
+      },
+      targetClients: {
+        containerId: "trainerTargetClients",
+        name: "trainerTargetClients",
+        label: "Com quem você costuma trabalhar?",
+        required: true,
+        options: [
+          ["beginners", "Iniciantes"],
+          ["intermediate", "Intermediários"],
+          ["advanced", "Avançados"],
+          ["men", "Homens"],
+          ["women", "Mulheres"],
+          ["teenagers", "Adolescentes"],
+          ["seniors", "Idosos"],
+          ["weight_loss_clients", "Pessoas buscando emagrecimento"],
+          ["muscle_gain_clients", "Pessoas buscando ganho de massa"],
+          ["busy_professionals", "Profissionais com rotina corrida"],
+          ["post_injury", "Pessoas em retorno pós-lesão"]
+        ]
+      },
+      availability: {
+        containerId: "trainerAvailability",
+        name: "trainerAvailability",
+        label: "Quando você costuma estar disponível?",
+        required: false,
+        options: [
+          ["morning", "Manhã"],
+          ["afternoon", "Tarde"],
+          ["evening", "Noite"],
+          ["weekends", "Finais de semana"],
+          ["flexible", "Horário flexível"]
+        ]
+      },
+      languages: {
+        containerId: "trainerLanguages",
+        name: "trainerLanguages",
+        label: "Idiomas falados",
+        required: true,
+        options: [
+          ["en", "Inglês"],
+          ["pt", "Português"],
+          ["es", "Espanhol"],
+          ["other", "Outro"]
+        ]
+      }
+    };
+
+    function selectedChoiceValues(groupName) {
+      return [...document.querySelectorAll(`input[name="${groupName}"]:checked`)].map(input => input.value);
+    }
+
+    function setChoiceValues(groupName, values = []) {
+      const selected = new Set(values || []);
+      document.querySelectorAll(`input[name="${groupName}"]`).forEach(input => {
+        input.checked = selected.has(input.value);
+      });
+    }
+
+    function renderChoiceGroup(group, selected = []) {
+      const container = document.getElementById(group.containerId);
+      if (!container) return;
+      const selectedSet = new Set(selected);
+      container.innerHTML = `
+        <label>${escapeHTML(t(group.label))}${group.required ? " *" : ""}</label>
+        <div class="choice-grid">
+          ${group.options.map(([value, label]) => `
+            <label class="choice-card">
+              <input type="checkbox" name="${escapeHTML(group.name)}" value="${escapeHTML(value)}" ${selectedSet.has(value) ? "checked" : ""} />
+              <span>${escapeHTML(t(label))}</span>
+            </label>
+          `).join("")}
+        </div>
+      `;
+    }
+
+    function trainerProfileSelections() {
+      return Object.fromEntries(Object.values(trainerProfileOptionGroups).map(group => [group.name, selectedChoiceValues(group.name)]));
+    }
+
+    function renderTrainerProfileOptionGroups(preset = null) {
+      const current = preset || trainerProfileSelections();
+      Object.values(trainerProfileOptionGroups).forEach(group => renderChoiceGroup(group, current[group.name] || []));
+    }
+
+    function trainerProfilesCache() {
+      try {
+        return JSON.parse(localStorage.getItem("monolith.trainerPublicProfiles") || "{}");
+      } catch {
+        return {};
+      }
+    }
+
+    function saveTrainerProfileCache(profile) {
+      if (!profile?.trainer_id) return;
+      const profiles = trainerProfilesCache();
+      profiles[profile.trainer_id] = profile;
+      localStorage.setItem("monolith.trainerPublicProfiles", JSON.stringify(profiles));
+    }
+
+    function parseMoneyInput(value) {
+      const normalized = String(value || "").replace(/\s/g, "").replace(",", ".");
+      const parsed = Number.parseFloat(normalized);
+      return Number.isFinite(parsed) ? Math.round(parsed * 100) / 100 : null;
+    }
+
+    function optionalBoolean(value) {
+      if (value === "yes") return true;
+      if (value === "no") return false;
+      return null;
+    }
+
+    function optionalNumber(value) {
+      const parsed = Number.parseInt(value, 10);
+      return Number.isFinite(parsed) ? parsed : null;
+    }
+
+    function inputValue(id) {
+      return document.getElementById(id)?.value.trim() || "";
+    }
+
+    function normalizeSocialUrl(value) {
+      const raw = String(value || "").trim();
+      if (!raw) return "";
+      if (/^https?:\/\//i.test(raw)) return raw;
+      const handle = raw.replace(/^@/, "").replace(/^instagram\.com\//i, "").replace(/^www\.instagram\.com\//i, "");
+      if (/^[a-z0-9._]{2,}$/i.test(handle)) return `https://instagram.com/${handle}`;
+      return raw;
+    }
+
+    function trainerProfilePayloadFromForm() {
+      const user = currentAccount();
+      const authorization = inputValue("trainerAuthorization");
+      const appearOnMap = inputValue("trainerAppearOnMap") === "yes" && authorization !== "no";
+      return {
+        trainer_id: user?.id || "",
+        service_types: selectedChoiceValues("trainerServiceTypes"),
+        appear_on_map: appearOnMap,
+        full_name: inputValue("trainerFullName"),
+        professional_name: inputValue("trainerProfessionalName"),
+        social_url: normalizeSocialUrl(inputValue("trainerSocialUrl")),
+        bio: inputValue("trainerBio"),
+        training_formats: selectedChoiceValues("trainerTrainingFormats"),
+        city: inputValue("trainerCity"),
+        state: inputValue("trainerState"),
+        zip_code: inputValue("trainerZipCode"),
+        travel_availability: inputValue("trainerTravelAvailability"),
+        travel_notes: inputValue("trainerTravelNotes") || null,
+        hourly_price: parseMoneyInput(inputValue("trainerHourlyPrice")) ?? 0,
+        monthly_price: parseMoneyInput(inputValue("trainerMonthlyPrice")) ?? 0,
+        online_monthly_price: parseMoneyInput(inputValue("trainerOnlineMonthlyPrice")),
+        free_first_consultation: optionalBoolean(inputValue("trainerFreeConsultation")),
+        package_discounts: optionalBoolean(inputValue("trainerPackageDiscounts")),
+        specialties: selectedChoiceValues("trainerSpecialties"),
+        target_clients: selectedChoiceValues("trainerTargetClients"),
+        certified_status: inputValue("trainerCertifiedStatus") || null,
+        certification_name: inputValue("trainerCertificationName") || null,
+        years_experience: optionalNumber(inputValue("trainerYearsExperience")),
+        liability_insurance: inputValue("trainerLiabilityInsurance") || null,
+        responsibility_accepted: Boolean(document.getElementById("trainerResponsibilityAccepted")?.checked),
+        availability: selectedChoiceValues("trainerAvailability"),
+        languages: selectedChoiceValues("trainerLanguages"),
+        authorization
+      };
+    }
+
+    function validateTrainerProfilePayload(payload) {
+      const requiredArrays = [
+        ["service_types", "Escolha pelo menos um tipo de atendimento."],
+        ["training_formats", "Escolha pelo menos um formato de treino."],
+        ["specialties", "Escolha pelo menos uma especialidade."],
+        ["target_clients", "Escolha pelo menos um público atendido."],
+        ["languages", "Escolha pelo menos um idioma."]
+      ];
+      for (const [key, message] of requiredArrays) {
+        if (!payload[key]?.length) return message;
+      }
+      if (inputValue("trainerAppearOnMap") === "yes" && payload.authorization === "no") {
+        return "Para aparecer no mapa, autorize a exibição dentro do app.";
+      }
+      if (!payload.responsibility_accepted) return "Confirme o aviso de responsabilidade para continuar.";
+      if (!payload.authorization) return "Escolha a autorização de exibição.";
+      return "";
+    }
+
+    async function loadTrainerPublicProfile(account = currentAccount()) {
+      if (!account || account.role !== "personal") return null;
+      if (monolithSupabase && isRealSupabaseAccount(account)) {
+        try {
+          const { data, error } = await monolithSupabase
+            .from("trainer_public_profiles")
+            .select("*")
+            .eq("trainer_id", account.id)
+            .maybeSingle();
+          if (error) throw error;
+          if (data) {
+            saveTrainerProfileCache(data);
+            return data;
+          }
+        } catch (error) {
+          console.warn("Monolith trainer profile load failed", error);
+        }
+      }
+      return trainerProfilesCache()[account.id] || null;
+    }
+
+    function fillTrainerProfileForm(profile = {}) {
+      renderTrainerProfileOptionGroups({
+        trainerServiceTypes: profile.service_types || [],
+        trainerTrainingFormats: profile.training_formats || [],
+        trainerSpecialties: profile.specialties || [],
+        trainerTargetClients: profile.target_clients || [],
+        trainerAvailability: profile.availability || [],
+        trainerLanguages: profile.languages || []
+      });
+      const setValue = (id, value = "") => {
+        const element = document.getElementById(id);
+        if (element) element.value = value ?? "";
+      };
+      setValue("trainerAppearOnMap", profile.trainer_id ? (profile.appear_on_map ? "yes" : "no") : "");
+      setValue("trainerFullName", profile.full_name || currentAccount()?.name || "");
+      setValue("trainerProfessionalName", profile.professional_name || currentAccount()?.name || "");
+      setValue("trainerSocialUrl", profile.social_url || "");
+      setValue("trainerBio", profile.bio || "");
+      setValue("trainerCity", profile.city || "");
+      setValue("trainerState", profile.state || "");
+      setValue("trainerZipCode", profile.zip_code || "");
+      setValue("trainerTravelAvailability", profile.travel_availability || "");
+      setValue("trainerTravelNotes", profile.travel_notes || "");
+      setValue("trainerHourlyPrice", profile.hourly_price ?? "");
+      setValue("trainerMonthlyPrice", profile.monthly_price ?? "");
+      setValue("trainerOnlineMonthlyPrice", profile.online_monthly_price ?? "");
+      setValue("trainerFreeConsultation", profile.free_first_consultation === true ? "yes" : profile.free_first_consultation === false ? "no" : "");
+      setValue("trainerPackageDiscounts", profile.package_discounts === true ? "yes" : profile.package_discounts === false ? "no" : "");
+      setValue("trainerCertifiedStatus", profile.certified_status || "");
+      setValue("trainerCertificationName", profile.certification_name || "");
+      setValue("trainerYearsExperience", profile.years_experience ?? "");
+      setValue("trainerLiabilityInsurance", profile.liability_insurance || "");
+      setValue("trainerAuthorization", profile.authorization || "");
+      const responsibility = document.getElementById("trainerResponsibilityAccepted");
+      if (responsibility) responsibility.checked = Boolean(profile.responsibility_accepted);
+    }
+
+    async function saveTrainerPublicProfile(payload) {
+      if (monolithSupabase && isRealSupabaseAccount(currentAccount())) {
+        const { error } = await monolithSupabase
+          .from("trainer_public_profiles")
+          .upsert(payload, { onConflict: "trainer_id" });
+        if (error) throw error;
+      }
+      saveTrainerProfileCache(payload);
+    }
+
+    async function maybeRequireTrainerProfile(account = currentAccount()) {
+      if (!account || account.role !== "personal") return false;
+      const profile = await loadTrainerPublicProfile(account);
+      if (profile) {
+        trainerProfileOnboardingRequired = false;
+        window.monolithTrainerProfileRequired = false;
+        return false;
+      }
+      trainerProfileOnboardingRequired = true;
+      window.monolithTrainerProfileRequired = true;
+      fillTrainerProfileForm();
+      showScreen("trainerProfileOnboarding");
+      return true;
+    }
+
     function inviteCodeForPersonal(personal) {
       return personal?.id ? `MONOLITH-${personal.id}` : "";
     }
@@ -3019,6 +3639,10 @@
     function applyAuthState() {
       const user = currentAccount();
       document.body.classList.toggle("authenticated", Boolean(user));
+      if (!user) {
+        trainerProfileOnboardingRequired = false;
+        window.monolithTrainerProfileRequired = false;
+      }
       document.querySelectorAll("[data-role-only]").forEach(element => {
         element.hidden = !user || element.dataset.roleOnly !== user.role;
       });
@@ -3194,7 +3818,7 @@
           const account = cacheRemoteAccount(profile, data.user);
           await consumePendingAccountCodes(account);
           applyAuthState();
-          showScreen(account.role === "personal" ? "clients" : "home");
+          if (!await maybeRequireTrainerProfile(account)) showScreen(account.role === "personal" ? "clients" : "home");
           authMessage(`${t("Bem-vindo")}, ${account.name}.`);
           return true;
         } catch (profileError) {
@@ -3206,7 +3830,7 @@
           }
           await consumePendingAccountCodes(account);
           applyAuthState();
-          showScreen(account.role === "personal" ? "clients" : "home");
+          if (!await maybeRequireTrainerProfile(account)) showScreen(account.role === "personal" ? "clients" : "home");
           authMessage("Login feito. Perfil remoto pendente de sincronização.");
           return true;
         }
@@ -3223,7 +3847,7 @@
       showLoginNotice("");
       localStorage.setItem("monolith.sessionUserId", account.id);
       applyAuthState();
-      showScreen(account.role === "personal" ? "clients" : "home");
+      if (!await maybeRequireTrainerProfile(account)) showScreen(account.role === "personal" ? "clients" : "home");
       authMessage(`${t("Bem-vindo")}, ${account.name}.`);
       return true;
     }
@@ -3741,6 +4365,112 @@
         "Plano Supabase": "Supabase plan",
         "Acesso separado para aluno e personal, com dados sincronizados pelo Supabase e pronto para pagamentos.": "Separate student and trainer access, with data synced through Supabase and ready for payments.",
         "Contas reais usam Supabase Auth. Depois de criar conta, confirme o cadastro no e-mail antes de entrar.": "Real accounts use Supabase Auth. After creating an account, confirm it by email before logging in.",
+        "Perfil profissional": "Professional profile",
+        "Cadastro único para o mapa de personais": "One-time signup for the trainer map",
+        "Antes de continuar": "Before continuing",
+        "Primeiro acesso": "First access",
+        "Preencha uma vez para criar seu perfil profissional. Se não quiser aparecer no mapa, marque \"Não\" na participação do mapa.": "Fill this once to create your professional profile. If you do not want to appear on the map, choose \"No\" for map participation.",
+        "Atendimento e mapa": "Service and map",
+        "Qual tipo de atendimento você oferece?": "What type of service do you offer?",
+        "A distância": "Online",
+        "Particular": "Private",
+        "Grupo": "Group",
+        "Híbrido": "Hybrid",
+        "Deseja aparecer no mapa?": "Do you want to appear on the map?",
+        "Selecione": "Select",
+        "Sim": "Yes",
+        "Não": "No",
+        "Perfil básico": "Basic profile",
+        "Nome profissional": "Professional name",
+        "Instagram ou rede social": "Instagram or social media",
+        "@seuperfil ou https://instagram.com/seuperfil": "@yourprofile or https://instagram.com/yourprofile",
+        "Bio curta": "Short bio",
+        "Personal trainer focado em força, emagrecimento e transformação de estilo de vida.": "Personal trainer focused on strength, fat loss and lifestyle transformation.",
+        "Formato e localização": "Format and location",
+        "Como você atende seus clientes?": "How do you work with clients?",
+        "Online": "Online",
+        "Presencial": "In-person",
+        "Em academia": "Gym-based training",
+        "Treino em casa": "Home training",
+        "Ao ar livre": "Outdoor training",
+        "Cidade principal": "Main city",
+        "Estado": "State",
+        "CEP": "ZIP code",
+        "Deslocamento": "Travel",
+        "Sim, curta distância": "Yes, short distance",
+        "Sim, longa distância": "Yes, long distance",
+        "Depende da distância, pacote ou cliente": "Depends on distance, package or client",
+        "Observações sobre deslocamento": "Travel notes",
+        "Ex: Posso me deslocar para cidades próximas dependendo da agenda e do pacote.": "Ex: I can travel within nearby cities depending on schedule and package.",
+        "Preços": "Pricing",
+        "Valor por hora-aula": "Hourly session price",
+        "Valor mensal": "Monthly price",
+        "Valor mensal online": "Online monthly price",
+        "Opcional": "Optional",
+        "Primeira consulta gratuita?": "Free first consultation?",
+        "Desconto em pacotes?": "Package discounts?",
+        "Especialidades e alunos": "Specialties and clients",
+        "Quais são suas principais especialidades?": "What are your main specialties?",
+        "Emagrecimento": "Weight loss",
+        "Hipertrofia": "Muscle gain",
+        "Força": "Strength",
+        "Musculação": "Bodybuilding",
+        "Funcional": "Functional training",
+        "Mobilidade": "Mobility",
+        "Iniciantes": "Beginners",
+        "Treino feminino": "Women's fitness",
+        "Terceira idade": "Senior fitness",
+        "Performance esportiva": "Sports performance",
+        "Suporte pós-lesão": "Injury recovery support",
+        "Hábitos e rotina": "Lifestyle coaching",
+        "Orientação nutricional": "Nutrition guidance",
+        "Com quem você costuma trabalhar?": "Who do you usually work with?",
+        "Intermediários": "Intermediate clients",
+        "Avançados": "Advanced athletes",
+        "Homens": "Men",
+        "Mulheres": "Women",
+        "Adolescentes": "Teenagers",
+        "Idosos": "Seniors",
+        "Pessoas buscando emagrecimento": "Weight loss clients",
+        "Pessoas buscando ganho de massa": "Muscle gain clients",
+        "Profissionais com rotina corrida": "Busy professionals",
+        "Pessoas em retorno pós-lesão": "Post-injury clients",
+        "Responsabilidade profissional": "Professional responsibility",
+        "O personal trainer é responsável pela veracidade de todas as informações profissionais fornecidas. O Monolith não verifica certificações, licenças, seguro, histórico profissional ou autorização legal nesta fase.": "The trainer is responsible for the accuracy of all professional information provided. Monolith does not verify certifications, licenses, insurance, professional background or legal authorization at this stage.",
+        "Certificação": "Certification",
+        "Em andamento": "In progress",
+        "Nome da certificação": "Certification name",
+        "Anos de experiência": "Years of experience",
+        "Seguro profissional": "Professional liability insurance",
+        "Prefiro não informar": "Prefer not to say",
+        "Quando você costuma estar disponível?": "When are you usually available?",
+        "Manhã": "Morning",
+        "Tarde": "Afternoon",
+        "Noite": "Evening",
+        "Finais de semana": "Weekends",
+        "Horário flexível": "Flexible schedule",
+        "Idiomas falados": "Languages spoken",
+        "Inglês": "English",
+        "Espanhol": "Spanish",
+        "Outro": "Other",
+        "Eu concordo com o aviso de responsabilidade.": "I agree with the responsibility notice.",
+        "Autorização": "Authorization",
+        "O Monolith poderá traduzir as informações do perfil exibidas aos clientes em inglês, português e espanhol, mas não funcionará como tradutor em tempo real.": "Monolith may translate the profile information displayed to clients in English, Portuguese and Spanish, but it will not work as a real-time translator.",
+        "Autorização de exibição": "Display authorization",
+        "Sim, apenas dentro do app": "Yes, inside the app only",
+        "Sim, dentro do app e nas redes sociais": "Yes, inside the app and on social media",
+        "Campos obrigatórios para continuar": "Required fields to continue",
+        "Salvar perfil profissional": "Save professional profile",
+        "Perfil profissional salvo.": "Professional profile saved.",
+        "Não consegui salvar o perfil profissional agora.": "Could not save the professional profile right now.",
+        "Escolha pelo menos um tipo de atendimento.": "Choose at least one service type.",
+        "Escolha pelo menos um formato de treino.": "Choose at least one training format.",
+        "Escolha pelo menos uma especialidade.": "Choose at least one specialty.",
+        "Escolha pelo menos um público atendido.": "Choose at least one target client.",
+        "Escolha pelo menos um idioma.": "Choose at least one language.",
+        "Para aparecer no mapa, autorize a exibição dentro do app.": "To appear on the map, authorize display inside the app.",
+        "Confirme o aviso de responsabilidade para continuar.": "Confirm the responsibility notice to continue.",
+        "Escolha a autorização de exibição.": "Choose the display authorization.",
         "Crie treinos do zero com histórico e progressão automática": "Create workouts from scratch with history and automatic progression",
         "Programas e coaches": "Programs and coaches",
         "Filosofias de treino, intensidade e disciplina": "Training philosophies, intensity and discipline",
@@ -4233,6 +4963,112 @@
         "Plano Supabase": "Plan Supabase",
         "Acesso separado para aluno e personal, com dados sincronizados pelo Supabase e pronto para pagamentos.": "Acceso separado para alumno y entrenador, con datos sincronizados por Supabase y listo para pagos.",
         "Contas reais usam Supabase Auth. Depois de criar conta, confirme o cadastro no e-mail antes de entrar.": "Las cuentas reales usan Supabase Auth. Después de crear una cuenta, confirma el registro por email antes de entrar.",
+        "Perfil profissional": "Perfil profesional",
+        "Cadastro único para o mapa de personais": "Registro único para el mapa de entrenadores",
+        "Antes de continuar": "Antes de continuar",
+        "Primeiro acesso": "Primer acceso",
+        "Preencha uma vez para criar seu perfil profissional. Se não quiser aparecer no mapa, marque \"Não\" na participação do mapa.": "Completa esto una vez para crear tu perfil profesional. Si no quieres aparecer en el mapa, elige \"No\" en la participación del mapa.",
+        "Atendimento e mapa": "Servicio y mapa",
+        "Qual tipo de atendimento você oferece?": "¿Qué tipo de servicio ofreces?",
+        "A distância": "Online",
+        "Particular": "Privado",
+        "Grupo": "Grupo",
+        "Híbrido": "Híbrido",
+        "Deseja aparecer no mapa?": "¿Quieres aparecer en el mapa?",
+        "Selecione": "Selecciona",
+        "Sim": "Sí",
+        "Não": "No",
+        "Perfil básico": "Perfil básico",
+        "Nome profissional": "Nombre profesional",
+        "Instagram ou rede social": "Instagram o red social",
+        "@seuperfil ou https://instagram.com/seuperfil": "@tuperfil o https://instagram.com/tuperfil",
+        "Bio curta": "Bio corta",
+        "Personal trainer focado em força, emagrecimento e transformação de estilo de vida.": "Entrenador personal enfocado en fuerza, pérdida de grasa y transformación de estilo de vida.",
+        "Formato e localização": "Formato y ubicación",
+        "Como você atende seus clientes?": "¿Cómo atiendes a tus clientes?",
+        "Online": "Online",
+        "Presencial": "Presencial",
+        "Em academia": "En gimnasio",
+        "Treino em casa": "Entreno en casa",
+        "Ao ar livre": "Al aire libre",
+        "Cidade principal": "Ciudad principal",
+        "Estado": "Estado",
+        "CEP": "Código postal",
+        "Deslocamento": "Desplazamiento",
+        "Sim, curta distância": "Sí, corta distancia",
+        "Sim, longa distância": "Sí, larga distancia",
+        "Depende da distância, pacote ou cliente": "Depende de la distancia, paquete o cliente",
+        "Observações sobre deslocamento": "Notas sobre desplazamiento",
+        "Ex: Posso me deslocar para cidades próximas dependendo da agenda e do pacote.": "Ej: Puedo desplazarme a ciudades cercanas dependiendo de la agenda y el paquete.",
+        "Preços": "Precios",
+        "Valor por hora-aula": "Precio por hora/sesión",
+        "Valor mensal": "Precio mensual",
+        "Valor mensal online": "Precio mensual online",
+        "Opcional": "Opcional",
+        "Primeira consulta gratuita?": "¿Primera consulta gratuita?",
+        "Desconto em pacotes?": "¿Descuento en paquetes?",
+        "Especialidades e alunos": "Especialidades y alumnos",
+        "Quais são suas principais especialidades?": "¿Cuáles son tus principales especialidades?",
+        "Emagrecimento": "Pérdida de peso",
+        "Hipertrofia": "Hipertrofia",
+        "Força": "Fuerza",
+        "Musculação": "Musculación",
+        "Funcional": "Funcional",
+        "Mobilidade": "Movilidad",
+        "Iniciantes": "Principiantes",
+        "Treino feminino": "Entreno femenino",
+        "Terceira idade": "Tercera edad",
+        "Performance esportiva": "Rendimiento deportivo",
+        "Suporte pós-lesão": "Soporte post-lesión",
+        "Hábitos e rotina": "Hábitos y rutina",
+        "Orientação nutricional": "Orientación nutricional",
+        "Com quem você costuma trabalhar?": "¿Con quién sueles trabajar?",
+        "Intermediários": "Intermedios",
+        "Avançados": "Avanzados",
+        "Homens": "Hombres",
+        "Mulheres": "Mujeres",
+        "Adolescentes": "Adolescentes",
+        "Idosos": "Adultos mayores",
+        "Pessoas buscando emagrecimento": "Personas buscando perder peso",
+        "Pessoas buscando ganho de massa": "Personas buscando ganar masa",
+        "Profissionais com rotina corrida": "Profesionales con rutina ocupada",
+        "Pessoas em retorno pós-lesão": "Personas en retorno post-lesión",
+        "Responsabilidade profissional": "Responsabilidad profesional",
+        "O personal trainer é responsável pela veracidade de todas as informações profissionais fornecidas. O Monolith não verifica certificações, licenças, seguro, histórico profissional ou autorização legal nesta fase.": "El entrenador es responsable de la veracidad de toda la información profesional proporcionada. Monolith no verifica certificaciones, licencias, seguro, historial profesional o autorización legal en esta etapa.",
+        "Certificação": "Certificación",
+        "Em andamento": "En proceso",
+        "Nome da certificação": "Nombre de la certificación",
+        "Anos de experiência": "Años de experiencia",
+        "Seguro profissional": "Seguro profesional",
+        "Prefiro não informar": "Prefiero no informar",
+        "Quando você costuma estar disponível?": "¿Cuándo sueles estar disponible?",
+        "Manhã": "Mañana",
+        "Tarde": "Tarde",
+        "Noite": "Noche",
+        "Finais de semana": "Fines de semana",
+        "Horário flexível": "Horario flexible",
+        "Idiomas falados": "Idiomas hablados",
+        "Inglês": "Inglés",
+        "Espanhol": "Español",
+        "Outro": "Otro",
+        "Eu concordo com o aviso de responsabilidade.": "Estoy de acuerdo con el aviso de responsabilidad.",
+        "Autorização": "Autorización",
+        "O Monolith poderá traduzir as informações do perfil exibidas aos clientes em inglês, português e espanhol, mas não funcionará como tradutor em tempo real.": "Monolith podrá traducir la información del perfil mostrada a clientes en inglés, portugués y español, pero no funcionará como traductor en tiempo real.",
+        "Autorização de exibição": "Autorización de visualización",
+        "Sim, apenas dentro do app": "Sí, solo dentro de la app",
+        "Sim, dentro do app e nas redes sociais": "Sí, dentro de la app y en redes sociales",
+        "Campos obrigatórios para continuar": "Campos obligatorios para continuar",
+        "Salvar perfil profissional": "Guardar perfil profesional",
+        "Perfil profissional salvo.": "Perfil profesional guardado.",
+        "Não consegui salvar o perfil profissional agora.": "No pude guardar el perfil profesional ahora.",
+        "Escolha pelo menos um tipo de atendimento.": "Elige al menos un tipo de servicio.",
+        "Escolha pelo menos um formato de treino.": "Elige al menos un formato de entreno.",
+        "Escolha pelo menos uma especialidade.": "Elige al menos una especialidad.",
+        "Escolha pelo menos um público atendido.": "Elige al menos un público atendido.",
+        "Escolha pelo menos um idioma.": "Elige al menos un idioma.",
+        "Para aparecer no mapa, autorize a exibição dentro do app.": "Para aparecer en el mapa, autoriza la visualización dentro de la app.",
+        "Confirme o aviso de responsabilidade para continuar.": "Confirma el aviso de responsabilidad para continuar.",
+        "Escolha a autorização de exibição.": "Elige la autorización de visualización.",
         "Crie treinos do zero com histórico e progressão automática": "Crea entrenos desde cero con historial y progresión automática",
         "Programas e coaches": "Programas y coaches",
         "Filosofias de treino, intensidade e disciplina": "Filosofías de entreno, intensidad y disciplina",
@@ -4808,6 +5644,7 @@
       document.querySelectorAll("[data-i18n-placeholder]").forEach(element => {
         element.placeholder = t(element.dataset.i18nPlaceholder, language);
       });
+      renderTrainerProfileOptionGroups();
       updateWeightUnitLabels();
     }
 
@@ -5869,7 +6706,7 @@ ${photoSections}
           await consumePendingAccountCodes(account);
           event.target.reset();
           applyAuthState();
-          showScreen(account.role === "personal" ? "clients" : "home");
+          if (!await maybeRequireTrainerProfile(account)) showScreen(account.role === "personal" ? "clients" : "home");
           showSignupNotice("Enviamos um e-mail de confirmação. Acesse sua caixa de entrada e confirme o cadastro para entrar.");
           authMessage("Enviamos um e-mail de confirmação. Acesse sua caixa de entrada e confirme o cadastro para entrar.");
           return;
@@ -5894,7 +6731,7 @@ ${photoSections}
       localStorage.setItem("monolith.sessionUserId", account.id);
       event.target.reset();
       applyAuthState();
-      showScreen(role === "personal" ? "clients" : "home");
+      if (!await maybeRequireTrainerProfile(account)) showScreen(role === "personal" ? "clients" : "home");
       authMessage("Conta criada.");
     });
     document.getElementById("logoutButton")?.addEventListener("click", async () => {
@@ -5916,6 +6753,31 @@ ${photoSections}
       setSelectedStudentForPersonal(event.target.value);
       renderStats();
       renderTrainerSummary();
+    });
+    document.getElementById("trainerProfileForm")?.addEventListener("submit", async event => {
+      event.preventDefault();
+      const form = event.target;
+      if (!form.reportValidity()) return;
+      const payload = trainerProfilePayloadFromForm();
+      const validationMessage = validateTrainerProfilePayload(payload);
+      if (validationMessage) {
+        showToast(validationMessage);
+        authMessage(validationMessage);
+        return;
+      }
+      try {
+        await saveTrainerPublicProfile(payload);
+        trainerProfileOnboardingRequired = false;
+        window.monolithTrainerProfileRequired = false;
+        showToast("Perfil profissional salvo.");
+        authMessage("Perfil profissional salvo.");
+        applyAuthState();
+        showScreen("clients");
+      } catch (error) {
+        console.warn("Monolith trainer profile save failed", error);
+        showToast("Não consegui salvar o perfil profissional agora.");
+        authMessage("Não consegui salvar o perfil profissional agora.");
+      }
     });
     document.getElementById("inviteStudentButton")?.addEventListener("click", async () => {
       const personal = currentAccount();
@@ -5959,11 +6821,16 @@ ${photoSections}
     applyLanguage(currentLanguage);
     clearBodyMeasureForm();
     ensureDemoAccounts().then(async () => {
-      await restoreSupabaseSession();
+      const restored = await restoreSupabaseSession();
       applyAuthState();
+      if (restored) {
+        const user = currentAccount();
+        if (user && !await maybeRequireTrainerProfile(user)) showScreen(user.role === "personal" ? "clients" : "home");
+      }
     });
 
     function showScreen(id) {
+      if (trainerProfileOnboardingRequired && id !== "trainerProfileOnboarding") id = "trainerProfileOnboarding";
       const navTarget = document.querySelector(`.nav-btn[data-screen="${id}"]`);
       if (navTarget?.dataset.roleOnly && navTarget.dataset.roleOnly !== currentAccount()?.role) id = "home";
       document.querySelectorAll(".screen").forEach(screen => screen.classList.toggle("active", screen.id === id));
