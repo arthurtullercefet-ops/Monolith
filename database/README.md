@@ -24,12 +24,15 @@ Official docs:
    This adds production invite codes, signup profile sync, plans, subscriptions and influencer attribution.
 5. Paste and run `monolith-production-step-02-trainer-map.sql`.
    This adds the one-time trainer professional profile used by the future trainer map/search.
-6. Confirm these tables exist:
+6. Paste and run `monolith-production-step-03-checkin-factors.sql`.
+   This syncs each student's custom daily checklist/factors for reports and trainer follow-up.
+7. Confirm these tables exist:
    - `profiles`
    - `trainer_students`
    - `trainer_invites`
    - `trainer_public_profiles`
    - `daily_checkins`
+   - `checkin_factors`
    - `body_measurements`
    - `workout_templates`
    - `completed_workouts`
@@ -40,11 +43,11 @@ Official docs:
    - `subscriptions`
    - `influencer_codes`
    - `referral_attributions`
-7. Confirm these functions exist:
+8. Confirm these functions exist:
    - `create_trainer_invite`
    - `accept_trainer_invite`
    - `accept_influencer_code`
-8. Confirm Storage has a private bucket called `progress-photos`.
+9. Confirm Storage has a private bucket called `progress-photos`.
 
 ## Step 2: connect the frontend
 
@@ -60,6 +63,8 @@ Next implementation pass:
 | Current local key | Database table |
 | --- | --- |
 | `monolith.accounts` | `profiles` plus Supabase Auth |
+| `monolith.factors` | `checkin_factors` |
+| `monolith.studentFactors` | local cache of `checkin_factors` per student |
 | `monolith.checkins` | `daily_checkins` |
 | `monolith.bodyMeasures` | `body_measurements` |
 | `monolith.workouts` | `workout_templates` |

@@ -30,7 +30,7 @@ create table if not exists public.trainer_public_profiles (
   responsibility_accepted boolean not null default false,
   availability text[] not null default '{}',
   languages text[] not null default '{}',
-  authorization text not null check (authorization in ('app_only', 'app_and_social', 'no')),
+  display_authorization text not null check (display_authorization in ('app_only', 'app_and_social', 'no')),
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now(),
   constraint trainer_public_profiles_required_arrays check (
@@ -41,7 +41,7 @@ create table if not exists public.trainer_public_profiles (
     and array_length(languages, 1) is not null
   ),
   constraint trainer_public_profiles_map_visibility check (
-    appear_on_map = false or authorization in ('app_only', 'app_and_social')
+    appear_on_map = false or display_authorization in ('app_only', 'app_and_social')
   ),
   constraint trainer_public_profiles_responsibility check (responsibility_accepted = true)
 );
@@ -70,7 +70,7 @@ using (
   trainer_id = auth.uid()
   or (
     appear_on_map = true
-    and authorization in ('app_only', 'app_and_social')
+    and display_authorization in ('app_only', 'app_and_social')
   )
 );
 

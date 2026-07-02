@@ -2452,7 +2452,7 @@
             <div class="diet-view" id="studentDietView"></div>
           </div>
           <div class="panel" id="selfNutritionPanel">
-            <div class="section-title"><h3>Contagem básica de calorias</h3><span>Aluno sem personal</span></div>
+            <div class="section-title"><h3>Contagem básica de calorias</h3><span>Registro do aluno</span></div>
             <form id="foodLogForm">
               <div class="nutrition-controls">
                 <div class="field"><label for="foodLogDate">Data</label><input id="foodLogDate" type="date" /></div>
@@ -2999,6 +2999,26 @@
 
     let factors = loadFactors();
 
+    function loadStudentFactorCache() {
+      try {
+        return JSON.parse(localStorage.getItem("monolith.studentFactors") || "{}");
+      } catch {
+        return {};
+      }
+    }
+
+    function cacheStudentFactors(studentId, nextFactors = []) {
+      if (!studentId || !nextFactors.length) return;
+      const cache = loadStudentFactorCache();
+      cache[studentId] = nextFactors;
+      localStorage.setItem("monolith.studentFactors", JSON.stringify(cache));
+    }
+
+    function factorsForStudent(studentId = currentAccount()?.id) {
+      const cached = loadStudentFactorCache()[studentId];
+      return cached?.length ? cached : factors;
+    }
+
     function loadAccounts() {
       try {
         return JSON.parse(localStorage.getItem("monolith.accounts") || "[]");
@@ -3361,8 +3381,8 @@
 
     function trainerProfilePayloadFromForm() {
       const user = currentAccount();
-      const authorization = inputValue("trainerAuthorization");
-      const appearOnMap = inputValue("trainerAppearOnMap") === "yes" && authorization !== "no";
+      const displayAuthorization = inputValue("trainerAuthorization");
+      const appearOnMap = inputValue("trainerAppearOnMap") === "yes" && displayAuthorization !== "no";
       return {
         trainer_id: user?.id || "",
         service_types: selectedChoiceValues("trainerServiceTypes"),
@@ -3391,7 +3411,7 @@
         responsibility_accepted: Boolean(document.getElementById("trainerResponsibilityAccepted")?.checked),
         availability: selectedChoiceValues("trainerAvailability"),
         languages: selectedChoiceValues("trainerLanguages"),
-        authorization
+        display_authorization: displayAuthorization
       };
     }
 
@@ -3406,11 +3426,11 @@
       for (const [key, message] of requiredArrays) {
         if (!payload[key]?.length) return message;
       }
-      if (inputValue("trainerAppearOnMap") === "yes" && payload.authorization === "no") {
+      if (inputValue("trainerAppearOnMap") === "yes" && payload.display_authorization === "no") {
         return "Para aparecer no mapa, autorize a exibição dentro do app.";
       }
       if (!payload.responsibility_accepted) return "Confirme o aviso de responsabilidade para continuar.";
-      if (!payload.authorization) return "Escolha a autorização de exibição.";
+      if (!payload.display_authorization) return "Escolha a autorização de exibição.";
       return "";
     }
 
@@ -3467,7 +3487,7 @@
       setValue("trainerCertificationName", profile.certification_name || "");
       setValue("trainerYearsExperience", profile.years_experience ?? "");
       setValue("trainerLiabilityInsurance", profile.liability_insurance || "");
-      setValue("trainerAuthorization", profile.authorization || "");
+      setValue("trainerAuthorization", profile.display_authorization || "");
       const responsibility = document.getElementById("trainerResponsibilityAccepted");
       if (responsibility) responsibility.checked = Boolean(profile.responsibility_accepted);
     }
@@ -3818,6 +3838,7 @@
           const account = cacheRemoteAccount(profile, data.user);
           await consumePendingAccountCodes(account);
           applyAuthState();
+          hydrateRemoteFactors(account);
           if (!await maybeRequireTrainerProfile(account)) showScreen(account.role === "personal" ? "clients" : "home");
           authMessage(`${t("Bem-vindo")}, ${account.name}.`);
           return true;
@@ -3830,6 +3851,7 @@
           }
           await consumePendingAccountCodes(account);
           applyAuthState();
+          hydrateRemoteFactors(account);
           if (!await maybeRequireTrainerProfile(account)) showScreen(account.role === "personal" ? "clients" : "home");
           authMessage("Login feito. Perfil remoto pendente de sincronização.");
           return true;
@@ -3847,6 +3869,7 @@
       showLoginNotice("");
       localStorage.setItem("monolith.sessionUserId", account.id);
       applyAuthState();
+      hydrateRemoteFactors(account);
       if (!await maybeRequireTrainerProfile(account)) showScreen(account.role === "personal" ? "clients" : "home");
       authMessage(`${t("Bem-vindo")}, ${account.name}.`);
       return true;
@@ -3878,6 +3901,27 @@
 
     function saveFoodLogs(logs) {
       localStorage.setItem("monolith.foodLogs", JSON.stringify(logs));
+    }
+
+    function cacheDietPlan(plan) {
+      if (!plan?.studentId || !plan?.month) return;
+      const plans = loadDietPlans();
+      plans[dietPlanKey(plan.studentId, plan.month)] = plan;
+      saveDietPlans(plans);
+    }
+
+    function cacheFoodLogEntry(studentId, entry) {
+      if (!studentId || !entry?.date) return;
+      const logs = loadFoodLogs();
+      logs[studentId] = [
+        entry,
+        ...(logs[studentId] || []).filter(item => item.date !== entry.date)
+      ].sort((a, b) => String(b.date).localeCompare(String(a.date))).slice(0, 180);
+      saveFoodLogs(logs);
+    }
+
+    function cacheFoodLogEntries(studentId, entries = []) {
+      entries.forEach(entry => cacheFoodLogEntry(studentId, entry));
     }
 
     function dietPlanKey(studentId, month = currentMonthKey()) {
@@ -3921,7 +3965,8 @@
     }
 
     function selectedDietStudentId() {
-      return document.getElementById("dietStudent")?.value || selectedStudentForPersonal() || "aluno-demo";
+      const fallback = isRealSupabaseAccount(currentAccount()) ? "" : "aluno-demo";
+      return document.getElementById("dietStudent")?.value || selectedStudentForPersonal() || fallback;
     }
 
     function activeDataStudentId(student = null) {
@@ -4032,6 +4077,56 @@
       };
     }
 
+    function remoteDietPlanFromRow(row) {
+      return {
+        id: dietPlanKey(row.student_id, row.month_key),
+        remoteId: row.id,
+        studentId: row.student_id,
+        trainerId: row.trainer_id,
+        month: row.month_key,
+        calories: row.calories || "",
+        protein: row.protein || "",
+        carbs: row.carbs || "",
+        fat: row.fat || "",
+        meals: row.meals || [],
+        savedAt: row.updated_at || row.created_at
+      };
+    }
+
+    function remoteFoodLogFromRow(row) {
+      return {
+        id: row.id,
+        studentId: row.student_id,
+        date: row.log_date,
+        note: row.note || "",
+        meals: row.meals || [],
+        savedAt: row.updated_at || row.created_at
+      };
+    }
+
+    function remoteFactorFromRow(row) {
+      return {
+        id: row.factor_key,
+        group: row.group_name || "Check-in",
+        name: row.name || "Item",
+        active: row.active === true,
+        positive: row.positive !== false
+      };
+    }
+
+    function factorRowFromFactor(factor, index = 0) {
+      return {
+        student_id: currentAccount()?.id || "",
+        factor_key: factor.id,
+        group_name: factor.group || "Check-in",
+        name: factor.name || "Item",
+        active: factor.active === true,
+        positive: factor.positive !== false,
+        sort_order: index,
+        archived: false
+      };
+    }
+
     async function loadRemoteCheckins(studentId = activeDataStudentId()) {
       if (!monolithSupabase || !studentId || !isRealSupabaseAccount(currentAccount())) return [];
       const { data, error } = await monolithSupabase
@@ -4060,6 +4155,70 @@
       };
       const { error } = await monolithSupabase.from("daily_checkins").upsert(payload, { onConflict: "student_id,checkin_date" });
       if (error) throw error;
+    }
+
+    async function loadRemoteFactors(account = currentAccount()) {
+      if (!monolithSupabase || !account || !isRealSupabaseAccount(account)) return [];
+      const { data, error } = await monolithSupabase
+        .from("checkin_factors")
+        .select("id,student_id,factor_key,group_name,name,active,positive,sort_order,archived,created_at,updated_at")
+        .eq("student_id", account.id)
+        .eq("archived", false)
+        .order("sort_order", { ascending: true });
+      if (error) throw error;
+      const remote = (data || []).map(remoteFactorFromRow);
+      if (remote.length) {
+        cacheStudentFactors(account.id, remote);
+        if (account.id === currentAccount()?.id) {
+          factors = remote;
+          saveFactors(factors);
+          renderFactors();
+        }
+      } else if (account.id === currentAccount()?.id && factors.length) {
+        await saveRemoteFactors(factors);
+      }
+      return remote;
+    }
+
+    async function loadRemoteFactorsForStudent(studentId) {
+      if (!studentId) return [];
+      return loadRemoteFactors({ id: studentId, source: "supabase" });
+    }
+
+    async function saveRemoteFactors(nextFactors = factors) {
+      const account = currentAccount();
+      if (!monolithSupabase || !account || !isRealSupabaseAccount(account)) return false;
+      const rows = nextFactors
+        .map((factor, index) => factorRowFromFactor(factor, index))
+        .filter(row => row.student_id && row.factor_key);
+      if (!rows.length) return false;
+      const { error } = await monolithSupabase
+        .from("checkin_factors")
+        .upsert(rows, { onConflict: "student_id,factor_key" });
+      if (error) throw error;
+      cacheStudentFactors(account.id, nextFactors);
+      return true;
+    }
+
+    async function deleteRemoteFactor(factorId) {
+      const account = currentAccount();
+      if (!monolithSupabase || !account || !isRealSupabaseAccount(account) || !factorId) return false;
+      const { error } = await monolithSupabase
+        .from("checkin_factors")
+        .delete()
+        .eq("student_id", account.id)
+        .eq("factor_key", factorId);
+      if (error) throw error;
+      return true;
+    }
+
+    async function hydrateRemoteFactors(account = currentAccount()) {
+      try {
+        await loadRemoteFactors(account);
+      } catch (error) {
+        console.warn("Monolith remote check-in factors load failed", error);
+        showToast("Não consegui carregar o checklist remoto agora. Usei o cache local.");
+      }
     }
 
     async function loadRemoteBodyMeasures(studentId = activeDataStudentId()) {
@@ -4174,6 +4333,77 @@
       return signed.signedUrl;
     }
 
+    async function loadRemoteDietPlan(studentId, month = currentMonthKey()) {
+      if (!monolithSupabase || !studentId || !month || !isRealSupabaseAccount(currentAccount())) return null;
+      const { data, error } = await monolithSupabase
+        .from("diet_plans")
+        .select("id,trainer_id,student_id,month_key,calories,protein,carbs,fat,meals,created_at,updated_at")
+        .eq("student_id", studentId)
+        .eq("month_key", month)
+        .maybeSingle();
+      if (error) throw error;
+      if (!data) return null;
+      const plan = remoteDietPlanFromRow(data);
+      cacheDietPlan(plan);
+      return plan;
+    }
+
+    async function saveRemoteDietPlan(plan) {
+      const user = currentAccount();
+      if (!monolithSupabase || !isRealSupabaseAccount(user) || user.role !== "personal") return false;
+      const payload = {
+        trainer_id: user.id,
+        student_id: plan.studentId,
+        month_key: plan.month,
+        calories: plan.calories || null,
+        protein: plan.protein || null,
+        carbs: plan.carbs || null,
+        fat: plan.fat || null,
+        meals: plan.meals || []
+      };
+      const { data, error } = await monolithSupabase
+        .from("diet_plans")
+        .upsert(payload, { onConflict: "student_id,month_key" })
+        .select("id,trainer_id,student_id,month_key,calories,protein,carbs,fat,meals,created_at,updated_at")
+        .single();
+      if (error) throw error;
+      if (data) cacheDietPlan(remoteDietPlanFromRow(data));
+      return true;
+    }
+
+    async function loadRemoteFoodLogs(studentId, limit = 90) {
+      if (!monolithSupabase || !studentId || !isRealSupabaseAccount(currentAccount())) return [];
+      const { data, error } = await monolithSupabase
+        .from("food_logs")
+        .select("id,student_id,log_date,note,meals,created_at,updated_at")
+        .eq("student_id", studentId)
+        .order("log_date", { ascending: false })
+        .limit(limit);
+      if (error) throw error;
+      const entries = (data || []).map(remoteFoodLogFromRow);
+      cacheFoodLogEntries(studentId, entries);
+      return entries;
+    }
+
+    async function saveRemoteFoodLog(entry) {
+      const user = currentAccount();
+      if (!monolithSupabase || !isRealSupabaseAccount(user) || user.role !== "student" || user.trainerId) return false;
+      const payload = {
+        student_id: user.id,
+        log_date: entry.date,
+        note: entry.note || null,
+        meals: entry.meals || []
+      };
+      const { data, error } = await monolithSupabase
+        .from("food_logs")
+        .upsert(payload, { onConflict: "student_id,log_date" })
+        .select("id,student_id,log_date,note,meals,created_at,updated_at")
+        .single();
+      if (error) throw error;
+      if (data) cacheFoodLogEntry(user.id, remoteFoodLogFromRow(data));
+      return true;
+    }
+
     async function hydrateRemoteReportData(student = null) {
       const studentId = activeDataStudentId(student);
       if (!studentId || !isRealSupabaseAccount(currentAccount())) return;
@@ -4182,7 +4412,9 @@
           loadRemoteCheckins(studentId),
           loadRemoteBodyMeasures(studentId),
           loadRemoteCompletedWorkouts(studentId),
-          loadRemoteProgressPhotos(studentId)
+          loadRemoteProgressPhotos(studentId),
+          loadRemoteDietPlan(studentId, currentMonthKey()),
+          loadRemoteFactorsForStudent(studentId)
         ]);
       } catch (error) {
         console.warn("Monolith remote report hydration failed", error);
@@ -4297,11 +4529,10 @@
       `).join("");
     }
 
-    function renderFoodLogSummary() {
-      const user = currentAccount();
-      const container = document.getElementById("foodLogSummary");
-      if (!container || !user) return;
-      const logs = loadFoodLogs()[user.id] || [];
+    function renderFoodLogSummary(targetId = "foodLogSummary", studentId = currentAccount()?.id) {
+      const container = document.getElementById(targetId);
+      if (!container || !studentId) return;
+      const logs = loadFoodLogs()[studentId] || [];
       container.innerHTML = logs.slice(0, 7).map(log => {
         const total = log.meals.reduce((sum, meal) => sum + (Number(String(meal.calories || "").replace(",", ".")) || 0), 0);
         return `<article class="meal-card"><header><h4>${escapeHTML(log.date)}</h4><span>${total} kcal</span></header><p>${escapeHTML(log.note || t("Diário alimentar"))}</p><div class="pill-row"><span class="pill">${log.meals.length} ${escapeHTML(t("refeições"))}</span></div></article>`;
@@ -4327,7 +4558,15 @@
         if (students.some(student => student.id === previousStudentId)) select.value = previousStudentId;
         else if (students[0]) select.value = students[0].id;
         if (select.value) setSelectedStudentForPersonal(select.value);
-        const plan = activeDietForStudent(selectedDietStudentId(), monthInput.value || currentMonthKey());
+        const dietStudentId = selectedDietStudentId();
+        const dietMonth = monthInput.value || currentMonthKey();
+        let plan = activeDietForStudent(dietStudentId, dietMonth);
+        try {
+          plan = await loadRemoteDietPlan(dietStudentId, dietMonth) || plan;
+        } catch (error) {
+          console.warn("Monolith remote diet plan load failed", error);
+          showToast("Não consegui carregar a dieta remota agora. Usei o cache local.");
+        }
         document.getElementById("dietMealCount").value = String(plan?.meals?.length || document.getElementById("dietMealCount").value || 5);
         ["dietCalories", "dietProtein", "dietCarbs", "dietFat"].forEach(id => {
           const key = id.replace("diet", "").toLowerCase();
@@ -4337,12 +4576,21 @@
         renderDietMealBuilder(plan?.meals || null);
         renderDietPlan("dietPreview", plan);
       } else {
-        const plan = user.trainerId ? activeDietForStudent(user.id, currentMonthKey()) : null;
+        let plan = user.trainerId ? activeDietForStudent(user.id, currentMonthKey()) : null;
+        try {
+          if (user.trainerId) plan = await loadRemoteDietPlan(user.id, currentMonthKey()) || plan;
+          else await loadRemoteFoodLogs(user.id);
+        } catch (error) {
+          console.warn("Monolith remote nutrition load failed", error);
+          showToast("Não consegui carregar nutrição remota agora. Usei o cache local.");
+        }
         document.getElementById("selfNutritionPanel").hidden = Boolean(user.trainerId);
         document.getElementById("studentDietNote").textContent = user.trainerId ? t("Seu personal define esta dieta. Você pode visualizar, mas não redesenhar.") : t("Sem personal vinculado: use a contagem básica para registrar seu dia.");
         renderDietPlan("studentDietView", plan, user.trainerId ? "Nenhuma dieta prescrita para este mês." : "Nenhuma dieta de personal vinculada.");
-        renderFoodLogMeals();
-        renderFoodLogSummary();
+        if (!user.trainerId) {
+          renderFoodLogMeals();
+          renderFoodLogSummary();
+        }
       }
     }
 
@@ -4532,6 +4780,9 @@
         "Gordura": "Fat",
         "Salvar dieta do aluno": "Save student diet",
         "Dieta do aluno salva.": "Student diet saved.",
+        "Dieta salva localmente. Não consegui sincronizar agora.": "Diet saved locally. Could not sync right now.",
+        "Não consegui carregar a dieta remota agora. Usei o cache local.": "Could not load the remote diet right now. Used local cache.",
+        "Não consegui carregar nutrição remota agora. Usei o cache local.": "Could not load remote nutrition right now. Used local cache.",
         "Prévia da dieta": "Diet preview",
         "Visão do aluno": "Student view",
         "Dieta do mês": "Monthly diet",
@@ -4539,11 +4790,14 @@
         "Seu personal define esta dieta. Você pode visualizar, mas não redesenhar.": "Your trainer defines this diet. You can view it, but cannot redesign it.",
         "Contagem básica de calorias": "Basic calorie counting",
         "Aluno sem personal": "Student without trainer",
+        "Registro do aluno": "Student log",
         "Data": "Date",
         "Nota": "Note",
         "Salvar diário alimentar": "Save food diary",
         "Ex: dia corrido": "Ex: busy day",
         "Diário alimentar salvo.": "Food diary saved.",
+        "Diário alimentar salvo localmente. Não consegui sincronizar agora.": "Food diary saved locally. Could not sync right now.",
+        "Seu personal controla a dieta. Você pode visualizar a prescrição, mas não criar dieta própria.": "Your trainer controls the diet. You can view the prescription, but cannot create your own diet.",
         "Refeição": "Meal",
         "Café da manhã": "Breakfast",
         "Lanche": "Snack",
@@ -4690,6 +4944,9 @@
         "criada.": "created.",
         "Fator removido. Pontuação recalculada.": "Factor removed. Score recalculated.",
         "Fator adicionado. Pontuação recalculada.": "Factor added. Score recalculated.",
+        "Não consegui carregar o checklist remoto agora. Usei o cache local.": "Could not load the remote checklist right now. Used local cache.",
+        "Checklist salvo localmente. Não consegui sincronizar agora.": "Checklist saved locally. Could not sync right now.",
+        "Fator removido localmente. Não consegui sincronizar agora.": "Factor removed locally. Could not sync right now.",
         "Check-in salvo": "Check-in saved",
         "itens concluídos.": "items completed.",
         "Preencha pelo menos uma medida física.": "Fill at least one physical measurement.",
@@ -5130,6 +5387,9 @@
         "Gordura": "Grasa",
         "Salvar dieta do aluno": "Guardar dieta del alumno",
         "Dieta do aluno salva.": "Dieta del alumno guardada.",
+        "Dieta salva localmente. Não consegui sincronizar agora.": "Dieta guardada localmente. No se pudo sincronizar ahora.",
+        "Não consegui carregar a dieta remota agora. Usei o cache local.": "No pude cargar la dieta remota ahora. Usé el caché local.",
+        "Não consegui carregar nutrição remota agora. Usei o cache local.": "No pude cargar la nutrición remota ahora. Usé el caché local.",
         "Prévia da dieta": "Vista previa de la dieta",
         "Visão do aluno": "Vista del alumno",
         "Dieta do mês": "Dieta del mes",
@@ -5137,11 +5397,14 @@
         "Seu personal define esta dieta. Você pode visualizar, mas não redesenhar.": "Tu entrenador define esta dieta. Puedes verla, pero no rediseñarla.",
         "Contagem básica de calorias": "Conteo básico de calorías",
         "Aluno sem personal": "Alumno sin entrenador",
+        "Registro do aluno": "Registro del alumno",
         "Data": "Fecha",
         "Nota": "Nota",
         "Salvar diário alimentar": "Guardar diario alimentario",
         "Ex: dia corrido": "Ej: día ocupado",
         "Diário alimentar salvo.": "Diario alimentario guardado.",
+        "Diário alimentar salvo localmente. Não consegui sincronizar agora.": "Diario alimentario guardado localmente. No se pudo sincronizar ahora.",
+        "Seu personal controla a dieta. Você pode visualizar a prescrição, mas não criar dieta própria.": "Tu entrenador controla la dieta. Puedes ver la prescripción, pero no crear tu propia dieta.",
         "Refeição": "Comida",
         "Café da manhã": "Desayuno",
         "Lanche": "Merienda",
@@ -5288,6 +5551,9 @@
         "criada.": "creada.",
         "Fator removido. Pontuação recalculada.": "Factor quitado. Puntuación recalculada.",
         "Fator adicionado. Pontuação recalculada.": "Factor agregado. Puntuación recalculada.",
+        "Não consegui carregar o checklist remoto agora. Usei o cache local.": "No pude cargar el checklist remoto ahora. Usé el caché local.",
+        "Checklist salvo localmente. Não consegui sincronizar agora.": "Checklist guardado localmente. No se pudo sincronizar ahora.",
+        "Fator removido localmente. Não consegui sincronizar agora.": "Factor quitado localmente. No se pudo sincronizar ahora.",
         "Check-in salvo": "Check-in guardado",
         "itens concluídos.": "ítems completados.",
         "Preencha pelo menos uma medida física.": "Completa al menos una medida física.",
@@ -6133,7 +6399,8 @@
       } catch {
         completedWorkouts = [];
       }
-      const stats = factors.map(factor => {
+      const reportFactors = factorsForStudent(reportStudentId);
+      const stats = reportFactors.map(factor => {
         const appearances = checkins.filter(entry => entry.items?.some(item => item.id === factor.id));
         const completed = appearances.filter(entry => entry.items?.some(item => item.id === factor.id && item.completed)).length;
         return { name: factor.name, completed, total: 30 };
@@ -6217,6 +6484,8 @@
         "Substituições": "Substitutions",
         "Observação": "Note",
         "Nenhuma dieta ativa cadastrada para este mês.": "No active diet registered for this month.",
+        "Nota": "Note",
+        "Nenhum diário alimentar salvo ainda.": "No food diary saved yet.",
         "Fotos de evolução": "Progress Photos",
         "Mês passado": "Last month",
         "Este mês": "This month",
@@ -6283,6 +6552,8 @@
         "Substituições": "Sustituciones",
         "Observação": "Observación",
         "Nenhuma dieta ativa cadastrada para este mês.": "No hay dieta activa registrada para este mes.",
+        "Nota": "Nota",
+        "Nenhum diário alimentar salvo ainda.": "Aún no hay diario alimentario guardado.",
         "Fotos de evolução": "Fotos de evolución",
         "Mês passado": "Mes pasado",
         "Este mês": "Este mes",
@@ -6512,6 +6783,10 @@ ${photoSections}
     function syncFactorState(id, active) {
       factors = factors.map(factor => factor.id === id ? { ...factor, active } : factor);
       saveFactors(factors);
+      saveRemoteFactors(factors).catch(error => {
+        console.warn("Monolith remote check-in factors save failed", error);
+        showToast("Checklist salvo localmente. Não consegui sincronizar agora.");
+      });
       document.querySelectorAll(`.habit[data-factor-id="${id}"]`).forEach(row => {
         row.querySelector(".yes").classList.toggle("active", active);
         row.querySelector(".no").classList.toggle("active", !active);
@@ -6522,6 +6797,10 @@ ${photoSections}
     function removeFactor(id) {
       factors = factors.filter(factor => factor.id !== id);
       saveFactors(factors);
+      deleteRemoteFactor(id).catch(error => {
+        console.warn("Monolith remote check-in factor delete failed", error);
+        showToast("Fator removido localmente. Não consegui sincronizar agora.");
+      });
       renderFactors();
       showToast("Fator removido. Pontuação recalculada.");
     }
@@ -6604,20 +6883,30 @@ ${photoSections}
       renderNutrition();
     });
     document.getElementById("dietMonth")?.addEventListener("change", renderNutrition);
-    document.getElementById("dietPlanForm")?.addEventListener("submit", event => {
+    document.getElementById("dietPlanForm")?.addEventListener("submit", async event => {
       event.preventDefault();
       const plan = readDietPlanForm();
       const plans = loadDietPlans();
       plans[plan.id] = plan;
       saveDietPlans(plans);
+      try {
+        await saveRemoteDietPlan(plan);
+      } catch (error) {
+        console.warn("Monolith remote diet plan save failed", error);
+        showToast("Dieta salva localmente. Não consegui sincronizar agora.");
+      }
       renderDietPlan("dietPreview", plan);
       authMessage("Dieta do aluno salva.");
     });
     document.getElementById("foodMealCount")?.addEventListener("change", renderFoodLogMeals);
-    document.getElementById("foodLogForm")?.addEventListener("submit", event => {
+    document.getElementById("foodLogForm")?.addEventListener("submit", async event => {
       event.preventDefault();
       const user = currentAccount();
       if (!user) return;
+      if (user.trainerId) {
+        authMessage("Seu personal controla a dieta. Você pode visualizar a prescrição, mas não criar dieta própria.");
+        return;
+      }
       const logs = loadFoodLogs();
       const meals = [...document.querySelectorAll("#foodLogMeals .food-log-row")].map(row => ({
         name: row.querySelector(".food-name").value.trim(),
@@ -6629,6 +6918,12 @@ ${photoSections}
       const entry = { date: document.getElementById("foodLogDate").value || todayKey(), note: document.getElementById("foodLogNote").value.trim(), meals, savedAt: new Date().toISOString() };
       logs[user.id] = [entry, ...(logs[user.id] || []).filter(item => item.date !== entry.date)].slice(0, 90);
       saveFoodLogs(logs);
+      try {
+        await saveRemoteFoodLog(entry);
+      } catch (error) {
+        console.warn("Monolith remote food log save failed", error);
+        showToast("Diário alimentar salvo localmente. Não consegui sincronizar agora.");
+      }
       renderFoodLogSummary();
       authMessage("Diário alimentar salvo.");
     });
@@ -6825,6 +7120,7 @@ ${photoSections}
       applyAuthState();
       if (restored) {
         const user = currentAccount();
+        if (user) hydrateRemoteFactors(user);
         if (user && !await maybeRequireTrainerProfile(user)) showScreen(user.role === "personal" ? "clients" : "home");
       }
     });
@@ -6850,6 +7146,7 @@ ${photoSections}
           renderTrainerSummary();
         });
       }
+      if (id === "checkin") hydrateRemoteFactors();
       if (id === "nutrition") renderNutrition();
       window.scrollTo({ top: 0, behavior: "smooth" });
     }
@@ -6948,6 +7245,10 @@ ${photoSections}
         positive: effectInput.value === "positive"
       });
       saveFactors(factors);
+      saveRemoteFactors(factors).catch(error => {
+        console.warn("Monolith remote check-in factors save failed", error);
+        showToast("Checklist salvo localmente. Não consegui sincronizar agora.");
+      });
       renderFactors();
       nameInput.value = "";
       showToast("Fator adicionado. Pontuação recalculada.");

@@ -1,4 +1,4 @@
-const CACHE_NAME = "monolith-v45-trainer-profile";
+const CACHE_NAME = "monolith-v48-diet-access-rules";
 
 self.addEventListener("install", event => {
   self.skipWaiting();
