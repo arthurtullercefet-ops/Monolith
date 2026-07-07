@@ -1119,6 +1119,44 @@
       line-height: 1.5;
     }
 
+    .map-filters {
+      display: grid;
+      grid-template-columns: repeat(5, minmax(140px, 1fr)) auto;
+      gap: 10px;
+      align-items: end;
+    }
+
+    .map-results {
+      grid-template-columns: repeat(3, minmax(240px, 1fr));
+    }
+
+    .trainer-map-card {
+      border: 1px solid var(--line);
+      background: var(--panel);
+      min-height: 240px;
+      padding: 16px;
+      display: grid;
+      gap: 14px;
+      align-content: space-between;
+    }
+
+    .trainer-map-card h3 {
+      margin: 0 0 6px;
+      font-size: 20px;
+    }
+
+    .trainer-map-card p {
+      margin: 0;
+      color: var(--muted);
+      line-height: 1.5;
+    }
+
+    .trainer-map-card .meta {
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.45;
+    }
+
     .stats-layout {
       grid-template-columns: minmax(0, 1fr) minmax(280px, .45fr);
     }
@@ -1920,7 +1958,9 @@
       .food-log-row,
       .trainer-profile-grid,
       .trainer-profile-grid.three,
-      .choice-grid {
+      .choice-grid,
+      .map-filters,
+      .map-results {
         grid-template-columns: 1fr;
       }
 
@@ -2214,6 +2254,10 @@
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 3a8 8 0 0 0-8 8c0 6 8 10 8 10s8-4 8-10a8 8 0 0 0-8-8Z"/><path d="M11 7v8"/><path d="M7 11h8"/></svg>
           <span>Dieta</span>
         </button>
+        <button class="nav-btn" data-screen="trainerMap" title="Mapa">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18l-6 3V6l6-3 6 3 6-3v15l-6 3-6-3Z"/><path d="M9 3v15"/><path d="M15 6v15"/></svg>
+          <span>Mapa</span>
+        </button>
         <button class="nav-btn" data-screen="workouts" title="Treinos">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 7v10"/><path d="M18 7v10"/><path d="M3 9v6"/><path d="M21 9v6"/><path d="M6 12h12"/></svg>
           <span>Treinos</span>
@@ -2305,6 +2349,16 @@
           <button class="action" id="saveCheckin">Salvar dia</button>
         </div>
         <div class="panel">
+          <div class="factor-form" id="checkinStudentPanel" hidden>
+            <div class="form-field">
+              <label for="checkinStudent">Aluno do check-in</label>
+              <select id="checkinStudent"></select>
+            </div>
+            <div class="form-field">
+              <label>Modo</label>
+              <div class="report-line">Personal edita a lista e salva o check-in do aluno selecionado.</div>
+            </div>
+          </div>
           <div class="checkin-measure">
             <div class="measure-field">
               <label id="dailyWeightLabel" for="dailyWeight" data-i18n="Peso de hoje">Peso de hoje</label>
@@ -2487,6 +2541,45 @@
             <div class="diet-view" id="foodLogSummary"></div>
           </div>
         </div>
+      </section>
+
+      <section id="trainerMap" class="screen">
+        <div class="topbar">
+          <div>
+            <h2>Mapa de personais</h2>
+            <div class="date">Encontre treinadores por região, serviço e objetivo</div>
+          </div>
+          <button class="action" id="refreshTrainerMap" type="button">Buscar personais</button>
+        </div>
+
+        <div class="panel">
+          <div class="section-title"><h3>Filtros</h3><span>Perfis autorizados</span></div>
+          <div class="map-filters">
+            <div class="form-field">
+              <label for="mapCity">Cidade</label>
+              <input id="mapCity" placeholder="Ex: Miami" data-i18n-placeholder="Ex: Miami" />
+            </div>
+            <div class="form-field">
+              <label for="mapState">Estado</label>
+              <input id="mapState" placeholder="Ex: FL" data-i18n-placeholder="Ex: FL" />
+            </div>
+            <div class="form-field">
+              <label for="mapService">Atendimento</label>
+              <select id="mapService"></select>
+            </div>
+            <div class="form-field">
+              <label for="mapSpecialty">Especialidade</label>
+              <select id="mapSpecialty"></select>
+            </div>
+            <div class="form-field">
+              <label for="mapFormat">Formato</label>
+              <select id="mapFormat"></select>
+            </div>
+            <button class="action" id="applyTrainerMapFilters" type="button">Filtrar</button>
+          </div>
+        </div>
+
+        <div class="grid map-results" id="trainerMapResults"></div>
       </section>
 
       <section id="workouts" class="screen">
@@ -2924,6 +3017,18 @@
         document.querySelectorAll(".nav-btn").forEach(button => {
           button.classList.toggle("active", button.dataset.screen === id);
         });
+        if (id === "nutrition" && typeof renderNutrition === "function") renderNutrition();
+        if (id === "measures" && typeof renderBodyMeasures === "function") renderBodyMeasures();
+        if (id === "stats" && typeof renderStats === "function") renderStats();
+        if (id === "clients" && typeof renderTrainerSummary === "function") renderTrainerSummary();
+        if (id === "workouts" && typeof window.monolithRefreshWorkoutView === "function") window.monolithRefreshWorkoutView();
+        if (id === "trainerMap" && typeof renderTrainerMap === "function") renderTrainerMap();
+        if (id === "checkin" && typeof renderCheckinStudentSelect === "function") {
+          renderCheckinStudentSelect().then(() => {
+            if (typeof loadFactorsForCheckinTarget === "function") return loadFactorsForCheckinTarget();
+            return null;
+          });
+        }
         window.scrollTo({ top: 0, behavior: "auto" });
       }
 
@@ -3022,6 +3127,10 @@
 
     let factors = loadFactors();
 
+    function cloneFactors(source = defaultFactors) {
+      return source.map(factor => ({ ...factor }));
+    }
+
     function loadStudentFactorCache() {
       try {
         return JSON.parse(localStorage.getItem("monolith.studentFactors") || "{}");
@@ -3039,7 +3148,14 @@
 
     function factorsForStudent(studentId = currentAccount()?.id) {
       const cached = loadStudentFactorCache()[studentId];
-      return cached?.length ? cached : factors;
+      if (cached?.length) return cloneFactors(cached);
+      return studentId && studentId !== currentAccount()?.id ? cloneFactors(defaultFactors) : cloneFactors(factors);
+    }
+
+    function saveFactorsForActiveTarget(nextFactors = factors) {
+      const targetStudentId = selectedCheckinStudentId() || currentAccount()?.id;
+      if (targetStudentId) cacheStudentFactors(targetStudentId, nextFactors);
+      if (!targetStudentId || targetStudentId === currentAccount()?.id) saveFactors(nextFactors);
     }
 
     function loadAccounts() {
@@ -3515,6 +3631,129 @@
       if (responsibility) responsibility.checked = Boolean(profile.responsibility_accepted);
     }
 
+    function trainerOptionLabel(groupKey, value) {
+      const group = trainerProfileOptionGroups[groupKey];
+      return group?.options.find(([optionValue]) => optionValue === value)?.[1] || value || "";
+    }
+
+    function trainerOptionLabels(groupKey, values = []) {
+      return (values || []).map(value => t(trainerOptionLabel(groupKey, value))).filter(Boolean);
+    }
+
+    function renderMapFilterOptions() {
+      const setOptions = (id, groupKey, placeholder) => {
+        const select = document.getElementById(id);
+        if (!select) return;
+        const current = select.value;
+        const group = trainerProfileOptionGroups[groupKey];
+        select.innerHTML = `<option value="">${escapeHTML(t(placeholder))}</option>` + (group?.options || [])
+          .map(([value, label]) => `<option value="${escapeHTML(value)}">${escapeHTML(t(label))}</option>`)
+          .join("");
+        if ([...select.options].some(option => option.value === current)) select.value = current;
+      };
+      setOptions("mapService", "serviceTypes", "Todos os atendimentos");
+      setOptions("mapSpecialty", "specialties", "Todas as especialidades");
+      setOptions("mapFormat", "trainingFormats", "Todos os formatos");
+    }
+
+    function trainerMapProfilesCache() {
+      try {
+        return JSON.parse(localStorage.getItem("monolith.trainerMapProfiles") || "[]");
+      } catch {
+        return [];
+      }
+    }
+
+    function saveTrainerMapProfilesCache(profiles = []) {
+      localStorage.setItem("monolith.trainerMapProfiles", JSON.stringify(profiles));
+    }
+
+    async function loadTrainerMapProfiles() {
+      const cached = trainerMapProfilesCache();
+      if (!monolithSupabase || !isRealSupabaseAccount(currentAccount())) {
+        const localProfiles = Object.values(trainerProfilesCache())
+          .filter(profile => profile.appear_on_map && profile.display_authorization !== "no");
+        return localProfiles.length ? localProfiles : cached;
+      }
+      const { data, error } = await monolithSupabase
+        .from("trainer_public_profiles")
+        .select("trainer_id,service_types,appear_on_map,full_name,professional_name,social_url,bio,training_formats,city,state,travel_availability,hourly_price,monthly_price,online_monthly_price,free_first_consultation,package_discounts,specialties,target_clients,availability,languages,display_authorization,updated_at")
+        .eq("appear_on_map", true)
+        .in("display_authorization", ["app_only", "app_and_social"])
+        .order("professional_name", { ascending: true });
+      if (error) {
+        console.warn("Monolith trainer map load failed", error);
+        return cached;
+      }
+      saveTrainerMapProfilesCache(data || []);
+      return data || [];
+    }
+
+    function trainerMapFilters() {
+      return {
+        city: document.getElementById("mapCity")?.value.trim().toLowerCase() || "",
+        state: document.getElementById("mapState")?.value.trim().toLowerCase() || "",
+        service: document.getElementById("mapService")?.value || "",
+        specialty: document.getElementById("mapSpecialty")?.value || "",
+        format: document.getElementById("mapFormat")?.value || ""
+      };
+    }
+
+    function profileMatchesTrainerMap(profile, filters) {
+      const city = String(profile.city || "").toLowerCase();
+      const state = String(profile.state || "").toLowerCase();
+      return (!filters.city || city.includes(filters.city))
+        && (!filters.state || state.includes(filters.state))
+        && (!filters.service || (profile.service_types || []).includes(filters.service))
+        && (!filters.specialty || (profile.specialties || []).includes(filters.specialty))
+        && (!filters.format || (profile.training_formats || []).includes(filters.format));
+    }
+
+    function trainerMapCard(profile) {
+      const location = [profile.city, profile.state].filter(Boolean).join(", ");
+      const services = trainerOptionLabels("serviceTypes", profile.service_types).join(" · ");
+      const formats = trainerOptionLabels("trainingFormats", profile.training_formats).join(" · ");
+      const specialties = trainerOptionLabels("specialties", profile.specialties).slice(0, 5).join(" · ");
+      const price = [
+        profile.hourly_price ? `${t("Hora")}: $${profile.hourly_price}` : "",
+        profile.monthly_price ? `${t("Mensal")}: $${profile.monthly_price}` : "",
+        profile.online_monthly_price ? `${t("Online")}: $${profile.online_monthly_price}` : ""
+      ].filter(Boolean).join(" / ");
+      const social = profile.social_url ? `<a class="ghost" href="${escapeHTML(profile.social_url)}" target="_blank" rel="noreferrer">${escapeHTML(t("Abrir perfil"))}</a>` : "";
+      return `
+        <article class="trainer-map-card">
+          <div>
+            <div class="kicker">${escapeHTML(location || t("Região não informada"))}</div>
+            <h3>${escapeHTML(profile.professional_name || profile.full_name || t("Personal trainer"))}</h3>
+            <p>${escapeHTML(profile.bio || t("Perfil profissional em construção."))}</p>
+          </div>
+          <div class="meta">
+            ${services ? `<div><strong>${escapeHTML(t("Atendimento"))}:</strong> ${escapeHTML(services)}</div>` : ""}
+            ${formats ? `<div><strong>${escapeHTML(t("Formato"))}:</strong> ${escapeHTML(formats)}</div>` : ""}
+            ${specialties ? `<div><strong>${escapeHTML(t("Especialidades"))}:</strong> ${escapeHTML(specialties)}</div>` : ""}
+            ${price ? `<div><strong>${escapeHTML(t("Preço"))}:</strong> ${escapeHTML(price)}</div>` : ""}
+          </div>
+          <div class="pill-row">
+            ${profile.free_first_consultation ? `<span class="pill">${escapeHTML(t("Primeira consulta grátis"))}</span>` : ""}
+            ${profile.package_discounts ? `<span class="pill">${escapeHTML(t("Pacotes com desconto"))}</span>` : ""}
+          </div>
+          ${social}
+        </article>
+      `;
+    }
+
+    async function renderTrainerMap() {
+      renderMapFilterOptions();
+      const container = document.getElementById("trainerMapResults");
+      if (!container) return;
+      container.innerHTML = `<div class="panel"><div class="report-line">${escapeHTML(t("Carregando mapa de personais..."))}</div></div>`;
+      const profiles = await loadTrainerMapProfiles();
+      const filters = trainerMapFilters();
+      const visible = profiles.filter(profile => profileMatchesTrainerMap(profile, filters));
+      container.innerHTML = visible.map(trainerMapCard).join("")
+        || `<div class="panel"><div class="report-line">${escapeHTML(t("Nenhum personal encontrado com esses filtros."))}</div></div>`;
+    }
+
     async function saveTrainerPublicProfile(payload) {
       if (monolithSupabase && isRealSupabaseAccount(currentAccount())) {
         const { error } = await monolithSupabase
@@ -3973,6 +4212,24 @@
       localStorage.setItem("monolith.selectedStudentId", studentId);
       localStorage.setItem("monolith.selectedDietStudentId", studentId);
       localStorage.setItem("monolith.selectedWorkoutStudentId", studentId);
+      localStorage.setItem("monolith.selectedCheckinStudentId", studentId);
+    }
+
+    function selectedCheckinStudentId() {
+      const user = currentAccount();
+      if (!user) return "";
+      if (user.role !== "personal") return user.id;
+      return document.getElementById("checkinStudent")?.value
+        || localStorage.getItem("monolith.selectedCheckinStudentId")
+        || selectedStudentForPersonal()
+        || "";
+    }
+
+    function setSelectedCheckinStudentForPersonal(studentId) {
+      if (!studentId) return;
+      localStorage.setItem("monolith.selectedCheckinStudentId", studentId);
+      localStorage.setItem("monolith.selectedStudentId", studentId);
+      localStorage.setItem("monolith.selectedDietStudentId", studentId);
     }
 
     async function ensureLinkedStudentsForPersonal(personalId = currentAccount()?.id) {
@@ -4137,9 +4394,9 @@
       };
     }
 
-    function factorRowFromFactor(factor, index = 0) {
+    function factorRowFromFactor(factor, index = 0, studentId = selectedCheckinStudentId() || currentAccount()?.id || "") {
       return {
-        student_id: currentAccount()?.id || "",
+        student_id: studentId,
         factor_key: factor.id,
         group_name: factor.group || "Check-in",
         name: factor.name || "Item",
@@ -4166,9 +4423,11 @@
 
     async function saveRemoteCheckin(entry) {
       const user = currentAccount();
-      if (!monolithSupabase || !isRealSupabaseAccount(user) || user.role !== "student") return;
+      const targetStudentId = entry.studentId || user?.id || "";
+      if (!monolithSupabase || !isRealSupabaseAccount(user) || !targetStudentId) return;
+      if (user.role !== "student" && user.role !== "personal") return;
       const payload = {
-        student_id: user.id,
+        student_id: targetStudentId,
         checkin_date: entry.date,
         weight_kg: entry.weight || null,
         score: entry.score || 0,
@@ -4208,28 +4467,28 @@
       return loadRemoteFactors({ id: studentId, source: "supabase" });
     }
 
-    async function saveRemoteFactors(nextFactors = factors) {
+    async function saveRemoteFactors(nextFactors = factors, studentId = selectedCheckinStudentId() || currentAccount()?.id) {
       const account = currentAccount();
-      if (!monolithSupabase || !account || !isRealSupabaseAccount(account)) return false;
+      if (!monolithSupabase || !account || !isRealSupabaseAccount(account) || !studentId) return false;
       const rows = nextFactors
-        .map((factor, index) => factorRowFromFactor(factor, index))
+        .map((factor, index) => factorRowFromFactor(factor, index, studentId))
         .filter(row => row.student_id && row.factor_key);
       if (!rows.length) return false;
       const { error } = await monolithSupabase
         .from("checkin_factors")
         .upsert(rows, { onConflict: "student_id,factor_key" });
       if (error) throw error;
-      cacheStudentFactors(account.id, nextFactors);
+      cacheStudentFactors(studentId, nextFactors);
       return true;
     }
 
-    async function deleteRemoteFactor(factorId) {
+    async function deleteRemoteFactor(factorId, studentId = selectedCheckinStudentId() || currentAccount()?.id) {
       const account = currentAccount();
-      if (!monolithSupabase || !account || !isRealSupabaseAccount(account) || !factorId) return false;
+      if (!monolithSupabase || !account || !isRealSupabaseAccount(account) || !factorId || !studentId) return false;
       const { error } = await monolithSupabase
         .from("checkin_factors")
         .delete()
-        .eq("student_id", account.id)
+        .eq("student_id", studentId)
         .eq("factor_key", factorId);
       if (error) throw error;
       return true;
@@ -4638,6 +4897,31 @@
         "Contas reais usam Supabase Auth. Depois de criar conta, confirme o cadastro no e-mail antes de entrar.": "Real accounts use Supabase Auth. After creating an account, confirm it by email before logging in.",
         "Perfil profissional": "Professional profile",
         "Cadastro único para o mapa de personais": "One-time signup for the trainer map",
+        "Mapa": "Map",
+        "Mapa de personais": "Trainer map",
+        "Encontre treinadores por região, serviço e objetivo": "Find trainers by region, service and goal",
+        "Buscar personais": "Search trainers",
+        "Filtros": "Filters",
+        "Perfis autorizados": "Authorized profiles",
+        "Cidade": "City",
+        "Atendimento": "Service",
+        "Especialidade": "Specialty",
+        "Formato": "Format",
+        "Todos os atendimentos": "All services",
+        "Todas as especialidades": "All specialties",
+        "Todos os formatos": "All formats",
+        "Filtrar": "Filter",
+        "Carregando mapa de personais...": "Loading trainer map...",
+        "Nenhum personal encontrado com esses filtros.": "No trainer found with these filters.",
+        "Região não informada": "Region not informed",
+        "Perfil profissional em construção.": "Professional profile under construction.",
+        "Especialidades": "Specialties",
+        "Preço": "Price",
+        "Hora": "Hourly",
+        "Mensal": "Monthly",
+        "Abrir perfil": "Open profile",
+        "Primeira consulta grátis": "Free first consultation",
+        "Pacotes com desconto": "Discounted packages",
         "Antes de continuar": "Before continuing",
         "Primeiro acesso": "First access",
         "Preencha uma vez para criar seu perfil profissional. Se não quiser aparecer no mapa, marque \"Não\" na participação do mapa.": "Fill this once to create your professional profile. If you do not want to appear on the map, choose \"No\" for map participation.",
@@ -4767,6 +5051,8 @@
         "Contas reais usam Supabase Auth. Os botões demo continuam locais para teste rápido.": "Real accounts use Supabase Auth. Demo buttons remain local for quick testing.",
         "Entre como aluno ou personal para abrir o painel correto.": "Log in as a student or trainer to open the right dashboard.",
         "Após criar conta, confirme o cadastro no e-mail antes de entrar.": "After creating an account, confirm the signup in your email before logging in.",
+        "Login": "Login",
+        "E-mail": "Email",
         "Senha": "Password",
         "Entrar": "Log in",
         "Criar conta": "Create account",
@@ -4856,8 +5142,12 @@
         "Iniciar treino": "Start workout",
         "Check-in diário": "Daily check-in",
         "Salvar dia": "Save day",
+        "Aluno do check-in": "Check-in student",
+        "Modo": "Mode",
+        "Personal edita a lista e salva o check-in do aluno selecionado.": "The trainer edits the list and saves the selected student's check-in.",
         "Adicionar tarefa diária": "Add daily task",
         "Novo treino": "New workout",
+        "Meu próprio treino": "My own workout",
         "Painel inicial do personal trainer": "Initial trainer dashboard",
         "Criar convite": "Create invite",
         "Código de convite": "Invite code",
@@ -4883,6 +5173,8 @@
         "Verificando vínculo com personal...": "Checking trainer link...",
         "Não consegui verificar o vínculo agora.": "Could not check the link right now.",
         "Entre como aluno para vincular um personal.": "Log in as a student to link a trainer.",
+        "Escolha um aluno para salvar o check-in.": "Choose a student to save the check-in.",
+        "Escolha um aluno para editar o check-in.": "Choose a student to edit the check-in.",
         "Cole o código de convite do personal.": "Paste the trainer invite code.",
         "Não consegui vincular este personal. Confira o código.": "Could not link this trainer. Check the code.",
         "Personal vinculado com sucesso.": "Trainer linked successfully.",
@@ -5174,6 +5466,12 @@
         "Treinos, cardio, medidas, fotos e recordes": "Workouts, cardio, measurements, photos and records",
         "Estatísticas, check-ins dia a dia e treinos": "Stats, daily check-ins and workouts",
         "Backup .monolith": "Backup .monolith",
+        "Novo": "New",
+        "Reps": "Reps",
+        "Status": "Status",
+        "Score": "Score",
+        "Macros": "Macros",
+        "Delta": "Delta",
         "Treino salvo localmente. Não consegui sincronizar agora.": "Workout saved locally. Could not sync right now.",
         "Salvar como PDF": "Save as PDF",
         "Relatório mensal MONOLITH": "MONOLITH Monthly Report",
@@ -5204,12 +5502,15 @@
         "Item": "Item",
         "Concluído": "Completed",
         "Aderência": "Adherence",
+        "Adicione itens no check-in diário para começar a medir a frequência.": "Add daily check-in items to start measuring frequency.",
         "Sem check-ins salvos.": "No check-ins saved.",
+        "Ainda não há pesos salvos no check-in diário.": "No weights saved in the daily check-in yet.",
         "Dia a dia": "Daily log",
         "Dia": "Day",
         "Peso simples": "Simple weight",
         "Itens": "Items",
         "Treinos concluídos": "Completed workouts",
+        "Sem treinos concluídos salvos.": "No completed workouts saved.",
         "Séries": "Sets",
         "Sem foto salva.": "No photo saved.",
         "Sem medidas corporais salvas.": "No body measurements saved.",
@@ -5247,6 +5548,31 @@
         "Contas reais usam Supabase Auth. Depois de criar conta, confirme o cadastro no e-mail antes de entrar.": "Las cuentas reales usan Supabase Auth. Después de crear una cuenta, confirma el registro por email antes de entrar.",
         "Perfil profissional": "Perfil profesional",
         "Cadastro único para o mapa de personais": "Registro único para el mapa de entrenadores",
+        "Mapa": "Mapa",
+        "Mapa de personais": "Mapa de entrenadores",
+        "Encontre treinadores por região, serviço e objetivo": "Encuentra entrenadores por región, servicio y objetivo",
+        "Buscar personais": "Buscar entrenadores",
+        "Filtros": "Filtros",
+        "Perfis autorizados": "Perfiles autorizados",
+        "Cidade": "Ciudad",
+        "Atendimento": "Servicio",
+        "Especialidade": "Especialidad",
+        "Formato": "Formato",
+        "Todos os atendimentos": "Todos los servicios",
+        "Todas as especialidades": "Todas las especialidades",
+        "Todos os formatos": "Todos los formatos",
+        "Filtrar": "Filtrar",
+        "Carregando mapa de personais...": "Cargando mapa de entrenadores...",
+        "Nenhum personal encontrado com esses filtros.": "No se encontró ningún entrenador con esos filtros.",
+        "Região não informada": "Región no informada",
+        "Perfil profissional em construção.": "Perfil profesional en construcción.",
+        "Especialidades": "Especialidades",
+        "Preço": "Precio",
+        "Hora": "Hora",
+        "Mensal": "Mensual",
+        "Abrir perfil": "Abrir perfil",
+        "Primeira consulta grátis": "Primera consulta gratis",
+        "Pacotes com desconto": "Paquetes con descuento",
         "Antes de continuar": "Antes de continuar",
         "Primeiro acesso": "Primer acceso",
         "Preencha uma vez para criar seu perfil profissional. Se não quiser aparecer no mapa, marque \"Não\" na participação do mapa.": "Completa esto una vez para crear tu perfil profesional. Si no quieres aparecer en el mapa, elige \"No\" en la participación del mapa.",
@@ -5376,6 +5702,8 @@
         "Contas reais usam Supabase Auth. Os botões demo continuam locais para teste rápido.": "Las cuentas reales usan Supabase Auth. Los botones demo siguen locales para pruebas rápidas.",
         "Entre como aluno ou personal para abrir o painel correto.": "Entra como alumno o entrenador para abrir el panel correcto.",
         "Após criar conta, confirme o cadastro no e-mail antes de entrar.": "Después de crear la cuenta, confirma el registro en tu email antes de entrar.",
+        "Login": "Inicio de sesión",
+        "E-mail": "Email",
         "Senha": "Contraseña",
         "Entrar": "Entrar",
         "Criar conta": "Crear cuenta",
@@ -5465,8 +5793,12 @@
         "Iniciar treino": "Iniciar entreno",
         "Check-in diário": "Check-in diario",
         "Salvar dia": "Guardar día",
+        "Aluno do check-in": "Alumno del check-in",
+        "Modo": "Modo",
+        "Personal edita a lista e salva o check-in do aluno selecionado.": "El entrenador edita la lista y guarda el check-in del alumno seleccionado.",
         "Adicionar tarefa diária": "Agregar tarea diaria",
         "Novo treino": "Nuevo entreno",
+        "Meu próprio treino": "Mi propio entreno",
         "Painel inicial do personal trainer": "Panel inicial del entrenador personal",
         "Criar convite": "Crear invitación",
         "Código de convite": "Código de invitación",
@@ -5489,6 +5821,8 @@
         "Sem personal vinculado.": "Sin entrenador vinculado.",
         "Vinculado a": "Vinculado a",
         "Aluno vinculado a um personal.": "Alumno vinculado a un entrenador.",
+        "Escolha um aluno para salvar o check-in.": "Elige un alumno para guardar el check-in.",
+        "Escolha um aluno para editar o check-in.": "Elige un alumno para editar el check-in.",
         "Verificando vínculo com personal...": "Verificando vínculo con entrenador...",
         "Não consegui verificar o vínculo agora.": "No pude verificar el vínculo ahora.",
         "Entre como aluno para vincular um personal.": "Entra como alumno para vincular un entrenador.",
@@ -5783,6 +6117,12 @@
         "Treinos, cardio, medidas, fotos e recordes": "Entrenos, cardio, medidas, fotos y récords",
         "Estatísticas, check-ins dia a dia e treinos": "Estadísticas, check-ins diarios y entrenos",
         "Backup .monolith": "Backup .monolith",
+        "Novo": "Nuevo",
+        "Reps": "Reps",
+        "Status": "Estado",
+        "Score": "Puntuación",
+        "Macros": "Macros",
+        "Delta": "Delta",
         "Treino salvo localmente. Não consegui sincronizar agora.": "Entreno guardado localmente. No se pudo sincronizar ahora.",
         "Salvar como PDF": "Guardar como PDF",
         "Relatório mensal MONOLITH": "Informe mensual MONOLITH",
@@ -5813,12 +6153,15 @@
         "Item": "Item",
         "Concluído": "Completado",
         "Aderência": "Adherencia",
+        "Adicione itens no check-in diário para começar a medir a frequência.": "Agrega ítems al check-in diario para empezar a medir la frecuencia.",
         "Sem check-ins salvos.": "Sin check-ins guardados.",
+        "Ainda não há pesos salvos no check-in diário.": "Aún no hay pesos guardados en el check-in diario.",
         "Dia a dia": "Día a día",
         "Dia": "Día",
         "Peso simples": "Peso simple",
         "Itens": "Ítems",
         "Treinos concluídos": "Entrenos completados",
+        "Sem treinos concluídos salvos.": "No hay entrenos completados guardados.",
         "Séries": "Series",
         "Sem foto salva.": "Sin foto guardada.",
         "Sem medidas corporais salvas.": "Sin medidas corporales guardadas.",
@@ -5939,6 +6282,7 @@
         element.placeholder = t(element.dataset.i18nPlaceholder, language);
       });
       renderTrainerProfileOptionGroups();
+      renderMapFilterOptions();
       updateWeightUnitLabels();
     }
 
@@ -5982,8 +6326,23 @@
       localStorage.setItem("monolith.workouts", JSON.stringify(list));
     }
 
+    const selfWorkoutTarget = "__self__";
+
+    function selectedWorkoutTarget() {
+      return document.getElementById("workoutStudent")?.value
+        || localStorage.getItem("monolith.selectedWorkoutStudentId")
+        || selfWorkoutTarget;
+    }
+
     function selectedWorkoutStudentId() {
-      return document.getElementById("workoutStudent")?.value || selectedStudentForPersonal() || "";
+      const target = selectedWorkoutTarget();
+      return target === selfWorkoutTarget ? "" : target;
+    }
+
+    function setSelectedWorkoutTarget(target) {
+      const safeTarget = target || selfWorkoutTarget;
+      localStorage.setItem("monolith.selectedWorkoutStudentId", safeTarget);
+      if (safeTarget !== selfWorkoutTarget) setSelectedStudentForPersonal(safeTarget);
     }
 
     async function renderWorkoutStudentSelect() {
@@ -5996,12 +6355,51 @@
         select.innerHTML = "";
         return;
       }
-      const previousStudentId = select.value || selectedStudentForPersonal();
+      const previousTarget = select.value || localStorage.getItem("monolith.selectedWorkoutStudentId") || selfWorkoutTarget;
+      const students = await ensureLinkedStudentsForPersonal(user.id);
+      select.innerHTML = `<option value="${selfWorkoutTarget}">${escapeHTML(t("Meu próprio treino"))}</option>` + students.map(student => `<option value="${escapeHTML(student.id)}">${escapeHTML(student.name)} - ${escapeHTML(student.email)}</option>`).join("");
+      if (previousTarget === selfWorkoutTarget || students.some(student => student.id === previousTarget)) select.value = previousTarget;
+      else select.value = selfWorkoutTarget;
+      setSelectedWorkoutTarget(select.value);
+    }
+
+    async function renderCheckinStudentSelect() {
+      const panel = document.getElementById("checkinStudentPanel");
+      const select = document.getElementById("checkinStudent");
+      const user = currentAccount();
+      if (!panel || !select) return;
+      panel.hidden = !user || user.role !== "personal";
+      if (!user || user.role !== "personal") {
+        select.innerHTML = "";
+        return;
+      }
+      const previousStudentId = select.value || localStorage.getItem("monolith.selectedCheckinStudentId") || selectedStudentForPersonal();
       const students = await ensureLinkedStudentsForPersonal(user.id);
       select.innerHTML = students.map(student => `<option value="${escapeHTML(student.id)}">${escapeHTML(student.name)} - ${escapeHTML(student.email)}</option>`).join("");
       if (students.some(student => student.id === previousStudentId)) select.value = previousStudentId;
       else if (students[0]) select.value = students[0].id;
-      if (select.value) setSelectedStudentForPersonal(select.value);
+      if (select.value) setSelectedCheckinStudentForPersonal(select.value);
+    }
+
+    async function loadFactorsForCheckinTarget() {
+      const targetStudentId = selectedCheckinStudentId();
+      if (!targetStudentId) {
+        factors = [];
+        renderFactors();
+        return;
+      }
+      if (isRealSupabaseAccount(currentAccount())) {
+        try {
+          await loadRemoteFactorsForStudent(targetStudentId);
+        } catch (error) {
+          console.warn("Monolith remote check-in factors target load failed", error);
+          showToast("Não consegui carregar o checklist remoto agora. Usei o cache local.");
+        }
+      }
+      factors = factorsForStudent(targetStudentId);
+      cacheStudentFactors(targetStudentId, factors);
+      if (targetStudentId === currentAccount()?.id) saveFactors(factors);
+      renderFactors();
     }
 
     async function openWorkoutModal() {
@@ -6081,6 +6479,7 @@
 
     function readCurrentCheckin() {
       const rows = [...document.querySelectorAll("#checkinGroups .habit")];
+      const targetStudentId = selectedCheckinStudentId();
       const items = rows.map(row => {
         const factor = factors.find(item => item.id === row.dataset.factorId);
         return {
@@ -6096,7 +6495,7 @@
       const weight = parseWeightInput(document.getElementById("dailyWeight")?.value.trim());
       return {
         date: todayKey(),
-        studentId: currentAccount()?.id || "",
+        studentId: targetStudentId || currentAccount()?.id || "",
         label: new Intl.DateTimeFormat("pt-BR", { dateStyle: "short" }).format(new Date()),
         savedAt: new Date().toISOString(),
         weight: weight ?? "",
@@ -6312,7 +6711,7 @@
         bar.innerHTML = `<span><b>${escapeHTML(t(factor.name))}</b><b>${completed}/${total} dias</b></span><div class="track"><div class="fill" style="width: ${percent}%"></div></div>`;
         container.appendChild(bar);
       });
-      if (!factors.length) container.innerHTML = `<div class="report-line">Adicione itens no check-in diário para começar a medir a frequência.</div>`;
+      if (!factors.length) container.innerHTML = `<div class="report-line">${escapeHTML(t("Adicione itens no check-in diário para começar a medir a frequência."))}</div>`;
     }
 
     function loadProgressPhotos() {
@@ -6541,6 +6940,11 @@
         "Treino": "Workout",
         "Séries": "Sets",
         "Peso não registrado": "Weight not recorded",
+        "Score": "Score",
+        "Macros": "Macros",
+        "Delta": "Delta",
+        "Ainda não há pesos salvos no check-in diário.": "No weights saved in the daily check-in yet.",
+        "Sem treinos concluídos salvos.": "No completed workouts saved.",
         "ok": "ok",
         "não": "no",
         "séries": "sets"
@@ -6609,6 +7013,11 @@
         "Treino": "Entreno",
         "Séries": "Series",
         "Peso não registrado": "Peso no registrado",
+        "Score": "Puntuación",
+        "Macros": "Macros",
+        "Delta": "Delta",
+        "Ainda não há pesos salvos no check-in diário.": "Aún no hay pesos guardados en el check-in diario.",
+        "Sem treinos concluídos salvos.": "No hay entrenos completados guardados.",
         "ok": "ok",
         "não": "no",
         "séries": "series"
@@ -6692,23 +7101,23 @@ ${weightBars ? `<div class="chart">${weightBars}</div>` : `<p class="muted">${rt
 <h2>${rt("Percentual de gordura corporal")}</h2>
 ${bodyFatBars ? `<div class="chart">${bodyFatBars}</div>` : `<p class="muted">${rt("Ainda não há percentual de gordura salvo.")}</p>`}
 <h2>${rt("Medidas corporais")}</h2>
-<table><thead><tr><th>${rt("Medida")}</th><th>${rt("Primeiro registro")}</th><th>${rt("Atual")}</th><th>Delta</th></tr></thead><tbody>${measureDeltaRows}</tbody></table>
+<table><thead><tr><th>${rt("Medida")}</th><th>${rt("Primeiro registro")}</th><th>${rt("Atual")}</th><th>${rt("Delta")}</th></tr></thead><tbody>${measureDeltaRows}</tbody></table>
 <table><thead><tr><th>${rt("Data")}</th><th>${rt("Peso")}</th><th>${rt("Gordura")}</th><th>${rt("Cintura")}</th><th>${rt("Peito")}</th><th>${rt("Braço")}</th><th>${rt("Perna")}</th><th>${rt("Quadril")}</th><th>${rt("Obs.")}</th></tr></thead><tbody>${measureRows || `<tr><td colspan="9">${rt("Sem medidas corporais salvas.")}</td></tr>`}</tbody></table>
 <h2>${rt("Dieta ativa do mês")}</h2>
 <p class="muted">${rt("Meta")}: ${escapeHTML(report.activeDietPlan?.calories || "--")} kcal / P ${escapeHTML(report.activeDietPlan?.protein || "--")} / C ${escapeHTML(report.activeDietPlan?.carbs || "--")} / G ${escapeHTML(report.activeDietPlan?.fat || "--")}</p>
-<table><thead><tr><th>#</th><th>${rt("Refeição")}</th><th>${rt("Alimentos")}</th><th>Macros</th><th>${rt("Substituições")}</th><th>${rt("Observação")}</th></tr></thead><tbody>${dietRows || `<tr><td colspan="6">${rt("Nenhuma dieta ativa cadastrada para este mês.")}</td></tr>`}</tbody></table>
+<table><thead><tr><th>#</th><th>${rt("Refeição")}</th><th>${rt("Alimentos")}</th><th>${rt("Macros")}</th><th>${rt("Substituições")}</th><th>${rt("Observação")}</th></tr></thead><tbody>${dietRows || `<tr><td colspan="6">${rt("Nenhuma dieta ativa cadastrada para este mês.")}</td></tr>`}</tbody></table>
 <h2>${rt("Fotos de evolução")}</h2>
 ${photoSections}
 <h2>${rt("Top 5 maiores evoluções")}</h2>
-<table><thead><tr><th>${rt("Exercício")}</th><th>${rt("Base")}</th><th>${rt("Primeiro registro")}</th><th>${rt("Atual")}</th><th>${rt("Último registro")}</th><th>Delta</th></tr></thead><tbody>${gainRows || `<tr><td colspan="6">${rt("Ainda precisa de pelo menos duas sessões salvas do mesmo exercício.")}</td></tr>`}</tbody></table>
+<table><thead><tr><th>${rt("Exercício")}</th><th>${rt("Base")}</th><th>${rt("Primeiro registro")}</th><th>${rt("Atual")}</th><th>${rt("Último registro")}</th><th>${rt("Delta")}</th></tr></thead><tbody>${gainRows || `<tr><td colspan="6">${rt("Ainda precisa de pelo menos duas sessões salvas do mesmo exercício.")}</td></tr>`}</tbody></table>
 <h2>${rt("Top 5 maiores quedas")}</h2>
-<table><thead><tr><th>${rt("Exercício")}</th><th>${rt("Base")}</th><th>${rt("Primeiro registro")}</th><th>${rt("Atual")}</th><th>${rt("Último registro")}</th><th>Delta</th></tr></thead><tbody>${dropRows || `<tr><td colspan="6">${rt("Nenhuma queda relevante detectada.")}</td></tr>`}</tbody></table>
+<table><thead><tr><th>${rt("Exercício")}</th><th>${rt("Base")}</th><th>${rt("Primeiro registro")}</th><th>${rt("Atual")}</th><th>${rt("Último registro")}</th><th>${rt("Delta")}</th></tr></thead><tbody>${dropRows || `<tr><td colspan="6">${rt("Nenhuma queda relevante detectada.")}</td></tr>`}</tbody></table>
 <h2>${rt("Frequência dos últimos 30 dias")}</h2>
 <table><thead><tr><th>${rt("Item")}</th><th>${rt("Concluído")}</th><th>${rt("Aderência")}</th></tr></thead><tbody>${statsRows || `<tr><td colspan="3">${rt("Sem check-ins salvos.")}</td></tr>`}</tbody></table>
 <h2>${rt("Dia a dia")}</h2>
-<table><thead><tr><th>${rt("Dia")}</th><th>${rt("Peso simples")}</th><th>Score</th><th>%</th><th>${rt("Itens")}</th></tr></thead><tbody>${dayRows || `<tr><td colspan="5">${rt("Sem check-ins salvos.")}</td></tr>`}</tbody></table>
+<table><thead><tr><th>${rt("Dia")}</th><th>${rt("Peso simples")}</th><th>${rt("Score")}</th><th>%</th><th>${rt("Itens")}</th></tr></thead><tbody>${dayRows || `<tr><td colspan="5">${rt("Sem check-ins salvos.")}</td></tr>`}</tbody></table>
 <h2>${rt("Treinos concluídos")}</h2>
-<table><thead><tr><th>${rt("Data")}</th><th>${rt("Treino")}</th><th>${rt("Séries")}</th></tr></thead><tbody>${workoutRows || `<tr><td colspan="3">${rt("Sem check-ins salvos.")}</td></tr>`}</tbody></table>
+<table><thead><tr><th>${rt("Data")}</th><th>${rt("Treino")}</th><th>${rt("Séries")}</th></tr></thead><tbody>${workoutRows || `<tr><td colspan="3">${rt("Sem treinos concluídos salvos.")}</td></tr>`}</tbody></table>
 </body>
 </html>`;
     }
@@ -6810,7 +7219,7 @@ ${photoSections}
 
     function syncFactorState(id, active) {
       factors = factors.map(factor => factor.id === id ? { ...factor, active } : factor);
-      saveFactors(factors);
+      saveFactorsForActiveTarget(factors);
       saveRemoteFactors(factors).catch(error => {
         console.warn("Monolith remote check-in factors save failed", error);
         showToast("Checklist salvo localmente. Não consegui sincronizar agora.");
@@ -6824,7 +7233,7 @@ ${photoSections}
 
     function removeFactor(id) {
       factors = factors.filter(factor => factor.id !== id);
-      saveFactors(factors);
+      saveFactorsForActiveTarget(factors);
       deleteRemoteFactor(id).catch(error => {
         console.warn("Monolith remote check-in factor delete failed", error);
         showToast("Fator removido localmente. Não consegui sincronizar agora.");
@@ -6890,6 +7299,7 @@ ${photoSections}
       renderBodyMeasures();
       renderPhotoVault();
       renderNutrition();
+      renderTrainerMap();
     }
     languageSelect.addEventListener("click", handleLanguageClick);
     authLanguageSelect?.addEventListener("click", handleLanguageClick);
@@ -6909,6 +7319,17 @@ ${photoSections}
     document.getElementById("dietStudent")?.addEventListener("change", event => {
       setSelectedStudentForPersonal(event.target.value);
       renderNutrition();
+    });
+    document.getElementById("refreshTrainerMap")?.addEventListener("click", renderTrainerMap);
+    document.getElementById("applyTrainerMapFilters")?.addEventListener("click", renderTrainerMap);
+    ["mapCity", "mapState", "mapService", "mapSpecialty", "mapFormat"].forEach(id => {
+      document.getElementById(id)?.addEventListener("change", renderTrainerMap);
+    });
+    ["mapCity", "mapState"].forEach(id => {
+      document.getElementById(id)?.addEventListener("input", () => {
+        window.clearTimeout(window.monolithMapFilterTimer);
+        window.monolithMapFilterTimer = window.setTimeout(renderTrainerMap, 250);
+      });
     });
     document.getElementById("dietMonth")?.addEventListener("change", renderNutrition);
     document.getElementById("dietPlanForm")?.addEventListener("submit", async event => {
@@ -7069,8 +7490,14 @@ ${photoSections}
       event.target.reset();
     });
     document.getElementById("workoutStudent")?.addEventListener("change", event => {
-      setSelectedStudentForPersonal(event.target.value);
+      setSelectedWorkoutTarget(event.target.value);
       window.monolithRefreshWorkoutView?.();
+    });
+    document.getElementById("checkinStudent")?.addEventListener("change", async event => {
+      setSelectedCheckinStudentForPersonal(event.target.value);
+      await loadFactorsForCheckinTarget();
+      renderStats();
+      renderTrainerSummary();
     });
     document.getElementById("statsStudent")?.addEventListener("change", event => {
       setSelectedStudentForPersonal(event.target.value);
@@ -7174,7 +7601,10 @@ ${photoSections}
           renderTrainerSummary();
         });
       }
-      if (id === "checkin") hydrateRemoteFactors();
+      if (id === "checkin") {
+        renderCheckinStudentSelect().then(loadFactorsForCheckinTarget);
+      }
+      if (id === "trainerMap") renderTrainerMap();
       if (id === "nutrition") renderNutrition();
       window.scrollTo({ top: 0, behavior: "smooth" });
     }
@@ -7188,6 +7618,8 @@ ${photoSections}
           renderPhotoVault();
         }
         if (nav.dataset.screen === "measures") renderBodyMeasures();
+        if (nav.dataset.screen === "checkin") renderCheckinStudentSelect().then(loadFactorsForCheckinTarget);
+        if (nav.dataset.screen === "trainerMap") renderTrainerMap();
         if (nav.dataset.screen === "nutrition") renderNutrition();
         if (nav.dataset.screen === "backup") renderTrainerSummary();
       });
@@ -7265,6 +7697,10 @@ ${photoSections}
       const effectInput = document.getElementById("factorEffect");
       const name = nameInput.value.trim();
       if (!name) return;
+      if (!selectedCheckinStudentId()) {
+        showToast("Escolha um aluno para editar o check-in.");
+        return;
+      }
       factors.push({
         id: `factor-${Date.now()}`,
         group: groupInput.value,
@@ -7272,7 +7708,7 @@ ${photoSections}
         active: false,
         positive: effectInput.value === "positive"
       });
-      saveFactors(factors);
+      saveFactorsForActiveTarget(factors);
       saveRemoteFactors(factors).catch(error => {
         console.warn("Monolith remote check-in factors save failed", error);
         showToast("Checklist salvo localmente. Não consegui sincronizar agora.");
@@ -7283,6 +7719,10 @@ ${photoSections}
     });
     document.getElementById("saveCheckin").addEventListener("click", async () => {
       const entry = readCurrentCheckin();
+      if (!entry.studentId) {
+        showToast("Escolha um aluno para salvar o check-in.");
+        return;
+      }
       await upsertTodayCheckin(entry);
       document.getElementById("dailyWeight").value = "";
       showToast(`${t("Check-in salvo")}: ${entry.completed}/${entry.total} ${t("itens concluídos.")}`);
@@ -7793,7 +8233,7 @@ ${photoSections}
         const user = currentAccount();
         if (!user) return workoutsV2;
         if (user.role === "personal") {
-          const selectedStudentId = selectedWorkoutStudentId() || selectedStudentForPersonal();
+          const selectedStudentId = selectedWorkoutStudentId();
           return workoutsV2.filter(workout => selectedStudentId
             ? workout.assignedStudentId === selectedStudentId
             : workout.ownerId === user.id && !workout.assignedStudentId);
@@ -7997,7 +8437,7 @@ ${photoSections}
         row.innerHTML = `
           <span class="set-index">${htmlT("Série")}</span>
           <input class="set-weight" placeholder="${htmlT("Peso")} ${weightUnitLabel()}" inputmode="decimal" maxlength="6" value="${html(weightInputValue(set.weight))}" />
-          <input class="set-reps" placeholder="Reps" inputmode="numeric" maxlength="2" value="${html(set.reps || "")}" />
+          <input class="set-reps" placeholder="${htmlT("Reps")}" inputmode="numeric" maxlength="2" value="${html(set.reps || "")}" />
           <select class="set-type">${typeOptions(set.type)}</select>
           <input class="set-rest" placeholder="${htmlT("Descanso s")}" inputmode="numeric" maxlength="3" value="${html(set.rest || "90")}" />
           <button class="ghost remove-set-v2" type="button">${htmlT("Remover")}</button>
@@ -8071,7 +8511,7 @@ ${photoSections}
           <tr data-exercise-index="${exerciseIndex}" data-set-index="${setIndex}" data-prev-weight="${html(previousSet?.weight || "")}" data-prev-reps="${html(previousSet?.reps || "")}">
             <td class="series-cell">${setIndex + 1}</td>
             <td class="weight-cell"><input class="session-weight" value="${html(weightInputValue(set.weight))}" placeholder="${htmlT("Peso")} ${weightUnitLabel()}" inputmode="decimal" maxlength="6" /></td>
-            <td class="reps-cell"><input class="session-reps" value="${html(set.reps || "")}" placeholder="Reps" inputmode="numeric" maxlength="2" /></td>
+            <td class="reps-cell"><input class="session-reps" value="${html(set.reps || "")}" placeholder="${htmlT("Reps")}" inputmode="numeric" maxlength="2" /></td>
             <td class="type-cell"><select class="session-type">${typeOptions(set.type)}</select></td>
             <td class="rest-cell">
               <div class="rest-control">
@@ -8144,7 +8584,7 @@ ${photoSections}
               </div>
             </div>
             <table class="exercise-table">
-              <thead><tr><th class="series-cell">${htmlT("Série")}</th><th class="weight-cell">${htmlT("Peso")} (${weightUnitLabel()})</th><th class="reps-cell">Reps</th><th class="type-cell">${htmlT("Técnica")}</th><th class="rest-cell">${htmlT("Descanso")}</th><th class="status-cell">Status</th></tr></thead>
+              <thead><tr><th class="series-cell">${htmlT("Série")}</th><th class="weight-cell">${htmlT("Peso")} (${weightUnitLabel()})</th><th class="reps-cell">${htmlT("Reps")}</th><th class="type-cell">${htmlT("Técnica")}</th><th class="rest-cell">${htmlT("Descanso")}</th><th class="status-cell">${htmlT("Status")}</th></tr></thead>
               <tbody>${exercise.sets.map((set, setIndex) => sessionSetRowV2(exerciseIndex, setIndex, set, previousExercise?.sets?.[setIndex]) + (setIndex < exercise.sets.length - 1 ? sessionMotivationRowV2(exerciseIndex, setIndex) : "")).join("")}</tbody>
             </table>
           `;

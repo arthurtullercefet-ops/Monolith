@@ -1,4 +1,4 @@
-const CACHE_NAME = "monolith-v50-translate-yellow-notes";
+const CACHE_NAME = "monolith-v52-map-checkin-workout";
 
 self.addEventListener("install", event => {
   self.skipWaiting();

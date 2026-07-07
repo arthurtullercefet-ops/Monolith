@@ -26,7 +26,11 @@ Official docs:
    This adds the one-time trainer professional profile used by the future trainer map/search.
 6. Paste and run `monolith-production-step-03-checkin-factors.sql`.
    This syncs each student's custom daily checklist/factors for reports and trainer follow-up.
-7. Confirm these tables exist:
+7. Paste and run `monolith-production-step-04-trainer-checkin-write.sql`.
+   This lets linked trainers edit student check-in factors and save daily check-ins for students.
+8. Paste and run `monolith-production-step-05-linked-scope.sql`.
+   This tightens production scope: trainers can assign workouts/diets only to linked students, and food diaries stay private to students.
+9. Confirm these tables exist:
    - `profiles`
    - `trainer_students`
    - `trainer_invites`
@@ -43,11 +47,11 @@ Official docs:
    - `subscriptions`
    - `influencer_codes`
    - `referral_attributions`
-8. Confirm these functions exist:
+10. Confirm these functions exist:
    - `create_trainer_invite`
    - `accept_trainer_invite`
    - `accept_influencer_code`
-9. Confirm Storage has a private bucket called `progress-photos`.
+11. Confirm Storage has a private bucket called `progress-photos`.
 
 ## Step 2: connect the frontend
 
