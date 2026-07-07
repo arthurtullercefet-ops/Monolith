@@ -303,6 +303,28 @@
       background: rgba(201, 162, 39, .12);
     }
 
+    .consent-card {
+      min-height: 50px;
+      align-items: center;
+      border-color: rgba(201, 162, 39, .45);
+      background: rgba(201, 162, 39, .06);
+    }
+
+    .consent-card input {
+      width: 18px;
+      height: 18px;
+    }
+
+    .consent-required {
+      margin-left: auto;
+      color: var(--gold);
+      font-size: 11px;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      white-space: nowrap;
+    }
+
     .trainer-profile-actions {
       display: flex;
       justify-content: flex-end;
@@ -2534,7 +2556,7 @@
             <h3>Antes de continuar</h3>
             <span>Primeiro acesso</span>
           </div>
-          <div class="locked-note">Preencha uma vez para criar seu perfil profissional. Se não quiser aparecer no mapa, marque "Não" na participação do mapa.</div>
+          <div class="locked-note" data-i18n="Preencha uma vez para criar seu perfil profissional. Se não quiser aparecer no mapa, marque &quot;Não&quot; na participação do mapa.">Preencha uma vez para criar seu perfil profissional. Se não quiser aparecer no mapa, marque "Não" na participação do mapa.</div>
         </div>
         <form class="trainer-profile-form" id="trainerProfileForm">
           <div class="trainer-profile-section">
@@ -2681,9 +2703,10 @@
               </div>
               <div class="choice-group full" id="trainerAvailability"></div>
               <div class="choice-group full" id="trainerLanguages"></div>
-              <label class="choice-card full">
+              <label class="choice-card consent-card full">
                 <input id="trainerResponsibilityAccepted" type="checkbox" required />
-                <span>Eu concordo com o aviso de responsabilidade.</span>
+                <span>Li e concordo com o aviso de responsabilidade.</span>
+                <span class="consent-required">Obrigatório</span>
               </label>
             </div>
           </div>
@@ -4702,6 +4725,8 @@
         "Espanhol": "Spanish",
         "Outro": "Other",
         "Eu concordo com o aviso de responsabilidade.": "I agree with the responsibility notice.",
+        "Li e concordo com o aviso de responsabilidade.": "I have read and agree with the responsibility notice.",
+        "Obrigatório": "Required",
         "Autorização": "Authorization",
         "O Monolith poderá traduzir as informações do perfil exibidas aos clientes em inglês, português e espanhol, mas não funcionará como tradutor em tempo real.": "Monolith may translate the profile information displayed to clients in English, Portuguese and Spanish, but it will not work as a real-time translator.",
         "Autorização de exibição": "Display authorization",
@@ -5309,6 +5334,8 @@
         "Espanhol": "Español",
         "Outro": "Otro",
         "Eu concordo com o aviso de responsabilidade.": "Estoy de acuerdo con el aviso de responsabilidad.",
+        "Li e concordo com o aviso de responsabilidade.": "Leí y acepto el aviso de responsabilidad.",
+        "Obrigatório": "Obligatorio",
         "Autorização": "Autorización",
         "O Monolith poderá traduzir as informações do perfil exibidas aos clientes em inglês, português e espanhol, mas não funcionará como tradutor em tempo real.": "Monolith podrá traducir la información del perfil mostrada a clientes en inglés, portugués y español, pero no funcionará como traductor en tiempo real.",
         "Autorização de exibição": "Autorización de visualización",
@@ -5897,8 +5924,9 @@
       document.querySelectorAll(".language-button").forEach(button => {
         button.classList.toggle("active", button.dataset.lang === language);
       });
-      document.querySelectorAll("button:not(.language-button), h1, h2, h3, h4, label, span, option, p, strong, b, .date, .kicker, .hero-title, .quote, .measure-note, .report-line, .auth-warning").forEach(element => {
+      document.querySelectorAll("button:not(.language-button), h1, h2, h3, h4, label, span, option, p, strong, b, .date, .kicker, .hero-title, .quote, .measure-note, .report-line, .auth-warning, .locked-note").forEach(element => {
         if (element.matches("button") && (element.classList.contains("nav-btn") || element.classList.contains("icon-btn") || element.querySelector("svg"))) return;
+        if (element.matches("label") && element.querySelector("input")) return;
         const current = element.textContent.trim();
         if (!element.dataset.i18nKey && (translations.en[current] || translations.es[current])) {
           element.dataset.i18nKey = current;

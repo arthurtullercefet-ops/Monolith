@@ -1,4 +1,4 @@
-const CACHE_NAME = "monolith-v48-diet-access-rules";
+const CACHE_NAME = "monolith-v50-translate-yellow-notes";
 
 self.addEventListener("install", event => {
   self.skipWaiting();
