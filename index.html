@@ -2913,7 +2913,7 @@
       </div>
       <div class="form-grid">
         <div class="field" id="workoutStudentField" hidden>
-          <label for="workoutStudent">Aluno</label>
+          <label for="workoutStudent">Destino do treino</label>
           <select id="workoutStudent"></select>
         </div>
         <div class="field">
@@ -3843,7 +3843,7 @@
         .select("id,email,full_name,role")
         .in("id", ids);
       if (profileError) throw profileError;
-      return (profiles || [])
+        return (profiles || [])
         .map(profile => ({
           id: profile.id,
           role: appRoleFromDb(profile.role),
@@ -3898,24 +3898,26 @@
     function renderClientCards(students = []) {
       const container = document.getElementById("clientList");
       if (!container) return;
-      const checkins = lastThirtyCheckins();
-      const score = checkins[0]?.score || 0;
-      const missed = missedCheckinDays(checkins).length;
-      container.innerHTML = students.map(student => `
-        <article class="coach-card">
-          <div>
-            <div class="kicker">${escapeHTML(t(student.plan || "Aluno"))}</div>
-            <h3>${escapeHTML(student.name)}</h3>
-            <p>${escapeHTML(student.email)} · ${checkins.length ? `${checkins.length} ${t("check-ins em 30 dias")}` : t("Aguardando primeiro check-in")}</p>
-            <div class="pill-row">
-              <span class="pill">Score ${score}%</span>
-              <span class="pill">${missed} ${t("faltas")}</span>
-              <span class="pill">${t("Relatório ativo")}</span>
+      container.innerHTML = students.map(student => {
+        const checkins = lastThirtyCheckinsForStudent(student.id);
+        const score = checkins[0]?.score || 0;
+        const missed = missedCheckinDays(checkins).length;
+        return `
+          <article class="coach-card">
+            <div>
+              <div class="kicker">${escapeHTML(t(student.plan || "Aluno"))}</div>
+              <h3>${escapeHTML(student.name)}</h3>
+              <p>${escapeHTML(student.email)} · ${checkins.length ? `${checkins.length} ${t("check-ins em 30 dias")}` : t("Aguardando primeiro check-in")}</p>
+              <div class="pill-row">
+                <span class="pill">Score ${score}%</span>
+                <span class="pill">${missed} ${t("faltas")}</span>
+                <span class="pill">${t("Relatório ativo")}</span>
+              </div>
             </div>
-          </div>
-          <button class="ghost open-student-report" type="button" data-student-id="${escapeHTML(student.id)}">${escapeHTML(t("Ver evolução"))}</button>
-        </article>
-      `).join("") || `<div class="panel"><div class="report-line">${escapeHTML(t("Nenhum aluno vinculado ainda. Gere um convite e envie o código para o aluno."))}</div></div>`;
+            <button class="ghost open-student-report" type="button" data-student-id="${escapeHTML(student.id)}">${escapeHTML(t("Ver evolução"))}</button>
+          </article>
+        `;
+      }).join("") || `<div class="panel"><div class="report-line">${escapeHTML(t("Nenhum aluno vinculado ainda. Gere um convite e envie o código para o aluno."))}</div></div>`;
     }
 
     function applyAuthState() {
@@ -3941,6 +3943,56 @@
       }
     }
 
+    function saveStudentTrainerLink(user, trainerId, trainer = null) {
+      if (!user?.id || !trainerId) return;
+      const accounts = loadAccounts();
+      const trainerAccount = trainer ? {
+        id: trainer.id,
+        role: appRoleFromDb(trainer.role),
+        dbRole: trainer.role,
+        name: trainer.full_name || trainer.email || "Personal",
+        email: trainer.email || "",
+        plan: planFromDbRole(trainer.role),
+        source: "supabase"
+      } : null;
+      let nextAccounts = accounts.map(account => account.id === user.id ? { ...account, trainerId } : account);
+      if (!nextAccounts.some(account => account.id === user.id)) nextAccounts.push({ ...user, trainerId });
+      if (trainerAccount) {
+        nextAccounts = [
+          trainerAccount,
+          ...nextAccounts.filter(account => account.id !== trainerId)
+        ];
+      }
+      saveAccounts(nextAccounts);
+    }
+
+    async function ensureStudentTrainerId(user = currentAccount()) {
+      if (!user || user.role !== "student") return "";
+      if (user.trainerId) return user.trainerId;
+      if (!user.source || user.source !== "supabase" || !monolithSupabase) return "";
+      try {
+        const { data: links, error } = await monolithSupabase
+          .from("trainer_students")
+          .select("trainer_id,status")
+          .eq("student_id", user.id)
+          .eq("status", "active")
+          .limit(1);
+        if (error) throw error;
+        const trainerId = links?.[0]?.trainer_id || "";
+        if (!trainerId) return "";
+        const { data: trainer } = await monolithSupabase
+          .from("profiles")
+          .select("id,email,full_name,role")
+          .eq("id", trainerId)
+          .maybeSingle();
+        saveStudentTrainerLink(user, trainerId, trainer);
+        return trainerId;
+      } catch (error) {
+        console.warn("Monolith trainer link lookup failed", error);
+        return "";
+      }
+    }
+
     async function renderTrainerLinkPanel() {
       const panel = document.getElementById("trainerLinkPanel");
       const status = document.getElementById("trainerLinkStatus");
@@ -3948,52 +4000,16 @@
       const user = currentAccount();
       panel.hidden = !user || user.role !== "student";
       if (!user || user.role !== "student") return;
-      if (user.trainerId) {
-        const trainer = loadAccounts().find(account => account.id === user.trainerId);
-        status.textContent = trainer ? `${t("Vinculado a")} ${trainer.name}.` : t("Aluno vinculado a um personal.");
-        return;
-      }
-      if (user.source === "supabase" && monolithSupabase) {
-        status.textContent = t("Verificando vínculo com personal...");
-        try {
-          const { data: links, error } = await monolithSupabase
-            .from("trainer_students")
-            .select("trainer_id,status")
-            .eq("student_id", user.id)
-            .eq("status", "active")
-            .limit(1);
-          if (error) throw error;
-          const trainerId = links?.[0]?.trainer_id;
-          if (trainerId) {
-            const { data: trainer } = await monolithSupabase
-              .from("profiles")
-              .select("id,email,full_name,role")
-              .eq("id", trainerId)
-              .maybeSingle();
-            const accounts = loadAccounts();
-            const trainerAccount = trainer ? {
-              id: trainer.id,
-              role: appRoleFromDb(trainer.role),
-              dbRole: trainer.role,
-              name: trainer.full_name || trainer.email || "Personal",
-              email: trainer.email || "",
-              plan: planFromDbRole(trainer.role),
-              source: "supabase"
-            } : null;
-            saveAccounts([
-              ...(trainerAccount ? [trainerAccount] : []),
-              ...accounts
-                .filter(account => account.id !== trainerId)
-                .map(account => account.id === user.id ? { ...account, trainerId } : account)
-            ]);
-            status.textContent = `${t("Vinculado a")} ${trainer?.full_name || trainer?.email || t("personal")}.`;
-            return;
-          }
-        } catch (error) {
-          console.warn("Monolith trainer link status failed", error);
-          status.textContent = t("Não consegui verificar o vínculo agora.");
+      if (user.trainerId || (user.source === "supabase" && monolithSupabase)) {
+        if (!user.trainerId) status.textContent = t("Verificando vínculo com personal...");
+        const trainerId = user.trainerId || await ensureStudentTrainerId(user);
+        if (!trainerId) {
+          status.textContent = t("Sem personal vinculado.");
           return;
         }
+        const trainer = loadAccounts().find(account => account.id === trainerId);
+        status.textContent = trainer ? `${t("Vinculado a")} ${trainer.name}.` : t("Aluno vinculado a um personal.");
+        return;
       }
       status.textContent = t("Sem personal vinculado.");
     }
@@ -4576,7 +4592,7 @@
         .eq("student_id", studentId)
         .in("photo_month", [currentMonthKey(), lastMonthKey()]);
       if (error) throw error;
-      const photos = loadProgressPhotos();
+      const photos = loadProgressPhotos(studentId);
       for (const row of data || []) {
         const period = photoPeriodFromMonth(row.photo_month);
         const slot = photoAngleToSlot[row.angle] || row.angle;
@@ -4587,7 +4603,7 @@
         photos[period] = photos[period] || {};
         photos[period][slot] = signed.signedUrl;
       }
-      saveProgressPhotos(photos);
+      saveProgressPhotos(photos, studentId);
       return photos;
     }
 
@@ -4669,7 +4685,8 @@
 
     async function saveRemoteFoodLog(entry) {
       const user = currentAccount();
-      if (!monolithSupabase || !isRealSupabaseAccount(user) || user.role !== "student" || user.trainerId) return false;
+      const linkedTrainerId = await ensureStudentTrainerId(user);
+      if (!monolithSupabase || !isRealSupabaseAccount(user) || user.role !== "student" || linkedTrainerId) return false;
       const payload = {
         student_id: user.id,
         log_date: entry.date,
@@ -4858,18 +4875,19 @@
         renderDietMealBuilder(plan?.meals || null);
         renderDietPlan("dietPreview", plan);
       } else {
-        let plan = user.trainerId ? activeDietForStudent(user.id, currentMonthKey()) : null;
+        const linkedTrainerId = await ensureStudentTrainerId(user);
+        let plan = linkedTrainerId ? activeDietForStudent(user.id, currentMonthKey()) : null;
         try {
-          if (user.trainerId) plan = await loadRemoteDietPlan(user.id, currentMonthKey()) || plan;
+          if (linkedTrainerId) plan = await loadRemoteDietPlan(user.id, currentMonthKey()) || plan;
           else await loadRemoteFoodLogs(user.id);
         } catch (error) {
           console.warn("Monolith remote nutrition load failed", error);
           showToast("Não consegui carregar nutrição remota agora. Usei o cache local.");
         }
-        document.getElementById("selfNutritionPanel").hidden = Boolean(user.trainerId);
-        document.getElementById("studentDietNote").textContent = user.trainerId ? t("Seu personal define esta dieta. Você pode visualizar, mas não redesenhar.") : t("Sem personal vinculado: use a contagem básica para registrar seu dia.");
-        renderDietPlan("studentDietView", plan, user.trainerId ? "Nenhuma dieta prescrita para este mês." : "Nenhuma dieta de personal vinculada.");
-        if (!user.trainerId) {
+        document.getElementById("selfNutritionPanel").hidden = Boolean(linkedTrainerId);
+        document.getElementById("studentDietNote").textContent = linkedTrainerId ? t("Seu personal define esta dieta. Você pode visualizar, mas não redesenhar.") : t("Sem personal vinculado: use a contagem básica para registrar seu dia.");
+        renderDietPlan("studentDietView", plan, linkedTrainerId ? "Nenhuma dieta prescrita para este mês." : "Nenhuma dieta de personal vinculada.");
+        if (!linkedTrainerId) {
           renderFoodLogMeals();
           renderFoodLogSummary();
         }
@@ -5147,6 +5165,7 @@
         "Personal edita a lista e salva o check-in do aluno selecionado.": "The trainer edits the list and saves the selected student's check-in.",
         "Adicionar tarefa diária": "Add daily task",
         "Novo treino": "New workout",
+        "Destino do treino": "Workout destination",
         "Meu próprio treino": "My own workout",
         "Painel inicial do personal trainer": "Initial trainer dashboard",
         "Criar convite": "Create invite",
@@ -5337,6 +5356,8 @@
         "Treino do dia salvo no histórico local.": "Today's workout saved in local history.",
         "Todos os exercícios já foram concluídos.": "All exercises are already finished.",
         "Treino criado com exercícios, séries, peso e técnicas.": "Workout created with exercises, sets, weight and techniques.",
+        "Treino enviado para o aluno.": "Workout sent to the student.",
+        "Treino ficou só neste aparelho. Não chegou ao aluno.": "Workout stayed only on this device. It did not reach the student.",
         "Nova série adicionada em": "New set added to",
         "Descanso de": "Rest of",
         "iniciado.": "started.",
@@ -5798,6 +5819,7 @@
         "Personal edita a lista e salva o check-in do aluno selecionado.": "El entrenador edita la lista y guarda el check-in del alumno seleccionado.",
         "Adicionar tarefa diária": "Agregar tarea diaria",
         "Novo treino": "Nuevo entreno",
+        "Destino do treino": "Destino del entreno",
         "Meu próprio treino": "Mi propio entreno",
         "Painel inicial do personal trainer": "Panel inicial del entrenador personal",
         "Criar convite": "Crear invitación",
@@ -5988,6 +6010,8 @@
         "Treino do dia salvo no histórico local.": "Entreno del día guardado en el historial local.",
         "Todos os exercícios já foram concluídos.": "Todos los ejercicios ya fueron completados.",
         "Treino criado com exercícios, séries, peso e técnicas.": "Entreno creado con ejercicios, series, peso y técnicas.",
+        "Treino enviado para o aluno.": "Entreno enviado al alumno.",
+        "Treino ficou só neste aparelho. Não chegou ao aluno.": "El entreno quedó solo en este dispositivo. No llegó al alumno.",
         "Nova série adicionada em": "Nueva serie agregada en",
         "Descanso de": "Descanso de",
         "iniciado.": "iniciado.",
@@ -6355,8 +6379,13 @@
         select.innerHTML = "";
         return;
       }
-      const previousTarget = select.value || localStorage.getItem("monolith.selectedWorkoutStudentId") || selfWorkoutTarget;
       const students = await ensureLinkedStudentsForPersonal(user.id);
+      const preferredStudentId = localStorage.getItem("monolith.selectedStudentId")
+        || localStorage.getItem("monolith.selectedDietStudentId")
+        || students[0]?.id
+        || "";
+      let previousTarget = select.value || localStorage.getItem("monolith.selectedWorkoutStudentId") || preferredStudentId || selfWorkoutTarget;
+      if (students.length && previousTarget === selfWorkoutTarget) previousTarget = preferredStudentId || students[0].id;
       select.innerHTML = `<option value="${selfWorkoutTarget}">${escapeHTML(t("Meu próprio treino"))}</option>` + students.map(student => `<option value="${escapeHTML(student.id)}">${escapeHTML(student.name)} - ${escapeHTML(student.email)}</option>`).join("");
       if (previousTarget === selfWorkoutTarget || students.some(student => student.id === previousTarget)) select.value = previousTarget;
       else select.value = selfWorkoutTarget;
@@ -6526,6 +6555,13 @@
       start.setDate(start.getDate() - 29);
       const startKey = todayKey(start);
       return loadCheckins().filter(entry => entry.date >= startKey);
+    }
+
+    function lastThirtyCheckinsForStudent(studentId) {
+      const start = new Date();
+      start.setDate(start.getDate() - 29);
+      const startKey = todayKey(start);
+      return loadCheckins(studentId).filter(entry => entry.date >= startKey);
     }
 
     function lastThirtyDateKeys() {
@@ -6699,9 +6735,11 @@
       const container = document.getElementById("frequencyBars");
       if (!container) return;
       renderStatsStudentSelect();
+      const studentId = activeDataStudentId();
       const checkins = lastThirtyCheckins();
+      const reportFactors = factorsForStudent(studentId);
       container.innerHTML = "";
-      factors.forEach(factor => {
+      reportFactors.forEach(factor => {
         const appearances = checkins.filter(entry => entry.items?.some(item => item.id === factor.id));
         const completed = appearances.filter(entry => entry.items?.some(item => item.id === factor.id && item.completed)).length;
         const total = 30;
@@ -6711,10 +6749,10 @@
         bar.innerHTML = `<span><b>${escapeHTML(t(factor.name))}</b><b>${completed}/${total} dias</b></span><div class="track"><div class="fill" style="width: ${percent}%"></div></div>`;
         container.appendChild(bar);
       });
-      if (!factors.length) container.innerHTML = `<div class="report-line">${escapeHTML(t("Adicione itens no check-in diário para começar a medir a frequência."))}</div>`;
+      if (!reportFactors.length) container.innerHTML = `<div class="report-line">${escapeHTML(t("Adicione itens no check-in diário para começar a medir a frequência."))}</div>`;
     }
 
-    function loadProgressPhotos() {
+    function loadProgressPhotoStore() {
       try {
         return JSON.parse(localStorage.getItem("monolith.progressPhotos") || "{}");
       } catch {
@@ -6722,8 +6760,27 @@
       }
     }
 
-    function saveProgressPhotos(photos) {
-      localStorage.setItem("monolith.progressPhotos", JSON.stringify(photos));
+    function legacyPhotoPeriods(store) {
+      return Boolean(store?.last || store?.current);
+    }
+
+    function loadProgressPhotos(studentId = activeDataStudentId()) {
+      const store = loadProgressPhotoStore();
+      if (!studentId) return legacyPhotoPeriods(store) ? store : {};
+      if (store.byStudent) return store.byStudent[studentId] || {};
+      if (store[studentId]) return store[studentId];
+      return legacyPhotoPeriods(store) ? store : {};
+    }
+
+    function saveProgressPhotos(photos, studentId = activeDataStudentId()) {
+      if (!studentId) {
+        localStorage.setItem("monolith.progressPhotos", JSON.stringify(photos));
+        return;
+      }
+      const store = loadProgressPhotoStore();
+      const byStudent = store.byStudent || (legacyPhotoPeriods(store) ? { [studentId]: store } : store);
+      byStudent[studentId] = photos;
+      localStorage.setItem("monolith.progressPhotos", JSON.stringify({ byStudent }));
     }
 
     function readFileAsDataURL(file) {
@@ -6737,7 +6794,8 @@
 
     function renderPhotoVault() {
       const photoLabels = ["Frente", "Lado", "Costas"];
-      const photos = loadProgressPhotos();
+      const studentId = activeDataStudentId();
+      const photos = loadProgressPhotos(studentId);
       const periods = [["last", document.getElementById("lastMonthPhotos")], ["current", document.getElementById("currentMonthPhotos")]];
       periods.forEach(([period, container]) => {
         if (!container) return;
@@ -6838,7 +6896,7 @@
       const weights = physicalWeightSeries(checkins, bodyMeasures);
       const dietStudentId = reportStudent?.id || (user?.role === "student" ? user.id : selectedDietStudentId());
       const activeDietPlan = activeDietForStudent(dietStudentId, currentMonthKey());
-      const progressPhotos = loadProgressPhotos();
+      const progressPhotos = loadProgressPhotos(reportStudentId);
       const locale = { pt: "pt-BR", en: "en-US", es: "es-ES" }[reportLanguage()] || "pt-BR";
       return { student: reportStudent, checkins, completedWorkouts, stats, evolution, missedDays, weights, bodyMeasures, progressPhotos, activeDietPlan, generatedAt: new Date().toLocaleString(locale) };
     }
@@ -7166,7 +7224,7 @@ ${photoSections}
         selectedCoach: document.querySelector(".coach-card.selected h3")?.textContent || "Nenhum coach selecionado",
         checkins: loadCheckins(),
         bodyMeasures: loadBodyMeasures(),
-        progressPhotos: loadProgressPhotos(),
+        progressPhotos: loadProgressPhotoStore(),
         dietPlans: loadDietPlans(),
         foodLogs: loadFoodLogs()
       };
@@ -7352,7 +7410,8 @@ ${photoSections}
       event.preventDefault();
       const user = currentAccount();
       if (!user) return;
-      if (user.trainerId) {
+      const linkedTrainerId = await ensureStudentTrainerId(user);
+      if (linkedTrainerId) {
         authMessage("Seu personal controla a dieta. Você pode visualizar a prescrição, mas não criar dieta própria.");
         return;
       }
@@ -7752,7 +7811,8 @@ ${photoSections}
       const input = event.target.closest(".photo-card input[type='file']");
       if (!input || !input.files?.[0]) return;
       const card = input.closest(".photo-card");
-      const photos = loadProgressPhotos();
+      const studentId = activeDataStudentId();
+      const photos = loadProgressPhotos(studentId);
       photos[card.dataset.period] = photos[card.dataset.period] || {};
       const localDataUrl = await readFileAsDataURL(input.files[0]);
       photos[card.dataset.period][card.dataset.slot] = localDataUrl;
@@ -7763,7 +7823,7 @@ ${photoSections}
         console.warn("Monolith remote progress photo save failed", error);
         showToast("Foto salva localmente. Não consegui sincronizar agora.");
       }
-      saveProgressPhotos(photos);
+      saveProgressPhotos(photos, studentId);
       renderPhotoVault();
       showToast("Foto salva protegida por blur.");
     });
@@ -8155,7 +8215,7 @@ ${photoSections}
           assignedStudentId: row.assigned_student_id,
           name: row.name,
           goal: row.goal,
-          tag: row.tag || "Supabase",
+          tag: row.tag && row.tag !== "Local" ? row.tag : "Supabase",
           source: "supabase",
           exercises: row.exercises || []
         });
@@ -8178,7 +8238,9 @@ ${photoSections}
       async function saveCustomWorkoutV2(workout) {
         const user = currentAccount();
         const localWorkout = normalizeWorkoutV2({ ...workout, ownerId: workout.ownerId || user?.id || "" });
-        if (monolithSupabase && isRealSupabaseAccount(user)) {
+        const shouldSyncRemote = Boolean(monolithSupabase && isRealSupabaseAccount(user));
+        let remoteError = null;
+        if (shouldSyncRemote) {
           const payload = {
             owner_id: user.id,
             assigned_student_id: localWorkout.assignedStudentId || null,
@@ -8194,11 +8256,14 @@ ${photoSections}
             .select("id,owner_id,assigned_student_id,name,goal,tag,exercises,is_library,created_at")
             .single();
           if (error) {
+            remoteError = error;
             console.warn("Monolith Supabase workout save failed", error);
           } else if (data) {
             Object.assign(localWorkout, workoutFromRemoteV2(data));
           }
         }
+        localWorkout.syncStatus = shouldSyncRemote ? (remoteError ? "failed" : "synced") : "local";
+        localWorkout.syncError = remoteError?.message || "";
         const saved = loadWorkoutsV2();
         const withoutDuplicate = saved.filter(item => item.id !== localWorkout.id);
         withoutDuplicate.unshift(localWorkout);
@@ -8239,11 +8304,10 @@ ${photoSections}
             : workout.ownerId === user.id && !workout.assignedStudentId);
         }
         if (user.role === "student") {
-          if (user.trainerId) return workoutsV2.filter(workout => workout.assignedStudentId === user.id);
           return workoutsV2.filter(workout => {
-            const ownerIsUser = !workout.ownerId || workout.ownerId === user.id;
-            const assignedToUser = !workout.assignedStudentId || workout.assignedStudentId === user.id;
-            return ownerIsUser && assignedToUser;
+            if (workout.assignedStudentId === user.id) return true;
+            if (workout.assignedStudentId) return false;
+            return !workout.ownerId || workout.ownerId === user.id;
           });
         }
         return workoutsV2;
@@ -8350,9 +8414,11 @@ ${photoSections}
           return;
         }
         const accounts = loadAccounts();
+        const user = currentAccount();
         visibleWorkouts.forEach(workout => {
           const totalSets = workout.exercises.reduce((total, exercise) => total + exercise.sets.length, 0);
           const assignedStudent = accounts.find(account => account.id === workout.assignedStudentId);
+          const canDelete = !workout.ownerId || workout.ownerId === user?.id || workout.source !== "supabase";
           const card = document.createElement("article");
           card.className = "workout";
           card.innerHTML = `
@@ -8368,7 +8434,7 @@ ${photoSections}
             </div>
             <div class="pill-row">
               <button class="ghost open-workout-session-v2" type="button" data-workout-id="${workout.id}">${htmlT("Abrir sessão")}</button>
-              <button class="ghost delete-workout-v2" type="button" data-workout-id="${workout.id}">${htmlT("Excluir")}</button>
+              ${canDelete ? `<button class="ghost delete-workout-v2" type="button" data-workout-id="${workout.id}">${htmlT("Excluir")}</button>` : ""}
             </div>
           `;
           workoutListV2.appendChild(card);
@@ -8719,7 +8785,13 @@ ${photoSections}
         document.getElementById("workoutModal").classList.remove("active");
         formV2.reset();
         resetBuilderV2();
-        toastV2(textV2("Treino criado com exercícios, séries, peso e técnicas."));
+        if (workout.syncStatus === "failed" && workout.assignedStudentId) {
+          toastV2(textV2("Treino ficou só neste aparelho. Não chegou ao aluno."));
+        } else if (workout.syncStatus === "synced" && workout.assignedStudentId) {
+          toastV2(textV2("Treino enviado para o aluno."));
+        } else {
+          toastV2(textV2("Treino criado com exercícios, séries, peso e técnicas."));
+        }
       }, true);
 
       document.getElementById("finishExercise").addEventListener("click", finishWorkoutV2, true);
