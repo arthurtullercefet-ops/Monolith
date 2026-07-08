@@ -200,6 +200,36 @@
       gap: 12px;
     }
 
+    .auth-link {
+      min-height: 0;
+      border: 0;
+      background: transparent;
+      color: var(--gold);
+      justify-self: start;
+      padding: 0;
+      font-size: 12px;
+      font-weight: 800;
+      cursor: pointer;
+    }
+
+    .auth-link:hover {
+      color: var(--text);
+    }
+
+    .auth-card[data-auth-panel="reset"] {
+      display: none;
+    }
+
+    .auth-stack[data-auth-mode="reset"] .auth-tabs,
+    .auth-stack[data-auth-mode="reset"] .auth-card[data-auth-panel="login"],
+    .auth-stack[data-auth-mode="reset"] .auth-card[data-auth-panel="signup"] {
+      display: none;
+    }
+
+    .auth-stack[data-auth-mode="reset"] .auth-card[data-auth-panel="reset"] {
+      display: block;
+    }
+
     .auth-demo {
       display: grid;
       grid-template-columns: 1fr 1fr;
@@ -2019,8 +2049,27 @@
             <label for="loginPassword">Senha</label>
             <input id="loginPassword" type="password" autocomplete="current-password" required placeholder="123456" />
           </div>
+          <button class="auth-link" id="forgotPasswordButton" type="button">Esqueci minha senha</button>
           <div class="auth-warning" id="loginNotice" hidden></div>
           <button class="action" id="loginButton" type="button">Entrar</button>
+        </form>
+      </div>
+
+      <div class="auth-card" data-auth-panel="reset">
+        <h3>Redefinir senha</h3>
+        <p>Digite a nova senha para concluir a recuperação da conta.</p>
+        <form class="auth-form" id="resetPasswordForm">
+          <div>
+            <label for="resetPassword">Nova senha</label>
+            <input id="resetPassword" type="password" autocomplete="new-password" required minlength="6" placeholder="Mínimo 6 caracteres" data-i18n-placeholder="Mínimo 6 caracteres" />
+          </div>
+          <div>
+            <label for="resetPasswordConfirm">Confirmar nova senha</label>
+            <input id="resetPasswordConfirm" type="password" autocomplete="new-password" required minlength="6" placeholder="Repita a senha" data-i18n-placeholder="Repita a senha" />
+          </div>
+          <div class="auth-warning" id="resetPasswordNotice" hidden></div>
+          <button class="action" type="submit">Salvar nova senha</button>
+          <button class="auth-link" id="backToLoginButton" type="button">Voltar ao login</button>
         </form>
       </div>
 
@@ -3248,6 +3297,10 @@
       const { data } = await monolithSupabase.auth.getSession();
       const authUser = data.session?.user;
       if (!authUser) return false;
+      if (isPasswordRecoveryUrl() || passwordRecoveryMode) {
+        showResetPasswordPanel("Digite sua nova senha para concluir a recuperação.");
+        return false;
+      }
       try {
         const profile = await loadRemoteProfile(authUser);
         const account = cacheRemoteAccount(profile, authUser);
@@ -3335,11 +3388,19 @@
       notice.textContent = message ? t(message) : "";
     }
 
+    function showResetPasswordNotice(message = "") {
+      const notice = document.getElementById("resetPasswordNotice");
+      if (!notice) return;
+      notice.hidden = !message;
+      notice.textContent = message ? t(message) : "";
+    }
+
     function isRealSupabaseAccount(account) {
       return account?.source === "supabase" || (account?.id?.includes("-") && !account?.email?.endsWith("@monolith.app"));
     }
 
     let trainerProfileOnboardingRequired = false;
+    let passwordRecoveryMode = false;
     window.monolithTrainerProfileRequired = false;
 
     const trainerProfileOptionGroups = {
@@ -4092,6 +4153,106 @@
           localStorage.removeItem(influencerKey);
         }
       }
+    }
+
+    function passwordResetRedirectUrl() {
+      return `${window.location.origin}${window.location.pathname}`;
+    }
+
+    function isPasswordRecoveryUrl() {
+      const source = `${window.location.search || ""}${window.location.hash || ""}`;
+      return /type=recovery|password_recovery|access_token=/i.test(source);
+    }
+
+    function showResetPasswordPanel(message = "") {
+      passwordRecoveryMode = true;
+      document.body.classList.remove("authenticated");
+      localStorage.removeItem("monolith.sessionUserId");
+      const authStack = document.getElementById("authStack");
+      if (authStack) authStack.dataset.authMode = "reset";
+      showLoginNotice("");
+      showResetPasswordNotice(message);
+      setTimeout(() => document.getElementById("resetPassword")?.focus(), 0);
+    }
+
+    function showLoginPanel(message = "") {
+      passwordRecoveryMode = false;
+      const authStack = document.getElementById("authStack");
+      if (authStack) authStack.dataset.authMode = "login";
+      document.querySelectorAll(".auth-tab").forEach(tab => tab.classList.toggle("active", tab.dataset.authTab === "login"));
+      showResetPasswordNotice("");
+      showLoginNotice(message);
+    }
+
+    async function sendPasswordResetEmail() {
+      const emailInput = document.getElementById("loginEmail");
+      const normalizedEmail = emailInput?.value.trim().toLowerCase() || "";
+      showLoginNotice("");
+      if (!normalizedEmail) {
+        showLoginNotice("Digite seu e-mail para receber o link de recuperação.");
+        authMessage("Digite seu e-mail para receber o link de recuperação.");
+        emailInput?.focus();
+        return false;
+      }
+      if (normalizedEmail.endsWith("@monolith.app")) {
+        showLoginNotice("Contas demo usam a senha 123456.");
+        authMessage("Contas demo usam a senha 123456.");
+        return false;
+      }
+      if (!monolithSupabase) {
+        showLoginNotice("Recuperação de senha disponível apenas para contas reais do Supabase.");
+        authMessage("Recuperação de senha disponível apenas para contas reais do Supabase.");
+        return false;
+      }
+      const { error } = await monolithSupabase.auth.resetPasswordForEmail(normalizedEmail, {
+        redirectTo: passwordResetRedirectUrl()
+      });
+      if (error) {
+        console.warn("Monolith password reset email failed", error);
+        showLoginNotice(error.message || "Não consegui enviar o e-mail de recuperação agora.");
+        authMessage("Não consegui enviar o e-mail de recuperação agora.");
+        return false;
+      }
+      showLoginNotice("Enviamos um link de recuperação para seu e-mail.");
+      authMessage("Enviamos um link de recuperação para seu e-mail.");
+      return true;
+    }
+
+    async function saveRecoveredPassword() {
+      const password = document.getElementById("resetPassword")?.value || "";
+      const confirm = document.getElementById("resetPasswordConfirm")?.value || "";
+      showResetPasswordNotice("");
+      if (password.length < 6) {
+        showResetPasswordNotice("A nova senha precisa ter pelo menos 6 caracteres.");
+        authMessage("A nova senha precisa ter pelo menos 6 caracteres.");
+        return false;
+      }
+      if (password !== confirm) {
+        showResetPasswordNotice("As senhas não conferem.");
+        authMessage("As senhas não conferem.");
+        return false;
+      }
+      if (!monolithSupabase) {
+        showResetPasswordNotice("Recuperação de senha disponível apenas para contas reais do Supabase.");
+        authMessage("Recuperação de senha disponível apenas para contas reais do Supabase.");
+        return false;
+      }
+      const { error } = await monolithSupabase.auth.updateUser({ password });
+      if (error) {
+        console.warn("Monolith password update failed", error);
+        showResetPasswordNotice(error.message || "Não consegui salvar a nova senha agora.");
+        authMessage("Não consegui salvar a nova senha agora.");
+        return false;
+      }
+      await monolithSupabase.auth.signOut();
+      localStorage.removeItem("monolith.sessionUserId");
+      document.getElementById("resetPasswordForm")?.reset();
+      if (window.history?.replaceState) {
+        window.history.replaceState({}, document.title, passwordResetRedirectUrl());
+      }
+      showLoginPanel("Senha atualizada. Entre novamente com a nova senha.");
+      authMessage("Senha atualizada. Entre novamente com a nova senha.");
+      return true;
     }
 
     async function loginAccount(email, password) {
@@ -5073,6 +5234,22 @@
         "E-mail": "Email",
         "Senha": "Password",
         "Entrar": "Log in",
+        "Esqueci minha senha": "Forgot my password",
+        "Redefinir senha": "Reset password",
+        "Digite a nova senha para concluir a recuperação da conta.": "Enter the new password to finish account recovery.",
+        "Nova senha": "New password",
+        "Confirmar nova senha": "Confirm new password",
+        "Salvar nova senha": "Save new password",
+        "Voltar ao login": "Back to login",
+        "Digite seu e-mail para receber o link de recuperação.": "Enter your email to receive the recovery link.",
+        "Contas demo usam a senha 123456.": "Demo accounts use password 123456.",
+        "Recuperação de senha disponível apenas para contas reais do Supabase.": "Password recovery is available only for real Supabase accounts.",
+        "Não consegui enviar o e-mail de recuperação agora.": "Could not send the recovery email right now.",
+        "Enviamos um link de recuperação para seu e-mail.": "We sent a recovery link to your email.",
+        "Digite sua nova senha para concluir a recuperação.": "Enter your new password to finish recovery.",
+        "A nova senha precisa ter pelo menos 6 caracteres.": "The new password must have at least 6 characters.",
+        "Não consegui salvar a nova senha agora.": "Could not save the new password right now.",
+        "Senha atualizada. Entre novamente com a nova senha.": "Password updated. Log in again with the new password.",
         "Criar conta": "Create account",
         "Crie contas locais para testar a separação de experiência.": "Create local accounts to test the separated experience.",
         "Crie uma conta real no Supabase para testar a experiência separada.": "Create a real Supabase account to test the separated experience.",
@@ -5727,6 +5904,22 @@
         "E-mail": "Email",
         "Senha": "Contraseña",
         "Entrar": "Entrar",
+        "Esqueci minha senha": "Olvidé mi contraseña",
+        "Redefinir senha": "Restablecer contraseña",
+        "Digite a nova senha para concluir a recuperação da conta.": "Escribe la nueva contraseña para finalizar la recuperación de la cuenta.",
+        "Nova senha": "Nueva contraseña",
+        "Confirmar nova senha": "Confirmar nueva contraseña",
+        "Salvar nova senha": "Guardar nueva contraseña",
+        "Voltar ao login": "Volver al login",
+        "Digite seu e-mail para receber o link de recuperação.": "Escribe tu email para recibir el enlace de recuperación.",
+        "Contas demo usam a senha 123456.": "Las cuentas demo usan la contraseña 123456.",
+        "Recuperação de senha disponível apenas para contas reais do Supabase.": "La recuperación de contraseña está disponible solo para cuentas reales de Supabase.",
+        "Não consegui enviar o e-mail de recuperação agora.": "No pude enviar el email de recuperación ahora.",
+        "Enviamos um link de recuperação para seu e-mail.": "Enviamos un enlace de recuperación a tu email.",
+        "Digite sua nova senha para concluir a recuperação.": "Escribe tu nueva contraseña para finalizar la recuperación.",
+        "A nova senha precisa ter pelo menos 6 caracteres.": "La nueva contraseña debe tener al menos 6 caracteres.",
+        "Não consegui salvar a nova senha agora.": "No pude guardar la nueva contraseña ahora.",
+        "Senha atualizada. Entre novamente com a nova senha.": "Contraseña actualizada. Entra nuevamente con la nueva contraseña.",
         "Criar conta": "Crear cuenta",
         "Crie contas locais para testar a separação de experiência.": "Crea cuentas locales para probar la separación de experiencia.",
         "Crie uma conta real no Supabase para testar a experiência separada.": "Crea una cuenta real en Supabase para probar la experiencia separada.",
@@ -7449,6 +7642,17 @@ ${photoSections}
       if (event.key !== "Enter") return;
       event.preventDefault();
       submitLogin();
+    });
+    document.getElementById("forgotPasswordButton")?.addEventListener("click", sendPasswordResetEmail);
+    document.getElementById("resetPasswordForm")?.addEventListener("submit", async event => {
+      event.preventDefault();
+      await saveRecoveredPassword();
+    });
+    document.getElementById("backToLoginButton")?.addEventListener("click", () => showLoginPanel());
+    monolithSupabase?.auth.onAuthStateChange((event) => {
+      if (event === "PASSWORD_RECOVERY") {
+        showResetPasswordPanel("Digite sua nova senha para concluir a recuperação.");
+      }
     });
     document.querySelectorAll(".demo-login").forEach(button => {
       button.addEventListener("click", async () => {
