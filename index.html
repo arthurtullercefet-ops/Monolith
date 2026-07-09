@@ -4,12 +4,30 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>MONOLITH Prototype</title>
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
+  <meta http-equiv="Pragma" content="no-cache" />
+  <meta http-equiv="Expires" content="0" />
   <meta name="theme-color" content="#0A0A0A" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-title" content="MONOLITH" />
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
   <link rel="manifest" href="manifest.webmanifest" />
   <link rel="icon" href="monolith-icon.svg" />
+  <script>
+    window.MONOLITH_BUILD = "monolith-v61-cache-reset-login";
+    (function clearOldAppCaches() {
+      if ("serviceWorker" in navigator) {
+        navigator.serviceWorker.getRegistrations?.()
+          .then(registrations => Promise.all(registrations.map(registration => registration.unregister())))
+          .catch(() => {});
+      }
+      if ("caches" in window) {
+        caches.keys()
+          .then(keys => Promise.all(keys.filter(key => key.startsWith("monolith-")).map(key => caches.delete(key))))
+          .catch(() => {});
+      }
+    })();
+  </script>
   <style>
     :root {
       --black: #0a0a0a;
@@ -176,6 +194,17 @@
       gap: 12px;
     }
 
+    .password-row {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 8px;
+      align-items: end;
+    }
+
+    .password-row input {
+      min-width: 0;
+    }
+
     .auth-form label {
       color: var(--muted);
       font-size: 11px;
@@ -214,6 +243,26 @@
 
     .auth-link:hover {
       color: var(--text);
+    }
+
+    .auth-secondary {
+      min-height: 40px;
+      border: 1px solid var(--line);
+      background: transparent;
+      color: var(--text);
+      cursor: pointer;
+      font-weight: 800;
+      padding: 0 12px;
+    }
+
+    .auth-secondary:hover {
+      border-color: var(--gold);
+      color: var(--gold);
+    }
+
+    .auth-tools {
+      display: grid;
+      gap: 8px;
     }
 
     .auth-card[data-auth-panel="forgot"],
@@ -257,6 +306,14 @@
       color: var(--muted);
       font-size: 12px;
       line-height: 1.45;
+    }
+
+    .build-version {
+      color: var(--muted);
+      font-size: 11px;
+      font-weight: 800;
+      letter-spacing: 1px;
+      text-transform: uppercase;
     }
 
     .trainer-profile-form {
@@ -2058,13 +2115,20 @@
             <label for="loginEmail">E-mail</label>
             <input id="loginEmail" type="email" autocomplete="email" required placeholder="email@monolith.app" />
           </div>
-          <div>
-            <label for="loginPassword">Senha</label>
-            <input id="loginPassword" type="password" autocomplete="current-password" required placeholder="123456" />
+          <div class="password-row">
+            <div>
+              <label for="loginPassword">Senha</label>
+              <input id="loginPassword" type="password" autocomplete="current-password" required placeholder="123456" />
+            </div>
+            <button class="auth-secondary" id="toggleLoginPassword" type="button">Mostrar</button>
           </div>
           <button class="auth-link" id="forgotPasswordButton" type="button">Esqueci minha senha</button>
           <div class="auth-warning" id="loginNotice" hidden></div>
           <button class="action" id="loginButton" type="button">Entrar</button>
+          <div class="auth-tools">
+            <button class="auth-secondary" id="clearDeviceSessionButton" type="button">Limpar sessão/cache deste aparelho</button>
+            <div class="build-version" id="buildVersionLabel">Versão do app: monolith-v61-cache-reset-login</div>
+          </div>
         </form>
       </div>
 
@@ -3029,6 +3093,7 @@
   <script>
     const MONOLITH_SUPABASE_URL = "https://jhxasnxuvmkhntbwepau.supabase.co";
     const MONOLITH_SUPABASE_KEY = "sb_publishable_lDtAXIOtkMwgwsAZyghBdg_gyLHGwpH";
+    const MONOLITH_BUILD = window.MONOLITH_BUILD || "monolith-v61-cache-reset-login";
     const monolithSupabase = window.supabase?.createClient?.(MONOLITH_SUPABASE_URL, MONOLITH_SUPABASE_KEY) || null;
 
     (() => {
@@ -3427,6 +3492,51 @@
       if (!notice) return;
       notice.hidden = !message;
       notice.textContent = message ? t(message) : "";
+    }
+
+    function refreshBuildVersionLabel() {
+      const label = document.getElementById("buildVersionLabel");
+      if (!label) return;
+      label.textContent = `${t("Versão do app")}: ${MONOLITH_BUILD}`;
+    }
+
+    function toggleLoginPasswordVisibility() {
+      const input = document.getElementById("loginPassword");
+      const button = document.getElementById("toggleLoginPassword");
+      if (!input || !button) return;
+      const shouldShow = input.type === "password";
+      input.type = shouldShow ? "text" : "password";
+      button.textContent = t(shouldShow ? "Ocultar" : "Mostrar");
+    }
+
+    async function clearDeviceSessionAndCache() {
+      showLoginNotice("Limpando sessão e cache deste aparelho...");
+      try {
+        await monolithSupabase?.auth?.signOut?.({ scope: "local" });
+      } catch {}
+      try {
+        localStorage.removeItem("monolith.sessionUserId");
+        localStorage.removeItem("monolith.trainerProfileRequired");
+        Object.keys(localStorage)
+          .filter(key => key.startsWith("sb-jhxasnxuvmkhntbwepau") || key === "supabase.auth.token")
+          .forEach(key => localStorage.removeItem(key));
+        sessionStorage.clear();
+      } catch {}
+      try {
+        if ("serviceWorker" in navigator) {
+          const registrations = await navigator.serviceWorker.getRegistrations();
+          await Promise.all(registrations.map(registration => registration.unregister()));
+        }
+        if ("caches" in window) {
+          const keys = await caches.keys();
+          await Promise.all(keys.filter(key => key.startsWith("monolith-")).map(key => caches.delete(key)));
+        }
+      } catch {
+        showLoginNotice("Não consegui limpar todo o cache, mas vou recarregar a tela.");
+      }
+      const nextUrl = `${window.location.pathname}?v=${encodeURIComponent(MONOLITH_BUILD)}&t=${Date.now()}`;
+      showLoginNotice("Sessão local e cache limpos. Recarregando...");
+      setTimeout(() => window.location.replace(nextUrl), 450);
     }
 
     function isRealSupabaseAccount(account) {
@@ -4332,9 +4442,11 @@
         if (error) {
           const rawMessage = error.message || "";
           const message = /invalid login credentials|invalid/i.test(rawMessage)
-            ? "E-mail ou senha incorretos. Confira os dados e tente novamente."
+            ? "E-mail ou senha incorretos. Se não tiver certeza da senha, use Recuperar senha."
             : /confirm|verified/i.test(rawMessage)
             ? "Confirme seu e-mail antes de entrar."
+            : /fetch|network|failed/i.test(rawMessage)
+            ? "Não consegui conectar ao Supabase agora. Confira a internet e tente novamente."
             : rawMessage || "Login remoto não autorizado.";
           showLoginNotice(message);
           authMessage(message);
@@ -4370,8 +4482,8 @@
       const passwordHash = await hashPassword(password);
       const account = loadAccounts().find(item => item.email.toLowerCase() === normalizedEmail && item.passwordHash === passwordHash);
       if (!account) {
-        showLoginNotice("E-mail ou senha incorretos. Confira os dados e tente novamente.");
-        authMessage("E-mail ou senha incorretos. Confira os dados e tente novamente.");
+        showLoginNotice("E-mail ou senha incorretos. Se não tiver certeza da senha, use Recuperar senha.");
+        authMessage("E-mail ou senha incorretos. Se não tiver certeza da senha, use Recuperar senha.");
         return false;
       }
       showLoginNotice("");
@@ -5327,6 +5439,16 @@
         "O link de recuperação não abriu uma sessão válida. Abra o último e-mail de recuperação neste navegador.": "The recovery link did not open a valid session. Open the latest recovery email in this browser.",
         "Não consegui salvar a nova senha agora.": "Could not save the new password right now.",
         "Senha atualizada. Entre novamente com a nova senha.": "Password updated. Log in again with the new password.",
+        "Mostrar": "Show",
+        "Ocultar": "Hide",
+        "Limpar sessão/cache deste aparelho": "Clear this device session/cache",
+        "Versão do app": "App version",
+        "Limpando sessão e cache deste aparelho...": "Clearing this device session and cache...",
+        "Não consegui limpar todo o cache, mas vou recarregar a tela.": "Could not clear every cache, but I will reload the page.",
+        "Sessão local e cache limpos. Recarregando...": "Local session and cache cleared. Reloading...",
+        "Entrando...": "Logging in...",
+        "E-mail ou senha incorretos. Se não tiver certeza da senha, use Recuperar senha.": "Email or password is incorrect. If you are not sure, use password recovery.",
+        "Não consegui conectar ao Supabase agora. Confira a internet e tente novamente.": "Could not connect to Supabase right now. Check the internet connection and try again.",
         "Criar conta": "Create account",
         "Crie contas locais para testar a separação de experiência.": "Create local accounts to test the separated experience.",
         "Crie uma conta real no Supabase para testar a experiência separada.": "Create a real Supabase account to test the separated experience.",
@@ -6014,6 +6136,16 @@
         "O link de recuperação não abriu uma sessão válida. Abra o último e-mail de recuperação neste navegador.": "El enlace de recuperación no abrió una sesión válida. Abre el último email de recuperación en este navegador.",
         "Não consegui salvar a nova senha agora.": "No pude guardar la nueva contraseña ahora.",
         "Senha atualizada. Entre novamente com a nova senha.": "Contraseña actualizada. Entra nuevamente con la nueva contraseña.",
+        "Mostrar": "Mostrar",
+        "Ocultar": "Ocultar",
+        "Limpar sessão/cache deste aparelho": "Limpiar sesión/caché de este dispositivo",
+        "Versão do app": "Versión de la app",
+        "Limpando sessão e cache deste aparelho...": "Limpiando sesión y caché de este dispositivo...",
+        "Não consegui limpar todo o cache, mas vou recarregar a tela.": "No pude limpiar todo el caché, pero voy a recargar la pantalla.",
+        "Sessão local e cache limpos. Recarregando...": "Sesión local y caché limpios. Recargando...",
+        "Entrando...": "Entrando...",
+        "E-mail ou senha incorretos. Se não tiver certeza da senha, use Recuperar senha.": "Email o contraseña incorrectos. Si no estás seguro, usa recuperar contraseña.",
+        "Não consegui conectar ao Supabase agora. Confira a internet e tente novamente.": "No pude conectar con Supabase ahora. Revisa internet e intenta nuevamente.",
         "Criar conta": "Crear cuenta",
         "Crie contas locais para testar a separação de experiência.": "Crea cuentas locales para probar la separación de experiencia.",
         "Crie uma conta real no Supabase para testar a experiência separada.": "Crea una cuenta real en Supabase para probar la experiencia separada.",
@@ -6590,7 +6722,7 @@
       document.querySelectorAll(".language-button").forEach(button => {
         button.classList.toggle("active", button.dataset.lang === language);
       });
-      document.querySelectorAll("button:not(.language-button), h1, h2, h3, h4, label, span, option, p, strong, b, .date, .kicker, .hero-title, .quote, .measure-note, .report-line, .auth-warning, .locked-note").forEach(element => {
+      document.querySelectorAll("button:not(.language-button), h1, h2, h3, h4, label, span, option, p, strong, b, .date, .kicker, .hero-title, .quote, .measure-note, .report-line, .auth-warning, .locked-note, .build-version").forEach(element => {
         if (element.matches("button") && (element.classList.contains("nav-btn") || element.classList.contains("icon-btn") || element.querySelector("svg"))) return;
         if (element.matches("label") && element.querySelector("input")) return;
         const current = element.textContent.trim();
@@ -6607,6 +6739,7 @@
       renderTrainerProfileOptionGroups();
       renderMapFilterOptions();
       updateWeightUnitLabels();
+      refreshBuildVersionLabel();
     }
 
     const workoutModal = document.getElementById("workoutModal");
@@ -7741,9 +7874,23 @@ ${photoSections}
     });
     async function submitLogin() {
       showLoginNotice("");
-      await loginAccount(document.getElementById("loginEmail").value, document.getElementById("loginPassword").value);
+      const button = document.getElementById("loginButton");
+      const originalText = button?.textContent || t("Entrar");
+      if (button) {
+        button.disabled = true;
+        button.textContent = t("Entrando...");
+      }
+      try {
+        await loginAccount(document.getElementById("loginEmail").value, document.getElementById("loginPassword").value);
+      } finally {
+        if (button) {
+          button.disabled = false;
+          button.textContent = originalText;
+        }
+      }
     }
 
+    refreshBuildVersionLabel();
     document.getElementById("loginButton")?.addEventListener("click", submitLogin);
     document.getElementById("loginForm")?.addEventListener("submit", async event => {
       event.preventDefault();
@@ -7754,6 +7901,8 @@ ${photoSections}
       event.preventDefault();
       submitLogin();
     });
+    document.getElementById("toggleLoginPassword")?.addEventListener("click", toggleLoginPasswordVisibility);
+    document.getElementById("clearDeviceSessionButton")?.addEventListener("click", clearDeviceSessionAndCache);
     document.getElementById("forgotPasswordButton")?.addEventListener("click", showForgotPasswordPanel);
     document.getElementById("forgotPasswordForm")?.addEventListener("submit", async event => {
       event.preventDefault();

@@ -1,4 +1,4 @@
-const CACHE_NAME = "monolith-v60-password-recovery-screen";
+const CACHE_NAME = "monolith-v61-cache-reset-login";
 
 self.addEventListener("install", event => {
   self.skipWaiting();
