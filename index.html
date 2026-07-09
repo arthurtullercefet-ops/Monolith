@@ -216,17 +216,30 @@
       color: var(--text);
     }
 
+    .auth-card[data-auth-panel="forgot"],
     .auth-card[data-auth-panel="reset"] {
       display: none;
     }
 
     .auth-stack[data-auth-mode="reset"] .auth-tabs,
     .auth-stack[data-auth-mode="reset"] .auth-card[data-auth-panel="login"],
+    .auth-stack[data-auth-mode="reset"] .auth-card[data-auth-panel="forgot"],
     .auth-stack[data-auth-mode="reset"] .auth-card[data-auth-panel="signup"] {
       display: none;
     }
 
     .auth-stack[data-auth-mode="reset"] .auth-card[data-auth-panel="reset"] {
+      display: block;
+    }
+
+    .auth-stack[data-auth-mode="forgot"] .auth-tabs,
+    .auth-stack[data-auth-mode="forgot"] .auth-card[data-auth-panel="login"],
+    .auth-stack[data-auth-mode="forgot"] .auth-card[data-auth-panel="reset"],
+    .auth-stack[data-auth-mode="forgot"] .auth-card[data-auth-panel="signup"] {
+      display: none;
+    }
+
+    .auth-stack[data-auth-mode="forgot"] .auth-card[data-auth-panel="forgot"] {
       display: block;
     }
 
@@ -2055,6 +2068,20 @@
         </form>
       </div>
 
+      <div class="auth-card" data-auth-panel="forgot">
+        <h3>Recuperar senha</h3>
+        <p>Digite seu e-mail cadastrado para receber o link de recuperação.</p>
+        <form class="auth-form" id="forgotPasswordForm">
+          <div>
+            <label for="forgotPasswordEmail">E-mail</label>
+            <input id="forgotPasswordEmail" type="email" autocomplete="email" required placeholder="email@monolith.app" />
+          </div>
+          <div class="auth-warning" id="forgotPasswordNotice" hidden></div>
+          <button class="action" type="submit">Enviar link de recuperação</button>
+          <button class="auth-link" id="forgotBackToLoginButton" type="button">Voltar ao login</button>
+        </form>
+      </div>
+
       <div class="auth-card" data-auth-panel="reset">
         <h3>Redefinir senha</h3>
         <p>Digite a nova senha para concluir a recuperação da conta.</p>
@@ -3388,6 +3415,13 @@
       notice.textContent = message ? t(message) : "";
     }
 
+    function showForgotPasswordNotice(message = "") {
+      const notice = document.getElementById("forgotPasswordNotice");
+      if (!notice) return;
+      notice.hidden = !message;
+      notice.textContent = message ? t(message) : "";
+    }
+
     function showResetPasswordNotice(message = "") {
       const notice = document.getElementById("resetPasswordNotice");
       if (!notice) return;
@@ -4171,8 +4205,22 @@
       const authStack = document.getElementById("authStack");
       if (authStack) authStack.dataset.authMode = "reset";
       showLoginNotice("");
+      showForgotPasswordNotice("");
       showResetPasswordNotice(message);
       setTimeout(() => document.getElementById("resetPassword")?.focus(), 0);
+    }
+
+    function showForgotPasswordPanel() {
+      passwordRecoveryMode = false;
+      const authStack = document.getElementById("authStack");
+      if (authStack) authStack.dataset.authMode = "forgot";
+      const loginEmail = document.getElementById("loginEmail")?.value.trim() || "";
+      const forgotEmail = document.getElementById("forgotPasswordEmail");
+      if (forgotEmail && loginEmail && !forgotEmail.value) forgotEmail.value = loginEmail;
+      showLoginNotice("");
+      showResetPasswordNotice("");
+      showForgotPasswordNotice("");
+      setTimeout(() => forgotEmail?.focus(), 0);
     }
 
     function showLoginPanel(message = "") {
@@ -4180,6 +4228,7 @@
       const authStack = document.getElementById("authStack");
       if (authStack) authStack.dataset.authMode = "login";
       document.querySelectorAll(".auth-tab").forEach(tab => tab.classList.toggle("active", tab.dataset.authTab === "login"));
+      showForgotPasswordNotice("");
       showResetPasswordNotice("");
       showLoginNotice(message);
     }
@@ -4197,22 +4246,23 @@
     }
 
     async function sendPasswordResetEmail() {
-      const emailInput = document.getElementById("loginEmail");
+      const emailInput = document.getElementById("forgotPasswordEmail") || document.getElementById("loginEmail");
       const normalizedEmail = emailInput?.value.trim().toLowerCase() || "";
       showLoginNotice("");
+      showForgotPasswordNotice("");
       if (!normalizedEmail) {
-        showLoginNotice("Digite seu e-mail para receber o link de recuperação.");
+        showForgotPasswordNotice("Digite seu e-mail para receber o link de recuperação.");
         authMessage("Digite seu e-mail para receber o link de recuperação.");
         emailInput?.focus();
         return false;
       }
       if (normalizedEmail.endsWith("@monolith.app")) {
-        showLoginNotice("Contas demo usam a senha 123456.");
+        showForgotPasswordNotice("Contas demo usam a senha 123456.");
         authMessage("Contas demo usam a senha 123456.");
         return false;
       }
       if (!monolithSupabase) {
-        showLoginNotice("Recuperação de senha disponível apenas para contas reais do Supabase.");
+        showForgotPasswordNotice("Recuperação de senha disponível apenas para contas reais do Supabase.");
         authMessage("Recuperação de senha disponível apenas para contas reais do Supabase.");
         return false;
       }
@@ -4221,12 +4271,12 @@
       });
       if (error) {
         console.warn("Monolith password reset email failed", error);
-        showLoginNotice(error.message || "Não consegui enviar o e-mail de recuperação agora.");
+        showForgotPasswordNotice(error.message || "Não consegui enviar o e-mail de recuperação agora.");
         authMessage("Não consegui enviar o e-mail de recuperação agora.");
         return false;
       }
-      showLoginNotice("Enviamos um link de recuperação para seu e-mail.");
-      authMessage("Enviamos um link de recuperação para seu e-mail.");
+      showForgotPasswordNotice("Se este e-mail estiver cadastrado, enviaremos um link de recuperação.");
+      authMessage("Se este e-mail estiver cadastrado, enviaremos um link de recuperação.");
       return true;
     }
 
@@ -5257,6 +5307,9 @@
         "Senha": "Password",
         "Entrar": "Log in",
         "Esqueci minha senha": "Forgot my password",
+        "Recuperar senha": "Recover password",
+        "Digite seu e-mail cadastrado para receber o link de recuperação.": "Enter your registered email to receive the recovery link.",
+        "Enviar link de recuperação": "Send recovery link",
         "Redefinir senha": "Reset password",
         "Digite a nova senha para concluir a recuperação da conta.": "Enter the new password to finish account recovery.",
         "Nova senha": "New password",
@@ -5268,6 +5321,7 @@
         "Recuperação de senha disponível apenas para contas reais do Supabase.": "Password recovery is available only for real Supabase accounts.",
         "Não consegui enviar o e-mail de recuperação agora.": "Could not send the recovery email right now.",
         "Enviamos um link de recuperação para seu e-mail.": "We sent a recovery link to your email.",
+        "Se este e-mail estiver cadastrado, enviaremos um link de recuperação.": "If this email is registered, we will send a recovery link.",
         "Digite sua nova senha para concluir a recuperação.": "Enter your new password to finish recovery.",
         "A nova senha precisa ter pelo menos 6 caracteres.": "The new password must have at least 6 characters.",
         "O link de recuperação não abriu uma sessão válida. Abra o último e-mail de recuperação neste navegador.": "The recovery link did not open a valid session. Open the latest recovery email in this browser.",
@@ -5940,6 +5994,9 @@
         "Senha": "Contraseña",
         "Entrar": "Entrar",
         "Esqueci minha senha": "Olvidé mi contraseña",
+        "Recuperar senha": "Recuperar contraseña",
+        "Digite seu e-mail cadastrado para receber o link de recuperação.": "Escribe tu email registrado para recibir el enlace de recuperación.",
+        "Enviar link de recuperação": "Enviar enlace de recuperación",
         "Redefinir senha": "Restablecer contraseña",
         "Digite a nova senha para concluir a recuperação da conta.": "Escribe la nueva contraseña para finalizar la recuperación de la cuenta.",
         "Nova senha": "Nueva contraseña",
@@ -5951,6 +6008,7 @@
         "Recuperação de senha disponível apenas para contas reais do Supabase.": "La recuperación de contraseña está disponible solo para cuentas reales de Supabase.",
         "Não consegui enviar o e-mail de recuperação agora.": "No pude enviar el email de recuperación ahora.",
         "Enviamos um link de recuperação para seu e-mail.": "Enviamos un enlace de recuperación a tu email.",
+        "Se este e-mail estiver cadastrado, enviaremos um link de recuperação.": "Si este email está registrado, enviaremos un enlace de recuperación.",
         "Digite sua nova senha para concluir a recuperação.": "Escribe tu nueva contraseña para finalizar la recuperación.",
         "A nova senha precisa ter pelo menos 6 caracteres.": "La nueva contraseña debe tener al menos 6 caracteres.",
         "O link de recuperação não abriu uma sessão válida. Abra o último e-mail de recuperação neste navegador.": "El enlace de recuperación no abrió una sesión válida. Abre el último email de recuperación en este navegador.",
@@ -7696,11 +7754,16 @@ ${photoSections}
       event.preventDefault();
       submitLogin();
     });
-    document.getElementById("forgotPasswordButton")?.addEventListener("click", sendPasswordResetEmail);
+    document.getElementById("forgotPasswordButton")?.addEventListener("click", showForgotPasswordPanel);
+    document.getElementById("forgotPasswordForm")?.addEventListener("submit", async event => {
+      event.preventDefault();
+      await sendPasswordResetEmail();
+    });
     document.getElementById("resetPasswordForm")?.addEventListener("submit", async event => {
       event.preventDefault();
       await saveRecoveredPassword();
     });
+    document.getElementById("forgotBackToLoginButton")?.addEventListener("click", () => showLoginPanel());
     document.getElementById("backToLoginButton")?.addEventListener("click", () => showLoginPanel());
     monolithSupabase?.auth.onAuthStateChange((event) => {
       if (event === "PASSWORD_RECOVERY") {
