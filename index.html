@@ -14,7 +14,7 @@
   <link rel="manifest" href="manifest.webmanifest" />
   <link rel="icon" href="monolith-icon.svg" />
   <script>
-    window.MONOLITH_BUILD = "monolith-v61-cache-reset-login";
+    window.MONOLITH_BUILD = "monolith-v62-safe-login-no-worker-redirect";
     (function clearOldAppCaches() {
       if ("serviceWorker" in navigator) {
         navigator.serviceWorker.getRegistrations?.()
@@ -2127,7 +2127,7 @@
           <button class="action" id="loginButton" type="button">Entrar</button>
           <div class="auth-tools">
             <button class="auth-secondary" id="clearDeviceSessionButton" type="button">Limpar sessão/cache deste aparelho</button>
-            <div class="build-version" id="buildVersionLabel">Versão do app: monolith-v61-cache-reset-login</div>
+            <div class="build-version" id="buildVersionLabel">Versão do app: monolith-v62-safe-login-no-worker-redirect</div>
           </div>
         </form>
       </div>
@@ -3093,7 +3093,7 @@
   <script>
     const MONOLITH_SUPABASE_URL = "https://jhxasnxuvmkhntbwepau.supabase.co";
     const MONOLITH_SUPABASE_KEY = "sb_publishable_lDtAXIOtkMwgwsAZyghBdg_gyLHGwpH";
-    const MONOLITH_BUILD = window.MONOLITH_BUILD || "monolith-v61-cache-reset-login";
+    const MONOLITH_BUILD = window.MONOLITH_BUILD || "monolith-v62-safe-login-no-worker-redirect";
     const monolithSupabase = window.supabase?.createClient?.(MONOLITH_SUPABASE_URL, MONOLITH_SUPABASE_KEY) || null;
 
     (() => {
@@ -4437,14 +4437,28 @@
     async function loginAccount(email, password) {
       const normalizedEmail = email.toLowerCase().trim();
       const isDemoEmail = normalizedEmail.endsWith("@monolith.app");
+      if (!monolithSupabase && !isDemoEmail) {
+        const message = "Não consegui carregar o Supabase neste navegador. Recarregue a página ou tente a aba anônima.";
+        showLoginNotice(message);
+        authMessage(message);
+        return false;
+      }
       if (monolithSupabase && !isDemoEmail) {
-        const { data, error } = await monolithSupabase.auth.signInWithPassword({ email: normalizedEmail, password });
+        const { data, error } = await Promise.race([
+          monolithSupabase.auth.signInWithPassword({ email: normalizedEmail, password }),
+          new Promise(resolve => setTimeout(() => resolve({
+            data: null,
+            error: { message: "timeout" }
+          }), 15000))
+        ]);
         if (error) {
           const rawMessage = error.message || "";
           const message = /invalid login credentials|invalid/i.test(rawMessage)
             ? "E-mail ou senha incorretos. Se não tiver certeza da senha, use Recuperar senha."
             : /confirm|verified/i.test(rawMessage)
             ? "Confirme seu e-mail antes de entrar."
+            : /timeout/i.test(rawMessage)
+            ? "O Supabase demorou para responder. Confira a conexão e tente novamente."
             : /fetch|network|failed/i.test(rawMessage)
             ? "Não consegui conectar ao Supabase agora. Confira a internet e tente novamente."
             : rawMessage || "Login remoto não autorizado.";
@@ -5448,6 +5462,8 @@
         "Sessão local e cache limpos. Recarregando...": "Local session and cache cleared. Reloading...",
         "Entrando...": "Logging in...",
         "E-mail ou senha incorretos. Se não tiver certeza da senha, use Recuperar senha.": "Email or password is incorrect. If you are not sure, use password recovery.",
+        "Não consegui carregar o Supabase neste navegador. Recarregue a página ou tente a aba anônima.": "Could not load Supabase in this browser. Reload the page or try a private tab.",
+        "O Supabase demorou para responder. Confira a conexão e tente novamente.": "Supabase took too long to respond. Check the connection and try again.",
         "Não consegui conectar ao Supabase agora. Confira a internet e tente novamente.": "Could not connect to Supabase right now. Check the internet connection and try again.",
         "Criar conta": "Create account",
         "Crie contas locais para testar a separação de experiência.": "Create local accounts to test the separated experience.",
@@ -6145,6 +6161,8 @@
         "Sessão local e cache limpos. Recarregando...": "Sesión local y caché limpios. Recargando...",
         "Entrando...": "Entrando...",
         "E-mail ou senha incorretos. Se não tiver certeza da senha, use Recuperar senha.": "Email o contraseña incorrectos. Si no estás seguro, usa recuperar contraseña.",
+        "Não consegui carregar o Supabase neste navegador. Recarregue a página ou tente a aba anônima.": "No pude cargar Supabase en este navegador. Recarga la página o prueba una pestaña privada.",
+        "O Supabase demorou para responder. Confira a conexão e tente novamente.": "Supabase tardó demasiado en responder. Revisa la conexión e intenta nuevamente.",
         "Não consegui conectar ao Supabase agora. Confira a internet e tente novamente.": "No pude conectar con Supabase ahora. Revisa internet e intenta nuevamente.",
         "Criar conta": "Crear cuenta",
         "Crie contas locais para testar a separação de experiência.": "Crea cuentas locales para probar la separación de experiencia.",
@@ -9461,3 +9479,4 @@ ${photoSections}
   </script>
 </body>
 </html>
+
