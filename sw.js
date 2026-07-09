@@ -1,4 +1,4 @@
-const CACHE_NAME = "monolith-v62-safe-login-no-worker-redirect";
+const CACHE_NAME = "monolith-v63-invite-fallback";
 
 self.addEventListener("install", event => {
   self.skipWaiting();

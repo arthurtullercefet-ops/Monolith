@@ -14,7 +14,7 @@
   <link rel="manifest" href="manifest.webmanifest" />
   <link rel="icon" href="monolith-icon.svg" />
   <script>
-    window.MONOLITH_BUILD = "monolith-v62-safe-login-no-worker-redirect";
+    window.MONOLITH_BUILD = "monolith-v63-invite-fallback";
     (function clearOldAppCaches() {
       if ("serviceWorker" in navigator) {
         navigator.serviceWorker.getRegistrations?.()
@@ -2127,7 +2127,7 @@
           <button class="action" id="loginButton" type="button">Entrar</button>
           <div class="auth-tools">
             <button class="auth-secondary" id="clearDeviceSessionButton" type="button">Limpar sessão/cache deste aparelho</button>
-            <div class="build-version" id="buildVersionLabel">Versão do app: monolith-v62-safe-login-no-worker-redirect</div>
+            <div class="build-version" id="buildVersionLabel">Versão do app: monolith-v63-invite-fallback</div>
           </div>
         </form>
       </div>
@@ -3093,7 +3093,7 @@
   <script>
     const MONOLITH_SUPABASE_URL = "https://jhxasnxuvmkhntbwepau.supabase.co";
     const MONOLITH_SUPABASE_KEY = "sb_publishable_lDtAXIOtkMwgwsAZyghBdg_gyLHGwpH";
-    const MONOLITH_BUILD = window.MONOLITH_BUILD || "monolith-v62-safe-login-no-worker-redirect";
+    const MONOLITH_BUILD = window.MONOLITH_BUILD || "monolith-v63-invite-fallback";
     const monolithSupabase = window.supabase?.createClient?.(MONOLITH_SUPABASE_URL, MONOLITH_SUPABASE_KEY) || null;
 
     (() => {
@@ -3996,6 +3996,11 @@
       return /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(trainerIdFromInviteCode(code));
     }
 
+    function supabaseErrorText(error) {
+      if (!error) return "";
+      return [error.message, error.details, error.hint, error.code].filter(Boolean).join(" | ");
+    }
+
     async function copyText(value) {
       if (navigator.clipboard?.writeText) {
         await navigator.clipboard.writeText(value);
@@ -4018,12 +4023,32 @@
     async function createTrainerInviteCode(personal = currentAccount()) {
       if (!personal || personal.role !== "personal") return "";
       if (monolithSupabase && isRealSupabaseAccount(personal)) {
-        const { data, error } = await monolithSupabase.rpc("create_trainer_invite", {
+        const rpcResult = await monolithSupabase.rpc("create_trainer_invite", {
           p_expires_days: 30,
           p_max_uses: null
         });
-        if (error) throw error;
-        return data || "";
+        if (!rpcResult.error && rpcResult.data) return rpcResult.data;
+
+        console.warn("Monolith invite RPC failed", rpcResult.error);
+        const fallbackCode = inviteCodeForPersonal(personal);
+        const directResult = await monolithSupabase
+          .from("trainer_invites")
+          .insert({
+            trainer_id: personal.id,
+            code: fallbackCode,
+            max_uses: null,
+            expires_at: null,
+            status: "active"
+          })
+          .select("code")
+          .single();
+
+        if (!directResult.error) return directResult.data?.code || fallbackCode;
+        if (directResult.error.code === "23505") return fallbackCode;
+
+        console.warn("Monolith invite direct insert failed", directResult.error);
+        authMessage("Convite alternativo criado. Se o aluno não conseguir vincular, rode a query de convites no Supabase.");
+        return fallbackCode;
       }
       return inviteCodeForPersonal(personal);
     }
@@ -5465,6 +5490,7 @@
         "Não consegui carregar o Supabase neste navegador. Recarregue a página ou tente a aba anônima.": "Could not load Supabase in this browser. Reload the page or try a private tab.",
         "O Supabase demorou para responder. Confira a conexão e tente novamente.": "Supabase took too long to respond. Check the connection and try again.",
         "Não consegui conectar ao Supabase agora. Confira a internet e tente novamente.": "Could not connect to Supabase right now. Check the internet connection and try again.",
+        "Convite alternativo criado. Se o aluno não conseguir vincular, rode a query de convites no Supabase.": "Alternative invite created. If the student cannot link, run the invite query in Supabase.",
         "Criar conta": "Create account",
         "Crie contas locais para testar a separação de experiência.": "Create local accounts to test the separated experience.",
         "Crie uma conta real no Supabase para testar a experiência separada.": "Create a real Supabase account to test the separated experience.",
@@ -6164,6 +6190,7 @@
         "Não consegui carregar o Supabase neste navegador. Recarregue a página ou tente a aba anônima.": "No pude cargar Supabase en este navegador. Recarga la página o prueba una pestaña privada.",
         "O Supabase demorou para responder. Confira a conexão e tente novamente.": "Supabase tardó demasiado en responder. Revisa la conexión e intenta nuevamente.",
         "Não consegui conectar ao Supabase agora. Confira a internet e tente novamente.": "No pude conectar con Supabase ahora. Revisa internet e intenta nuevamente.",
+        "Convite alternativo criado. Se o aluno não conseguir vincular, rode a query de convites no Supabase.": "Invitación alternativa creada. Si el alumno no logra vincularse, ejecuta la query de invitaciones en Supabase.",
         "Criar conta": "Crear cuenta",
         "Crie contas locais para testar a separação de experiência.": "Crea cuentas locales para probar la separación de experiencia.",
         "Crie uma conta real no Supabase para testar a experiência separada.": "Crea una cuenta real en Supabase para probar la experiencia separada.",
@@ -8083,7 +8110,7 @@ ${photoSections}
         inviteCode = await showInviteCodeForPersonal(personal);
       } catch (error) {
         console.warn("Monolith invite creation failed", error);
-        authMessage("Não consegui criar o convite agora.");
+        authMessage(`${t("Não consegui criar o convite agora.")} ${error?.message || ""}`.trim());
         return;
       }
       try {
@@ -8101,7 +8128,7 @@ ${photoSections}
           inviteCode = await showInviteCodeForPersonal(personal);
         } catch (error) {
           console.warn("Monolith invite creation failed", error);
-          authMessage("Não consegui criar o convite agora.");
+          authMessage(`${t("Não consegui criar o convite agora.")} ${error?.message || ""}`.trim());
           return;
         }
       }
