@@ -1,4 +1,4 @@
-const CACHE_NAME = "monolith-v56-password-reset";
+const CACHE_NAME = "monolith-v59-workout-history-sync";
 
 self.addEventListener("install", event => {
   self.skipWaiting();

@@ -4184,6 +4184,18 @@
       showLoginNotice(message);
     }
 
+    async function preparePasswordRecoveryFromUrl() {
+      if (!monolithSupabase || !isPasswordRecoveryUrl()) return false;
+      passwordRecoveryMode = true;
+      showResetPasswordPanel("Digite sua nova senha para concluir a recuperação.");
+      try {
+        await monolithSupabase.auth.getSession();
+      } catch (error) {
+        console.warn("Monolith password recovery session bootstrap failed", error);
+      }
+      return true;
+    }
+
     async function sendPasswordResetEmail() {
       const emailInput = document.getElementById("loginEmail");
       const normalizedEmail = emailInput?.value.trim().toLowerCase() || "";
@@ -4235,6 +4247,13 @@
       if (!monolithSupabase) {
         showResetPasswordNotice("Recuperação de senha disponível apenas para contas reais do Supabase.");
         authMessage("Recuperação de senha disponível apenas para contas reais do Supabase.");
+        return false;
+      }
+      const { data: sessionData, error: sessionError } = await monolithSupabase.auth.getSession();
+      if (sessionError || !sessionData?.session) {
+        console.warn("Monolith password recovery session missing", sessionError);
+        showResetPasswordNotice("O link de recuperação não abriu uma sessão válida. Abra o último e-mail de recuperação neste navegador.");
+        authMessage("O link de recuperação não abriu uma sessão válida. Abra o último e-mail de recuperação neste navegador.");
         return false;
       }
       const { error } = await monolithSupabase.auth.updateUser({ password });
@@ -4601,8 +4620,8 @@
     async function saveRemoteCheckin(entry) {
       const user = currentAccount();
       const targetStudentId = entry.studentId || user?.id || "";
-      if (!monolithSupabase || !isRealSupabaseAccount(user) || !targetStudentId) return;
-      if (user.role !== "student" && user.role !== "personal") return;
+      if (!monolithSupabase || !isRealSupabaseAccount(user) || !targetStudentId) return false;
+      if (user.role !== "student" && user.role !== "personal") return false;
       const payload = {
         student_id: targetStudentId,
         checkin_date: entry.date,
@@ -4614,6 +4633,7 @@
       };
       const { error } = await monolithSupabase.from("daily_checkins").upsert(payload, { onConflict: "student_id,checkin_date" });
       if (error) throw error;
+      return true;
     }
 
     async function loadRemoteFactors(account = currentAccount()) {
@@ -4696,7 +4716,7 @@
 
     async function saveRemoteBodyMeasure(entry) {
       const user = currentAccount();
-      if (!monolithSupabase || !isRealSupabaseAccount(user) || user.role !== "student") return;
+      if (!monolithSupabase || !isRealSupabaseAccount(user) || user.role !== "student") return false;
       const payload = {
         student_id: user.id,
         measurement_date: entry.date,
@@ -4711,6 +4731,7 @@
       };
       const { error } = await monolithSupabase.from("body_measurements").insert(payload);
       if (error) throw error;
+      return true;
     }
 
     async function loadRemoteCompletedWorkouts(studentId = activeDataStudentId()) {
@@ -4729,7 +4750,7 @@
 
     async function saveRemoteCompletedWorkout(session) {
       const user = currentAccount();
-      if (!monolithSupabase || !isRealSupabaseAccount(user) || user.role !== "student") return;
+      if (!monolithSupabase || !isRealSupabaseAccount(user) || user.role !== "student") return false;
       const payload = {
         student_id: user.id,
         workout_template_id: /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(session.workoutId || "") ? session.workoutId : null,
@@ -4743,6 +4764,7 @@
       };
       const { error } = await monolithSupabase.from("completed_workouts").insert(payload);
       if (error) throw error;
+      return true;
     }
 
     async function loadRemoteProgressPhotos(studentId = activeDataStudentId()) {
@@ -5248,6 +5270,7 @@
         "Enviamos um link de recuperação para seu e-mail.": "We sent a recovery link to your email.",
         "Digite sua nova senha para concluir a recuperação.": "Enter your new password to finish recovery.",
         "A nova senha precisa ter pelo menos 6 caracteres.": "The new password must have at least 6 characters.",
+        "O link de recuperação não abriu uma sessão válida. Abra o último e-mail de recuperação neste navegador.": "The recovery link did not open a valid session. Open the latest recovery email in this browser.",
         "Não consegui salvar a nova senha agora.": "Could not save the new password right now.",
         "Senha atualizada. Entre novamente com a nova senha.": "Password updated. Log in again with the new password.",
         "Criar conta": "Create account",
@@ -5286,6 +5309,7 @@
         "Gordura": "Fat",
         "Salvar dieta do aluno": "Save student diet",
         "Dieta do aluno salva.": "Student diet saved.",
+        "Dieta do aluno salva no Supabase.": "Student diet saved to Supabase.",
         "Dieta salva localmente. Não consegui sincronizar agora.": "Diet saved locally. Could not sync right now.",
         "Não consegui carregar a dieta remota agora. Usei o cache local.": "Could not load the remote diet right now. Used local cache.",
         "Não consegui carregar nutrição remota agora. Usei o cache local.": "Could not load remote nutrition right now. Used local cache.",
@@ -5461,11 +5485,16 @@
         "Checklist salvo localmente. Não consegui sincronizar agora.": "Checklist saved locally. Could not sync right now.",
         "Fator removido localmente. Não consegui sincronizar agora.": "Factor removed locally. Could not sync right now.",
         "Check-in salvo": "Check-in saved",
+        "Supabase sincronizado.": "Supabase synced.",
+        "Salvo localmente.": "Saved locally.",
         "itens concluídos.": "items completed.",
         "Preencha pelo menos uma medida física.": "Fill at least one physical measurement.",
         "Medidas corporais salvas.": "Body measurements saved.",
+        "Medidas corporais salvas no Supabase.": "Body measurements saved to Supabase.",
+        "Medidas salvas localmente. Não consegui sincronizar agora.": "Measurements saved locally. Could not sync right now.",
         "Histórico mensal limpo.": "Monthly history cleared.",
         "Foto salva protegida por blur.": "Photo saved and protected by blur.",
+        "Foto salva localmente. Não consegui sincronizar agora.": "Photo saved locally. Could not sync right now.",
         "Exercício concluído e progressão atualizada.": "Exercise finished and progress updated.",
         "Treino criado na biblioteca.": "Workout created in the library.",
         "definido como coach.": "set as coach.",
@@ -5499,6 +5528,10 @@
         "Adicione um exercício, escolha um modelo de séries e recolha o bloco para continuar limpo.": "Add an exercise, choose a set model and collapse the block to keep going cleanly.",
         "Nenhum treino criado": "No workout created",
         "Crie seu primeiro treino do zero. No celular, use os modelos rápidos dentro do editor.": "Create your first workout from scratch. On mobile, use the quick models inside the editor.",
+        "Nenhum treino recebido": "No workout received",
+        "Seu personal ainda não enviou um treino para esta conta.": "Your trainer has not sent a workout to this account yet.",
+        "Seu personal controla seus treinos.": "Your trainer controls your workouts.",
+        "Não enviado ao aluno": "Not sent to the student",
         "Crie um treino antes de abrir a sessão.": "Create a workout before opening the session.",
         "Recolher": "Collapse",
         "Editar": "Edit",
@@ -5531,8 +5564,10 @@
         "concluído. Descanso entre exercícios iniciado.": "finished. Rest between exercises started.",
         "Treino salvo hoje": "Workout saved today",
         "Treino do dia salvo no histórico local.": "Today's workout saved in local history.",
+        "Treino do dia salvo no Supabase.": "Today's workout saved to Supabase.",
         "Todos os exercícios já foram concluídos.": "All exercises are already finished.",
         "Treino criado com exercícios, séries, peso e técnicas.": "Workout created with exercises, sets, weight and techniques.",
+        "Treino salvo no Supabase.": "Workout saved to Supabase.",
         "Treino enviado para o aluno.": "Workout sent to the student.",
         "Treino ficou só neste aparelho. Não chegou ao aluno.": "Workout stayed only on this device. It did not reach the student.",
         "Nova série adicionada em": "New set added to",
@@ -5918,6 +5953,7 @@
         "Enviamos um link de recuperação para seu e-mail.": "Enviamos un enlace de recuperación a tu email.",
         "Digite sua nova senha para concluir a recuperação.": "Escribe tu nueva contraseña para finalizar la recuperación.",
         "A nova senha precisa ter pelo menos 6 caracteres.": "La nueva contraseña debe tener al menos 6 caracteres.",
+        "O link de recuperação não abriu uma sessão válida. Abra o último e-mail de recuperação neste navegador.": "El enlace de recuperación no abrió una sesión válida. Abre el último email de recuperación en este navegador.",
         "Não consegui salvar a nova senha agora.": "No pude guardar la nueva contraseña ahora.",
         "Senha atualizada. Entre novamente com a nova senha.": "Contraseña actualizada. Entra nuevamente con la nueva contraseña.",
         "Criar conta": "Crear cuenta",
@@ -5956,6 +5992,7 @@
         "Gordura": "Grasa",
         "Salvar dieta do aluno": "Guardar dieta del alumno",
         "Dieta do aluno salva.": "Dieta del alumno guardada.",
+        "Dieta do aluno salva no Supabase.": "Dieta del alumno guardada en Supabase.",
         "Dieta salva localmente. Não consegui sincronizar agora.": "Dieta guardada localmente. No se pudo sincronizar ahora.",
         "Não consegui carregar a dieta remota agora. Usei o cache local.": "No pude cargar la dieta remota ahora. Usé el caché local.",
         "Não consegui carregar nutrição remota agora. Usei o cache local.": "No pude cargar la nutrición remota ahora. Usé el caché local.",
@@ -6131,11 +6168,16 @@
         "Checklist salvo localmente. Não consegui sincronizar agora.": "Checklist guardado localmente. No se pudo sincronizar ahora.",
         "Fator removido localmente. Não consegui sincronizar agora.": "Factor quitado localmente. No se pudo sincronizar ahora.",
         "Check-in salvo": "Check-in guardado",
+        "Supabase sincronizado.": "Supabase sincronizado.",
+        "Salvo localmente.": "Guardado localmente.",
         "itens concluídos.": "ítems completados.",
         "Preencha pelo menos uma medida física.": "Completa al menos una medida física.",
         "Medidas corporais salvas.": "Medidas corporales guardadas.",
+        "Medidas corporais salvas no Supabase.": "Medidas corporales guardadas en Supabase.",
+        "Medidas salvas localmente. Não consegui sincronizar agora.": "Medidas guardadas localmente. No se pudo sincronizar ahora.",
         "Histórico mensal limpo.": "Historial mensual limpiado.",
         "Foto salva protegida por blur.": "Foto guardada y protegida con desenfoque.",
+        "Foto salva localmente. Não consegui sincronizar agora.": "Foto guardada localmente. No se pudo sincronizar ahora.",
         "Exercício concluído e progressão atualizada.": "Ejercicio completado y progresión actualizada.",
         "Treino criado na biblioteca.": "Entreno creado en la biblioteca.",
         "definido como coach.": "definido como coach.",
@@ -6169,6 +6211,10 @@
         "Adicione um exercício, escolha um modelo de séries e recolha o bloco para continuar limpo.": "Agrega un ejercicio, elige un modelo de series y recoge el bloque para seguir limpio.",
         "Nenhum treino criado": "Ningún entreno creado",
         "Crie seu primeiro treino do zero. No celular, use os modelos rápidos dentro do editor.": "Crea tu primer entreno desde cero. En celular, usa los modelos rápidos dentro del editor.",
+        "Nenhum treino recebido": "Ningún entreno recibido",
+        "Seu personal ainda não enviou um treino para esta conta.": "Tu entrenador aún no envió un entreno para esta cuenta.",
+        "Seu personal controla seus treinos.": "Tu entrenador controla tus entrenos.",
+        "Não enviado ao aluno": "No enviado al alumno",
         "Crie um treino antes de abrir a sessão.": "Crea un entreno antes de abrir la sesión.",
         "Recolher": "Recoger",
         "Editar": "Editar",
@@ -6201,8 +6247,10 @@
         "concluído. Descanso entre exercícios iniciado.": "completado. Descanso entre ejercicios iniciado.",
         "Treino salvo hoje": "Entreno guardado hoy",
         "Treino do dia salvo no histórico local.": "Entreno del día guardado en el historial local.",
+        "Treino do dia salvo no Supabase.": "Entreno del día guardado en Supabase.",
         "Todos os exercícios já foram concluídos.": "Todos los ejercicios ya fueron completados.",
         "Treino criado com exercícios, séries, peso e técnicas.": "Entreno creado con ejercicios, series, peso y técnicas.",
+        "Treino salvo no Supabase.": "Entreno guardado en Supabase.",
         "Treino enviado para o aluno.": "Entreno enviado al alumno.",
         "Treino ficou só neste aparelho. Não chegou ao aluno.": "El entreno quedó solo en este dispositivo. No llegó al alumno.",
         "Nova série adicionada em": "Nueva serie agregada en",
@@ -6733,14 +6781,16 @@
       checkins.unshift(entry);
       const allCheckins = loadCheckins(null).filter(item => `${item.studentId || ""}:${item.date}` !== `${entry.studentId || ""}:${entry.date}`);
       saveCheckins([entry, ...allCheckins].slice(0, 365));
+      let synced = false;
       try {
-        await saveRemoteCheckin(entry);
+        synced = await saveRemoteCheckin(entry);
       } catch (error) {
         console.warn("Monolith remote check-in save failed", error);
         showToast("Check-in salvo localmente. Não consegui sincronizar agora.");
       }
       renderStats();
       renderTrainerSummary();
+      return Boolean(synced);
     }
 
     function lastThirtyCheckins() {
@@ -6914,14 +6964,16 @@
       const allEntries = loadBodyMeasures(null).filter(item => `${item.studentId || ""}:${item.date}` !== `${entry.studentId || ""}:${entry.date}`);
       const entries = [entry, ...allEntries].sort((a, b) => String(b.date).localeCompare(String(a.date)));
       saveBodyMeasures(entries);
+      let synced = false;
       try {
-        await saveRemoteBodyMeasure(entry);
+        synced = await saveRemoteBodyMeasure(entry);
       } catch (error) {
         console.warn("Monolith remote body measurement save failed", error);
         showToast("Medidas salvas localmente. Não consegui sincronizar agora.");
       }
       renderBodyMeasures();
       renderTrainerSummary();
+      return Boolean(synced);
     }
 
     function renderStats() {
@@ -7589,14 +7641,15 @@ ${photoSections}
       const plans = loadDietPlans();
       plans[plan.id] = plan;
       saveDietPlans(plans);
+      let synced = false;
       try {
-        await saveRemoteDietPlan(plan);
+        synced = await saveRemoteDietPlan(plan);
       } catch (error) {
         console.warn("Monolith remote diet plan save failed", error);
         showToast("Dieta salva localmente. Não consegui sincronizar agora.");
       }
       renderDietPlan("dietPreview", plan);
-      authMessage("Dieta do aluno salva.");
+      authMessage(synced ? "Dieta do aluno salva no Supabase." : "Dieta salva localmente. Não consegui sincronizar agora.");
     });
     document.getElementById("foodMealCount")?.addEventListener("change", renderFoodLogMeals);
     document.getElementById("foodLogForm")?.addEventListener("submit", async event => {
@@ -7834,6 +7887,11 @@ ${photoSections}
     applyLanguage(currentLanguage);
     clearBodyMeasureForm();
     ensureDemoAccounts().then(async () => {
+      const recoveringPassword = await preparePasswordRecoveryFromUrl();
+      if (recoveringPassword) {
+        applyAuthState();
+        return;
+      }
       const restored = await restoreSupabaseSession();
       applyAuthState();
       if (restored) {
@@ -7842,6 +7900,15 @@ ${photoSections}
         if (user && !await maybeRequireTrainerProfile(user)) showScreen(user.role === "personal" ? "clients" : "home");
       }
     });
+
+    async function refreshRemoteStudentData({ stats = false, measures = false, photos = false, summary = false } = {}) {
+      await renderStatsStudentSelect();
+      await hydrateRemoteReportData();
+      if (stats) renderStats();
+      if (measures) renderBodyMeasures();
+      if (photos) renderPhotoVault();
+      if (summary) renderTrainerSummary();
+    }
 
     function showScreen(id) {
       if (trainerProfileOnboardingRequired && id !== "trainerProfileOnboarding") id = "trainerProfileOnboarding";
@@ -7857,18 +7924,21 @@ ${photoSections}
       }
       if (id === "stats") {
         renderStats();
-        hydrateRemoteReportData().then(() => {
-          renderStats();
-          renderBodyMeasures();
-          renderPhotoVault();
-          renderTrainerSummary();
-        });
+        refreshRemoteStudentData({ stats: true, measures: true, photos: true, summary: true });
+      }
+      if (id === "measures") {
+        renderBodyMeasures();
+        refreshRemoteStudentData({ measures: true, summary: true });
       }
       if (id === "checkin") {
         renderCheckinStudentSelect().then(loadFactorsForCheckinTarget);
       }
       if (id === "trainerMap") renderTrainerMap();
       if (id === "nutrition") renderNutrition();
+      if (id === "backup") {
+        renderTrainerSummary();
+        refreshRemoteStudentData({ summary: true });
+      }
       window.scrollTo({ top: 0, behavior: "smooth" });
     }
 
@@ -7876,15 +7946,6 @@ ${photoSections}
       nav.addEventListener("click", event => {
         event.preventDefault();
         showScreen(nav.dataset.screen);
-        if (nav.dataset.screen === "stats") {
-          renderStats();
-          renderPhotoVault();
-        }
-        if (nav.dataset.screen === "measures") renderBodyMeasures();
-        if (nav.dataset.screen === "checkin") renderCheckinStudentSelect().then(loadFactorsForCheckinTarget);
-        if (nav.dataset.screen === "trainerMap") renderTrainerMap();
-        if (nav.dataset.screen === "nutrition") renderNutrition();
-        if (nav.dataset.screen === "backup") renderTrainerSummary();
       });
     });
 
@@ -7952,7 +8013,15 @@ ${photoSections}
 
     });
 
-    document.getElementById("newWorkoutButton").addEventListener("click", openWorkoutModal);
+    document.getElementById("newWorkoutButton").addEventListener("click", async () => {
+      const user = currentAccount();
+      if (user?.role === "student" && await ensureStudentTrainerId(user)) {
+        showToast(t("Seu personal controla seus treinos."));
+        await window.monolithUpdateWorkoutCreateAccess?.();
+        return;
+      }
+      openWorkoutModal();
+    });
     document.getElementById("factorForm").addEventListener("submit", event => {
       event.preventDefault();
       const nameInput = document.getElementById("factorName");
@@ -7986,9 +8055,9 @@ ${photoSections}
         showToast("Escolha um aluno para salvar o check-in.");
         return;
       }
-      await upsertTodayCheckin(entry);
+      const synced = await upsertTodayCheckin(entry);
       document.getElementById("dailyWeight").value = "";
-      showToast(`${t("Check-in salvo")}: ${entry.completed}/${entry.total} ${t("itens concluídos.")}`);
+      showToast(`${t("Check-in salvo")}: ${entry.completed}/${entry.total} ${t("itens concluídos.")} ${synced ? t("Supabase sincronizado.") : t("Salvo localmente.")}`);
     });
     document.getElementById("bodyMeasureForm").addEventListener("submit", async event => {
       event.preventDefault();
@@ -7997,9 +8066,9 @@ ${photoSections}
         showToast("Preencha pelo menos uma medida física.");
         return;
       }
-      await upsertBodyMeasure(entry);
+      const synced = await upsertBodyMeasure(entry);
       clearBodyMeasureForm();
-      showToast("Medidas corporais salvas.");
+      showToast(synced ? "Medidas corporais salvas no Supabase." : "Medidas corporais salvas.");
     });
     document.getElementById("clearHistoryButton").addEventListener("click", () => {
       localStorage.removeItem("monolith.completedWorkouts");
@@ -8303,6 +8372,7 @@ ${photoSections}
       const formV2 = document.getElementById("workoutForm");
       let workoutsV2 = loadWorkoutsV2();
       let activeWorkoutV2 = workoutsV2[0];
+      let currentWorkoutLinkedTrainerIdV2 = "";
       let restTimersV2 = new Map();
 
       function html(value = "") {
@@ -8439,6 +8509,20 @@ ${photoSections}
         return (data || []).map(workoutFromRemoteV2);
       }
 
+      async function updateWorkoutCreateAccessV2() {
+        const user = currentAccount();
+        currentWorkoutLinkedTrainerIdV2 = "";
+        if (user?.role === "student") {
+          currentWorkoutLinkedTrainerIdV2 = await ensureStudentTrainerId(user);
+        }
+        const button = document.getElementById("newWorkoutButton");
+        if (!button) return;
+        const trainerControlled = user?.role === "student" && Boolean(currentWorkoutLinkedTrainerIdV2);
+        button.hidden = trainerControlled;
+        button.disabled = trainerControlled;
+      }
+      window.monolithUpdateWorkoutCreateAccess = updateWorkoutCreateAccessV2;
+
       async function saveCustomWorkoutV2(workout) {
         const user = currentAccount();
         const localWorkout = normalizeWorkoutV2({ ...workout, ownerId: workout.ownerId || user?.id || "" });
@@ -8480,7 +8564,9 @@ ${photoSections}
       }
 
       async function refreshWorkoutsV2() {
+        await updateWorkoutCreateAccessV2();
         const remote = await loadRemoteWorkoutsV2();
+        await refreshCompletedWorkoutHistoryV2();
         const local = loadWorkoutsV2();
         const merged = [...remote];
         local.forEach(workout => {
@@ -8498,6 +8584,22 @@ ${photoSections}
         renderSessionV2(activeWorkoutV2);
       }
 
+      async function refreshCompletedWorkoutHistoryV2(studentId = "") {
+        const user = currentAccount();
+        const targetStudentId = studentId
+          || (user?.role === "student" ? user.id : selectedWorkoutStudentId())
+          || activeWorkoutV2?.assignedStudentId
+          || "";
+        if (!targetStudentId || !monolithSupabase || !isRealSupabaseAccount(user)) return false;
+        try {
+          await loadRemoteCompletedWorkouts(targetStudentId);
+          return true;
+        } catch (error) {
+          console.warn("Monolith remote completed workout history load failed", error);
+          return false;
+        }
+      }
+
       function workoutsForCurrentUserV2() {
         const user = currentAccount();
         if (!user) return workoutsV2;
@@ -8509,7 +8611,7 @@ ${photoSections}
         }
         if (user.role === "student") {
           return workoutsV2.filter(workout => {
-            if (workout.assignedStudentId === user.id) return true;
+            if (workout.assignedStudentId === user.id) return workout.syncStatus !== "failed";
             if (workout.assignedStudentId) return false;
             return !workout.ownerId || workout.ownerId === user.id;
           });
@@ -8541,12 +8643,14 @@ ${photoSections}
         } catch {}
         completed.unshift(session);
         localStorage.setItem("monolith.completedWorkouts", JSON.stringify(completed.slice(0, 250)));
+        let synced = false;
         try {
-          await saveRemoteCompletedWorkout(session);
+          synced = await saveRemoteCompletedWorkout(session);
         } catch (error) {
           console.warn("Monolith remote completed workout save failed", error);
           toastV2(textV2("Treino salvo localmente. Não consegui sincronizar agora."));
         }
+        return Boolean(synced);
       }
 
       function deleteCustomWorkoutV2(id) {
@@ -8613,12 +8717,17 @@ ${photoSections}
       function renderWorkoutListV2() {
         workoutListV2.innerHTML = "";
         const visibleWorkouts = workoutsForCurrentUserV2();
+        const user = currentAccount();
+        const trainerControlledStudent = user?.role === "student" && Boolean(user.trainerId || currentWorkoutLinkedTrainerIdV2);
         if (!visibleWorkouts.length) {
-          workoutListV2.innerHTML = `<article class="workout"><div><h3>${htmlT("Nenhum treino criado")}</h3><p>${htmlT("Crie seu primeiro treino do zero. No celular, use os modelos rápidos dentro do editor.")}</p></div></article>`;
+          const emptyTitle = trainerControlledStudent ? "Nenhum treino recebido" : "Nenhum treino criado";
+          const emptyCopy = trainerControlledStudent
+            ? "Seu personal ainda não enviou um treino para esta conta."
+            : "Crie seu primeiro treino do zero. No celular, use os modelos rápidos dentro do editor.";
+          workoutListV2.innerHTML = `<article class="workout"><div><h3>${htmlT(emptyTitle)}</h3><p>${htmlT(emptyCopy)}</p></div></article>`;
           return;
         }
         const accounts = loadAccounts();
-        const user = currentAccount();
         visibleWorkouts.forEach(workout => {
           const totalSets = workout.exercises.reduce((total, exercise) => total + exercise.sets.length, 0);
           const assignedStudent = accounts.find(account => account.id === workout.assignedStudentId);
@@ -8634,6 +8743,7 @@ ${photoSections}
                 <span class="pill">${totalSets} ${htmlT("séries")}</span>
                 ${assignedStudent ? `<span class="pill">${htmlT("Aluno")}: ${html(assignedStudent.name)}</span>` : ""}
                 <span class="pill">${htmlT(workout.tag || "Local")}</span>
+                ${workout.syncStatus === "failed" && workout.assignedStudentId ? `<span class="pill">${htmlT("Não enviado ao aluno")}</span>` : ""}
               </div>
             </div>
             <div class="pill-row">
@@ -8960,9 +9070,9 @@ ${photoSections}
         }
         activeWorkoutV2.exercises.forEach((_, index) => completeExerciseV2(index));
         const session = readCompletedSessionV2();
-        await saveCompletedWorkoutV2(session);
+        const synced = await saveCompletedWorkoutV2(session);
         document.getElementById("sessionMeta").textContent = `${textV2("Treino salvo hoje")}: ${session.completedSets}/${session.totalSets} ${textV2("séries")}`;
-        toastV2(textV2("Treino do dia salvo no histórico local."));
+        toastV2(textV2(synced ? "Treino do dia salvo no Supabase." : "Treino do dia salvo no histórico local."));
         showScreen("stats");
       }
 
@@ -8989,10 +9099,15 @@ ${photoSections}
         document.getElementById("workoutModal").classList.remove("active");
         formV2.reset();
         resetBuilderV2();
-        if (workout.syncStatus === "failed" && workout.assignedStudentId) {
+        const trainerAssignment = currentAccount()?.role === "personal" && workout.assignedStudentId;
+        if (workout.syncStatus === "failed" && trainerAssignment) {
           toastV2(textV2("Treino ficou só neste aparelho. Não chegou ao aluno."));
-        } else if (workout.syncStatus === "synced" && workout.assignedStudentId) {
+        } else if (workout.syncStatus === "failed") {
+          toastV2(textV2("Treino salvo localmente. Não consegui sincronizar agora."));
+        } else if (workout.syncStatus === "synced" && trainerAssignment) {
           toastV2(textV2("Treino enviado para o aluno."));
+        } else if (workout.syncStatus === "synced") {
+          toastV2(textV2("Treino salvo no Supabase."));
         } else {
           toastV2(textV2("Treino criado com exercícios, séries, peso e técnicas."));
         }
@@ -9001,7 +9116,7 @@ ${photoSections}
       document.getElementById("finishExercise").addEventListener("click", finishWorkoutV2, true);
       document.getElementById("addExerciseButton").addEventListener("click", () => addExerciseEditorV2());
 
-      document.addEventListener("click", event => {
+      document.addEventListener("click", async event => {
         const open = event.target.closest(".open-workout-session-v2");
         if (open) {
           const visibleWorkouts = workoutsForCurrentUserV2();
@@ -9011,6 +9126,7 @@ ${photoSections}
             showScreen("workouts");
             return;
           }
+          await refreshCompletedWorkoutHistoryV2(workout.assignedStudentId || currentAccount()?.id || "");
           renderSessionV2(workout);
           showScreen("session");
         }
@@ -9108,11 +9224,7 @@ ${photoSections}
         }
       });
 
-      window.monolithRefreshWorkoutView = () => {
-        renderWorkoutListV2();
-        activeWorkoutV2 = workoutsForCurrentUserV2()[0] || null;
-        renderSessionV2(activeWorkoutV2);
-      };
+      window.monolithRefreshWorkoutView = refreshWorkoutsV2;
 
       renderWorkoutListV2();
       renderSessionV2(workoutsForCurrentUserV2()[0] || null);
