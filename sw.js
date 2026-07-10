@@ -1,4 +1,4 @@
-const CACHE_NAME = "monolith-v63-invite-fallback";
+const CACHE_NAME = "monolith-v64-login-error-link-dashboard";
 
 self.addEventListener("install", event => {
   self.skipWaiting();
