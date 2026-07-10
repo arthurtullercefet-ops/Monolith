@@ -14,7 +14,7 @@
   <link rel="manifest" href="manifest.webmanifest" />
   <link rel="icon" href="monolith-icon.svg" />
   <script>
-    window.MONOLITH_BUILD = "monolith-v64-login-error-link-dashboard";
+    window.MONOLITH_BUILD = "monolith-v65-supabase-memory-storage";
     (function clearOldAppCaches() {
       if ("serviceWorker" in navigator) {
         navigator.serviceWorker.getRegistrations?.()
@@ -26,6 +26,70 @@
           .then(keys => Promise.all(keys.filter(key => key.startsWith("monolith-")).map(key => caches.delete(key))))
           .catch(() => {});
       }
+    })();
+    (function protectProductionStorage() {
+      const heavyKeys = new Set([
+        "monolith.checkins",
+        "monolith.bodyMeasures",
+        "monolith.completedWorkouts",
+        "monolith.progressPhotos",
+        "monolith.workouts",
+        "monolith.dietPlans",
+        "monolith.foodLogs",
+        "monolith.studentFactors",
+        "monolith.trainerMapProfiles",
+        "monolith.trainerPublicProfiles",
+        "monolith.deletedLibraryWorkouts"
+      ]);
+      const memoryStore = window.monolithMemoryStore = window.monolithMemoryStore || {};
+      const originalGet = Storage.prototype.getItem;
+      const originalSet = Storage.prototype.setItem;
+      const originalRemove = Storage.prototype.removeItem;
+
+      function parseJSON(value, fallback) {
+        try { return JSON.parse(value); } catch { return fallback; }
+      }
+
+      function realSupabaseSessionActive() {
+        const sessionId = originalGet.call(localStorage, "monolith.sessionUserId");
+        if (!sessionId || sessionId === "aluno-demo" || sessionId === "personal-demo") return false;
+        const accounts = parseJSON(originalGet.call(localStorage, "monolith.accounts") || "[]", []);
+        const account = accounts.find(item => item?.id === sessionId);
+        if (account?.source === "supabase") return true;
+        return /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(sessionId);
+      }
+
+      function shouldUseMemory(key) {
+        return heavyKeys.has(String(key)) && realSupabaseSessionActive();
+      }
+
+      Storage.prototype.getItem = function patchedGetItem(key) {
+        if (this === localStorage && Object.prototype.hasOwnProperty.call(memoryStore, key)) {
+          return memoryStore[key];
+        }
+        return originalGet.call(this, key);
+      };
+
+      Storage.prototype.setItem = function patchedSetItem(key, value) {
+        if (this === localStorage && shouldUseMemory(key)) {
+          memoryStore[key] = String(value);
+          originalRemove.call(this, key);
+          return;
+        }
+        return originalSet.call(this, key, value);
+      };
+
+      Storage.prototype.removeItem = function patchedRemoveItem(key) {
+        if (this === localStorage) delete memoryStore[key];
+        return originalRemove.call(this, key);
+      };
+
+      window.monolithTrimLocalStorage = function monolithTrimLocalStorage() {
+        heavyKeys.forEach(key => originalRemove.call(localStorage, key));
+        return heavyKeys.size;
+      };
+
+      if (realSupabaseSessionActive()) window.monolithTrimLocalStorage();
     })();
   </script>
   <style>
@@ -2127,7 +2191,7 @@
           <button class="action" id="loginButton" type="button">Entrar</button>
           <div class="auth-tools">
             <button class="auth-secondary" id="clearDeviceSessionButton" type="button">Limpar sessão/cache deste aparelho</button>
-            <div class="build-version" id="buildVersionLabel">Versão do app: monolith-v64-login-error-link-dashboard</div>
+            <div class="build-version" id="buildVersionLabel">Versão do app: monolith-v65-supabase-memory-storage</div>
           </div>
         </form>
       </div>
@@ -3094,7 +3158,7 @@
   <script>
     const MONOLITH_SUPABASE_URL = "https://jhxasnxuvmkhntbwepau.supabase.co";
     const MONOLITH_SUPABASE_KEY = "sb_publishable_lDtAXIOtkMwgwsAZyghBdg_gyLHGwpH";
-    const MONOLITH_BUILD = window.MONOLITH_BUILD || "monolith-v64-login-error-link-dashboard";
+    const MONOLITH_BUILD = window.MONOLITH_BUILD || "monolith-v65-supabase-memory-storage";
     const monolithSupabase = window.supabase?.createClient?.(MONOLITH_SUPABASE_URL, MONOLITH_SUPABASE_KEY) || null;
 
     (() => {
@@ -3341,6 +3405,7 @@
       const accounts = loadAccounts();
       saveAccounts([account, ...accounts.filter(item => item.id !== account.id)]);
       localStorage.setItem("monolith.sessionUserId", account.id);
+      window.monolithTrimLocalStorage?.();
       return account;
     }
 
@@ -3527,6 +3592,7 @@
       } catch {}
       try {
         clearAuthSessionOnly();
+        window.monolithTrimLocalStorage?.();
         localStorage.removeItem("monolith.trainerProfileRequired");
         sessionStorage.clear();
       } catch {}
@@ -4171,6 +4237,7 @@
       const invitePanel = document.getElementById("inviteCodePanel");
       if (invitePanel && (!user || user.role !== "personal")) invitePanel.hidden = true;
       if (user) {
+        if (user.source === "supabase") window.monolithTrimLocalStorage?.();
         const sessionName = document.getElementById("sessionName");
         const sessionRole = document.getElementById("sessionRole");
         if (sessionName) sessionName.textContent = user.name;

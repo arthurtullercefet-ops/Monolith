@@ -1,4 +1,4 @@
-const CACHE_NAME = "monolith-v64-login-error-link-dashboard";
+const CACHE_NAME = "monolith-v65-supabase-memory-storage";
 
 self.addEventListener("install", event => {
   self.skipWaiting();

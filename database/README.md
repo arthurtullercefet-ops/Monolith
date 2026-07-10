@@ -30,7 +30,11 @@ Official docs:
    This lets linked trainers edit student check-in factors and save daily check-ins for students.
 8. Paste and run `monolith-production-step-05-linked-scope.sql`.
    This tightens production scope: trainers can assign workouts/diets only to linked students, and food diaries stay private to students.
-9. Confirm these tables exist:
+9. Paste and run `monolith-production-step-06-invite-repair.sql`.
+   This repairs trainer invite code creation/acceptance.
+10. Paste and run `monolith-production-step-07-production-data-bridge.sql`.
+   This confirms the production tables, keeps the photo bucket private, reapplies key production policies and adds report indexes.
+11. Confirm these tables exist:
    - `profiles`
    - `trainer_students`
    - `trainer_invites`
@@ -47,28 +51,23 @@ Official docs:
    - `subscriptions`
    - `influencer_codes`
    - `referral_attributions`
-10. Confirm these functions exist:
+12. Confirm these functions exist:
    - `create_trainer_invite`
    - `accept_trainer_invite`
    - `accept_influencer_code`
-11. Confirm Storage has a private bucket called `progress-photos`.
+13. Confirm Storage has a private bucket called `progress-photos`.
 
 ## Step 2: connect the frontend
 
-The current app is still local-first and uses `localStorage`.
+The production frontend uses Supabase for real accounts. Demo/local accounts remain only as a development fallback.
 
-Next implementation pass:
-
-1. Add Supabase client config.
-2. Replace local demo login with Supabase Auth.
-3. Keep demo mode as fallback for development.
-4. Migrate each localStorage group to a table:
+For real Supabase users, large datasets are not kept permanently in `localStorage`; they are loaded from Supabase and held in memory during the browser session.
 
 | Current local key | Database table |
 | --- | --- |
 | `monolith.accounts` | `profiles` plus Supabase Auth |
 | `monolith.factors` | `checkin_factors` |
-| `monolith.studentFactors` | local cache of `checkin_factors` per student |
+| `monolith.studentFactors` | memory cache of `checkin_factors` per student |
 | `monolith.checkins` | `daily_checkins` |
 | `monolith.bodyMeasures` | `body_measurements` |
 | `monolith.workouts` | `workout_templates` |
