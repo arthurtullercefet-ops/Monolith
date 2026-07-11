@@ -1,4 +1,4 @@
-const CACHE_NAME = "monolith-v65-supabase-memory-storage";
+const CACHE_NAME = "monolith-v69-permission-scope";
 
 self.addEventListener("install", event => {
   self.skipWaiting();

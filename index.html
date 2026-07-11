@@ -14,7 +14,7 @@
   <link rel="manifest" href="manifest.webmanifest" />
   <link rel="icon" href="monolith-icon.svg" />
   <script>
-    window.MONOLITH_BUILD = "monolith-v65-supabase-memory-storage";
+    window.MONOLITH_BUILD = "monolith-v69-permission-scope";
     (function clearOldAppCaches() {
       if ("serviceWorker" in navigator) {
         navigator.serviceWorker.getRegistrations?.()
@@ -39,34 +39,67 @@
         "monolith.studentFactors",
         "monolith.trainerMapProfiles",
         "monolith.trainerPublicProfiles",
-        "monolith.deletedLibraryWorkouts"
+        "monolith.deletedLibraryWorkouts",
+        "monolith.factors"
+      ]);
+      const sessionOnlyKeys = new Set([
+        "monolith.accounts",
+        "monolith.sessionUserId",
+        "monolith.selectedStudentId",
+        "monolith.selectedDietStudentId",
+        "monolith.selectedWorkoutStudentId",
+        "monolith.selectedCheckinStudentId",
+        "monolith.trainerProfileRequired"
       ]);
       const memoryStore = window.monolithMemoryStore = window.monolithMemoryStore || {};
       const originalGet = Storage.prototype.getItem;
       const originalSet = Storage.prototype.setItem;
       const originalRemove = Storage.prototype.removeItem;
 
-      function parseJSON(value, fallback) {
-        try { return JSON.parse(value); } catch { return fallback; }
+      function safeSessionGet(key) {
+        try { return originalGet.call(sessionStorage, key); } catch { return null; }
       }
 
-      function realSupabaseSessionActive() {
-        const sessionId = originalGet.call(localStorage, "monolith.sessionUserId");
-        if (!sessionId || sessionId === "aluno-demo" || sessionId === "personal-demo") return false;
-        const accounts = parseJSON(originalGet.call(localStorage, "monolith.accounts") || "[]", []);
-        const account = accounts.find(item => item?.id === sessionId);
-        if (account?.source === "supabase") return true;
-        return /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(sessionId);
+      function safeSessionSet(key, value) {
+        try { originalSet.call(sessionStorage, key, String(value)); } catch {}
+      }
+
+      function safeSessionRemove(key) {
+        try { originalRemove.call(sessionStorage, key); } catch {}
+      }
+
+      function isSessionOnlyKey(key) {
+        const safeKey = String(key);
+        return sessionOnlyKeys.has(safeKey)
+          || safeKey.startsWith("monolith.pendingTrainerInvite:")
+          || safeKey.startsWith("monolith.pendingInfluencerCode:")
+          || safeKey.startsWith("sb-jhxasnxuvmkhntbwepau")
+          || safeKey === "supabase.auth.token"
+          || safeKey === "monolith.supabase.session";
       }
 
       function shouldUseMemory(key) {
-        return heavyKeys.has(String(key)) && realSupabaseSessionActive();
+        return heavyKeys.has(String(key));
+      }
+
+      function purgePersistentAppStorage() {
+        try {
+          const keep = new Set(["monolith.language", "monolith.weightUnit"]);
+          for (let index = localStorage.length - 1; index >= 0; index -= 1) {
+            const key = localStorage.key(index);
+            if (!key) continue;
+            if (key.startsWith("monolith.") && !keep.has(key)) originalRemove.call(localStorage, key);
+            if (key.startsWith("sb-jhxasnxuvmkhntbwepau") || key === "supabase.auth.token") originalRemove.call(localStorage, key);
+          }
+        } catch {}
       }
 
       Storage.prototype.getItem = function patchedGetItem(key) {
         if (this === localStorage && Object.prototype.hasOwnProperty.call(memoryStore, key)) {
           return memoryStore[key];
         }
+        if (this === localStorage && shouldUseMemory(key)) return null;
+        if (this === localStorage && isSessionOnlyKey(key)) return safeSessionGet(String(key));
         return originalGet.call(this, key);
       };
 
@@ -76,20 +109,30 @@
           originalRemove.call(this, key);
           return;
         }
+        if (this === localStorage && isSessionOnlyKey(key)) {
+          safeSessionSet(String(key), value);
+          originalRemove.call(this, key);
+          return;
+        }
         return originalSet.call(this, key, value);
       };
 
       Storage.prototype.removeItem = function patchedRemoveItem(key) {
         if (this === localStorage) delete memoryStore[key];
+        if (this === localStorage && isSessionOnlyKey(key)) safeSessionRemove(String(key));
         return originalRemove.call(this, key);
       };
 
       window.monolithTrimLocalStorage = function monolithTrimLocalStorage() {
-        heavyKeys.forEach(key => originalRemove.call(localStorage, key));
-        return heavyKeys.size;
+        heavyKeys.forEach(key => {
+          delete memoryStore[key];
+          originalRemove.call(localStorage, key);
+        });
+        purgePersistentAppStorage();
+        return heavyKeys.size + sessionOnlyKeys.size;
       };
 
-      if (realSupabaseSessionActive()) window.monolithTrimLocalStorage();
+      purgePersistentAppStorage();
     })();
   </script>
   <style>
@@ -107,6 +150,10 @@
     }
 
     * { box-sizing: border-box; }
+
+    [hidden] {
+      display: none !important;
+    }
 
     body {
       margin: 0;
@@ -528,8 +575,8 @@
     }
 
     .mark {
-      width: 38px;
-      height: 38px;
+      width: 42px;
+      height: 42px;
       display: grid;
       place-items: center;
       border: 1px solid var(--gold);
@@ -540,14 +587,14 @@
 
     .brand h1 {
       margin: 0;
-      font-size: 19px;
+      font-size: 21px;
       line-height: 1;
       letter-spacing: 2px;
     }
 
     .brand p {
       margin: 4px 0 0;
-      font-size: 11px;
+      font-size: 12px;
       color: var(--muted);
     }
 
@@ -558,7 +605,7 @@
 
     .nav-btn {
       width: 100%;
-      min-height: 44px;
+      min-height: 48px;
       border: 1px solid transparent;
       background: transparent;
       color: var(--muted);
@@ -571,9 +618,19 @@
     }
 
     .nav-btn svg {
-      width: 18px;
-      height: 18px;
+      width: 22px;
+      height: 22px;
       flex: 0 0 auto;
+    }
+
+    body.auth-role-student #nutritionPersonalPanel,
+    body.auth-role-student #dietPlanForm,
+    body.auth-role-student #workoutStudentField,
+    body.auth-role-student #checkinStudentPanel,
+    body.auth-role-student #statsStudentPanel,
+    body.auth-role-personal #nutritionStudentPanel,
+    body.auth-role-personal #trainerLinkPanel {
+      display: none !important;
     }
 
     .nav-btn.active,
@@ -1831,6 +1888,11 @@
         padding: 0 8px;
       }
 
+      .nav-btn svg {
+        width: 25px;
+        height: 25px;
+      }
+
       .nav-btn span {
         display: none;
       }
@@ -1933,6 +1995,11 @@
 
       nav {
         grid-template-columns: repeat(2, 1fr);
+      }
+
+      .nav-btn svg {
+        width: 28px;
+        height: 28px;
       }
 
       .brand {
@@ -2191,7 +2258,7 @@
           <button class="action" id="loginButton" type="button">Entrar</button>
           <div class="auth-tools">
             <button class="auth-secondary" id="clearDeviceSessionButton" type="button">Limpar sessão/cache deste aparelho</button>
-            <div class="build-version" id="buildVersionLabel">Versão do app: monolith-v65-supabase-memory-storage</div>
+            <div class="build-version" id="buildVersionLabel">Versão do app: monolith-v69-permission-scope</div>
           </div>
         </form>
       </div>
@@ -2342,6 +2409,7 @@
         Array.prototype.forEach.call(document.querySelectorAll(".nav-btn"), function (button) {
           button.classList.toggle("active", button.getAttribute("data-screen") === id);
         });
+        if (id === "nutrition" && typeof renderNutrition === "function") renderNutrition();
         window.scrollTo(0, 0);
       }
 
@@ -2360,6 +2428,8 @@
           notice.textContent = "";
         }
         document.body.classList.add("authenticated");
+        document.body.classList.toggle("auth-role-student", account.role === "student");
+        document.body.classList.toggle("auth-role-personal", account.role === "personal");
         Array.prototype.forEach.call(document.querySelectorAll("[data-role-only]"), function (element) {
           element.hidden = element.getAttribute("data-role-only") !== account.role;
         });
@@ -2688,7 +2758,7 @@
           </div>
         </div>
 
-        <div class="nutrition-layout" id="nutritionPersonalPanel">
+        <div class="nutrition-layout" id="nutritionPersonalPanel" data-role-only="personal" hidden>
           <div class="panel">
             <div class="section-title"><h3>Prescrição do personal</h3><span>1 a 10 refeições</span></div>
             <form id="dietPlanForm">
@@ -2726,7 +2796,7 @@
           </div>
         </div>
 
-        <div class="grid stats-layout" id="nutritionStudentPanel">
+        <div class="grid stats-layout" id="nutritionStudentPanel" data-role-only="student" hidden>
           <div class="panel">
             <div class="section-title"><h3>Dieta do mês</h3><span>Somente leitura</span></div>
             <div class="locked-note" id="studentDietNote">Seu personal define esta dieta. Você pode visualizar, mas não redesenhar.</div>
@@ -3158,8 +3228,16 @@
   <script>
     const MONOLITH_SUPABASE_URL = "https://jhxasnxuvmkhntbwepau.supabase.co";
     const MONOLITH_SUPABASE_KEY = "sb_publishable_lDtAXIOtkMwgwsAZyghBdg_gyLHGwpH";
-    const MONOLITH_BUILD = window.MONOLITH_BUILD || "monolith-v65-supabase-memory-storage";
-    const monolithSupabase = window.supabase?.createClient?.(MONOLITH_SUPABASE_URL, MONOLITH_SUPABASE_KEY) || null;
+    const MONOLITH_BUILD = window.MONOLITH_BUILD || "monolith-v69-permission-scope";
+    const monolithSupabase = window.supabase?.createClient?.(MONOLITH_SUPABASE_URL, MONOLITH_SUPABASE_KEY, {
+      auth: {
+        storage: window.sessionStorage,
+        storageKey: "monolith.supabase.session",
+        persistSession: true,
+        autoRefreshToken: true,
+        detectSessionInUrl: true
+      }
+    }) || null;
 
     (() => {
       if (window.monolithEmergencyClickFallback) return;
@@ -3246,6 +3324,8 @@
         document.getElementById("loginEmail").value = account.email;
         document.getElementById("loginPassword").value = "123456";
         document.body.classList.add("authenticated");
+        document.body.classList.toggle("auth-role-student", account.role === "student");
+        document.body.classList.toggle("auth-role-personal", account.role === "personal");
         document.querySelectorAll("[data-role-only]").forEach(element => {
           element.hidden = element.dataset.roleOnly !== account.role;
         });
@@ -3359,7 +3439,8 @@
     }
 
     function saveFactorsForActiveTarget(nextFactors = factors) {
-      const targetStudentId = selectedCheckinStudentId() || currentAccount()?.id;
+      const targetStudentId = selectedCheckinStudentId();
+      if (!targetStudentId || !canAccessStudentData(targetStudentId)) return;
       if (targetStudentId) cacheStudentFactors(targetStudentId, nextFactors);
       if (!targetStudentId || targetStudentId === currentAccount()?.id) saveFactors(nextFactors);
     }
@@ -3582,6 +3663,10 @@
           .filter(key => key.startsWith("sb-jhxasnxuvmkhntbwepau") || key === "supabase.auth.token")
           .forEach(key => localStorage.removeItem(key));
         sessionStorage.removeItem("monolith.sessionUserId");
+        sessionStorage.removeItem("monolith.supabase.session");
+        Object.keys(sessionStorage)
+          .filter(key => key.startsWith("sb-jhxasnxuvmkhntbwepau") || key === "supabase.auth.token")
+          .forEach(key => sessionStorage.removeItem(key));
       } catch {}
     }
 
@@ -4227,9 +4312,12 @@
     function applyAuthState() {
       const user = currentAccount();
       document.body.classList.toggle("authenticated", Boolean(user));
+      document.body.classList.toggle("auth-role-student", user?.role === "student");
+      document.body.classList.toggle("auth-role-personal", user?.role === "personal");
       if (!user) {
         trainerProfileOnboardingRequired = false;
         window.monolithTrainerProfileRequired = false;
+        document.body.classList.remove("auth-role-student", "auth-role-personal");
       }
       document.querySelectorAll("[data-role-only]").forEach(element => {
         element.hidden = !user || element.dataset.roleOnly !== user.role;
@@ -4673,16 +4761,76 @@
         .sort((a, b) => a.name.localeCompare(b.name, undefined, { sensitivity: "base" }));
     }
 
+    function linkedStudentIdsForPersonal(personalId = currentAccount()?.id) {
+      return new Set(studentsForPersonal(personalId).map(student => student.id));
+    }
+
+    function isLinkedStudentForPersonal(studentId, personal = currentAccount()) {
+      return Boolean(personal?.role === "personal" && studentId && linkedStudentIdsForPersonal(personal.id).has(studentId));
+    }
+
+    function clearSelectedStudentScope() {
+      [
+        "monolith.selectedStudentId",
+        "monolith.selectedDietStudentId",
+        "monolith.selectedWorkoutStudentId",
+        "monolith.selectedCheckinStudentId"
+      ].forEach(key => localStorage.removeItem(key));
+    }
+
+    function canAccessStudentData(studentId, options = {}) {
+      const user = currentAccount();
+      if (!user || !studentId) return false;
+      if (user.role === "student") return studentId === user.id;
+      if (user.role === "personal") {
+        if (options.allowPersonalSelf && studentId === user.id) return true;
+        return isLinkedStudentForPersonal(studentId, user);
+      }
+      return false;
+    }
+
+    function scopedStudentId(preferredId = "", options = {}) {
+      const user = currentAccount();
+      if (!user) return "";
+      if (user.role === "student") return user.id;
+      if (user.role !== "personal") return "";
+      if (preferredId && canAccessStudentData(preferredId, options)) return preferredId;
+      const fallback = studentsForPersonal(user.id)[0]?.id || "";
+      if (fallback) return fallback;
+      return options.allowPersonalSelf ? user.id : "";
+    }
+
     function selectedStudentForPersonal() {
-      return localStorage.getItem("monolith.selectedStudentId")
-        || localStorage.getItem("monolith.selectedDietStudentId")
-        || localStorage.getItem("monolith.selectedWorkoutStudentId")
-        || studentsForPersonal(currentAccount()?.id)[0]?.id
-        || "";
+      const user = currentAccount();
+      if (!user) return "";
+      if (user.role !== "personal") return user.id;
+      const candidates = [
+        document.getElementById("statsStudent")?.value,
+        document.getElementById("dietStudent")?.value,
+        document.getElementById("checkinStudent")?.value,
+        localStorage.getItem("monolith.selectedStudentId"),
+        localStorage.getItem("monolith.selectedDietStudentId"),
+        localStorage.getItem("monolith.selectedWorkoutStudentId"),
+        localStorage.getItem("monolith.selectedCheckinStudentId")
+      ].filter(Boolean);
+      const selected = candidates.find(studentId => isLinkedStudentForPersonal(studentId, user));
+      const fallback = studentsForPersonal(user.id)[0]?.id || "";
+      if (selected) {
+        setSelectedStudentForPersonal(selected);
+        return selected;
+      }
+      clearSelectedStudentScope();
+      if (fallback) setSelectedStudentForPersonal(fallback);
+      return fallback;
     }
 
     function setSelectedStudentForPersonal(studentId) {
-      if (!studentId) return;
+      const user = currentAccount();
+      if (!studentId || !user || user.role !== "personal") return;
+      if (!isLinkedStudentForPersonal(studentId, user)) {
+        clearSelectedStudentScope();
+        return;
+      }
       localStorage.setItem("monolith.selectedStudentId", studentId);
       localStorage.setItem("monolith.selectedDietStudentId", studentId);
       localStorage.setItem("monolith.selectedWorkoutStudentId", studentId);
@@ -4693,14 +4841,15 @@
       const user = currentAccount();
       if (!user) return "";
       if (user.role !== "personal") return user.id;
-      return document.getElementById("checkinStudent")?.value
+      const selected = document.getElementById("checkinStudent")?.value
         || localStorage.getItem("monolith.selectedCheckinStudentId")
         || selectedStudentForPersonal()
         || "";
+      return scopedStudentId(selected);
     }
 
     function setSelectedCheckinStudentForPersonal(studentId) {
-      if (!studentId) return;
+      if (!studentId || !isLinkedStudentForPersonal(studentId)) return;
       localStorage.setItem("monolith.selectedCheckinStudentId", studentId);
       localStorage.setItem("monolith.selectedStudentId", studentId);
       localStorage.setItem("monolith.selectedDietStudentId", studentId);
@@ -4719,14 +4868,15 @@
     }
 
     function selectedDietStudentId() {
-      const fallback = isRealSupabaseAccount(currentAccount()) ? "" : "aluno-demo";
-      return document.getElementById("dietStudent")?.value || selectedStudentForPersonal() || fallback;
+      const user = currentAccount();
+      if (user?.role === "student") return user.id;
+      return scopedStudentId(document.getElementById("dietStudent")?.value || selectedStudentForPersonal());
     }
 
     function activeDataStudentId(student = null) {
-      if (student?.id) return student.id;
       const user = currentAccount();
       if (!user) return "";
+      if (student?.id) return canAccessStudentData(student.id) ? student.id : (user.role === "student" ? user.id : selectedStudentForPersonal());
       return user.role === "personal" ? selectedStudentForPersonal() : user.id;
     }
 
@@ -4868,7 +5018,7 @@
       };
     }
 
-    function factorRowFromFactor(factor, index = 0, studentId = selectedCheckinStudentId() || currentAccount()?.id || "") {
+    function factorRowFromFactor(factor, index = 0, studentId = selectedCheckinStudentId() || "") {
       return {
         student_id: studentId,
         factor_key: factor.id,
@@ -4883,6 +5033,7 @@
 
     async function loadRemoteCheckins(studentId = activeDataStudentId()) {
       if (!monolithSupabase || !studentId || !isRealSupabaseAccount(currentAccount())) return [];
+      if (!canAccessStudentData(studentId)) return [];
       const { data, error } = await monolithSupabase
         .from("daily_checkins")
         .select("id,student_id,checkin_date,weight_kg,score,completed,total,items,created_at,updated_at")
@@ -4899,7 +5050,7 @@
       const user = currentAccount();
       const targetStudentId = entry.studentId || user?.id || "";
       if (!monolithSupabase || !isRealSupabaseAccount(user) || !targetStudentId) return false;
-      if (user.role !== "student" && user.role !== "personal") return false;
+      if (!canAccessStudentData(targetStudentId)) return false;
       const payload = {
         student_id: targetStudentId,
         checkin_date: entry.date,
@@ -4916,6 +5067,7 @@
 
     async function loadRemoteFactors(account = currentAccount()) {
       if (!monolithSupabase || !account || !isRealSupabaseAccount(account)) return [];
+      if (!canAccessStudentData(account.id)) return [];
       const { data, error } = await monolithSupabase
         .from("checkin_factors")
         .select("id,student_id,factor_key,group_name,name,active,positive,sort_order,archived,created_at,updated_at")
@@ -4945,6 +5097,7 @@
     async function saveRemoteFactors(nextFactors = factors, studentId = selectedCheckinStudentId() || currentAccount()?.id) {
       const account = currentAccount();
       if (!monolithSupabase || !account || !isRealSupabaseAccount(account) || !studentId) return false;
+      if (!canAccessStudentData(studentId)) return false;
       const rows = nextFactors
         .map((factor, index) => factorRowFromFactor(factor, index, studentId))
         .filter(row => row.student_id && row.factor_key);
@@ -4960,6 +5113,7 @@
     async function deleteRemoteFactor(factorId, studentId = selectedCheckinStudentId() || currentAccount()?.id) {
       const account = currentAccount();
       if (!monolithSupabase || !account || !isRealSupabaseAccount(account) || !factorId || !studentId) return false;
+      if (!canAccessStudentData(studentId)) return false;
       const { error } = await monolithSupabase
         .from("checkin_factors")
         .delete()
@@ -4980,6 +5134,7 @@
 
     async function loadRemoteBodyMeasures(studentId = activeDataStudentId()) {
       if (!monolithSupabase || !studentId || !isRealSupabaseAccount(currentAccount())) return [];
+      if (!canAccessStudentData(studentId)) return [];
       const { data, error } = await monolithSupabase
         .from("body_measurements")
         .select("id,student_id,measurement_date,weight_kg,body_fat_percent,waist_cm,chest_cm,arm_cm,leg_cm,hip_cm,notes,created_at")
@@ -5014,6 +5169,7 @@
 
     async function loadRemoteCompletedWorkouts(studentId = activeDataStudentId()) {
       if (!monolithSupabase || !studentId || !isRealSupabaseAccount(currentAccount())) return [];
+      if (!canAccessStudentData(studentId)) return [];
       const { data, error } = await monolithSupabase
         .from("completed_workouts")
         .select("id,student_id,workout_template_id,workout_name,completed_at,completed_exercises,total_exercises,completed_sets,total_sets,exercises,created_at")
@@ -5047,6 +5203,7 @@
 
     async function loadRemoteProgressPhotos(studentId = activeDataStudentId()) {
       if (!monolithSupabase || !studentId || !isRealSupabaseAccount(currentAccount())) return {};
+      if (!canAccessStudentData(studentId)) return {};
       const { data, error } = await monolithSupabase
         .from("progress_photos")
         .select("id,student_id,photo_month,angle,storage_path,created_at")
@@ -5094,6 +5251,7 @@
 
     async function loadRemoteDietPlan(studentId, month = currentMonthKey()) {
       if (!monolithSupabase || !studentId || !month || !isRealSupabaseAccount(currentAccount())) return null;
+      if (!canAccessStudentData(studentId)) return null;
       const { data, error } = await monolithSupabase
         .from("diet_plans")
         .select("id,trainer_id,student_id,month_key,calories,protein,carbs,fat,meals,created_at,updated_at")
@@ -5110,6 +5268,7 @@
     async function saveRemoteDietPlan(plan) {
       const user = currentAccount();
       if (!monolithSupabase || !isRealSupabaseAccount(user) || user.role !== "personal") return false;
+      if (!canAccessStudentData(plan.studentId)) return false;
       const payload = {
         trainer_id: user.id,
         student_id: plan.studentId,
@@ -5132,6 +5291,7 @@
 
     async function loadRemoteFoodLogs(studentId, limit = 90) {
       if (!monolithSupabase || !studentId || !isRealSupabaseAccount(currentAccount())) return [];
+      if (currentAccount()?.role !== "student" || studentId !== currentAccount()?.id) return [];
       const { data, error } = await monolithSupabase
         .from("food_logs")
         .select("id,student_id,log_date,note,meals,created_at,updated_at")
@@ -5183,6 +5343,7 @@
     }
 
     function activeDietForStudent(studentId, month = currentMonthKey()) {
+      if (!canAccessStudentData(studentId)) return null;
       return loadDietPlans()[dietPlanKey(studentId, month)] || null;
     }
 
@@ -5308,15 +5469,23 @@
       const foodDate = document.getElementById("foodLogDate");
       if (monthInput && !monthInput.value) monthInput.value = currentMonthKey();
       if (foodDate && !foodDate.value) foodDate.value = todayKey();
-      personalPanel.hidden = user.role !== "personal";
-      studentPanel.hidden = user.role === "personal";
-      if (user.role === "personal") {
+      const isPersonal = user.role === "personal";
+      personalPanel.hidden = !isPersonal;
+      studentPanel.hidden = isPersonal;
+      personalPanel.style.display = isPersonal ? "" : "none";
+      studentPanel.style.display = isPersonal ? "none" : "";
+      if (!isPersonal) {
         const select = document.getElementById("dietStudent");
-        const previousStudentId = select.value || selectedStudentForPersonal();
+        if (select) select.innerHTML = "";
+      }
+      if (isPersonal) {
+        const select = document.getElementById("dietStudent");
         const students = await ensureLinkedStudentsForPersonal(user.id);
+        const previousStudentId = scopedStudentId(select.value || selectedStudentForPersonal());
         select.innerHTML = students.map(student => `<option value="${escapeHTML(student.id)}">${escapeHTML(student.name)} - ${escapeHTML(student.email)}</option>`).join("");
         if (students.some(student => student.id === previousStudentId)) select.value = previousStudentId;
         else if (students[0]) select.value = students[0].id;
+        else select.value = "";
         if (select.value) setSelectedStudentForPersonal(select.value);
         const dietStudentId = selectedDietStudentId();
         const dietMonth = monthInput.value || currentMonthKey();
@@ -6917,18 +7086,31 @@
     const selfWorkoutTarget = "__self__";
 
     function selectedWorkoutTarget() {
-      return document.getElementById("workoutStudent")?.value
+      const user = currentAccount();
+      if (!user) return selfWorkoutTarget;
+      if (user.role !== "personal") return user.id;
+      const target = document.getElementById("workoutStudent")?.value
         || localStorage.getItem("monolith.selectedWorkoutStudentId")
         || selfWorkoutTarget;
+      if (target === selfWorkoutTarget) return selfWorkoutTarget;
+      return isLinkedStudentForPersonal(target, user) ? target : selfWorkoutTarget;
     }
 
     function selectedWorkoutStudentId() {
+      const user = currentAccount();
+      if (user?.role === "student") return user.id;
       const target = selectedWorkoutTarget();
       return target === selfWorkoutTarget ? "" : target;
     }
 
     function setSelectedWorkoutTarget(target) {
+      const user = currentAccount();
+      if (!user || user.role !== "personal") return;
       const safeTarget = target || selfWorkoutTarget;
+      if (safeTarget !== selfWorkoutTarget && !isLinkedStudentForPersonal(safeTarget, user)) {
+        localStorage.setItem("monolith.selectedWorkoutStudentId", selfWorkoutTarget);
+        return;
+      }
       localStorage.setItem("monolith.selectedWorkoutStudentId", safeTarget);
       if (safeTarget !== selfWorkoutTarget) setSelectedStudentForPersonal(safeTarget);
     }
@@ -6944,11 +7126,12 @@
         return;
       }
       const students = await ensureLinkedStudentsForPersonal(user.id);
-      const preferredStudentId = localStorage.getItem("monolith.selectedStudentId")
+      const preferredStudentId = scopedStudentId(localStorage.getItem("monolith.selectedStudentId")
         || localStorage.getItem("monolith.selectedDietStudentId")
         || students[0]?.id
-        || "";
+        || "");
       let previousTarget = select.value || localStorage.getItem("monolith.selectedWorkoutStudentId") || preferredStudentId || selfWorkoutTarget;
+      if (previousTarget !== selfWorkoutTarget && !students.some(student => student.id === previousTarget)) previousTarget = preferredStudentId || selfWorkoutTarget;
       if (students.length && previousTarget === selfWorkoutTarget) previousTarget = preferredStudentId || students[0].id;
       select.innerHTML = `<option value="${selfWorkoutTarget}">${escapeHTML(t("Meu próprio treino"))}</option>` + students.map(student => `<option value="${escapeHTML(student.id)}">${escapeHTML(student.name)} - ${escapeHTML(student.email)}</option>`).join("");
       if (previousTarget === selfWorkoutTarget || students.some(student => student.id === previousTarget)) select.value = previousTarget;
@@ -6966,11 +7149,12 @@
         select.innerHTML = "";
         return;
       }
-      const previousStudentId = select.value || localStorage.getItem("monolith.selectedCheckinStudentId") || selectedStudentForPersonal();
       const students = await ensureLinkedStudentsForPersonal(user.id);
+      const previousStudentId = scopedStudentId(select.value || localStorage.getItem("monolith.selectedCheckinStudentId") || selectedStudentForPersonal());
       select.innerHTML = students.map(student => `<option value="${escapeHTML(student.id)}">${escapeHTML(student.name)} - ${escapeHTML(student.email)}</option>`).join("");
       if (students.some(student => student.id === previousStudentId)) select.value = previousStudentId;
       else if (students[0]) select.value = students[0].id;
+      else select.value = "";
       if (select.value) setSelectedCheckinStudentForPersonal(select.value);
     }
 
@@ -7053,7 +7237,13 @@
     function loadCheckins(studentId = activeDataStudentId()) {
       try {
         const entries = JSON.parse(localStorage.getItem("monolith.checkins") || "[]");
-        if (!studentId) return entries;
+        const user = currentAccount();
+        if (!studentId) {
+          if (user?.role === "student") return entries.filter(entry => !entry.studentId || entry.studentId === user.id);
+          if (user?.role === "personal") return entries.filter(entry => !entry.studentId || canAccessStudentData(entry.studentId));
+          return [];
+        }
+        if (!canAccessStudentData(studentId)) return [];
         return entries.filter(entry => !entry.studentId || entry.studentId === studentId);
       } catch {
         return [];
@@ -7100,6 +7290,10 @@
     }
 
     async function upsertTodayCheckin(entry) {
+      if (!canAccessStudentData(entry.studentId)) {
+        authMessage("Você não tem acesso a este aluno.");
+        return false;
+      }
       const checkins = loadCheckins().filter(item => item.date !== entry.date);
       checkins.unshift(entry);
       const allCheckins = loadCheckins(null).filter(item => `${item.studentId || ""}:${item.date}` !== `${entry.studentId || ""}:${entry.date}`);
@@ -7174,8 +7368,17 @@
 
     function loadBodyMeasures(studentId = activeDataStudentId()) {
       try {
+        const user = currentAccount();
         return JSON.parse(localStorage.getItem("monolith.bodyMeasures") || "[]")
-          .filter(entry => !studentId || !entry.studentId || entry.studentId === studentId)
+          .filter(entry => {
+            if (!studentId) {
+              if (user?.role === "student") return !entry.studentId || entry.studentId === user.id;
+              if (user?.role === "personal") return !entry.studentId || canAccessStudentData(entry.studentId);
+              return false;
+            }
+            if (!canAccessStudentData(studentId)) return false;
+            return !entry.studentId || entry.studentId === studentId;
+          })
           .sort((a, b) => String(b.date || "").localeCompare(String(a.date || "")));
       } catch {
         return [];
@@ -7218,6 +7421,8 @@
     }
 
     function renderBodyMeasures() {
+      const measureForm = document.getElementById("bodyMeasureForm");
+      if (measureForm) measureForm.hidden = currentAccount()?.role !== "student";
       const entries = loadBodyMeasures();
       const latest = entries[0];
       const setText = (id, value) => {
@@ -7333,18 +7538,15 @@
     }
 
     function loadProgressPhotos(studentId = activeDataStudentId()) {
+      if (!studentId || !canAccessStudentData(studentId)) return {};
       const store = loadProgressPhotoStore();
-      if (!studentId) return legacyPhotoPeriods(store) ? store : {};
       if (store.byStudent) return store.byStudent[studentId] || {};
       if (store[studentId]) return store[studentId];
-      return legacyPhotoPeriods(store) ? store : {};
+      return legacyPhotoPeriods(store) && studentId === currentAccount()?.id ? store : {};
     }
 
     function saveProgressPhotos(photos, studentId = activeDataStudentId()) {
-      if (!studentId) {
-        localStorage.setItem("monolith.progressPhotos", JSON.stringify(photos));
-        return;
-      }
+      if (!studentId || !canAccessStudentData(studentId)) return;
       const store = loadProgressPhotoStore();
       const byStudent = store.byStudent || (legacyPhotoPeriods(store) ? { [studentId]: store } : store);
       byStudent[studentId] = photos;
@@ -7363,6 +7565,7 @@
     function renderPhotoVault() {
       const photoLabels = ["Frente", "Lado", "Costas"];
       const studentId = activeDataStudentId();
+      const canUploadPhotos = currentAccount()?.role === "student" && studentId === currentAccount()?.id;
       const photos = loadProgressPhotos(studentId);
       const periods = [["last", document.getElementById("lastMonthPhotos")], ["current", document.getElementById("currentMonthPhotos")]];
       periods.forEach(([period, container]) => {
@@ -7375,7 +7578,7 @@
           card.className = "photo-card";
           card.dataset.period = period;
           card.dataset.slot = key;
-          card.innerHTML = `<div class="photo-preview">${image ? `<img src="${image}" alt="${t(label)}" />` : `<span>${t(label)}</span>`}</div><input type="file" accept="image/*" aria-label="Enviar foto ${t(label)}" /><button class="ghost reveal-photo" type="button" ${image ? "" : "disabled"}>${t("Ver foto")}</button>`;
+          card.innerHTML = `<div class="photo-preview">${image ? `<img src="${image}" alt="${t(label)}" />` : `<span>${t(label)}</span>`}</div>${canUploadPhotos ? `<input type="file" accept="image/*" aria-label="Enviar foto ${t(label)}" />` : ""}<button class="ghost reveal-photo" type="button" ${image ? "" : "disabled"}>${t("Ver foto")}</button>`;
           container.appendChild(card);
         });
       });
@@ -7436,8 +7639,11 @@
     }
 
     function reportStudentFromId(studentId) {
-      if (!studentId) return currentAccount();
-      return loadAccounts().find(account => account.id === studentId) || { id: studentId, name: "Aluno", email: "" };
+      const user = currentAccount();
+      if (!studentId || user?.role === "student") return user;
+      const safeStudentId = scopedStudentId(studentId);
+      if (!safeStudentId) return user;
+      return loadAccounts().find(account => account.id === safeStudentId) || { id: safeStudentId, name: "Aluno", email: "" };
     }
 
     function monthlyReportData(student = null) {
@@ -7768,6 +7974,10 @@ ${photoSections}
     }
 
     async function openStudentReport(studentId) {
+      if (!canAccessStudentData(studentId)) {
+        authMessage("Você não tem acesso ao relatório deste aluno.");
+        return;
+      }
       const student = reportStudentFromId(studentId);
       await openMonthlyReport(student);
     }
@@ -7787,14 +7997,14 @@ ${photoSections}
         app: "MONOLITH",
         exportedAt: new Date().toISOString(),
         dailyScore: document.getElementById("score").textContent,
-        workouts: storedWorkouts(),
-        completedWorkouts: JSON.parse(localStorage.getItem("monolith.completedWorkouts") || "[]"),
+        workouts: storedWorkouts().filter(workout => !workout.assignedStudentId || canAccessStudentData(workout.assignedStudentId)),
+        completedWorkouts: JSON.parse(localStorage.getItem("monolith.completedWorkouts") || "[]").filter(session => !session.studentId || canAccessStudentData(session.studentId)),
         selectedCoach: document.querySelector(".coach-card.selected h3")?.textContent || "Nenhum coach selecionado",
         checkins: loadCheckins(),
         bodyMeasures: loadBodyMeasures(),
-        progressPhotos: loadProgressPhotoStore(),
-        dietPlans: loadDietPlans(),
-        foodLogs: loadFoodLogs()
+        progressPhotos: loadProgressPhotos(activeDataStudentId()),
+        dietPlans: Object.fromEntries(Object.entries(loadDietPlans()).filter(([, plan]) => canAccessStudentData(plan.studentId))),
+        foodLogs: currentAccount()?.role === "student" ? { [currentAccount().id]: loadFoodLogs()[currentAccount().id] || [] } : {}
       };
       if (type === "report" || type === "pdf") {
         downloadTextFile("monolith-relatorio-mensal.html", "text/html;charset=utf-8", monthlyReportHTML());
@@ -7898,12 +8108,16 @@ ${photoSections}
       const user = currentAccount();
       if (!panel || !select) return;
       panel.hidden = !user || user.role !== "personal";
-      if (!user || user.role !== "personal") return;
-      const previousStudentId = select.value || selectedStudentForPersonal();
+      if (!user || user.role !== "personal") {
+        select.innerHTML = "";
+        return;
+      }
       const students = await ensureLinkedStudentsForPersonal(user.id);
+      const previousStudentId = scopedStudentId(select.value || selectedStudentForPersonal());
       select.innerHTML = students.map(student => `<option value="${escapeHTML(student.id)}">${escapeHTML(student.name)} - ${escapeHTML(student.email)}</option>`).join("");
       if (students.some(student => student.id === previousStudentId)) select.value = previousStudentId;
       else if (students[0]) select.value = students[0].id;
+      else select.value = "";
       if (select.value) setSelectedStudentForPersonal(select.value);
     }
 
@@ -7943,6 +8157,11 @@ ${photoSections}
     });
     document.getElementById("dietMealCount")?.addEventListener("change", () => renderDietMealBuilder());
     document.getElementById("dietStudent")?.addEventListener("change", event => {
+      if (currentAccount()?.role !== "personal") {
+        event.target.innerHTML = "";
+        renderNutrition();
+        return;
+      }
       setSelectedStudentForPersonal(event.target.value);
       renderNutrition();
     });
@@ -7960,7 +8179,17 @@ ${photoSections}
     document.getElementById("dietMonth")?.addEventListener("change", renderNutrition);
     document.getElementById("dietPlanForm")?.addEventListener("submit", async event => {
       event.preventDefault();
+      if (currentAccount()?.role !== "personal") {
+        authMessage("Apenas o personal pode prescrever dieta para aluno.");
+        renderNutrition();
+        return;
+      }
       const plan = readDietPlanForm();
+      if (!plan.studentId || !canAccessStudentData(plan.studentId)) {
+        authMessage("Selecione um aluno vinculado para salvar a dieta.");
+        renderNutrition();
+        return;
+      }
       const plans = loadDietPlans();
       plans[plan.id] = plan;
       saveDietPlans(plans);
@@ -8169,16 +8398,28 @@ ${photoSections}
       event.target.reset();
     });
     document.getElementById("workoutStudent")?.addEventListener("change", event => {
+      if (currentAccount()?.role !== "personal" || (event.target.value !== selfWorkoutTarget && !isLinkedStudentForPersonal(event.target.value))) {
+        renderWorkoutStudentSelect();
+        return;
+      }
       setSelectedWorkoutTarget(event.target.value);
       window.monolithRefreshWorkoutView?.();
     });
     document.getElementById("checkinStudent")?.addEventListener("change", async event => {
+      if (currentAccount()?.role !== "personal" || !isLinkedStudentForPersonal(event.target.value)) {
+        await renderCheckinStudentSelect();
+        return;
+      }
       setSelectedCheckinStudentForPersonal(event.target.value);
       await loadFactorsForCheckinTarget();
       renderStats();
       renderTrainerSummary();
     });
     document.getElementById("statsStudent")?.addEventListener("change", event => {
+      if (currentAccount()?.role !== "personal" || !isLinkedStudentForPersonal(event.target.value)) {
+        renderStatsStudentSelect();
+        return;
+      }
       setSelectedStudentForPersonal(event.target.value);
       renderStats();
       renderTrainerSummary();
@@ -8414,7 +8655,7 @@ ${photoSections}
     });
     document.getElementById("saveCheckin").addEventListener("click", async () => {
       const entry = readCurrentCheckin();
-      if (!entry.studentId) {
+      if (!entry.studentId || !canAccessStudentData(entry.studentId)) {
         showToast("Escolha um aluno para salvar o check-in.");
         return;
       }
@@ -8424,6 +8665,10 @@ ${photoSections}
     });
     document.getElementById("bodyMeasureForm").addEventListener("submit", async event => {
       event.preventDefault();
+      if (currentAccount()?.role !== "student") {
+        authMessage("Apenas o aluno pode salvar as próprias medidas.");
+        return;
+      }
       const entry = readBodyMeasureForm();
       if (!entry.weight && !entry.bodyFat && !bodyMeasureFields.some(field => entry[field.key])) {
         showToast("Preencha pelo menos uma medida física.");
@@ -8448,6 +8693,11 @@ ${photoSections}
       if (!input || !input.files?.[0]) return;
       const card = input.closest(".photo-card");
       const studentId = activeDataStudentId();
+      if (currentAccount()?.role !== "student" || studentId !== currentAccount()?.id) {
+        authMessage("Apenas o aluno pode enviar fotos próprias.");
+        input.value = "";
+        return;
+      }
       const photos = loadProgressPhotos(studentId);
       photos[card.dataset.period] = photos[card.dataset.period] || {};
       const localDataUrl = await readFileAsDataURL(input.files[0]);
@@ -8869,7 +9119,18 @@ ${photoSections}
           console.warn("Monolith Supabase workouts load failed", error);
           return [];
         }
-        return (data || []).map(workoutFromRemoteV2);
+        return (data || []).map(workoutFromRemoteV2).filter(workout => {
+          if (!user) return false;
+          if (user.role === "student") {
+            if (workout.assignedStudentId) return workout.assignedStudentId === user.id;
+            return workout.ownerId === user.id;
+          }
+          if (user.role === "personal") {
+            if (workout.assignedStudentId) return isLinkedStudentForPersonal(workout.assignedStudentId, user);
+            return workout.ownerId === user.id;
+          }
+          return false;
+        });
       }
 
       async function updateWorkoutCreateAccessV2() {
@@ -8888,7 +9149,9 @@ ${photoSections}
 
       async function saveCustomWorkoutV2(workout) {
         const user = currentAccount();
-        const localWorkout = normalizeWorkoutV2({ ...workout, ownerId: workout.ownerId || user?.id || "" });
+        const requestedAssignment = workout.assignedStudentId || "";
+        const safeAssignment = user?.role === "personal" && requestedAssignment && isLinkedStudentForPersonal(requestedAssignment, user) ? requestedAssignment : "";
+        const localWorkout = normalizeWorkoutV2({ ...workout, ownerId: workout.ownerId || user?.id || "", assignedStudentId: safeAssignment });
         const shouldSyncRemote = Boolean(monolithSupabase && isRealSupabaseAccount(user));
         let remoteError = null;
         if (shouldSyncRemote) {
@@ -8969,14 +9232,14 @@ ${photoSections}
         if (user.role === "personal") {
           const selectedStudentId = selectedWorkoutStudentId();
           return workoutsV2.filter(workout => selectedStudentId
-            ? workout.assignedStudentId === selectedStudentId
+            ? workout.assignedStudentId === selectedStudentId && isLinkedStudentForPersonal(selectedStudentId, user)
             : workout.ownerId === user.id && !workout.assignedStudentId);
         }
         if (user.role === "student") {
           return workoutsV2.filter(workout => {
             if (workout.assignedStudentId === user.id) return workout.syncStatus !== "failed";
             if (workout.assignedStudentId) return false;
-            return !workout.ownerId || workout.ownerId === user.id;
+            return isRealSupabaseAccount(user) ? workout.ownerId === user.id : (!workout.ownerId || workout.ownerId === user.id);
           });
         }
         return workoutsV2;
