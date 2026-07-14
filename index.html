@@ -14,7 +14,7 @@
   <link rel="manifest" href="manifest.webmanifest" />
   <link rel="icon" href="monolith-icon.svg" />
   <script>
-    window.MONOLITH_BUILD = "monolith-v69-permission-scope";
+    window.MONOLITH_BUILD = "monolith-v71-profile-edit";
     (function clearOldAppCaches() {
       if ("serviceWorker" in navigator) {
         navigator.serviceWorker.getRegistrations?.()
@@ -685,6 +685,47 @@
 
     .session-card button {
       min-height: 34px;
+    }
+
+    .profile-layout {
+      display: grid;
+      grid-template-columns: minmax(0, .9fr) minmax(0, 1.1fr);
+      gap: 14px;
+      align-items: start;
+    }
+
+    .profile-summary {
+      display: grid;
+      gap: 10px;
+    }
+
+    .profile-summary-row {
+      border: 1px solid var(--line);
+      background: #101010;
+      padding: 12px;
+      display: grid;
+      gap: 4px;
+    }
+
+    .profile-summary-row span {
+      color: var(--muted);
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+
+    .profile-summary-row strong {
+      color: var(--text);
+      overflow-wrap: anywhere;
+    }
+
+    .profile-password-form {
+      display: grid;
+      gap: 12px;
+    }
+
+    .profile-password-form .action {
+      width: 100%;
     }
 
     .language-select,
@@ -1583,14 +1624,29 @@
       transform: scale(1);
     }
 
-    .photo-card input {
+    .photo-card input[type="file"] {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      opacity: 0;
+      pointer-events: none;
+    }
+
+    .photo-upload-action {
       width: 100%;
       min-height: 38px;
-      border: 1px solid var(--line);
-      background: #0d0d0d;
-      color: var(--muted);
-      padding: 7px;
+      border: 1px solid var(--gold);
+      background: rgba(201, 162, 39, .12);
+      color: var(--text);
+      display: grid;
+      place-items: center;
+      cursor: pointer;
+      font-weight: 800;
       font-size: 12px;
+    }
+
+    .photo-upload-action:hover {
+      background: rgba(201, 162, 39, .2);
     }
 
     .report-summary {
@@ -1909,7 +1965,8 @@
       .hero,
       .stats-layout,
       .measure-layout,
-      .nutrition-layout {
+      .nutrition-layout,
+      .profile-layout {
         grid-template-columns: 1fr;
       }
 
@@ -2258,7 +2315,7 @@
           <button class="action" id="loginButton" type="button">Entrar</button>
           <div class="auth-tools">
             <button class="auth-secondary" id="clearDeviceSessionButton" type="button">Limpar sessão/cache deste aparelho</button>
-            <div class="build-version" id="buildVersionLabel">Versão do app: monolith-v69-permission-scope</div>
+            <div class="build-version" id="buildVersionLabel">Versão do app: monolith-v71-profile-edit</div>
           </div>
         </form>
       </div>
@@ -2410,6 +2467,14 @@
           button.classList.toggle("active", button.getAttribute("data-screen") === id);
         });
         if (id === "nutrition" && typeof renderNutrition === "function") renderNutrition();
+        if (id === "profile" && typeof renderProfile === "function") renderProfile();
+        if (id === "stats") {
+          if (typeof renderStats === "function") renderStats();
+          if (typeof renderPhotoVault === "function") renderPhotoVault();
+          if (typeof refreshRemoteStudentData === "function") {
+            refreshRemoteStudentData({ stats: true, measures: true, photos: true, summary: true }).catch(function () {});
+          }
+        }
         window.scrollTo(0, 0);
       }
 
@@ -2551,6 +2616,10 @@
         <button class="nav-btn" data-screen="backup" title="Backup">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3v12"/><path d="M7 10l5 5 5-5"/><path d="M5 21h14"/></svg>
           <span>Backup</span>
+        </button>
+        <button class="nav-btn" data-screen="profile" title="Perfil">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/></svg>
+          <span>Perfil</span>
         </button>
       </nav>
 
@@ -2916,15 +2985,15 @@
         <div class="topbar">
           <div>
             <h2>Perfil profissional</h2>
-            <div class="date">Cadastro único para o mapa de personais</div>
+            <div class="date" id="trainerProfileSubtitle">Cadastro único para o mapa de personais</div>
           </div>
         </div>
         <div class="panel">
           <div class="section-title">
-            <h3>Antes de continuar</h3>
-            <span>Primeiro acesso</span>
+            <h3 id="trainerProfileIntroTitle">Antes de continuar</h3>
+            <span id="trainerProfileIntroTag">Primeiro acesso</span>
           </div>
-          <div class="locked-note" data-i18n="Preencha uma vez para criar seu perfil profissional. Se não quiser aparecer no mapa, marque &quot;Não&quot; na participação do mapa.">Preencha uma vez para criar seu perfil profissional. Se não quiser aparecer no mapa, marque "Não" na participação do mapa.</div>
+          <div class="locked-note" id="trainerProfileIntroNote" data-i18n="Preencha uma vez para criar seu perfil profissional. Se não quiser aparecer no mapa, marque &quot;Não&quot; na participação do mapa.">Preencha uma vez para criar seu perfil profissional. Se não quiser aparecer no mapa, marque "Não" na participação do mapa.</div>
         </div>
         <form class="trainer-profile-form" id="trainerProfileForm">
           <div class="trainer-profile-section">
@@ -3101,6 +3170,56 @@
         </form>
       </section>
 
+      <section id="profile" class="screen">
+        <div class="topbar">
+          <div>
+            <h2>Perfil</h2>
+            <div class="date">Conta, senha e informações profissionais</div>
+          </div>
+        </div>
+        <div class="profile-layout">
+          <div class="panel">
+            <div class="section-title"><h3>Dados da conta</h3><span>Login atual</span></div>
+            <div class="profile-summary">
+              <div class="profile-summary-row">
+                <span>Nome</span>
+                <strong id="profileName">Usuário</strong>
+              </div>
+              <div class="profile-summary-row">
+                <span>E-mail</span>
+                <strong id="profileEmail">--</strong>
+              </div>
+              <div class="profile-summary-row">
+                <span>Plano</span>
+                <strong id="profilePlan">--</strong>
+              </div>
+            </div>
+          </div>
+
+          <div class="panel">
+            <div class="section-title"><h3>Trocar senha</h3><span>Segurança</span></div>
+            <form class="profile-password-form" id="profilePasswordForm">
+              <div class="field">
+                <label for="profileNewPassword">Nova senha</label>
+                <input id="profileNewPassword" type="password" autocomplete="new-password" required minlength="6" placeholder="Mínimo 6 caracteres" data-i18n-placeholder="Mínimo 6 caracteres" />
+              </div>
+              <div class="field">
+                <label for="profileNewPasswordConfirm">Confirmar nova senha</label>
+                <input id="profileNewPasswordConfirm" type="password" autocomplete="new-password" required minlength="6" placeholder="Repita a senha" data-i18n-placeholder="Repita a senha" />
+              </div>
+              <div class="auth-warning" id="profilePasswordNotice" hidden></div>
+              <button class="action" type="submit">Salvar nova senha</button>
+            </form>
+          </div>
+
+          <div class="panel" id="profileTrainerPanel" data-role-only="personal" hidden>
+            <div class="section-title"><h3>Perfil profissional</h3><span>Mapa de personais</span></div>
+            <p>Atualize as informações exibidas no mapa, serviços, preços, especialidades e autorização de exibição.</p>
+            <button class="action" type="button" id="editTrainerProfileButton">Editar perfil profissional</button>
+          </div>
+        </div>
+      </section>
+
       <section id="clients" class="screen">
         <div class="topbar">
           <div>
@@ -3228,7 +3347,7 @@
   <script>
     const MONOLITH_SUPABASE_URL = "https://jhxasnxuvmkhntbwepau.supabase.co";
     const MONOLITH_SUPABASE_KEY = "sb_publishable_lDtAXIOtkMwgwsAZyghBdg_gyLHGwpH";
-    const MONOLITH_BUILD = window.MONOLITH_BUILD || "monolith-v69-permission-scope";
+    const MONOLITH_BUILD = window.MONOLITH_BUILD || "monolith-v71-profile-edit";
     const monolithSupabase = window.supabase?.createClient?.(MONOLITH_SUPABASE_URL, MONOLITH_SUPABASE_KEY, {
       auth: {
         storage: window.sessionStorage,
@@ -3302,8 +3421,15 @@
           button.classList.toggle("active", button.dataset.screen === id);
         });
         if (id === "nutrition" && typeof renderNutrition === "function") renderNutrition();
+        if (id === "profile" && typeof renderProfile === "function") renderProfile();
         if (id === "measures" && typeof renderBodyMeasures === "function") renderBodyMeasures();
-        if (id === "stats" && typeof renderStats === "function") renderStats();
+        if (id === "stats") {
+          if (typeof renderStats === "function") renderStats();
+          if (typeof renderPhotoVault === "function") renderPhotoVault();
+          if (typeof refreshRemoteStudentData === "function") {
+            refreshRemoteStudentData({ stats: true, measures: true, photos: true, summary: true }).catch(() => {});
+          }
+        }
         if (id === "clients" && typeof renderTrainerSummary === "function") renderTrainerSummary();
         if (id === "workouts" && typeof window.monolithRefreshWorkoutView === "function") window.monolithRefreshWorkoutView();
         if (id === "trainerMap" && typeof renderTrainerMap === "function") renderTrainerMap();
@@ -3641,6 +3767,13 @@
       notice.textContent = message ? t(message) : "";
     }
 
+    function showProfilePasswordNotice(message = "") {
+      const notice = document.getElementById("profilePasswordNotice");
+      if (!notice) return;
+      notice.hidden = !message;
+      notice.textContent = message ? t(message) : "";
+    }
+
     function refreshBuildVersionLabel() {
       const label = document.getElementById("buildVersionLabel");
       if (!label) return;
@@ -3704,6 +3837,7 @@
 
     let trainerProfileOnboardingRequired = false;
     let passwordRecoveryMode = false;
+    let trainerProfileReturnScreen = "clients";
     window.monolithTrainerProfileRequired = false;
 
     const trainerProfileOptionGroups = {
@@ -3995,6 +4129,31 @@
       if (responsibility) responsibility.checked = Boolean(profile.responsibility_accepted);
     }
 
+    function setTrainerProfileFormMode(mode = "onboarding") {
+      const editing = mode === "edit";
+      const values = editing ? {
+        subtitle: "Edite seu perfil profissional do mapa",
+        title: "Atualização do perfil",
+        tag: "Edição",
+        note: "Revise serviços, preços, localização, especialidades e autorização de exibição."
+      } : {
+        subtitle: "Cadastro único para o mapa de personais",
+        title: "Antes de continuar",
+        tag: "Primeiro acesso",
+        note: "Preencha uma vez para criar seu perfil profissional. Se não quiser aparecer no mapa, marque \"Não\" na participação do mapa."
+      };
+      const setText = (id, value) => {
+        const element = document.getElementById(id);
+        if (!element) return;
+        element.dataset.i18nKey = value;
+        element.textContent = t(value);
+      };
+      setText("trainerProfileSubtitle", values.subtitle);
+      setText("trainerProfileIntroTitle", values.title);
+      setText("trainerProfileIntroTag", values.tag);
+      setText("trainerProfileIntroNote", values.note);
+    }
+
     function trainerOptionLabel(groupKey, value) {
       const group = trainerProfileOptionGroups[groupKey];
       return group?.options.find(([optionValue]) => optionValue === value)?.[1] || value || "";
@@ -4138,7 +4297,30 @@
       }
       trainerProfileOnboardingRequired = true;
       window.monolithTrainerProfileRequired = true;
+      trainerProfileReturnScreen = "clients";
       fillTrainerProfileForm();
+      setTrainerProfileFormMode("onboarding");
+      showScreen("trainerProfileOnboarding");
+      return true;
+    }
+
+    async function openTrainerProfileEditor(returnScreen = "profile") {
+      const user = currentAccount();
+      if (!user || user.role !== "personal") {
+        authMessage("Área disponível para personal trainer.");
+        return false;
+      }
+      trainerProfileReturnScreen = returnScreen;
+      try {
+        const profile = await loadTrainerPublicProfile(user);
+        fillTrainerProfileForm(profile || {});
+        setTrainerProfileFormMode("edit");
+      } catch (error) {
+        console.warn("Monolith trainer profile editor load failed", error);
+        fillTrainerProfileForm();
+        setTrainerProfileFormMode("edit");
+        showToast("Não consegui carregar o perfil profissional agora.");
+      }
       showScreen("trainerProfileOnboarding");
       return true;
     }
@@ -4333,6 +4515,7 @@
         renderClientList();
         renderTrainerLinkPanel();
         renderNutrition();
+        renderProfile();
       }
     }
 
@@ -4620,6 +4803,67 @@
       showLoginPanel("Senha atualizada. Entre novamente com a nova senha.");
       authMessage("Senha atualizada. Entre novamente com a nova senha.");
       return true;
+    }
+
+    function renderProfile() {
+      const user = currentAccount();
+      const setText = (id, value) => {
+        const element = document.getElementById(id);
+        if (element) element.textContent = value || "--";
+      };
+      setText("profileName", user?.name || t("Usuário"));
+      setText("profileEmail", user?.email || "--");
+      setText("profilePlan", user ? `${roleLabel(user.role)} · ${user.plan || "Supabase"}` : "--");
+      showProfilePasswordNotice("");
+      const trainerPanel = document.getElementById("profileTrainerPanel");
+      if (trainerPanel) trainerPanel.hidden = user?.role !== "personal";
+    }
+
+    async function updateProfilePassword() {
+      const user = currentAccount();
+      const password = document.getElementById("profileNewPassword")?.value || "";
+      const confirm = document.getElementById("profileNewPasswordConfirm")?.value || "";
+      showProfilePasswordNotice("");
+      if (!user) {
+        showProfilePasswordNotice("Entre novamente para trocar a senha.");
+        authMessage("Entre novamente para trocar a senha.");
+        return false;
+      }
+      if (password.length < 6) {
+        showProfilePasswordNotice("A nova senha precisa ter pelo menos 6 caracteres.");
+        authMessage("A nova senha precisa ter pelo menos 6 caracteres.");
+        return false;
+      }
+      if (password !== confirm) {
+        showProfilePasswordNotice("As senhas não conferem.");
+        authMessage("As senhas não conferem.");
+        return false;
+      }
+      try {
+        if (isRealSupabaseAccount(user)) {
+          if (!monolithSupabase) throw new Error("Supabase indisponível.");
+          const { data: sessionData, error: sessionError } = await monolithSupabase.auth.getSession();
+          if (sessionError || !sessionData?.session) {
+            showProfilePasswordNotice("Sessão expirada. Entre novamente para trocar a senha.");
+            authMessage("Sessão expirada. Entre novamente para trocar a senha.");
+            return false;
+          }
+          const { error } = await monolithSupabase.auth.updateUser({ password });
+          if (error) throw error;
+        } else {
+          const passwordHash = await hashPassword(password);
+          saveAccounts(loadAccounts().map(account => account.id === user.id ? { ...account, passwordHash } : account));
+        }
+        document.getElementById("profilePasswordForm")?.reset();
+        showProfilePasswordNotice("Senha atualizada.");
+        authMessage("Senha atualizada.");
+        return true;
+      } catch (error) {
+        console.warn("Monolith profile password update failed", error);
+        showProfilePasswordNotice(error?.message || "Não consegui salvar a nova senha agora.");
+        authMessage("Não consegui salvar a nova senha agora.");
+        return false;
+      }
     }
 
     async function loginAccount(email, password) {
@@ -5540,10 +5784,21 @@
         "Alunos": "Students",
         "Estatísticas": "Stats",
         "Backup": "Backup",
+        "Perfil": "Profile",
+        "Usuário": "User",
         "Plano Supabase": "Supabase plan",
         "Acesso separado para aluno e personal, com dados sincronizados pelo Supabase e pronto para pagamentos.": "Separate student and trainer access, with data synced through Supabase and ready for payments.",
         "Contas reais usam Supabase Auth. Depois de criar conta, confirme o cadastro no e-mail antes de entrar.": "Real accounts use Supabase Auth. After creating an account, confirm it by email before logging in.",
         "Perfil profissional": "Professional profile",
+        "Conta, senha e informações profissionais": "Account, password and professional information",
+        "Dados da conta": "Account details",
+        "Login atual": "Current login",
+        "Nome": "Name",
+        "Plano": "Plan",
+        "Trocar senha": "Change password",
+        "Segurança": "Security",
+        "Atualize as informações exibidas no mapa, serviços, preços, especialidades e autorização de exibição.": "Update the information shown on the map, services, prices, specialties and display authorization.",
+        "Editar perfil profissional": "Edit professional profile",
         "Cadastro único para o mapa de personais": "One-time signup for the trainer map",
         "Mapa": "Map",
         "Mapa de personais": "Trainer map",
@@ -5572,6 +5827,10 @@
         "Pacotes com desconto": "Discounted packages",
         "Antes de continuar": "Before continuing",
         "Primeiro acesso": "First access",
+        "Edite seu perfil profissional do mapa": "Edit your professional map profile",
+        "Atualização do perfil": "Profile update",
+        "Edição": "Edit",
+        "Revise serviços, preços, localização, especialidades e autorização de exibição.": "Review services, prices, location, specialties and display authorization.",
         "Preencha uma vez para criar seu perfil profissional. Se não quiser aparecer no mapa, marque \"Não\" na participação do mapa.": "Fill this once to create your professional profile. If you do not want to appear on the map, choose \"No\" for map participation.",
         "Atendimento e mapa": "Service and map",
         "Qual tipo de atendimento você oferece?": "What type of service do you offer?",
@@ -5668,6 +5927,7 @@
         "Salvar perfil profissional": "Save professional profile",
         "Perfil profissional salvo.": "Professional profile saved.",
         "Não consegui salvar o perfil profissional agora.": "Could not save the professional profile right now.",
+        "Não consegui carregar o perfil profissional agora.": "Could not load the professional profile right now.",
         "Escolha pelo menos um tipo de atendimento.": "Choose at least one service type.",
         "Escolha pelo menos um formato de treino.": "Choose at least one training format.",
         "Escolha pelo menos uma especialidade.": "Choose at least one specialty.",
@@ -5724,6 +5984,10 @@
         "O link de recuperação não abriu uma sessão válida. Abra o último e-mail de recuperação neste navegador.": "The recovery link did not open a valid session. Open the latest recovery email in this browser.",
         "Não consegui salvar a nova senha agora.": "Could not save the new password right now.",
         "Senha atualizada. Entre novamente com a nova senha.": "Password updated. Log in again with the new password.",
+        "Senha atualizada.": "Password updated.",
+        "Entre novamente para trocar a senha.": "Log in again to change your password.",
+        "Sessão expirada. Entre novamente para trocar a senha.": "Session expired. Log in again to change your password.",
+        "Supabase indisponível.": "Supabase unavailable.",
         "Mostrar": "Show",
         "Ocultar": "Hide",
         "Limpar sessão/cache deste aparelho": "Clear this device session/cache",
@@ -5940,6 +6204,9 @@
         "Adicionar": "Add",
         "Ver foto": "View photo",
         "Ocultar foto": "Hide photo",
+        "Enviar foto": "Upload photo",
+        "Substituir foto": "Replace photo",
+        "Enviar foto {angle}": "Upload {angle} photo",
         "Frente": "Front",
         "Lado": "Side",
         "Costas": "Back",
@@ -5964,6 +6231,7 @@
         "Histórico mensal limpo.": "Monthly history cleared.",
         "Foto salva protegida por blur.": "Photo saved and protected by blur.",
         "Foto salva localmente. Não consegui sincronizar agora.": "Photo saved locally. Could not sync right now.",
+        "Não consegui subir a foto no Supabase agora. Tente novamente.": "Could not upload the photo to Supabase right now. Try again.",
         "Exercício concluído e progressão atualizada.": "Exercise finished and progress updated.",
         "Treino criado na biblioteca.": "Workout created in the library.",
         "definido como coach.": "set as coach.",
@@ -6245,10 +6513,21 @@
         "Alunos": "Alumnos",
         "Estatísticas": "Estadísticas",
         "Backup": "Backup",
+        "Perfil": "Perfil",
+        "Usuário": "Usuario",
         "Plano Supabase": "Plan Supabase",
         "Acesso separado para aluno e personal, com dados sincronizados pelo Supabase e pronto para pagamentos.": "Acceso separado para alumno y entrenador, con datos sincronizados por Supabase y listo para pagos.",
         "Contas reais usam Supabase Auth. Depois de criar conta, confirme o cadastro no e-mail antes de entrar.": "Las cuentas reales usan Supabase Auth. Después de crear una cuenta, confirma el registro por email antes de entrar.",
         "Perfil profissional": "Perfil profesional",
+        "Conta, senha e informações profissionais": "Cuenta, contraseña e información profesional",
+        "Dados da conta": "Datos de la cuenta",
+        "Login atual": "Login actual",
+        "Nome": "Nombre",
+        "Plano": "Plan",
+        "Trocar senha": "Cambiar contraseña",
+        "Segurança": "Seguridad",
+        "Atualize as informações exibidas no mapa, serviços, preços, especialidades e autorização de exibição.": "Actualiza la información mostrada en el mapa, servicios, precios, especialidades y autorización de visualización.",
+        "Editar perfil profissional": "Editar perfil profesional",
         "Cadastro único para o mapa de personais": "Registro único para el mapa de entrenadores",
         "Mapa": "Mapa",
         "Mapa de personais": "Mapa de entrenadores",
@@ -6277,6 +6556,10 @@
         "Pacotes com desconto": "Paquetes con descuento",
         "Antes de continuar": "Antes de continuar",
         "Primeiro acesso": "Primer acceso",
+        "Edite seu perfil profissional do mapa": "Edita tu perfil profesional del mapa",
+        "Atualização do perfil": "Actualización del perfil",
+        "Edição": "Edición",
+        "Revise serviços, preços, localização, especialidades e autorização de exibição.": "Revisa servicios, precios, ubicación, especialidades y autorización de visualización.",
         "Preencha uma vez para criar seu perfil profissional. Se não quiser aparecer no mapa, marque \"Não\" na participação do mapa.": "Completa esto una vez para crear tu perfil profesional. Si no quieres aparecer en el mapa, elige \"No\" en la participación del mapa.",
         "Atendimento e mapa": "Servicio y mapa",
         "Qual tipo de atendimento você oferece?": "¿Qué tipo de servicio ofreces?",
@@ -6373,6 +6656,7 @@
         "Salvar perfil profissional": "Guardar perfil profesional",
         "Perfil profissional salvo.": "Perfil profesional guardado.",
         "Não consegui salvar o perfil profissional agora.": "No pude guardar el perfil profesional ahora.",
+        "Não consegui carregar o perfil profissional agora.": "No pude cargar el perfil profesional ahora.",
         "Escolha pelo menos um tipo de atendimento.": "Elige al menos un tipo de servicio.",
         "Escolha pelo menos um formato de treino.": "Elige al menos un formato de entreno.",
         "Escolha pelo menos uma especialidade.": "Elige al menos una especialidad.",
@@ -6429,6 +6713,10 @@
         "O link de recuperação não abriu uma sessão válida. Abra o último e-mail de recuperação neste navegador.": "El enlace de recuperación no abrió una sesión válida. Abre el último email de recuperación en este navegador.",
         "Não consegui salvar a nova senha agora.": "No pude guardar la nueva contraseña ahora.",
         "Senha atualizada. Entre novamente com a nova senha.": "Contraseña actualizada. Entra nuevamente con la nueva contraseña.",
+        "Senha atualizada.": "Contraseña actualizada.",
+        "Entre novamente para trocar a senha.": "Entra nuevamente para cambiar la contraseña.",
+        "Sessão expirada. Entre novamente para trocar a senha.": "Sesión expirada. Entra nuevamente para cambiar la contraseña.",
+        "Supabase indisponível.": "Supabase no disponible.",
         "Mostrar": "Mostrar",
         "Ocultar": "Ocultar",
         "Limpar sessão/cache deste aparelho": "Limpiar sesión/caché de este dispositivo",
@@ -6645,6 +6933,9 @@
         "Adicionar": "Agregar",
         "Ver foto": "Ver foto",
         "Ocultar foto": "Ocultar foto",
+        "Enviar foto": "Subir foto",
+        "Substituir foto": "Reemplazar foto",
+        "Enviar foto {angle}": "Subir foto {angle}",
         "Frente": "Frente",
         "Lado": "Lado",
         "Costas": "Espalda",
@@ -6669,6 +6960,7 @@
         "Histórico mensal limpo.": "Historial mensual limpiado.",
         "Foto salva protegida por blur.": "Foto guardada y protegida con desenfoque.",
         "Foto salva localmente. Não consegui sincronizar agora.": "Foto guardada localmente. No se pudo sincronizar ahora.",
+        "Não consegui subir a foto no Supabase agora. Tente novamente.": "No se pudo subir la foto a Supabase ahora. Inténtalo de nuevo.",
         "Exercício concluído e progressão atualizada.": "Ejercicio completado y progresión actualizada.",
         "Treino criado na biblioteca.": "Entreno creado en la biblioteca.",
         "definido como coach.": "definido como coach.",
@@ -7564,8 +7856,9 @@
 
     function renderPhotoVault() {
       const photoLabels = ["Frente", "Lado", "Costas"];
-      const studentId = activeDataStudentId();
-      const canUploadPhotos = currentAccount()?.role === "student" && studentId === currentAccount()?.id;
+      const user = currentAccount();
+      const studentId = user?.role === "student" ? user.id : activeDataStudentId();
+      const canUploadPhotos = user?.role === "student" && studentId === user.id;
       const photos = loadProgressPhotos(studentId);
       const periods = [["last", document.getElementById("lastMonthPhotos")], ["current", document.getElementById("currentMonthPhotos")]];
       periods.forEach(([period, container]) => {
@@ -7574,11 +7867,13 @@
         photoLabels.forEach(label => {
           const key = label.toLowerCase();
           const image = photos[period]?.[key];
+          const inputId = `photoUpload-${period}-${key}`;
+          const uploadLabel = image ? t("Substituir foto") : t("Enviar foto");
           const card = document.createElement("div");
           card.className = "photo-card";
           card.dataset.period = period;
           card.dataset.slot = key;
-          card.innerHTML = `<div class="photo-preview">${image ? `<img src="${image}" alt="${t(label)}" />` : `<span>${t(label)}</span>`}</div>${canUploadPhotos ? `<input type="file" accept="image/*" aria-label="Enviar foto ${t(label)}" />` : ""}<button class="ghost reveal-photo" type="button" ${image ? "" : "disabled"}>${t("Ver foto")}</button>`;
+          card.innerHTML = `<div class="photo-preview">${image ? `<img src="${image}" alt="${t(label)}" />` : `<span>${t(label)}</span>`}</div>${canUploadPhotos ? `<label class="photo-upload-action" for="${inputId}">${uploadLabel}</label><input id="${inputId}" type="file" accept="image/*" aria-label="${t("Enviar foto")} ${t(label)}" />` : ""}<button class="ghost reveal-photo" type="button" ${image ? "" : "disabled"}>${t("Ver foto")}</button>`;
           container.appendChild(card);
         });
       });
@@ -8292,6 +8587,13 @@ ${photoSections}
       event.preventDefault();
       await saveRecoveredPassword();
     });
+    document.getElementById("profilePasswordForm")?.addEventListener("submit", async event => {
+      event.preventDefault();
+      await updateProfilePassword();
+    });
+    document.getElementById("editTrainerProfileButton")?.addEventListener("click", async () => {
+      await openTrainerProfileEditor("profile");
+    });
     document.getElementById("forgotBackToLoginButton")?.addEventListener("click", () => showLoginPanel());
     document.getElementById("backToLoginButton")?.addEventListener("click", () => showLoginPanel());
     monolithSupabase?.auth.onAuthStateChange((event) => {
@@ -8442,7 +8744,9 @@ ${photoSections}
         showToast("Perfil profissional salvo.");
         authMessage("Perfil profissional salvo.");
         applyAuthState();
-        showScreen("clients");
+        const nextScreen = trainerProfileReturnScreen || "clients";
+        trainerProfileReturnScreen = "clients";
+        showScreen(nextScreen);
       } catch (error) {
         console.warn("Monolith trainer profile save failed", error);
         showToast("Não consegui salvar o perfil profissional agora.");
@@ -8521,6 +8825,7 @@ ${photoSections}
       document.querySelectorAll(".screen").forEach(screen => screen.classList.toggle("active", screen.id === id));
       document.querySelectorAll(".nav-btn").forEach(btn => btn.classList.toggle("active", btn.dataset.screen === id));
       if (id === "clients") renderClientList();
+      if (id === "profile") renderProfile();
       if (id === "workouts" && typeof renderWorkoutStudentSelect === "function") {
         renderWorkoutStudentSelect().then(() => {
           window.monolithRefreshWorkoutView?.();
@@ -8528,7 +8833,11 @@ ${photoSections}
       }
       if (id === "stats") {
         renderStats();
-        refreshRemoteStudentData({ stats: true, measures: true, photos: true, summary: true });
+        renderPhotoVault();
+        refreshRemoteStudentData({ stats: true, measures: true, photos: true, summary: true }).catch(error => {
+          console.warn("Monolith stats refresh failed", error);
+          renderPhotoVault();
+        });
       }
       if (id === "measures") {
         renderBodyMeasures();
@@ -8692,8 +9001,9 @@ ${photoSections}
       const input = event.target.closest(".photo-card input[type='file']");
       if (!input || !input.files?.[0]) return;
       const card = input.closest(".photo-card");
-      const studentId = activeDataStudentId();
-      if (currentAccount()?.role !== "student" || studentId !== currentAccount()?.id) {
+      const user = currentAccount();
+      const studentId = user?.role === "student" ? user.id : activeDataStudentId();
+      if (user?.role !== "student" || studentId !== user.id) {
         authMessage("Apenas o aluno pode enviar fotos próprias.");
         input.value = "";
         return;
@@ -8707,7 +9017,7 @@ ${photoSections}
         if (signedUrl) photos[card.dataset.period][card.dataset.slot] = signedUrl;
       } catch (error) {
         console.warn("Monolith remote progress photo save failed", error);
-        showToast("Foto salva localmente. Não consegui sincronizar agora.");
+        showToast("Não consegui subir a foto no Supabase agora. Tente novamente.");
       }
       saveProgressPhotos(photos, studentId);
       renderPhotoVault();

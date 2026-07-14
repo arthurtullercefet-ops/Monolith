@@ -100,7 +100,7 @@ create index if not exists daily_checkins_student_date_idx
 on public.daily_checkins (student_id, checkin_date desc);
 
 create index if not exists body_measurements_student_date_idx
-on public.body_measurements (student_id, measured_at desc);
+on public.body_measurements (student_id, measurement_date desc);
 
 create index if not exists completed_workouts_student_date_idx
 on public.completed_workouts (student_id, completed_at desc);
@@ -109,10 +109,10 @@ create index if not exists workout_templates_owner_assigned_idx
 on public.workout_templates (owner_id, assigned_student_id);
 
 create index if not exists diet_plans_student_month_idx
-on public.diet_plans (student_id, month);
+on public.diet_plans (student_id, month_key);
 
-create index if not exists progress_photos_student_period_idx
-on public.progress_photos (student_id, period, slot);
+create index if not exists progress_photos_student_month_angle_idx
+on public.progress_photos (student_id, photo_month, angle);
 
 create index if not exists checkin_factors_student_sort_idx
 on public.checkin_factors (student_id, archived, sort_order);

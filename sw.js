@@ -1,4 +1,4 @@
-const CACHE_NAME = "monolith-v69-permission-scope";
+const CACHE_NAME = "monolith-v71-profile-edit";
 
 self.addEventListener("install", event => {
   self.skipWaiting();

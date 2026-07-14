@@ -36,7 +36,9 @@ Official docs:
    This confirms the production tables, keeps the photo bucket private, reapplies key production policies and adds report indexes.
 11. Paste and run `monolith-production-step-08-scope-audit.sql`.
    This reapplies the final student/trainer scope rules: students only see their own data, trainers only see linked students, and food diaries stay private to students.
-12. Confirm these tables exist:
+12. Paste and run `monolith-production-step-09-photo-storage.sql`.
+   This repairs the private `progress-photos` bucket and Storage policies used by progress photo uploads.
+13. Confirm these tables exist:
    - `profiles`
    - `trainer_students`
    - `trainer_invites`
@@ -53,11 +55,11 @@ Official docs:
    - `subscriptions`
    - `influencer_codes`
    - `referral_attributions`
-13. Confirm these functions exist:
+14. Confirm these functions exist:
    - `create_trainer_invite`
    - `accept_trainer_invite`
    - `accept_influencer_code`
-14. Confirm Storage has a private bucket called `progress-photos`.
+15. Confirm Storage has a private bucket called `progress-photos`.
 
 ## Step 2: connect the frontend
 
