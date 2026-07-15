@@ -14,7 +14,7 @@
   <link rel="manifest" href="manifest.webmanifest" />
   <link rel="icon" href="monolith-icon.svg" />
   <script>
-    window.MONOLITH_BUILD = "monolith-v73-workout-import-guide";
+    window.MONOLITH_BUILD = "monolith-v74-diet-import-photo-scope";
     (function clearOldAppCaches() {
       if ("serviceWorker" in navigator) {
         navigator.serviceWorker.getRegistrations?.()
@@ -618,8 +618,8 @@
     }
 
     .nav-btn svg {
-      width: 22px;
-      height: 22px;
+      width: 24px;
+      height: 24px;
       flex: 0 0 auto;
     }
 
@@ -630,6 +630,16 @@
     body.auth-role-student #statsStudentPanel,
     body.auth-role-personal #nutritionStudentPanel,
     body.auth-role-personal #trainerLinkPanel {
+      display: none !important;
+    }
+
+    body:not(.auth-role-personal) #nutritionPersonalPanel,
+    body:not(.auth-role-student) #nutritionStudentPanel {
+      display: none !important;
+    }
+
+    [data-screen="backup"],
+    #backup {
       display: none !important;
     }
 
@@ -1744,6 +1754,46 @@
       font-size: 12px;
     }
 
+    .photo-lightbox {
+      position: fixed;
+      inset: 0;
+      z-index: 80;
+      display: grid;
+      place-items: center;
+      padding: 24px;
+      background: rgba(0, 0, 0, .88);
+    }
+
+    .photo-lightbox[hidden] {
+      display: none;
+    }
+
+    .photo-lightbox img {
+      max-width: min(1120px, 96vw);
+      max-height: 86vh;
+      object-fit: contain;
+      border: 1px solid var(--line);
+      background: #050505;
+      box-shadow: 0 18px 70px rgba(0, 0, 0, .55);
+    }
+
+    .photo-lightbox-close {
+      position: fixed;
+      top: 18px;
+      right: 18px;
+      min-height: 42px;
+      border: 1px solid var(--line);
+      background: var(--panel);
+      color: var(--text);
+      padding: 0 16px;
+      font-weight: 800;
+      cursor: pointer;
+    }
+
+    .diet-import-panel {
+      grid-column: 1 / -1;
+    }
+
     .photo-upload-action:hover {
       background: rgba(201, 162, 39, .2);
     }
@@ -2044,8 +2094,8 @@
       }
 
       .nav-btn svg {
-        width: 25px;
-        height: 25px;
+        width: 28px;
+        height: 28px;
       }
 
       .nav-btn span {
@@ -2157,8 +2207,8 @@
       }
 
       .nav-btn svg {
-        width: 28px;
-        height: 28px;
+        width: 30px;
+        height: 30px;
       }
 
       .brand {
@@ -2420,7 +2470,7 @@
           <button class="action" id="loginButton" type="button">Entrar</button>
           <div class="auth-tools">
             <button class="auth-secondary" id="clearDeviceSessionButton" type="button">Limpar sessão/cache deste aparelho</button>
-            <div class="build-version" id="buildVersionLabel">Versão do app: monolith-v73-workout-import-guide</div>
+            <div class="build-version" id="buildVersionLabel">Versão do app: monolith-v74-diet-import-photo-scope</div>
           </div>
         </form>
       </div>
@@ -2936,6 +2986,39 @@
         </div>
 
         <div class="nutrition-layout" id="nutritionPersonalPanel" data-role-only="personal" hidden>
+          <div class="panel diet-import-panel" id="dietCsvPanel">
+            <div class="section-title"><h3>Importar dietas</h3><span>CSV</span></div>
+            <div class="report-line">Baixe o modelo, preencha uma linha por refeição e importe. O personal pode usar a coluna aluno para enviar dietas para vários alunos no mesmo arquivo.</div>
+            <div class="workout-import-guide">
+              <div class="section-title"><h3>Como preencher o arquivo</h3><span>Passo a passo</span></div>
+              <div class="guide-grid">
+                <div class="guide-card"><b>1. Baixe o modelo</b><span>Clique em Baixar modelo CSV e abra o arquivo no Excel, Google Sheets ou Numbers.</span></div>
+                <div class="guide-card"><b>2. Uma linha é uma refeição</b><span>Se a dieta tem 5 refeições, use 5 linhas para o mesmo aluno e mesmo mês.</span></div>
+                <div class="guide-card"><b>3. Informe o aluno</b><span>Na coluna aluno, coloque o nome ou e-mail exatamente como aparece na lista de alunos vinculados.</span></div>
+                <div class="guide-card"><b>4. Salve como CSV</b><span>Depois de preencher, salve ou baixe como CSV e clique em Importar CSV aqui no Monolith.</span></div>
+              </div>
+              <div class="csv-example">
+                <div class="kicker">Exemplo simples</div>
+                <div class="csv-example-row"><span>aluno</span><span>mes</span><span>refeicao</span><span>alimentos</span><span>calorias</span><span>proteina</span><span>carbo</span></div>
+                <div class="csv-example-row"><span>Thiago</span><span>2026-07</span><span>Café da manhã</span><span>Ovos, pão, fruta</span><span>520</span><span>35g</span><span>48g</span></div>
+                <div class="csv-example-row"><span>Thiago</span><span>2026-07</span><span>Almoço</span><span>Arroz, frango, salada</span><span>680</span><span>52g</span><span>72g</span></div>
+              </div>
+            </div>
+            <div class="factor-form">
+              <div class="form-field" id="dietImportStudentField" hidden>
+                <label for="dietImportStudent">Destino padrão quando o CSV não tiver aluno</label>
+                <select id="dietImportStudent"></select>
+              </div>
+              <div class="workout-import-actions">
+                <button class="ghost" type="button" id="downloadDietCsvTemplate">Baixar modelo de dieta CSV</button>
+                <label class="ghost file-action" for="dietCsvInput">Importar dieta CSV</label>
+                <input id="dietCsvInput" type="file" accept=".csv,text/csv" hidden />
+                <button class="ghost" type="button" id="exportDietCsv">Exportar dietas CSV</button>
+              </div>
+            </div>
+            <div class="report-line" id="dietCsvStatus">Formato: aluno, mes, refeicao, alimentos, calorias, proteina, carbo, gordura, micros, substituicoes, texto_personal.</div>
+          </div>
+
           <div class="panel">
             <div class="section-title"><h3>Prescrição do personal</h3><span>1 a 10 refeições</span></div>
             <form id="dietPlanForm">
@@ -3367,6 +3450,15 @@
             <p>Atualize as informações exibidas no mapa, serviços, preços, especialidades e autorização de exibição.</p>
             <button class="action" type="button" id="editTrainerProfileButton">Editar perfil profissional</button>
           </div>
+
+          <div class="panel" id="profileStudentTrainerPanel" data-role-only="student" hidden>
+            <div class="section-title"><h3>Personal vinculado</h3><span>Aluno</span></div>
+            <p id="profileTrainerStatus">Verificando vínculo com personal...</p>
+            <div class="settings-actions">
+              <button class="ghost danger" type="button" id="unlinkTrainerButton">Desvincular personal</button>
+            </div>
+            <div class="auth-warning" id="unlinkTrainerNotice" hidden></div>
+          </div>
         </div>
       </section>
 
@@ -3377,6 +3469,10 @@
             <div class="date">Painel inicial do personal trainer</div>
           </div>
           <button class="action" id="inviteStudentButton" type="button">Criar convite</button>
+        </div>
+        <div class="panel" id="studentPlanLimitPanel" data-role-only="personal" hidden>
+          <div class="section-title"><h3>Limite de alunos</h3><span id="studentPlanLimitBadge">0/15</span></div>
+          <div class="report-line" id="studentPlanLimitText">O plano atual acompanha até 15 alunos. Acima disso, o Personal Pro será necessário.</div>
         </div>
         <div class="panel" id="inviteCodePanel" hidden>
           <div class="section-title"><h3>Código de convite</h3><span>Envie para o aluno</span></div>
@@ -3449,6 +3545,11 @@
     </main>
   </div>
 
+  <div class="photo-lightbox" id="photoLightbox" hidden>
+    <button class="photo-lightbox-close" type="button" id="closePhotoLightbox">Fechar</button>
+    <img id="photoLightboxImage" alt="Foto de progresso" />
+  </div>
+
   <div class="modal-backdrop" id="workoutModal" role="dialog" aria-modal="true" aria-labelledby="workoutModalTitle">
     <form class="modal" id="workoutForm">
       <div class="modal-head">
@@ -3497,7 +3598,7 @@
   <script>
     const MONOLITH_SUPABASE_URL = "https://jhxasnxuvmkhntbwepau.supabase.co";
     const MONOLITH_SUPABASE_KEY = "sb_publishable_lDtAXIOtkMwgwsAZyghBdg_gyLHGwpH";
-    const MONOLITH_BUILD = window.MONOLITH_BUILD || "monolith-v73-workout-import-guide";
+    const MONOLITH_BUILD = window.MONOLITH_BUILD || "monolith-v74-diet-import-photo-scope";
     const monolithSupabase = window.supabase?.createClient?.(MONOLITH_SUPABASE_URL, MONOLITH_SUPABASE_KEY, {
       auth: {
         storage: window.sessionStorage,
@@ -3559,6 +3660,7 @@
 
       function fallbackShowScreen(id) {
         if (window.monolithTrainerProfileRequired && id !== "trainerProfileOnboarding") id = "trainerProfileOnboarding";
+        if (id === "backup") id = "stats";
         const sessionId = localStorage.getItem("monolith.sessionUserId");
         const sessionAccount = fallbackAccounts().find(account => account.id === sessionId) || null;
         const user = demoAccounts[document.getElementById("loginEmail")?.value?.trim()?.toLowerCase()] || sessionAccount;
@@ -4626,6 +4728,7 @@
     function renderClientCards(students = []) {
       const container = document.getElementById("clientList");
       if (!container) return;
+      renderStudentPlanLimit(students.length);
       container.innerHTML = students.map(student => {
         const checkins = lastThirtyCheckinsForStudent(student.id);
         const score = checkins[0]?.score || 0;
@@ -4646,6 +4749,21 @@
           </article>
         `;
       }).join("") || `<div class="panel"><div class="report-line">${escapeHTML(t("Nenhum aluno vinculado ainda. Gere um convite e envie o código para o aluno."))}</div></div>`;
+    }
+
+    function renderStudentPlanLimit(count = studentsForPersonal(currentAccount()?.id).length) {
+      const user = currentAccount();
+      const panel = document.getElementById("studentPlanLimitPanel");
+      const badge = document.getElementById("studentPlanLimitBadge");
+      const text = document.getElementById("studentPlanLimitText");
+      if (!panel || !badge || !text) return;
+      panel.hidden = !user || user.role !== "personal";
+      if (!user || user.role !== "personal") return;
+      badge.textContent = `${count}/15`;
+      const overLimit = count > 15;
+      text.textContent = overLimit
+        ? t("Você passou de 15 alunos. O Personal Pro será necessário para manter novos alunos ativos.")
+        : t("O plano atual acompanha até 15 alunos. Acima disso, o Personal Pro será necessário.");
     }
 
     function applyAuthState() {
@@ -4745,6 +4863,75 @@
         return;
       }
       status.textContent = t("Sem personal vinculado.");
+    }
+
+    function showUnlinkTrainerNotice(message = "") {
+      const notice = document.getElementById("unlinkTrainerNotice");
+      if (!notice) return;
+      notice.hidden = !message;
+      notice.textContent = message ? t(message) : "";
+    }
+
+    function trainerNameFromCache(trainerId = "") {
+      const trainer = loadAccounts().find(account => account.id === trainerId);
+      return trainer?.name || trainer?.email || "";
+    }
+
+    async function unlinkStudentTrainer() {
+      const user = currentAccount();
+      if (!user || user.role !== "student") {
+        authMessage("Entre como aluno para desvincular um personal.");
+        return false;
+      }
+      const confirmed = window.confirm(t("Tem certeza que deseja desvincular este personal?"));
+      if (!confirmed) return false;
+      showUnlinkTrainerNotice("");
+      const trainerId = user.trainerId || await ensureStudentTrainerId(user);
+      if (!trainerId) {
+        showUnlinkTrainerNotice("Nenhum personal vinculado.");
+        return false;
+      }
+      if (monolithSupabase && isRealSupabaseAccount(user)) {
+        try {
+          const deleteResult = await monolithSupabase
+            .from("trainer_students")
+            .delete()
+            .eq("student_id", user.id)
+            .eq("trainer_id", trainerId);
+          if (deleteResult.error) {
+            const updateResult = await monolithSupabase
+              .from("trainer_students")
+              .update({ status: "ended" })
+              .eq("student_id", user.id)
+              .eq("trainer_id", trainerId);
+            if (updateResult.error) throw updateResult.error;
+          }
+        } catch (error) {
+          console.warn("Monolith trainer unlink failed", error);
+          showUnlinkTrainerNotice("Não consegui remover no Supabase agora. Removi o vínculo desta sessão.");
+        }
+      }
+      const accounts = loadAccounts().map(account => {
+        if (account.id === user.id) {
+          const next = { ...account };
+          delete next.trainerId;
+          return next;
+        }
+        if (account.id === trainerId) {
+          return { ...account, students: (account.students || []).filter(studentId => studentId !== user.id) };
+        }
+        return account;
+      });
+      saveAccounts(accounts);
+      localStorage.removeItem("monolith.selectedStudentId");
+      localStorage.removeItem("monolith.selectedDietStudentId");
+      localStorage.removeItem("monolith.selectedWorkoutStudentId");
+      localStorage.removeItem("monolith.selectedCheckinStudentId");
+      await renderTrainerLinkPanel();
+      renderProfile();
+      renderNutrition();
+      authMessage("Personal desvinculado.");
+      return true;
     }
 
     async function linkStudentToTrainer(inviteCode) {
@@ -4975,6 +5162,40 @@
       showAccountSettingsNotice("");
       const trainerPanel = document.getElementById("profileTrainerPanel");
       if (trainerPanel) trainerPanel.hidden = user?.role !== "personal";
+      const studentTrainerPanel = document.getElementById("profileStudentTrainerPanel");
+      const studentTrainerStatus = document.getElementById("profileTrainerStatus");
+      const unlinkButton = document.getElementById("unlinkTrainerButton");
+      if (studentTrainerPanel) studentTrainerPanel.hidden = user?.role !== "student";
+      if (studentTrainerStatus && user?.role === "student") {
+        const cachedTrainerId = user.trainerId || "";
+        if (cachedTrainerId) {
+          const trainerName = trainerNameFromCache(cachedTrainerId);
+          studentTrainerStatus.textContent = trainerName ? `${t("Vinculado a")} ${trainerName}.` : t("Aluno vinculado a um personal.");
+          if (unlinkButton) unlinkButton.hidden = false;
+        } else if (user.source === "supabase" && monolithSupabase) {
+          studentTrainerStatus.textContent = t("Verificando vínculo com personal...");
+          if (unlinkButton) unlinkButton.hidden = true;
+          ensureStudentTrainerId(user).then(trainerId => {
+            const nextUser = currentAccount();
+            if (nextUser?.id !== user.id) return;
+            if (trainerId) {
+              const trainerName = trainerNameFromCache(trainerId);
+              studentTrainerStatus.textContent = trainerName ? `${t("Vinculado a")} ${trainerName}.` : t("Aluno vinculado a um personal.");
+              if (unlinkButton) unlinkButton.hidden = false;
+            } else {
+              studentTrainerStatus.textContent = t("Sem personal vinculado.");
+              if (unlinkButton) unlinkButton.hidden = true;
+            }
+          }).catch(() => {
+            studentTrainerStatus.textContent = t("Sem personal vinculado.");
+            if (unlinkButton) unlinkButton.hidden = true;
+          });
+        } else {
+          studentTrainerStatus.textContent = t("Sem personal vinculado.");
+          if (unlinkButton) unlinkButton.hidden = true;
+        }
+      }
+      showUnlinkTrainerNotice("");
     }
 
     async function updateProfilePassword() {
@@ -5536,7 +5757,7 @@
 
     async function loadRemoteBodyMeasures(studentId = activeDataStudentId()) {
       if (!monolithSupabase || !studentId || !isRealSupabaseAccount(currentAccount())) return [];
-      if (!canAccessStudentData(studentId)) return [];
+      if (!canAccessStudentData(studentId, { allowPersonalSelf: true })) return [];
       const { data, error } = await monolithSupabase
         .from("body_measurements")
         .select("id,student_id,measurement_date,weight_kg,body_fat_percent,waist_cm,chest_cm,arm_cm,leg_cm,hip_cm,notes,created_at")
@@ -5551,7 +5772,7 @@
 
     async function saveRemoteBodyMeasure(entry) {
       const user = currentAccount();
-      if (!monolithSupabase || !isRealSupabaseAccount(user) || user.role !== "student") return false;
+      if (!monolithSupabase || !isRealSupabaseAccount(user) || (user.role !== "student" && user.role !== "personal")) return false;
       const payload = {
         student_id: user.id,
         measurement_date: entry.date,
@@ -5836,6 +6057,279 @@
       `;
     }
 
+    function setDietCsvStatus(message = "", translated = false) {
+      const target = document.getElementById("dietCsvStatus");
+      if (!target) return;
+      target.textContent = translated ? message : t(message);
+    }
+
+    function renderDietImportStudentSelect(students = studentsForPersonal(currentAccount()?.id)) {
+      const field = document.getElementById("dietImportStudentField");
+      const select = document.getElementById("dietImportStudent");
+      const user = currentAccount();
+      if (!field || !select) return;
+      field.hidden = !user || user.role !== "personal";
+      if (!user || user.role !== "personal") {
+        select.innerHTML = "";
+        return;
+      }
+      const previous = select.value || document.getElementById("dietStudent")?.value || selectedStudentForPersonal();
+      select.innerHTML = students.map(student => `<option value="${escapeHTML(student.id)}">${escapeHTML(student.name)} - ${escapeHTML(student.email)}</option>`).join("");
+      if (students.some(student => student.id === previous)) select.value = previous;
+      else if (students[0]) select.value = students[0].id;
+      else select.value = "";
+    }
+
+    function dietCsvDelimiter(text = "") {
+      const firstLine = String(text).split(/\r?\n/).find(line => line.trim()) || "";
+      const semicolons = (firstLine.match(/;/g) || []).length;
+      const commas = (firstLine.match(/,/g) || []).length;
+      return semicolons >= commas ? ";" : ",";
+    }
+
+    function parseDietCsvRows(text = "") {
+      const source = String(text || "").replace(/^\uFEFF/, "");
+      const delimiter = dietCsvDelimiter(source);
+      const rows = [];
+      let row = [];
+      let value = "";
+      let quoted = false;
+      for (let index = 0; index < source.length; index += 1) {
+        const char = source[index];
+        const next = source[index + 1];
+        if (char === '"') {
+          if (quoted && next === '"') {
+            value += '"';
+            index += 1;
+          } else {
+            quoted = !quoted;
+          }
+        } else if (char === delimiter && !quoted) {
+          row.push(value.trim());
+          value = "";
+        } else if ((char === "\n" || char === "\r") && !quoted) {
+          if (char === "\r" && next === "\n") index += 1;
+          row.push(value.trim());
+          if (row.some(cell => cell !== "")) rows.push(row);
+          row = [];
+          value = "";
+        } else {
+          value += char;
+        }
+      }
+      row.push(value.trim());
+      if (row.some(cell => cell !== "")) rows.push(row);
+      return rows;
+    }
+
+    function normalizeDietCsvKey(value = "") {
+      return String(value || "")
+        .normalize("NFD")
+        .replace(/[\u0300-\u036f]/g, "")
+        .toLowerCase()
+        .replace(/[^a-z0-9]+/g, "_")
+        .replace(/^_+|_+$/g, "");
+    }
+
+    function dietCsvHeaderIndexes(header = []) {
+      const aliases = {
+        studentName: ["aluno", "student", "student_name", "nome_aluno", "email", "email_aluno", "student_email"],
+        month: ["mes", "month", "competencia", "month_key"],
+        mealName: ["refeicao", "meal", "nome_refeicao", "meal_name"],
+        items: ["alimentos", "foods", "items", "alimentos_e_quantidades", "foods_and_amounts"],
+        calories: ["calorias", "calories", "kcal"],
+        protein: ["proteina", "protein"],
+        carbs: ["carbo", "carbs", "carboidrato", "carboidratos"],
+        fat: ["gordura", "fat"],
+        micros: ["micros", "micro", "observacoes", "observacoes_nutricionais", "nutrition_notes"],
+        substitutions: ["substituicoes", "substitutions", "trocas"],
+        notes: ["texto_personal", "personal", "nota", "notas", "trainer_note", "note"],
+        targetCalories: ["meta_calorias", "target_calories", "calorias_meta"],
+        targetProtein: ["meta_proteina", "target_protein", "proteina_meta"],
+        targetCarbs: ["meta_carbo", "target_carbs", "carbo_meta"],
+        targetFat: ["meta_gordura", "target_fat", "gordura_meta"]
+      };
+      const normalized = header.map(normalizeDietCsvKey);
+      return Object.fromEntries(Object.entries(aliases).map(([field, names]) => [
+        field,
+        normalized.findIndex(item => names.includes(item))
+      ]));
+    }
+
+    function dietCsvValue(row, indexes, field, fallbackIndex = -1) {
+      const index = indexes[field] >= 0 ? indexes[field] : fallbackIndex;
+      return index >= 0 ? (row[index] || "").trim() : "";
+    }
+
+    function dietCsvStudentAssignment(value = "", fallbackStudentId = "", linkedStudents = []) {
+      const raw = String(value || "").trim();
+      if (!raw && fallbackStudentId && isLinkedStudentForPersonal(fallbackStudentId)) return fallbackStudentId;
+      const normalized = raw.toLowerCase();
+      const student = linkedStudents.find(item =>
+        item.id === raw ||
+        item.email?.toLowerCase() === normalized ||
+        item.name?.toLowerCase() === normalized
+      );
+      if (!student) throw new Error(`${t("Aluno não encontrado no CSV")}: ${raw || t("vazio")}`);
+      return student.id;
+    }
+
+    function dietCsvHeader() {
+      return ["aluno", "mes", "refeicao", "alimentos", "calorias", "proteina", "carbo", "gordura", "micros", "substituicoes", "texto_personal", "meta_calorias", "meta_proteina", "meta_carbo", "meta_gordura"];
+    }
+
+    function csvEscapeDiet(value, delimiter = ";") {
+      const text = String(value ?? "");
+      return /["\n\r;,]/.test(text) || text.includes(delimiter) ? `"${text.replace(/"/g, '""')}"` : text;
+    }
+
+    function parseDietCsvPlans(text, fallbackStudentId = "", linkedStudents = []) {
+      const rows = parseDietCsvRows(text);
+      if (!rows.length) throw new Error(t("Arquivo CSV vazio."));
+      const indexes = dietCsvHeaderIndexes(rows[0]);
+      const hasHeader = Object.values(indexes).some(index => index >= 0);
+      const dataRows = hasHeader ? rows.slice(1) : rows;
+      const fallback = {
+        studentName: 0,
+        month: 1,
+        mealName: 2,
+        items: 3,
+        calories: 4,
+        protein: 5,
+        carbs: 6,
+        fat: 7,
+        micros: 8,
+        substitutions: 9,
+        notes: 10,
+        targetCalories: 11,
+        targetProtein: 12,
+        targetCarbs: 13,
+        targetFat: 14
+      };
+      const plans = new Map();
+      dataRows.forEach(row => {
+        const studentId = dietCsvStudentAssignment(dietCsvValue(row, indexes, "studentName", fallback.studentName), fallbackStudentId, linkedStudents);
+        const month = dietCsvValue(row, indexes, "month", fallback.month) || currentMonthKey();
+        const meal = {
+          name: dietCsvValue(row, indexes, "mealName", fallback.mealName) || t("Refeição"),
+          items: dietCsvValue(row, indexes, "items", fallback.items),
+          calories: dietCsvValue(row, indexes, "calories", fallback.calories),
+          protein: dietCsvValue(row, indexes, "protein", fallback.protein),
+          carbs: dietCsvValue(row, indexes, "carbs", fallback.carbs),
+          fat: dietCsvValue(row, indexes, "fat", fallback.fat),
+          micros: dietCsvValue(row, indexes, "micros", fallback.micros),
+          substitutions: dietCsvValue(row, indexes, "substitutions", fallback.substitutions),
+          notes: dietCsvValue(row, indexes, "notes", fallback.notes)
+        };
+        if (!meal.name && !meal.items) return;
+        const key = dietPlanKey(studentId, month);
+        if (!plans.has(key)) {
+          plans.set(key, {
+            id: key,
+            studentId,
+            trainerId: currentAccount()?.id || "",
+            month,
+            calories: "",
+            protein: "",
+            carbs: "",
+            fat: "",
+            meals: []
+          });
+        }
+        const plan = plans.get(key);
+        plan.calories = plan.calories || dietCsvValue(row, indexes, "targetCalories", fallback.targetCalories);
+        plan.protein = plan.protein || dietCsvValue(row, indexes, "targetProtein", fallback.targetProtein);
+        plan.carbs = plan.carbs || dietCsvValue(row, indexes, "targetCarbs", fallback.targetCarbs);
+        plan.fat = plan.fat || dietCsvValue(row, indexes, "targetFat", fallback.targetFat);
+        plan.meals.push(meal);
+      });
+      return [...plans.values()].filter(plan => plan.studentId && plan.meals.length);
+    }
+
+    async function downloadDietCsvTemplate() {
+      const user = currentAccount();
+      const students = user?.role === "personal" ? await ensureLinkedStudentsForPersonal(user.id) : [];
+      const sampleStudent = students[0]?.name || "Thiago";
+      const rows = [
+        dietCsvHeader(),
+        [sampleStudent, currentMonthKey(), "Café da manhã", "Ovos, pão, fruta", "520", "35g", "48g", "18g", "Fibra e frutas", "Pão por tapioca", "Comer sem pressa", "2400", "150g", "260g", "70g"],
+        [sampleStudent, currentMonthKey(), "Almoço", "Arroz, frango, salada", "680", "52g", "72g", "20g", "Vegetais", "Frango por peixe", "Manter água junto", "2400", "150g", "260g", "70g"]
+      ];
+      const content = rows.map(row => row.map(csvEscapeDiet).join(";")).join("\n");
+      downloadTextFile("monolith-modelo-dieta.csv", "text/csv;charset=utf-8", content);
+      setDietCsvStatus("Modelo de dieta CSV baixado.");
+      showToast("Modelo de dieta CSV baixado.");
+    }
+
+    async function exportDietCsv() {
+      const user = currentAccount();
+      if (!user || user.role !== "personal") return;
+      const plans = Object.values(loadDietPlans()).filter(plan => canAccessStudentData(plan.studentId));
+      const rows = [dietCsvHeader()];
+      plans.forEach(plan => {
+        const student = loadAccounts().find(account => account.id === plan.studentId);
+        const studentLabel = student?.email || student?.name || plan.studentId;
+        const meals = plan.meals?.length ? plan.meals : [defaultMeal(0)];
+        meals.forEach(meal => rows.push([
+          studentLabel,
+          plan.month,
+          meal.name || "",
+          meal.items || "",
+          meal.calories || "",
+          meal.protein || "",
+          meal.carbs || "",
+          meal.fat || "",
+          meal.micros || "",
+          meal.substitutions || "",
+          meal.notes || "",
+          plan.calories || "",
+          plan.protein || "",
+          plan.carbs || "",
+          plan.fat || ""
+        ]));
+      });
+      const content = rows.map(row => row.map(csvEscapeDiet).join(";")).join("\n");
+      downloadTextFile("monolith-dietas.csv", "text/csv;charset=utf-8", content);
+      setDietCsvStatus("Dietas exportadas em CSV.");
+      showToast("Dietas exportadas em CSV.");
+    }
+
+    async function importDietCsvFile(file) {
+      const user = currentAccount();
+      if (!file || !user || user.role !== "personal") return;
+      try {
+        setDietCsvStatus("Importando CSV...");
+        const text = await file.text();
+        const linkedStudents = await ensureLinkedStudentsForPersonal(user.id);
+        const fallbackStudentId = document.getElementById("dietImportStudent")?.value || selectedDietStudentId();
+        const plans = parseDietCsvPlans(text, fallbackStudentId, linkedStudents);
+        if (!plans.length) throw new Error(t("Nenhuma dieta válida encontrada no CSV."));
+        let failedSync = 0;
+        for (const plan of plans) {
+          cacheDietPlan(plan);
+          try {
+            const synced = await saveRemoteDietPlan(plan);
+            if (!synced) failedSync += 1;
+          } catch (error) {
+            failedSync += 1;
+            console.warn("Monolith diet CSV remote save failed", error);
+          }
+        }
+        await renderNutrition();
+        const message = `${plans.length} ${t(plans.length === 1 ? "dieta importada." : "dietas importadas.")}`;
+        setDietCsvStatus(failedSync ? `${message} ${t("Revise a sincronização com o Supabase.")}` : message, true);
+        showToast(failedSync ? "CSV importado, mas revise a sincronização." : "Dieta importada por CSV.");
+      } catch (error) {
+        console.warn("Monolith diet CSV import failed", error);
+        const message = error?.message || t("Não consegui importar o CSV.");
+        setDietCsvStatus(message, true);
+        showToast(message);
+      } finally {
+        const input = document.getElementById("dietCsvInput");
+        if (input) input.value = "";
+      }
+    }
+
     function renderFoodLogMeals() {
       const container = document.getElementById("foodLogMeals");
       if (!container) return;
@@ -5879,6 +6373,7 @@
       if (!isPersonal) {
         const select = document.getElementById("dietStudent");
         if (select) select.innerHTML = "";
+        renderDietImportStudentSelect([]);
       }
       if (isPersonal) {
         const select = document.getElementById("dietStudent");
@@ -5888,6 +6383,7 @@
         if (students.some(student => student.id === previousStudentId)) select.value = previousStudentId;
         else if (students[0]) select.value = students[0].id;
         else select.value = "";
+        renderDietImportStudentSelect(students);
         if (select.value) setSelectedStudentForPersonal(select.value);
         const dietStudentId = selectedDietStudentId();
         const dietMonth = monthInput.value || currentMonthKey();
@@ -6248,6 +6744,24 @@
         "Nenhum diário alimentar salvo ainda.": "No food diary saved yet.",
         "Sem personal vinculado: use a contagem básica para registrar seu dia.": "No trainer linked: use basic counting to log your day.",
         "Nenhuma dieta de personal vinculada.": "No trainer diet linked.",
+        "Importar dietas": "Import diets",
+        "Baixe o modelo, preencha uma linha por refeição e importe. O personal pode usar a coluna aluno para enviar dietas para vários alunos no mesmo arquivo.": "Download the template, fill one row per meal and import it. Trainers can use the student column to send diets to several students in one file.",
+        "2. Uma linha é uma refeição": "2. One row is one meal",
+        "Se a dieta tem 5 refeições, use 5 linhas para o mesmo aluno e mesmo mês.": "If the diet has 5 meals, use 5 rows for the same student and month.",
+        "3. Informe o aluno": "3. Enter the student",
+        "Baixar modelo de dieta CSV": "Download diet CSV template",
+        "Importar dieta CSV": "Import diet CSV",
+        "Exportar dietas CSV": "Export diets CSV",
+        "Formato: aluno, mes, refeicao, alimentos, calorias, proteina, carbo, gordura, micros, substituicoes, texto_personal.": "Format: student, month, meal, foods, calories, protein, carbs, fat, micros, substitutions, trainer_note.",
+        "Modelo de dieta CSV baixado.": "Diet CSV template downloaded.",
+        "Dietas exportadas em CSV.": "Diets exported as CSV.",
+        "Nenhuma dieta válida encontrada no CSV.": "No valid diet found in the CSV.",
+        "dieta importada.": "diet imported.",
+        "dietas importadas.": "diets imported.",
+        "Revise a sincronização com o Supabase.": "Review the Supabase sync.",
+        "CSV importado, mas revise a sincronização.": "CSV imported, but review the sync.",
+        "Dieta importada por CSV.": "Diet imported by CSV.",
+        "vazio": "empty",
         "Dashboard diário": "Daily dashboard",
         "Iniciar treino": "Start workout",
         "Check-in diário": "Daily check-in",
@@ -6289,6 +6803,13 @@
         "Cole o código de convite do personal.": "Paste the trainer invite code.",
         "Não consegui vincular este personal. Confira o código.": "Could not link this trainer. Check the code.",
         "Personal vinculado com sucesso.": "Trainer linked successfully.",
+        "Personal vinculado": "Linked trainer",
+        "Desvincular personal": "Unlink trainer",
+        "Tem certeza que deseja desvincular este personal?": "Are you sure you want to unlink this trainer?",
+        "Nenhum personal vinculado.": "No trainer linked.",
+        "Entre como aluno para desvincular um personal.": "Log in as a student to unlink a trainer.",
+        "Não consegui remover no Supabase agora. Removi o vínculo desta sessão.": "Could not remove it in Supabase right now. Removed the link for this session.",
+        "Personal desvinculado.": "Trainer unlinked.",
         "Não consegui criar o convite agora.": "Could not create the invite right now.",
         "Código de convite copiado. Envie para o aluno.": "Invite code copied. Send it to the student.",
         "Copie este código e envie para o aluno.": "Copy this code and send it to the student.",
@@ -6296,6 +6817,9 @@
         "Carregando alunos vinculados...": "Loading linked students...",
         "Não consegui carregar alunos vinculados agora.": "Could not load linked students right now.",
         "Nenhum aluno vinculado ainda. Gere um convite e envie o código para o aluno.": "No linked students yet. Generate an invite and send the code to the student.",
+        "Limite de alunos": "Student limit",
+        "O plano atual acompanha até 15 alunos. Acima disso, o Personal Pro será necessário.": "The current plan tracks up to 15 students. Above that, Personal Pro will be required.",
+        "Você passou de 15 alunos. O Personal Pro será necessário para manter novos alunos ativos.": "You passed 15 students. Personal Pro will be required to keep new students active.",
         "check-ins em 30 dias": "check-ins in 30 days",
         "Aguardando primeiro check-in": "Waiting for first check-in",
         "faltas": "misses",
@@ -6307,6 +6831,9 @@
         "Últimos 30 dias": "Last 30 days",
         "Fotos": "Photos",
         "Protegidas": "Protected",
+        "Tela cheia": "Full screen",
+        "Fechar": "Close",
+        "Foto de progresso": "Progress photo",
         "Mês passado": "Last month",
         "Este mês": "This month",
         "Backup e restauração": "Backup and restore",
@@ -6383,6 +6910,7 @@
         "Salvo localmente.": "Saved locally.",
         "itens concluídos.": "items completed.",
         "Preencha pelo menos uma medida física.": "Fill at least one physical measurement.",
+        "Entre para salvar suas medidas.": "Log in to save your measurements.",
         "Medidas corporais salvas.": "Body measurements saved.",
         "Medidas corporais salvas no Supabase.": "Body measurements saved to Supabase.",
         "Medidas salvas localmente. Não consegui sincronizar agora.": "Measurements saved locally. Could not sync right now.",
@@ -7033,6 +7561,24 @@
         "Nenhum diário alimentar salvo ainda.": "Aún no hay diario alimentario guardado.",
         "Sem personal vinculado: use a contagem básica para registrar seu dia.": "Sin entrenador vinculado: usa el conteo básico para registrar tu día.",
         "Nenhuma dieta de personal vinculada.": "No hay dieta de entrenador vinculada.",
+        "Importar dietas": "Importar dietas",
+        "Baixe o modelo, preencha uma linha por refeição e importe. O personal pode usar a coluna aluno para enviar dietas para vários alunos no mesmo arquivo.": "Descarga el modelo, completa una línea por comida e impórtalo. El entrenador puede usar la columna alumno para enviar dietas a varios alumnos en el mismo archivo.",
+        "2. Uma linha é uma refeição": "2. Una línea es una comida",
+        "Se a dieta tem 5 refeições, use 5 linhas para o mesmo aluno e mesmo mês.": "Si la dieta tiene 5 comidas, usa 5 líneas para el mismo alumno y el mismo mes.",
+        "3. Informe o aluno": "3. Informa el alumno",
+        "Baixar modelo de dieta CSV": "Descargar modelo CSV de dieta",
+        "Importar dieta CSV": "Importar dieta CSV",
+        "Exportar dietas CSV": "Exportar dietas CSV",
+        "Formato: aluno, mes, refeicao, alimentos, calorias, proteina, carbo, gordura, micros, substituicoes, texto_personal.": "Formato: alumno, mes, comida, alimentos, calorías, proteína, carbo, grasa, micros, sustituciones, nota_entrenador.",
+        "Modelo de dieta CSV baixado.": "Modelo CSV de dieta descargado.",
+        "Dietas exportadas em CSV.": "Dietas exportadas en CSV.",
+        "Nenhuma dieta válida encontrada no CSV.": "No se encontró ninguna dieta válida en el CSV.",
+        "dieta importada.": "dieta importada.",
+        "dietas importadas.": "dietas importadas.",
+        "Revise a sincronização com o Supabase.": "Revisa la sincronización con Supabase.",
+        "CSV importado, mas revise a sincronização.": "CSV importado, pero revisa la sincronización.",
+        "Dieta importada por CSV.": "Dieta importada por CSV.",
+        "vazio": "vacío",
         "Dashboard diário": "Panel diario",
         "Iniciar treino": "Iniciar entreno",
         "Check-in diário": "Check-in diario",
@@ -7074,6 +7620,13 @@
         "Cole o código de convite do personal.": "Pega el código de invitación del entrenador.",
         "Não consegui vincular este personal. Confira o código.": "No pude vincular este entrenador. Revisa el código.",
         "Personal vinculado com sucesso.": "Entrenador vinculado con éxito.",
+        "Personal vinculado": "Entrenador vinculado",
+        "Desvincular personal": "Desvincular entrenador",
+        "Tem certeza que deseja desvincular este personal?": "¿Seguro que quieres desvincular este entrenador?",
+        "Nenhum personal vinculado.": "Ningún entrenador vinculado.",
+        "Entre como aluno para desvincular um personal.": "Entra como alumno para desvincular un entrenador.",
+        "Não consegui remover no Supabase agora. Removi o vínculo desta sessão.": "No pude removerlo en Supabase ahora. Removí el vínculo de esta sesión.",
+        "Personal desvinculado.": "Entrenador desvinculado.",
         "Não consegui criar o convite agora.": "No pude crear la invitación ahora.",
         "Código de convite copiado. Envie para o aluno.": "Código de invitación copiado. Envíalo al alumno.",
         "Copie este código e envie para o aluno.": "Copia este código y envíalo al alumno.",
@@ -7081,6 +7634,9 @@
         "Carregando alunos vinculados...": "Cargando alumnos vinculados...",
         "Não consegui carregar alunos vinculados agora.": "No pude cargar alumnos vinculados ahora.",
         "Nenhum aluno vinculado ainda. Gere um convite e envie o código para o aluno.": "Aún no hay alumnos vinculados. Genera una invitación y envía el código al alumno.",
+        "Limite de alunos": "Límite de alumnos",
+        "O plano atual acompanha até 15 alunos. Acima disso, o Personal Pro será necessário.": "El plan actual acompaña hasta 15 alumnos. Por encima de eso será necesario Personal Pro.",
+        "Você passou de 15 alunos. O Personal Pro será necessário para manter novos alunos ativos.": "Pasaste de 15 alumnos. Personal Pro será necesario para mantener nuevos alumnos activos.",
         "check-ins em 30 dias": "check-ins en 30 días",
         "Aguardando primeiro check-in": "Esperando el primer check-in",
         "faltas": "faltas",
@@ -7092,6 +7648,9 @@
         "Últimos 30 dias": "Últimos 30 días",
         "Fotos": "Fotos",
         "Protegidas": "Protegidas",
+        "Tela cheia": "Pantalla completa",
+        "Fechar": "Cerrar",
+        "Foto de progresso": "Foto de progreso",
         "Mês passado": "Mes pasado",
         "Este mês": "Este mes",
         "Backup e restauração": "Backup y restauración",
@@ -7168,6 +7727,7 @@
         "Salvo localmente.": "Guardado localmente.",
         "itens concluídos.": "ítems completados.",
         "Preencha pelo menos uma medida física.": "Completa al menos una medida física.",
+        "Entre para salvar suas medidas.": "Entra para guardar tus medidas.",
         "Medidas corporais salvas.": "Medidas corporales guardadas.",
         "Medidas corporais salvas no Supabase.": "Medidas corporales guardadas en Supabase.",
         "Medidas salvas localmente. Não consegui sincronizar agora.": "Medidas guardadas localmente. No se pudo sincronizar ahora.",
@@ -7938,10 +8498,10 @@
           .filter(entry => {
             if (!studentId) {
               if (user?.role === "student") return !entry.studentId || entry.studentId === user.id;
-              if (user?.role === "personal") return !entry.studentId || canAccessStudentData(entry.studentId);
+              if (user?.role === "personal") return !entry.studentId || entry.studentId === user.id || canAccessStudentData(entry.studentId, { allowPersonalSelf: true });
               return false;
             }
-            if (!canAccessStudentData(studentId)) return false;
+            if (!canAccessStudentData(studentId, { allowPersonalSelf: true })) return false;
             return !entry.studentId || entry.studentId === studentId;
           })
           .sort((a, b) => String(b.date || "").localeCompare(String(a.date || "")));
@@ -7987,8 +8547,10 @@
 
     function renderBodyMeasures() {
       const measureForm = document.getElementById("bodyMeasureForm");
-      if (measureForm) measureForm.hidden = currentAccount()?.role !== "student";
-      const entries = loadBodyMeasures();
+      const user = currentAccount();
+      const canMeasureSelf = user?.role === "student" || user?.role === "personal";
+      if (measureForm) measureForm.hidden = !canMeasureSelf;
+      const entries = canMeasureSelf ? loadBodyMeasures(user.id) : [];
       const latest = entries[0];
       const setText = (id, value) => {
         const target = document.getElementById(id);
@@ -8140,16 +8702,37 @@
         photoLabels.forEach(label => {
           const key = label.toLowerCase();
           const image = photos[period]?.[key];
+          const safeImage = image ? escapeHTML(image) : "";
           const inputId = `photoUpload-${period}-${key}`;
           const uploadLabel = image ? t("Substituir foto") : t("Enviar foto");
+          const fullscreenButton = image && user?.role === "personal" ? `<button class="ghost fullscreen-photo" type="button">${escapeHTML(t("Tela cheia"))}</button>` : "";
           const card = document.createElement("div");
           card.className = "photo-card";
           card.dataset.period = period;
           card.dataset.slot = key;
-          card.innerHTML = `<div class="photo-preview">${image ? `<img src="${image}" alt="${t(label)}" />` : `<span>${t(label)}</span>`}</div>${canUploadPhotos ? `<label class="photo-upload-action" for="${inputId}">${uploadLabel}</label><input id="${inputId}" type="file" accept="image/*" aria-label="${t("Enviar foto")} ${t(label)}" />` : ""}<button class="ghost reveal-photo" type="button" ${image ? "" : "disabled"}>${t("Ver foto")}</button>`;
+          card.innerHTML = `<div class="photo-preview">${image ? `<img src="${safeImage}" alt="${escapeHTML(t(label))}" />` : `<span>${escapeHTML(t(label))}</span>`}</div>${canUploadPhotos ? `<label class="photo-upload-action" for="${inputId}">${escapeHTML(uploadLabel)}</label><input id="${inputId}" type="file" accept="image/*" aria-label="${escapeHTML(t("Enviar foto"))} ${escapeHTML(t(label))}" />` : ""}<button class="ghost reveal-photo" type="button" ${image ? "" : "disabled"}>${escapeHTML(t("Ver foto"))}</button>${fullscreenButton}`;
           container.appendChild(card);
         });
       });
+    }
+
+    function openPhotoLightbox(src = "", alt = "Foto de progresso") {
+      const lightbox = document.getElementById("photoLightbox");
+      const image = document.getElementById("photoLightboxImage");
+      if (!lightbox || !image || !src) return;
+      image.src = src;
+      image.alt = t(alt);
+      lightbox.hidden = false;
+      document.body.classList.add("modal-open");
+    }
+
+    function closePhotoLightbox() {
+      const lightbox = document.getElementById("photoLightbox");
+      const image = document.getElementById("photoLightboxImage");
+      if (!lightbox || !image) return;
+      lightbox.hidden = true;
+      image.removeAttribute("src");
+      document.body.classList.remove("modal-open");
     }
 
     function reportNumber(value) {
@@ -8454,7 +9037,8 @@
       const photoSections = [["last", rt("Mês passado")], ["current", rt("Este mês")]].map(([period, label]) => {
         const cards = photoSlots.map(([slot, slotLabel]) => {
           const src = report.progressPhotos?.[period]?.[slot];
-          return `<div class="photo-report-card"><strong>${escapeHTML(slotLabel)}</strong>${src ? `<img src="${src}" alt="${escapeHTML(slotLabel)}">` : `<span>${rt("Sem foto salva.")}</span>`}</div>`;
+          const photoSrc = src ? escapeHTML(src) : "";
+          return `<div class="photo-report-card"><strong>${escapeHTML(slotLabel)}</strong>${src ? `<a class="photo-report-link" href="${photoSrc}" target="_blank" rel="noopener"><img src="${photoSrc}" alt="${escapeHTML(slotLabel)}"></a>` : `<span>${rt("Sem foto salva.")}</span>`}</div>`;
         }).join("");
         return `<h3>${escapeHTML(label)}</h3><div class="photo-report-grid">${cards}</div>`;
       }).join("");
@@ -8484,7 +9068,9 @@ th{background:#eee}.muted{color:#666}.gain{color:#137333;font-weight:700}.drop{c
 .wbar span{writing-mode:vertical-rl;transform:rotate(180deg);opacity:.75}
 .photo-report-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin:10px 0 16px}
 .photo-report-card{border:1px solid #ccc;min-height:170px;padding:8px;display:flex;flex-direction:column;gap:8px;justify-content:center}
+.photo-report-link{display:block}
 .photo-report-card img{width:100%;height:150px;object-fit:cover}
+.photo-report-link img{cursor:zoom-in}
 .photo-report-card span{color:#666;font-size:12px}
 @media print{button{display:none}body{margin:18px}}
 </style>
@@ -8877,6 +9463,12 @@ ${photoSections}
     document.getElementById("editTrainerProfileButton")?.addEventListener("click", async () => {
       await openTrainerProfileEditor("profile");
     });
+    document.getElementById("unlinkTrainerButton")?.addEventListener("click", async () => {
+      await unlinkStudentTrainer();
+    });
+    document.getElementById("downloadDietCsvTemplate")?.addEventListener("click", downloadDietCsvTemplate);
+    document.getElementById("exportDietCsv")?.addEventListener("click", exportDietCsv);
+    document.getElementById("dietCsvInput")?.addEventListener("change", event => importDietCsvFile(event.target.files?.[0]));
     document.getElementById("forgotBackToLoginButton")?.addEventListener("click", () => showLoginPanel());
     document.getElementById("backToLoginButton")?.addEventListener("click", () => showLoginPanel());
     monolithSupabase?.auth.onAuthStateChange((event) => {
@@ -9103,6 +9695,7 @@ ${photoSections}
 
     function showScreen(id) {
       if (trainerProfileOnboardingRequired && id !== "trainerProfileOnboarding") id = "trainerProfileOnboarding";
+      if (id === "backup") id = "stats";
       const navTarget = document.querySelector(`.nav-btn[data-screen="${id}"]`);
       if (navTarget?.dataset.roleOnly && navTarget.dataset.roleOnly !== currentAccount()?.role) id = "home";
       document.querySelectorAll(".screen").forEach(screen => screen.classList.toggle("active", screen.id === id));
@@ -9124,7 +9717,13 @@ ${photoSections}
       }
       if (id === "measures") {
         renderBodyMeasures();
-        refreshRemoteStudentData({ measures: true, summary: true });
+        const user = currentAccount();
+        if (user?.id && isRealSupabaseAccount(user)) {
+          loadRemoteBodyMeasures(user.id)
+            .then(() => renderBodyMeasures())
+            .catch(error => console.warn("Monolith own measurements refresh failed", error));
+        }
+        renderTrainerSummary();
       }
       if (id === "checkin") {
         renderCheckinStudentSelect().then(loadFactorsForCheckinTarget);
@@ -9143,6 +9742,10 @@ ${photoSections}
         event.preventDefault();
         showScreen(nav.dataset.screen);
       });
+    });
+
+    document.addEventListener("keydown", event => {
+      if (event.key === "Escape") closePhotoLightbox();
     });
 
     document.querySelectorAll("[data-screen-jump]").forEach(jump => {
@@ -9204,7 +9807,17 @@ ${photoSections}
       if (revealPhoto) {
         const preview = revealPhoto.closest(".photo-card").querySelector(".photo-preview");
         preview.classList.toggle("revealed");
-        revealPhoto.textContent = preview.classList.contains("revealed") ? "Ocultar foto" : "Ver foto";
+        revealPhoto.textContent = preview.classList.contains("revealed") ? t("Ocultar foto") : t("Ver foto");
+      }
+
+      const fullscreenPhoto = event.target.closest(".fullscreen-photo");
+      if (fullscreenPhoto) {
+        const image = fullscreenPhoto.closest(".photo-card")?.querySelector(".photo-preview img");
+        if (image?.src) openPhotoLightbox(image.src, image.alt || "Foto de progresso");
+      }
+
+      if (event.target.closest("#closePhotoLightbox") || event.target.id === "photoLightbox") {
+        closePhotoLightbox();
       }
 
     });
@@ -9257,8 +9870,9 @@ ${photoSections}
     });
     document.getElementById("bodyMeasureForm").addEventListener("submit", async event => {
       event.preventDefault();
-      if (currentAccount()?.role !== "student") {
-        authMessage("Apenas o aluno pode salvar as próprias medidas.");
+      const user = currentAccount();
+      if (user?.role !== "student" && user?.role !== "personal") {
+        authMessage("Entre para salvar suas medidas.");
         return;
       }
       const entry = readBodyMeasureForm();

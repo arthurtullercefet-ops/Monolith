@@ -1,4 +1,4 @@
-const CACHE_NAME = "monolith-v73-workout-import-guide";
+const CACHE_NAME = "monolith-v74-diet-import-photo-scope";
 
 self.addEventListener("install", event => {
   self.skipWaiting();
