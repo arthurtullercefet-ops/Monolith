@@ -14,7 +14,7 @@
   <link rel="manifest" href="manifest.webmanifest" />
   <link rel="icon" href="monolith-icon.svg" />
   <script>
-    window.MONOLITH_BUILD = "monolith-v71-profile-edit";
+    window.MONOLITH_BUILD = "monolith-v73-workout-import-guide";
     (function clearOldAppCaches() {
       if ("serviceWorker" in navigator) {
         navigator.serviceWorker.getRegistrations?.()
@@ -687,6 +687,12 @@
       min-height: 34px;
     }
 
+    .session-actions {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+    }
+
     .profile-layout {
       display: grid;
       grid-template-columns: minmax(0, .9fr) minmax(0, 1.1fr);
@@ -722,6 +728,18 @@
     .profile-password-form {
       display: grid;
       gap: 12px;
+    }
+
+    .settings-actions {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(140px, 1fr));
+      gap: 8px;
+      margin-top: 12px;
+    }
+
+    .settings-actions .danger {
+      border-color: rgba(255, 78, 78, .45);
+      color: #ff8b8b;
     }
 
     .profile-password-form .action {
@@ -1212,6 +1230,87 @@
       color: var(--muted);
       line-height: 1.45;
       font-size: 14px;
+    }
+
+    .workout-import-actions {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(150px, 1fr));
+      gap: 8px;
+      align-items: end;
+    }
+
+    .workout-import-guide {
+      border: 1px solid var(--line);
+      background: #101010;
+      padding: 14px;
+      margin: 12px 0;
+      display: grid;
+      gap: 12px;
+    }
+
+    .guide-grid {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(150px, 1fr));
+      gap: 8px;
+    }
+
+    .guide-card {
+      border: 1px solid var(--line);
+      background: #0b0b0b;
+      padding: 12px;
+      display: grid;
+      gap: 6px;
+      min-height: 112px;
+    }
+
+    .guide-card b {
+      color: var(--text);
+      font-size: 13px;
+    }
+
+    .guide-card span {
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.45;
+    }
+
+    .csv-example {
+      border: 1px solid var(--line);
+      overflow-x: auto;
+    }
+
+    .csv-example-row {
+      min-width: 760px;
+      display: grid;
+      grid-template-columns: 1.1fr 1fr 1.2fr .55fr .75fr .6fr .7fr;
+      border-top: 1px solid var(--line);
+    }
+
+    .csv-example-row:first-of-type {
+      border-top: 0;
+      background: #151515;
+      color: var(--gold);
+      text-transform: uppercase;
+      letter-spacing: .8px;
+      font-size: 11px;
+    }
+
+    .csv-example-row span {
+      padding: 9px 10px;
+      border-right: 1px solid var(--line);
+      white-space: nowrap;
+    }
+
+    .csv-example-row span:last-child {
+      border-right: 0;
+    }
+
+    .file-action {
+      min-height: 42px;
+      display: grid;
+      place-items: center;
+      cursor: pointer;
+      text-align: center;
     }
 
     .pill-row {
@@ -1976,6 +2075,9 @@
 
       .metrics,
       .workouts,
+      .guide-grid,
+      .workout-import-actions,
+      .settings-actions,
       .programs,
       .backup-row {
         grid-template-columns: 1fr 1fr;
@@ -2248,7 +2350,10 @@
       .trainer-profile-grid.three,
       .choice-grid,
       .map-filters,
-      .map-results {
+      .map-results,
+      .guide-grid,
+      .settings-actions,
+      .workout-import-actions {
         grid-template-columns: 1fr;
       }
 
@@ -2315,7 +2420,7 @@
           <button class="action" id="loginButton" type="button">Entrar</button>
           <div class="auth-tools">
             <button class="auth-secondary" id="clearDeviceSessionButton" type="button">Limpar sessão/cache deste aparelho</button>
-            <div class="build-version" id="buildVersionLabel">Versão do app: monolith-v71-profile-edit</div>
+            <div class="build-version" id="buildVersionLabel">Versão do app: monolith-v73-workout-import-guide</div>
           </div>
         </form>
       </div>
@@ -2573,7 +2678,10 @@
           <strong id="sessionName">Usuário</strong>
           <span id="sessionRole">Plano Supabase</span>
         </div>
-        <button class="ghost" type="button" id="logoutButton">Sair</button>
+        <div class="session-actions">
+          <button class="ghost" type="button" data-screen-jump="profile" id="profileShortcutButton">Perfil</button>
+          <button class="ghost" type="button" id="logoutButton">Sair</button>
+        </div>
       </div>
 
       <nav aria-label="Principal">
@@ -2934,6 +3042,38 @@
           </div>
           <button class="action" id="newWorkoutButton">Novo treino</button>
         </div>
+        <div class="panel" id="workoutCsvPanel">
+          <div class="section-title"><h3>Importar treinos</h3><span>CSV</span></div>
+          <div class="report-line">Baixe o modelo, preencha uma linha por série e importe. O personal pode usar a coluna aluno para enviar vários treinos para vários alunos no mesmo arquivo.</div>
+          <div class="workout-import-guide">
+            <div class="section-title"><h3>Como preencher o arquivo</h3><span>Passo a passo</span></div>
+            <div class="guide-grid">
+              <div class="guide-card"><b>1. Baixe o modelo</b><span>Clique em Baixar modelo CSV e abra o arquivo no Excel, Google Sheets ou Numbers.</span></div>
+              <div class="guide-card"><b>2. Uma linha é uma série</b><span>Se o exercício tem 4 séries, repita o mesmo exercício em 4 linhas e mude apenas série, repetições, peso ou descanso.</span></div>
+              <div class="guide-card"><b>3. Personal informa o aluno</b><span>Na coluna aluno, coloque o nome ou e-mail exatamente como aparece na lista de alunos vinculados.</span></div>
+              <div class="guide-card"><b>4. Salve como CSV</b><span>Depois de preencher, salve ou baixe como CSV e clique em Importar CSV aqui no Monolith.</span></div>
+            </div>
+            <div class="csv-example">
+              <div class="kicker">Exemplo simples</div>
+              <div class="csv-example-row"><span>aluno</span><span>treino</span><span>exercicio</span><span>serie</span><span>repeticoes</span><span>peso</span><span>descanso</span></div>
+              <div class="csv-example-row"><span>Thiago</span><span>Peito A</span><span>Supino reto</span><span>1</span><span>12</span><span>40</span><span>90</span></div>
+              <div class="csv-example-row"><span>Thiago</span><span>Peito A</span><span>Supino reto</span><span>2</span><span>10</span><span>60</span><span>120</span></div>
+            </div>
+          </div>
+          <div class="factor-form">
+            <div class="form-field" id="workoutImportStudentField" hidden>
+              <label for="workoutImportStudent">Destino padrão quando o CSV não tiver aluno</label>
+              <select id="workoutImportStudent"></select>
+            </div>
+            <div class="workout-import-actions">
+              <button class="ghost" type="button" id="downloadWorkoutCsvTemplate">Baixar modelo CSV</button>
+              <label class="ghost file-action" for="workoutCsvInput">Importar CSV</label>
+              <input id="workoutCsvInput" type="file" accept=".csv,text/csv" hidden />
+              <button class="ghost" type="button" id="exportWorkoutCsv">Exportar treinos CSV</button>
+            </div>
+          </div>
+          <div class="report-line" id="workoutCsvStatus">Formato: aluno, treino, objetivo, tag, exercicio, serie, repeticoes, peso, descanso, tipo.</div>
+        </div>
         <div class="grid workouts" id="workoutList"></div>
       </section>
 
@@ -3212,6 +3352,16 @@
             </form>
           </div>
 
+          <div class="panel">
+            <div class="section-title"><h3>Configurações da conta</h3><span>Assinatura</span></div>
+            <p>Gerencie assinatura, cobrança e ações sensíveis da conta. Pagamentos serão conectados ao provedor oficial antes do lançamento.</p>
+            <div class="settings-actions">
+              <button class="ghost" type="button" id="manageSubscriptionButton">Gerenciar assinatura</button>
+              <button class="ghost danger" type="button" id="cancelSubscriptionButton">Cancelar assinatura</button>
+            </div>
+            <div class="auth-warning" id="accountSettingsNotice" hidden></div>
+          </div>
+
           <div class="panel" id="profileTrainerPanel" data-role-only="personal" hidden>
             <div class="section-title"><h3>Perfil profissional</h3><span>Mapa de personais</span></div>
             <p>Atualize as informações exibidas no mapa, serviços, preços, especialidades e autorização de exibição.</p>
@@ -3347,7 +3497,7 @@
   <script>
     const MONOLITH_SUPABASE_URL = "https://jhxasnxuvmkhntbwepau.supabase.co";
     const MONOLITH_SUPABASE_KEY = "sb_publishable_lDtAXIOtkMwgwsAZyghBdg_gyLHGwpH";
-    const MONOLITH_BUILD = window.MONOLITH_BUILD || "monolith-v71-profile-edit";
+    const MONOLITH_BUILD = window.MONOLITH_BUILD || "monolith-v73-workout-import-guide";
     const monolithSupabase = window.supabase?.createClient?.(MONOLITH_SUPABASE_URL, MONOLITH_SUPABASE_KEY, {
       auth: {
         storage: window.sessionStorage,
@@ -3769,6 +3919,13 @@
 
     function showProfilePasswordNotice(message = "") {
       const notice = document.getElementById("profilePasswordNotice");
+      if (!notice) return;
+      notice.hidden = !message;
+      notice.textContent = message ? t(message) : "";
+    }
+
+    function showAccountSettingsNotice(message = "") {
+      const notice = document.getElementById("accountSettingsNotice");
       if (!notice) return;
       notice.hidden = !message;
       notice.textContent = message ? t(message) : "";
@@ -4815,6 +4972,7 @@
       setText("profileEmail", user?.email || "--");
       setText("profilePlan", user ? `${roleLabel(user.role)} · ${user.plan || "Supabase"}` : "--");
       showProfilePasswordNotice("");
+      showAccountSettingsNotice("");
       const trainerPanel = document.getElementById("profileTrainerPanel");
       if (trainerPanel) trainerPanel.hidden = user?.role !== "personal";
     }
@@ -6496,7 +6654,63 @@
         "registro físico": "physical record",
         "e": "and",
         "dias sem check-in para o personal acompanhar.": "days without check-in for the trainer to follow up.",
-        "dia sem check-in para o personal acompanhar.": "day without check-in for the trainer to follow up."
+        "dia sem check-in para o personal acompanhar.": "day without check-in for the trainer to follow up.",
+        "Importar treinos": "Import workouts",
+        "aluno": "student",
+        "treino": "workout",
+        "exercicio": "exercise",
+        "serie": "set",
+        "repeticoes": "reps",
+        "peso": "weight",
+        "descanso": "rest",
+        "Baixe o modelo, preencha uma linha por série e importe. O personal pode usar a coluna aluno para enviar vários treinos para vários alunos no mesmo arquivo.": "Download the template, fill one row per set and import it. Trainers can use the student column to send several workouts to several students in one file.",
+        "Como preencher o arquivo": "How to fill the file",
+        "Passo a passo": "Step by step",
+        "1. Baixe o modelo": "1. Download the template",
+        "Clique em Baixar modelo CSV e abra o arquivo no Excel, Google Sheets ou Numbers.": "Click Download CSV template and open the file in Excel, Google Sheets or Numbers.",
+        "2. Uma linha é uma série": "2. One row is one set",
+        "Se o exercício tem 4 séries, repita o mesmo exercício em 4 linhas e mude apenas série, repetições, peso ou descanso.": "If an exercise has 4 sets, repeat the same exercise in 4 rows and only change set, reps, weight or rest.",
+        "3. Personal informa o aluno": "3. Trainer fills the student",
+        "Na coluna aluno, coloque o nome ou e-mail exatamente como aparece na lista de alunos vinculados.": "In the student column, enter the name or email exactly as it appears in the linked students list.",
+        "4. Salve como CSV": "4. Save as CSV",
+        "Depois de preencher, salve ou baixe como CSV e clique em Importar CSV aqui no Monolith.": "After filling it, save or download as CSV and click Import CSV here in Monolith.",
+        "Exemplo simples": "Simple example",
+        "Destino padrão quando o CSV não tiver aluno": "Default destination when the CSV has no student",
+        "Baixar modelo CSV": "Download CSV template",
+        "Importar CSV": "Import CSV",
+        "Exportar treinos CSV": "Export workouts CSV",
+        "Formato: aluno, treino, objetivo, tag, exercicio, serie, repeticoes, peso, descanso, tipo.": "Format: student, workout, goal, tag, exercise, set, reps, weight, rest, type.",
+        "Meu próprio treino": "My own workout",
+        "Modelo CSV baixado.": "CSV template downloaded.",
+        "Nenhum treino para exportar.": "No workout to export.",
+        "Treinos exportados em CSV.": "Workouts exported as CSV.",
+        "Importando CSV...": "Importing CSV...",
+        "Arquivo CSV vazio.": "Empty CSV file.",
+        "Nenhum treino válido encontrado no CSV.": "No valid workout found in the CSV.",
+        "Não consegui importar o CSV.": "I could not import the CSV.",
+        "Treino importado por CSV.": "Workout imported by CSV.",
+        "Treino importado": "Imported workout",
+        "treino importado.": "workout imported.",
+        "treinos importados.": "workouts imported.",
+        "Alguns treinos não foram enviados ao aluno.": "Some workouts were not sent to the student.",
+        "CSV importado, mas revise os envios ao aluno.": "CSV imported, but review the student deliveries.",
+        "Destino da importação atualizado.": "Import destination updated.",
+        "Destino padrão atualizado.": "Default destination updated.",
+        "Aluno não encontrado no CSV": "Student not found in CSV",
+        "Duplicar": "Duplicate",
+        "Duplicado": "Duplicated",
+        "cópia": "copy",
+        "meu próprio treino": "my own workout",
+        "Treino duplicado para": "Workout duplicated to",
+        "Treino duplicado localmente, mas não chegou ao aluno.": "Workout duplicated locally, but it did not reach the student.",
+        "Duplicar treino para qual aluno?": "Duplicate workout to which student?",
+        "Configurações da conta": "Account settings",
+        "Assinatura": "Subscription",
+        "Gerencie assinatura, cobrança e ações sensíveis da conta. Pagamentos serão conectados ao provedor oficial antes do lançamento.": "Manage subscription, billing and sensitive account actions. Payments will be connected to the official provider before launch.",
+        "Gerenciar assinatura": "Manage subscription",
+        "Cancelar assinatura": "Cancel subscription",
+        "Gerenciamento de assinatura será conectado ao provedor de pagamento antes do lançamento.": "Subscription management will be connected to the payment provider before launch.",
+        "Cancelamento de assinatura será conectado ao provedor de pagamento antes do lançamento.": "Subscription cancellation will be connected to the payment provider before launch."
       },
       es: {
         "Idioma": "Idioma",
@@ -7225,7 +7439,63 @@
         "registro físico": "registro físico",
         "e": "y",
         "dias sem check-in para o personal acompanhar.": "días sin check-in para que el entrenador acompañe.",
-        "dia sem check-in para o personal acompanhar.": "día sin check-in para que el entrenador acompañe."
+        "dia sem check-in para o personal acompanhar.": "día sin check-in para que el entrenador acompañe.",
+        "Importar treinos": "Importar entrenos",
+        "aluno": "alumno",
+        "treino": "entreno",
+        "exercicio": "ejercicio",
+        "serie": "serie",
+        "repeticoes": "repeticiones",
+        "peso": "peso",
+        "descanso": "descanso",
+        "Baixe o modelo, preencha uma linha por série e importe. O personal pode usar a coluna aluno para enviar vários treinos para vários alunos no mesmo arquivo.": "Descarga el modelo, completa una línea por serie e impórtalo. El entrenador puede usar la columna alumno para enviar varios entrenos a varios alumnos en un mismo archivo.",
+        "Como preencher o arquivo": "Cómo completar el archivo",
+        "Passo a passo": "Paso a paso",
+        "1. Baixe o modelo": "1. Descarga el modelo",
+        "Clique em Baixar modelo CSV e abra o arquivo no Excel, Google Sheets ou Numbers.": "Haz clic en Descargar modelo CSV y abre el archivo en Excel, Google Sheets o Numbers.",
+        "2. Uma linha é uma série": "2. Una línea es una serie",
+        "Se o exercício tem 4 séries, repita o mesmo exercício em 4 linhas e mude apenas série, repetições, peso ou descanso.": "Si el ejercicio tiene 4 series, repite el mismo ejercicio en 4 líneas y cambia solo serie, repeticiones, peso o descanso.",
+        "3. Personal informa o aluno": "3. El entrenador informa el alumno",
+        "Na coluna aluno, coloque o nome ou e-mail exatamente como aparece na lista de alunos vinculados.": "En la columna alumno, escribe el nombre o email exactamente como aparece en la lista de alumnos vinculados.",
+        "4. Salve como CSV": "4. Guarda como CSV",
+        "Depois de preencher, salve ou baixe como CSV e clique em Importar CSV aqui no Monolith.": "Después de completarlo, guarda o descarga como CSV y haz clic en Importar CSV aquí en Monolith.",
+        "Exemplo simples": "Ejemplo simple",
+        "Destino padrão quando o CSV não tiver aluno": "Destino predeterminado cuando el CSV no tenga alumno",
+        "Baixar modelo CSV": "Descargar modelo CSV",
+        "Importar CSV": "Importar CSV",
+        "Exportar treinos CSV": "Exportar entrenos CSV",
+        "Formato: aluno, treino, objetivo, tag, exercicio, serie, repeticoes, peso, descanso, tipo.": "Formato: alumno, entreno, objetivo, tag, ejercicio, serie, repeticiones, peso, descanso, tipo.",
+        "Meu próprio treino": "Mi propio entreno",
+        "Modelo CSV baixado.": "Modelo CSV descargado.",
+        "Nenhum treino para exportar.": "No hay entrenos para exportar.",
+        "Treinos exportados em CSV.": "Entrenos exportados en CSV.",
+        "Importando CSV...": "Importando CSV...",
+        "Arquivo CSV vazio.": "Archivo CSV vacío.",
+        "Nenhum treino válido encontrado no CSV.": "No se encontró ningún entreno válido en el CSV.",
+        "Não consegui importar o CSV.": "No pude importar el CSV.",
+        "Treino importado por CSV.": "Entreno importado por CSV.",
+        "Treino importado": "Entreno importado",
+        "treino importado.": "entreno importado.",
+        "treinos importados.": "entrenos importados.",
+        "Alguns treinos não foram enviados ao aluno.": "Algunos entrenos no fueron enviados al alumno.",
+        "CSV importado, mas revise os envios ao aluno.": "CSV importado, pero revisa los envíos al alumno.",
+        "Destino da importação atualizado.": "Destino de importación actualizado.",
+        "Destino padrão atualizado.": "Destino predeterminado actualizado.",
+        "Aluno não encontrado no CSV": "Alumno no encontrado en el CSV",
+        "Duplicar": "Duplicar",
+        "Duplicado": "Duplicado",
+        "cópia": "copia",
+        "meu próprio treino": "mi propio entreno",
+        "Treino duplicado para": "Entreno duplicado para",
+        "Treino duplicado localmente, mas não chegou ao aluno.": "Entreno duplicado localmente, pero no llegó al alumno.",
+        "Duplicar treino para qual aluno?": "¿Duplicar entreno para qué alumno?",
+        "Configurações da conta": "Configuración de la cuenta",
+        "Assinatura": "Suscripción",
+        "Gerencie assinatura, cobrança e ações sensíveis da conta. Pagamentos serão conectados ao provedor oficial antes do lançamento.": "Gestiona suscripción, facturación y acciones sensibles de la cuenta. Los pagos se conectarán al proveedor oficial antes del lanzamiento.",
+        "Gerenciar assinatura": "Gestionar suscripción",
+        "Cancelar assinatura": "Cancelar suscripción",
+        "Gerenciamento de assinatura será conectado ao provedor de pagamento antes do lançamento.": "La gestión de suscripción se conectará al proveedor de pago antes del lanzamiento.",
+        "Cancelamento de assinatura será conectado ao provedor de pagamento antes do lançamento.": "La cancelación de suscripción se conectará al proveedor de pago antes del lanzamiento."
       }
     };
 
@@ -7404,6 +7674,9 @@
         return;
       }
       localStorage.setItem("monolith.selectedWorkoutStudentId", safeTarget);
+      [document.getElementById("workoutStudent"), document.getElementById("workoutImportStudent")].forEach(select => {
+        if (select && [...select.options].some(option => option.value === safeTarget)) select.value = safeTarget;
+      });
       if (safeTarget !== selfWorkoutTarget) setSelectedStudentForPersonal(safeTarget);
     }
 
@@ -8591,6 +8864,16 @@ ${photoSections}
       event.preventDefault();
       await updateProfilePassword();
     });
+    document.getElementById("manageSubscriptionButton")?.addEventListener("click", () => {
+      const message = "Gerenciamento de assinatura será conectado ao provedor de pagamento antes do lançamento.";
+      showAccountSettingsNotice(message);
+      authMessage(message);
+    });
+    document.getElementById("cancelSubscriptionButton")?.addEventListener("click", () => {
+      const message = "Cancelamento de assinatura será conectado ao provedor de pagamento antes do lançamento.";
+      showAccountSettingsNotice(message);
+      authMessage(message);
+    });
     document.getElementById("editTrainerProfileButton")?.addEventListener("click", async () => {
       await openTrainerProfileEditor("profile");
     });
@@ -9293,6 +9576,13 @@ ${photoSections}
       const builder = document.getElementById("exerciseBuilder");
       const workoutListV2 = document.getElementById("workoutList");
       const formV2 = document.getElementById("workoutForm");
+      const workoutCsvPanel = document.getElementById("workoutCsvPanel");
+      const workoutImportStudentField = document.getElementById("workoutImportStudentField");
+      const workoutImportStudent = document.getElementById("workoutImportStudent");
+      const workoutCsvInput = document.getElementById("workoutCsvInput");
+      const workoutCsvStatus = document.getElementById("workoutCsvStatus");
+      const downloadWorkoutCsvTemplateButton = document.getElementById("downloadWorkoutCsvTemplate");
+      const exportWorkoutCsvButton = document.getElementById("exportWorkoutCsv");
       let workoutsV2 = loadWorkoutsV2();
       let activeWorkoutV2 = workoutsV2[0];
       let currentWorkoutLinkedTrainerIdV2 = "";
@@ -9450,10 +9740,12 @@ ${photoSections}
           currentWorkoutLinkedTrainerIdV2 = await ensureStudentTrainerId(user);
         }
         const button = document.getElementById("newWorkoutButton");
-        if (!button) return;
         const trainerControlled = user?.role === "student" && Boolean(currentWorkoutLinkedTrainerIdV2);
-        button.hidden = trainerControlled;
-        button.disabled = trainerControlled;
+        if (button) {
+          button.hidden = trainerControlled;
+          button.disabled = trainerControlled;
+        }
+        await renderWorkoutCsvControlsV2(trainerControlled);
       }
       window.monolithUpdateWorkoutCreateAccess = updateWorkoutCreateAccessV2;
 
@@ -9495,8 +9787,364 @@ ${photoSections}
         return localWorkout;
       }
 
+      function duplicateWorkoutDraftV2(workout, assignedStudentId = "") {
+        return normalizeWorkoutV2({
+          id: `custom-duplicate-${Date.now()}`,
+          ownerId: currentAccount()?.id || "",
+          assignedStudentId,
+          name: `${workout.name} - ${textV2("cópia")}`,
+          goal: workout.goal,
+          tag: workout.tag || "Duplicado",
+          source: "custom",
+          exercises: (workout.exercises || []).map(exercise => ({
+            name: exercise.name,
+            sets: (exercise.sets || []).map(set => ({
+              weight: set.weight ?? "",
+              reps: set.reps || "",
+              type: set.type || "Normal",
+              rest: set.rest || "90"
+            }))
+          }))
+        });
+      }
+
+      async function promptDuplicateWorkoutTargetV2() {
+        const user = currentAccount();
+        const linkedStudents = user?.role === "personal" ? await ensureLinkedStudentsForPersonal(user.id) : [];
+        const options = linkedStudents.map((student, index) => `${index + 1} - ${student.name} (${student.email})`).join("\n");
+        const answer = window.prompt(`${textV2("Duplicar treino para qual aluno?")}\n0 - ${textV2("Meu próprio treino")}${options ? `\n${options}` : ""}`, "");
+        if (answer === null) return null;
+        const raw = String(answer).trim();
+        if (!raw || raw === "0") return "";
+        const index = Number(raw);
+        if (Number.isInteger(index) && linkedStudents[index - 1]) return linkedStudents[index - 1].id;
+        return csvStudentAssignmentV2(raw, "", linkedStudents);
+      }
+
+      async function duplicateWorkoutForPersonalV2(id) {
+        const user = currentAccount();
+        if (user?.role !== "personal") return;
+        const workout = workoutsV2.find(item => item.id === id);
+        if (!workout) return;
+        let assignedStudentId = "";
+        try {
+          const promptedTarget = await promptDuplicateWorkoutTargetV2();
+          if (promptedTarget === null) return;
+          assignedStudentId = promptedTarget;
+        } catch (error) {
+          const message = error?.message || "Aluno não encontrado no CSV";
+          setWorkoutCsvStatusV2(message, true);
+          toastV2(message);
+          return;
+        }
+        const targetStudent = assignedStudentId ? loadAccounts().find(account => account.id === assignedStudentId) : null;
+        const draft = duplicateWorkoutDraftV2(workout, assignedStudentId);
+        const saved = await saveCustomWorkoutV2(draft);
+        if (saved.assignedStudentId) setSelectedStudentForPersonal(saved.assignedStudentId);
+        await refreshWorkoutsV2();
+        const targetName = targetStudent?.name || textV2("meu próprio treino");
+        if (saved.syncStatus === "failed" && saved.assignedStudentId) {
+          toastV2(textV2("Treino duplicado localmente, mas não chegou ao aluno."));
+        } else {
+          toastV2(`${textV2("Treino duplicado para")} ${targetName}.`);
+        }
+      }
+
       function saveWorkoutsV2(workouts) {
         localStorage.setItem("monolith.workouts", JSON.stringify(workouts.map(normalizeWorkoutV2)));
+      }
+
+      function setWorkoutCsvStatusV2(message, translated = false) {
+        if (!workoutCsvStatus) return;
+        workoutCsvStatus.textContent = translated ? message : textV2(message);
+      }
+
+      function selectedWorkoutImportTargetV2() {
+        const user = currentAccount();
+        if (user?.role !== "personal") return selfWorkoutTarget;
+        const target = workoutImportStudent?.value || localStorage.getItem("monolith.selectedWorkoutStudentId") || selfWorkoutTarget;
+        if (target === selfWorkoutTarget) return selfWorkoutTarget;
+        return isLinkedStudentForPersonal(target, user) ? target : selfWorkoutTarget;
+      }
+
+      async function renderWorkoutCsvControlsV2(trainerControlled = false) {
+        const user = currentAccount();
+        if (!workoutCsvPanel) return;
+        const shouldHide = !user || trainerControlled;
+        workoutCsvPanel.hidden = shouldHide;
+        if (shouldHide) return;
+        setWorkoutCsvStatusV2("Formato: aluno, treino, objetivo, tag, exercicio, serie, repeticoes, peso, descanso, tipo.");
+        if (!workoutImportStudentField || !workoutImportStudent) return;
+        workoutImportStudentField.hidden = user.role !== "personal";
+        if (user.role !== "personal") {
+          workoutImportStudent.innerHTML = "";
+          return;
+        }
+        const students = await ensureLinkedStudentsForPersonal(user.id);
+        const previousTarget = selectedWorkoutImportTargetV2();
+        workoutImportStudent.innerHTML = `<option value="${selfWorkoutTarget}">${htmlT("Meu próprio treino")}</option>` + students.map(student => `<option value="${html(student.id)}">${html(student.name)} - ${html(student.email)}</option>`).join("");
+        workoutImportStudent.value = students.some(student => student.id === previousTarget) ? previousTarget : selfWorkoutTarget;
+        setSelectedWorkoutTarget(workoutImportStudent.value);
+      }
+
+      function csvDelimiterV2(text) {
+        const firstDataLine = String(text || "").split(/\r?\n/).find(line => {
+          const trimmed = line.trim().toLowerCase();
+          return trimmed && !trimmed.startsWith("sep=");
+        }) || "";
+        const semicolons = (firstDataLine.match(/;/g) || []).length;
+        const commas = (firstDataLine.match(/,/g) || []).length;
+        return semicolons >= commas ? ";" : ",";
+      }
+
+      function parseCsvRowsV2(text) {
+        const source = String(text || "").replace(/^\uFEFF/, "");
+        const delimiter = csvDelimiterV2(source);
+        const rows = [];
+        let row = [];
+        let field = "";
+        let quoted = false;
+        for (let index = 0; index < source.length; index += 1) {
+          const char = source[index];
+          const next = source[index + 1];
+          if (char === '"') {
+            if (quoted && next === '"') {
+              field += '"';
+              index += 1;
+            } else {
+              quoted = !quoted;
+            }
+          } else if (char === delimiter && !quoted) {
+            row.push(field);
+            field = "";
+          } else if ((char === "\n" || char === "\r") && !quoted) {
+            if (char === "\r" && next === "\n") index += 1;
+            row.push(field);
+            if (row.some(cell => String(cell).trim()) && !String(row[0] || "").trim().toLowerCase().startsWith("sep=")) rows.push(row);
+            row = [];
+            field = "";
+          } else {
+            field += char;
+          }
+        }
+        row.push(field);
+        if (row.some(cell => String(cell).trim()) && !String(row[0] || "").trim().toLowerCase().startsWith("sep=")) rows.push(row);
+        return rows;
+      }
+
+      function normalizeCsvKeyV2(value = "") {
+        return String(value)
+          .normalize("NFD")
+          .replace(/[\u0300-\u036f]/g, "")
+          .toLowerCase()
+          .replace(/[^a-z0-9]+/g, "_")
+          .replace(/^_+|_+$/g, "");
+      }
+
+      function csvHeaderIndexesV2(header = []) {
+        const aliases = {
+          studentName: ["aluno", "nome_aluno", "student", "student_name", "student_email", "email_aluno", "email_do_aluno"],
+          workoutName: ["treino", "nome_treino", "workout", "workout_name", "name"],
+          goal: ["objetivo", "goal", "description", "descricao", "descrição"],
+          tag: ["tag", "grupo", "category", "categoria"],
+          exerciseName: ["exercicio", "exercício", "exercise", "exercise_name", "nome_exercicio", "nome_exercício"],
+          set: ["serie", "série", "set", "set_number", "numero_serie", "n_serie"],
+          reps: ["repeticoes", "repetições", "reps", "rep"],
+          weight: ["peso", "weight", "load", "carga"],
+          rest: ["descanso", "rest", "rest_seconds", "rest_s"],
+          type: ["tipo", "type", "tecnica", "técnica", "set_type"]
+        };
+        const normalizedHeader = header.map(normalizeCsvKeyV2);
+        return Object.fromEntries(Object.entries(aliases).map(([field, names]) => {
+          const accepted = names.map(normalizeCsvKeyV2);
+          const found = normalizedHeader.findIndex(name => accepted.includes(name));
+          return [field, found];
+        }).filter(([, index]) => index >= 0));
+      }
+
+      function csvValueV2(row, indexes, field, fallbackIndex) {
+        const index = indexes[field] ?? fallbackIndex;
+        return index >= 0 ? String(row[index] ?? "").trim() : "";
+      }
+
+      function normalizeSetTypeV2(value = "") {
+        const normalized = normalizeCsvKeyV2(value);
+        if (normalized.includes("aquec") || normalized.includes("warm")) return "Aquecimento";
+        if (normalized.includes("falha") || normalized.includes("fail")) return "Falha";
+        if (normalized.includes("drop")) return "Drop Set";
+        if (normalized.includes("rest")) return "Rest Pause";
+        return setTypes.find(type => normalizeCsvKeyV2(type) === normalized) || "Normal";
+      }
+
+      function normalizeRestValueV2(value = "") {
+        const parsed = Number(String(value || "").replace(/[^\d.,]/g, "").replace(",", "."));
+        if (!Number.isFinite(parsed)) return "90";
+        return String(Math.max(0, Math.min(999, Math.round(parsed))));
+      }
+
+      function csvStudentAssignmentV2(value = "", fallbackStudentId = "", linkedStudents = []) {
+        const user = currentAccount();
+        if (user?.role !== "personal") return "";
+        const raw = String(value || "").trim();
+        if (!raw) return fallbackStudentId;
+        const normalized = normalizeCsvKeyV2(raw);
+        if (["eu", "me", "self", "meu_proprio_treino", "my_own_workout"].includes(normalized)) return "";
+        const lowered = raw.toLowerCase();
+        const student = linkedStudents.find(item => {
+          const name = String(item.name || "").toLowerCase();
+          const email = String(item.email || "").toLowerCase();
+          return item.id === raw
+            || email === lowered
+            || name === lowered
+            || normalizeCsvKeyV2(item.name || "") === normalized;
+        });
+        if (!student) throw new Error(`${textV2("Aluno não encontrado no CSV")}: ${raw}`);
+        return student.id;
+      }
+
+      function parseWorkoutCsvV2(text, assignedStudentId = "", linkedStudents = []) {
+        const rows = parseCsvRowsV2(text);
+        if (!rows.length) throw new Error("Arquivo CSV vazio.");
+        const headerIndexes = csvHeaderIndexesV2(rows[0]);
+        const hasHeader = headerIndexes.exerciseName !== undefined && (headerIndexes.workoutName !== undefined || headerIndexes.reps !== undefined || headerIndexes.weight !== undefined);
+        const indexes = hasHeader ? headerIndexes : {};
+        const dataRows = hasHeader ? rows.slice(1) : rows;
+        const fallback = { studentName: -1, workoutName: 0, goal: 1, tag: 2, exerciseName: 3, set: 4, reps: 5, weight: 6, rest: 7, type: 8 };
+        const workoutMap = new Map();
+        dataRows.forEach(row => {
+          const exerciseName = csvValueV2(row, indexes, "exerciseName", fallback.exerciseName);
+          if (!exerciseName) return;
+          const rowAssignedStudentId = csvStudentAssignmentV2(csvValueV2(row, indexes, "studentName", fallback.studentName), assignedStudentId, linkedStudents);
+          const workoutName = csvValueV2(row, indexes, "workoutName", fallback.workoutName) || "Treino importado";
+          const goal = csvValueV2(row, indexes, "goal", fallback.goal) || "Treino importado por CSV.";
+          const tag = csvValueV2(row, indexes, "tag", fallback.tag) || "CSV";
+          const workoutKey = `${rowAssignedStudentId}\u0001${workoutName}\u0001${goal}\u0001${tag}`;
+          if (!workoutMap.has(workoutKey)) {
+            workoutMap.set(workoutKey, {
+              id: `custom-csv-${Date.now()}-${workoutMap.size}`,
+              ownerId: currentAccount()?.id || "",
+              assignedStudentId: rowAssignedStudentId,
+              name: workoutName,
+              goal,
+              tag,
+              source: "custom",
+              exercises: [],
+              exerciseLookup: new Map()
+            });
+          }
+          const workout = workoutMap.get(workoutKey);
+          const exerciseKey = normalizeExerciseNameV2(exerciseName);
+          if (!workout.exerciseLookup.has(exerciseKey)) {
+            const exercise = { name: exerciseName, sets: [] };
+            workout.exerciseLookup.set(exerciseKey, exercise);
+            workout.exercises.push(exercise);
+          }
+          const exercise = workout.exerciseLookup.get(exerciseKey);
+          const weightText = csvValueV2(row, indexes, "weight", fallback.weight);
+          exercise.sets.push({
+            weight: parseWeightInput(weightText) ?? "",
+            reps: csvValueV2(row, indexes, "reps", fallback.reps),
+            type: normalizeSetTypeV2(csvValueV2(row, indexes, "type", fallback.type)),
+            rest: normalizeRestValueV2(csvValueV2(row, indexes, "rest", fallback.rest))
+          });
+        });
+        const workouts = [...workoutMap.values()].map(workout => {
+          delete workout.exerciseLookup;
+          workout.exercises = workout.exercises.map(exercise => ({
+            ...exercise,
+            sets: exercise.sets.length ? exercise.sets : [{ weight: "", reps: "", type: "Normal", rest: "90" }]
+          }));
+          return normalizeWorkoutV2(workout);
+        });
+        if (!workouts.length) throw new Error("Nenhum treino válido encontrado no CSV.");
+        return workouts;
+      }
+
+      function csvEscapeV2(value, delimiter = ";") {
+        const text = String(value ?? "");
+        return /["\r\n]/.test(text) || text.includes(delimiter) ? `"${text.replace(/"/g, '""')}"` : text;
+      }
+
+      function workoutCsvHeaderV2() {
+        return ["aluno", "treino", "objetivo", "tag", "exercicio", "serie", "repeticoes", "peso", "descanso", "tipo"];
+      }
+
+      function downloadWorkoutCsvTemplateV2() {
+        const rows = [
+          workoutCsvHeaderV2(),
+          ["Thiago", "Peito A", "Hipertrofia e progressao", "Importado", "Supino reto", "1", "12", "40", "90", "Aquecimento"],
+          ["Thiago", "Peito A", "Hipertrofia e progressao", "Importado", "Supino reto", "2", "10", "60", "120", "Normal"],
+          ["Gusfraba", "Pernas A", "Forca e amplitude", "Importado", "Agachamento livre", "1", "8", "80", "180", "Normal"],
+          ["Gusfraba", "Pernas A", "Forca e amplitude", "Importado", "Leg press", "1", "12", "120", "120", "Normal"]
+        ];
+        const content = rows.map(row => row.map(csvEscapeV2).join(";")).join("\n");
+        downloadTextFile("monolith-modelo-treino.csv", "text/csv;charset=utf-8", content);
+        setWorkoutCsvStatusV2("Modelo CSV baixado.");
+      }
+
+      function exportWorkoutCsvV2() {
+        const visibleWorkouts = workoutsForCurrentUserV2();
+        const accounts = loadAccounts();
+        const user = currentAccount();
+        if (!visibleWorkouts.length) {
+          setWorkoutCsvStatusV2("Nenhum treino para exportar.");
+          toastV2(textV2("Nenhum treino para exportar."));
+          return;
+        }
+        const rows = [workoutCsvHeaderV2()];
+        visibleWorkouts.forEach(workout => {
+          workout.exercises.forEach(exercise => {
+            exercise.sets.forEach((set, index) => {
+              const assignedStudent = accounts.find(account => account.id === workout.assignedStudentId);
+              rows.push([
+                assignedStudent?.email || assignedStudent?.name || "eu",
+                workout.name,
+                workout.goal,
+                workout.tag || "CSV",
+                exercise.name,
+                String(index + 1),
+                set.reps || "",
+                weightInputValue(set.weight),
+                set.rest || "90",
+                set.type || "Normal"
+              ]);
+            });
+          });
+        });
+        const content = rows.map(row => row.map(csvEscapeV2).join(";")).join("\n");
+        downloadTextFile("monolith-treinos.csv", "text/csv;charset=utf-8", content);
+        setWorkoutCsvStatusV2("Treinos exportados em CSV.");
+        toastV2(textV2("Treinos exportados em CSV."));
+      }
+
+      async function importWorkoutCsvFileV2(file) {
+        if (!file) return;
+        try {
+          setWorkoutCsvStatusV2("Importando CSV...");
+          const user = currentAccount();
+          const target = selectedWorkoutImportTargetV2();
+          const assignedStudentId = user?.role === "personal" && target !== selfWorkoutTarget ? target : "";
+          const content = await file.text();
+          const linkedStudents = user?.role === "personal" ? await ensureLinkedStudentsForPersonal(user.id) : [];
+          const importedWorkouts = parseWorkoutCsvV2(content, assignedStudentId, linkedStudents);
+          let failedAssignments = 0;
+          for (const workout of importedWorkouts) {
+            const saved = await saveCustomWorkoutV2(workout);
+            if (saved.assignedStudentId && user?.role === "personal") setSelectedStudentForPersonal(saved.assignedStudentId);
+            if (saved.syncStatus === "failed" && saved.assignedStudentId) failedAssignments += 1;
+          }
+          await refreshWorkoutsV2();
+          const message = `${importedWorkouts.length} ${textV2(importedWorkouts.length === 1 ? "treino importado." : "treinos importados.")}`;
+          setWorkoutCsvStatusV2(failedAssignments ? `${message} ${textV2("Alguns treinos não foram enviados ao aluno.")}` : message, true);
+          toastV2(failedAssignments ? textV2("CSV importado, mas revise os envios ao aluno.") : message);
+        } catch (error) {
+          console.warn("Monolith CSV workout import failed", error);
+          const message = error?.message || "Não consegui importar o CSV.";
+          setWorkoutCsvStatusV2(message);
+          toastV2(textV2(message));
+        } finally {
+          if (workoutCsvInput) workoutCsvInput.value = "";
+        }
       }
 
       async function refreshWorkoutsV2() {
@@ -9684,6 +10332,7 @@ ${photoSections}
             </div>
             <div class="pill-row">
               <button class="ghost open-workout-session-v2" type="button" data-workout-id="${workout.id}">${htmlT("Abrir sessão")}</button>
+              ${user?.role === "personal" ? `<button class="ghost duplicate-workout-v2" type="button" data-workout-id="${workout.id}">${htmlT("Duplicar")}</button>` : ""}
               ${canDelete ? `<button class="ghost delete-workout-v2" type="button" data-workout-id="${workout.id}">${htmlT("Excluir")}</button>` : ""}
             </div>
           `;
@@ -10049,6 +10698,15 @@ ${photoSections}
         }
       }, true);
 
+      downloadWorkoutCsvTemplateButton?.addEventListener("click", downloadWorkoutCsvTemplateV2);
+      exportWorkoutCsvButton?.addEventListener("click", exportWorkoutCsvV2);
+      workoutCsvInput?.addEventListener("change", event => importWorkoutCsvFileV2(event.target.files?.[0]));
+      workoutImportStudent?.addEventListener("change", async () => {
+        setSelectedWorkoutTarget(workoutImportStudent.value);
+        setWorkoutCsvStatusV2("Destino padrão atualizado.");
+        await refreshWorkoutsV2();
+      });
+
       document.getElementById("finishExercise").addEventListener("click", finishWorkoutV2, true);
       document.getElementById("addExerciseButton").addEventListener("click", () => addExerciseEditorV2());
 
@@ -10072,6 +10730,13 @@ ${photoSections}
           event.preventDefault();
           event.stopPropagation();
           deleteWorkoutV2(deleteWorkout.dataset.workoutId);
+        }
+
+        const duplicateWorkout = event.target.closest(".duplicate-workout-v2");
+        if (duplicateWorkout) {
+          event.preventDefault();
+          event.stopPropagation();
+          await duplicateWorkoutForPersonalV2(duplicateWorkout.dataset.workoutId);
         }
 
         const addSet = event.target.closest(".add-set-v2");
@@ -10171,12 +10836,14 @@ ${photoSections}
         if (!event.target.closest(".language-button")) return;
         syncActiveWorkoutFromSessionV2();
         renderWorkoutListV2();
+        renderWorkoutCsvControlsV2(currentAccount()?.role === "student" && Boolean(currentWorkoutLinkedTrainerIdV2));
         if (activeWorkoutV2) renderSessionV2(activeWorkoutV2);
         resetBuilderV2();
       });
       window.addEventListener("monolith-weight-unit-change", () => {
         syncActiveWorkoutFromSessionV2();
         renderWorkoutListV2();
+        renderWorkoutCsvControlsV2(currentAccount()?.role === "student" && Boolean(currentWorkoutLinkedTrainerIdV2));
         if (activeWorkoutV2) renderSessionV2(activeWorkoutV2);
         resetBuilderV2();
       });
