@@ -1,4 +1,4 @@
-const CACHE_NAME = "monolith-v74-diet-import-photo-scope";
+const CACHE_NAME = "monolith-v76-button-polish-mobile-labels";
 
 self.addEventListener("install", event => {
   self.skipWaiting();

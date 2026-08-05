@@ -14,7 +14,7 @@
   <link rel="manifest" href="manifest.webmanifest" />
   <link rel="icon" href="monolith-icon.svg" />
   <script>
-    window.MONOLITH_BUILD = "monolith-v74-diet-import-photo-scope";
+    window.MONOLITH_BUILD = "monolith-v76-button-polish-mobile-labels";
     (function clearOldAppCaches() {
       if ("serviceWorker" in navigator) {
         navigator.serviceWorker.getRegistrations?.()
@@ -262,7 +262,7 @@
 
     .auth-tabs {
       display: none;
-      grid-template-columns: 1fr 1fr;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
       gap: 8px;
     }
 
@@ -307,7 +307,7 @@
 
     .password-row {
       display: grid;
-      grid-template-columns: 1fr auto;
+      grid-template-columns: minmax(0, 1fr) auto;
       gap: 8px;
       align-items: end;
     }
@@ -336,7 +336,7 @@
 
     .auth-grid {
       display: grid;
-      grid-template-columns: 1fr 1fr;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
       gap: 12px;
     }
 
@@ -405,7 +405,7 @@
 
     .auth-demo {
       display: grid;
-      grid-template-columns: 1fr 1fr;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
       gap: 8px;
       margin-top: 12px;
     }
@@ -615,12 +615,21 @@
       padding: 0 12px;
       cursor: pointer;
       text-align: left;
+      font-weight: 650;
+      transition: border-color .16s ease, background .16s ease, color .16s ease, transform .16s ease;
     }
 
     .nav-btn svg {
       width: 24px;
       height: 24px;
       flex: 0 0 auto;
+    }
+
+    .nav-btn span {
+      min-width: 0;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
     }
 
     body.auth-role-student #nutritionPersonalPanel,
@@ -648,6 +657,11 @@
       border-color: var(--line);
       background: var(--panel);
       color: var(--text);
+    }
+
+    .nav-btn:focus-visible {
+      outline: 2px solid var(--gold);
+      outline-offset: 2px;
     }
 
     .nav-btn.active svg {
@@ -782,11 +796,11 @@
     }
 
     .language-buttons {
-      grid-template-columns: repeat(3, 1fr);
+      grid-template-columns: repeat(3, minmax(0, 1fr));
     }
 
     .unit-buttons {
-      grid-template-columns: repeat(2, 1fr);
+      grid-template-columns: repeat(2, minmax(0, 1fr));
     }
 
     .language-button,
@@ -799,6 +813,7 @@
       place-items: center;
       cursor: pointer;
       font-size: 17px;
+      transition: border-color .16s ease, background .16s ease, color .16s ease;
     }
 
     .unit-button {
@@ -811,6 +826,12 @@
     .unit-button.active {
       border-color: var(--gold);
       background: rgba(201, 162, 39, .12);
+    }
+
+    .language-button:hover,
+    .unit-button:hover {
+      border-color: rgba(201, 162, 39, .58);
+      background: rgba(201, 162, 39, .08);
     }
 
     .language-button span {
@@ -961,6 +982,7 @@
       padding: 0 14px;
       font-weight: 750;
       cursor: pointer;
+      transition: filter .16s ease, transform .16s ease, box-shadow .16s ease;
     }
 
     .ghost {
@@ -970,6 +992,32 @@
       min-height: 40px;
       padding: 0 12px;
       cursor: pointer;
+      transition: border-color .16s ease, background .16s ease, color .16s ease;
+    }
+
+    .action:hover {
+      filter: brightness(1.08);
+      box-shadow: 0 0 0 1px rgba(201, 162, 39, .18);
+    }
+
+    .action:active,
+    .ghost:active,
+    .nav-btn:active {
+      transform: translateY(1px);
+    }
+
+    .action:focus-visible,
+    .ghost:focus-visible,
+    .language-button:focus-visible,
+    .unit-button:focus-visible {
+      outline: 2px solid var(--gold);
+      outline-offset: 2px;
+    }
+
+    .ghost:hover {
+      border-color: rgba(201, 162, 39, .58);
+      background: rgba(201, 162, 39, .08);
+      color: var(--text);
     }
 
     .screen {
@@ -1249,6 +1297,15 @@
       align-items: end;
     }
 
+    .workout-import-actions .action,
+    .workout-import-actions .file-action {
+      width: 100%;
+      min-height: 44px;
+      display: grid;
+      place-items: center;
+      text-align: center;
+    }
+
     .workout-import-guide {
       border: 1px solid var(--line);
       background: #101010;
@@ -1497,6 +1554,30 @@
       align-items: end;
     }
 
+    .map-filters input,
+    .map-filters select {
+      width: 100%;
+      min-height: 38px;
+      border: 1px solid var(--line);
+      background: #101010;
+      color: var(--text);
+      padding: 0 10px;
+      font: inherit;
+      border-radius: 0;
+      color-scheme: dark;
+    }
+
+    .map-filters input::placeholder {
+      color: var(--muted);
+      opacity: 1;
+    }
+
+    .map-filters input:focus,
+    .map-filters select:focus {
+      outline: 1px solid var(--gold);
+      border-color: var(--gold);
+    }
+
     .map-results {
       grid-template-columns: repeat(3, minmax(240px, 1fr));
     }
@@ -1526,6 +1607,15 @@
       color: var(--muted);
       font-size: 13px;
       line-height: 1.45;
+    }
+
+    .map-profile-link {
+      min-height: 42px;
+      display: grid;
+      place-items: center;
+      text-align: center;
+      text-decoration: none;
+      margin-top: 2px;
     }
 
     .stats-layout {
@@ -2085,21 +2175,36 @@
       }
 
       nav {
-        grid-template-columns: repeat(3, 1fr);
+        grid-template-columns: repeat(3, minmax(0, 1fr));
       }
 
       .nav-btn {
+        min-height: 66px;
         justify-content: center;
-        padding: 0 8px;
+        display: grid;
+        grid-template-rows: 30px auto;
+        gap: 5px;
+        padding: 8px 6px 9px;
+        text-align: center;
       }
 
       .nav-btn svg {
         width: 28px;
         height: 28px;
+        justify-self: center;
       }
 
       .nav-btn span {
-        display: none;
+        display: block;
+        max-width: 100%;
+        color: inherit;
+        font-size: 11px;
+        font-weight: 750;
+        line-height: 1.1;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        text-transform: uppercase;
+        white-space: nowrap;
       }
 
       .offline {
@@ -2130,14 +2235,47 @@
       .settings-actions,
       .programs,
       .backup-row {
-        grid-template-columns: 1fr 1fr;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
       }
     }
 
     @media (max-width: 560px) {
+      .auth-screen {
+        width: 100vw;
+        max-width: 100vw;
+        overflow-x: hidden;
+      }
+
       .auth-hero {
+        width: 100%;
+        max-width: 100vw;
+        overflow-x: hidden;
         padding: 20px;
         gap: 18px;
+      }
+
+      .auth-top,
+      .auth-hero > *,
+      .auth-stack > * {
+        max-width: 100%;
+        min-width: 0;
+      }
+
+      .auth-language,
+      .language-buttons,
+      .auth-card,
+      .auth-tabs,
+      .auth-warning,
+      .build-version {
+        width: calc(100vw - 40px);
+        max-width: calc(100vw - 40px);
+        min-width: 0;
+      }
+
+      .auth-card,
+      .auth-warning,
+      .build-version {
+        overflow-wrap: anywhere;
       }
 
       .auth-top {
@@ -2150,7 +2288,9 @@
       }
 
       .auth-hero .brand h1 {
-        font-size: 34px;
+        font-size: 28px;
+        letter-spacing: 3px;
+        white-space: nowrap;
       }
 
       .auth-hero .brand p {
@@ -2159,7 +2299,10 @@
 
       .auth-hero h1 {
         margin: 10px 0 8px;
-        font-size: 38px;
+        max-width: 11ch;
+        font-size: 36px;
+        line-height: 1.02;
+        overflow-wrap: break-word;
       }
 
       .auth-hero p {
@@ -2174,8 +2317,10 @@
       }
 
       .auth-stack {
-        width: calc(100% - 32px);
-        padding: 18px 0 28px;
+        width: 100%;
+        max-width: 100vw;
+        min-width: 0;
+        padding: 18px 20px 28px;
         gap: 10px;
       }
 
@@ -2185,6 +2330,15 @@
 
       .auth-card {
         padding: 18px;
+      }
+
+      .password-row {
+        grid-template-columns: 1fr;
+        gap: 6px;
+      }
+
+      .password-row .auth-secondary {
+        width: 100%;
       }
 
       .auth-stack[data-auth-mode="login"] .auth-card[data-auth-panel="signup"],
@@ -2203,12 +2357,20 @@
       }
 
       nav {
-        grid-template-columns: repeat(2, 1fr);
+        grid-template-columns: repeat(2, minmax(0, 1fr));
       }
 
       .nav-btn svg {
         width: 30px;
         height: 30px;
+      }
+
+      .nav-btn {
+        min-height: 72px;
+      }
+
+      .nav-btn span {
+        font-size: 11px;
       }
 
       .brand {
@@ -2470,7 +2632,7 @@
           <button class="action" id="loginButton" type="button">Entrar</button>
           <div class="auth-tools">
             <button class="auth-secondary" id="clearDeviceSessionButton" type="button">Limpar sessão/cache deste aparelho</button>
-            <div class="build-version" id="buildVersionLabel">Versão do app: monolith-v74-diet-import-photo-scope</div>
+            <div class="build-version" id="buildVersionLabel">Versão do app: monolith-v76-button-polish-mobile-labels</div>
           </div>
         </form>
       </div>
@@ -3010,10 +3172,10 @@
                 <select id="dietImportStudent"></select>
               </div>
               <div class="workout-import-actions">
-                <button class="ghost" type="button" id="downloadDietCsvTemplate">Baixar modelo de dieta CSV</button>
-                <label class="ghost file-action" for="dietCsvInput">Importar dieta CSV</label>
+                <button class="action" type="button" id="downloadDietCsvTemplate">Baixar modelo de dieta CSV</button>
+                <label class="action file-action" for="dietCsvInput">Importar dieta CSV</label>
                 <input id="dietCsvInput" type="file" accept=".csv,text/csv" hidden />
-                <button class="ghost" type="button" id="exportDietCsv">Exportar dietas CSV</button>
+                <button class="action" type="button" id="exportDietCsv">Exportar dietas CSV</button>
               </div>
             </div>
             <div class="report-line" id="dietCsvStatus">Formato: aluno, mes, refeicao, alimentos, calorias, proteina, carbo, gordura, micros, substituicoes, texto_personal.</div>
@@ -3149,10 +3311,10 @@
               <select id="workoutImportStudent"></select>
             </div>
             <div class="workout-import-actions">
-              <button class="ghost" type="button" id="downloadWorkoutCsvTemplate">Baixar modelo CSV</button>
-              <label class="ghost file-action" for="workoutCsvInput">Importar CSV</label>
+              <button class="action" type="button" id="downloadWorkoutCsvTemplate">Baixar modelo CSV</button>
+              <label class="action file-action" for="workoutCsvInput">Importar CSV</label>
               <input id="workoutCsvInput" type="file" accept=".csv,text/csv" hidden />
-              <button class="ghost" type="button" id="exportWorkoutCsv">Exportar treinos CSV</button>
+              <button class="action" type="button" id="exportWorkoutCsv">Exportar treinos CSV</button>
             </div>
           </div>
           <div class="report-line" id="workoutCsvStatus">Formato: aluno, treino, objetivo, tag, exercicio, serie, repeticoes, peso, descanso, tipo.</div>
@@ -3598,7 +3760,7 @@
   <script>
     const MONOLITH_SUPABASE_URL = "https://jhxasnxuvmkhntbwepau.supabase.co";
     const MONOLITH_SUPABASE_KEY = "sb_publishable_lDtAXIOtkMwgwsAZyghBdg_gyLHGwpH";
-    const MONOLITH_BUILD = window.MONOLITH_BUILD || "monolith-v74-diet-import-photo-scope";
+    const MONOLITH_BUILD = window.MONOLITH_BUILD || "monolith-v76-button-polish-mobile-labels";
     const monolithSupabase = window.supabase?.createClient?.(MONOLITH_SUPABASE_URL, MONOLITH_SUPABASE_KEY, {
       auth: {
         storage: window.sessionStorage,
@@ -4501,7 +4663,7 @@
         profile.monthly_price ? `${t("Mensal")}: $${profile.monthly_price}` : "",
         profile.online_monthly_price ? `${t("Online")}: $${profile.online_monthly_price}` : ""
       ].filter(Boolean).join(" / ");
-      const social = profile.social_url ? `<a class="ghost" href="${escapeHTML(profile.social_url)}" target="_blank" rel="noreferrer">${escapeHTML(t("Abrir perfil"))}</a>` : "";
+      const social = profile.social_url ? `<a class="action map-profile-link" href="${escapeHTML(profile.social_url)}" target="_blank" rel="noreferrer">${escapeHTML(t("Abrir perfil"))}</a>` : "";
       return `
         <article class="trainer-map-card">
           <div>
@@ -5014,13 +5176,17 @@
       }
     }
 
-    function passwordResetRedirectUrl() {
+    function authRedirectUrl() {
       return `${window.location.origin}${window.location.pathname}`;
+    }
+
+    function passwordResetRedirectUrl() {
+      return authRedirectUrl();
     }
 
     function isPasswordRecoveryUrl() {
       const source = `${window.location.search || ""}${window.location.hash || ""}`;
-      return /type=recovery|password_recovery|access_token=/i.test(source);
+      return /type=recovery|password_recovery/i.test(source);
     }
 
     function showResetPasswordPanel(message = "") {
@@ -6133,21 +6299,21 @@
 
     function dietCsvHeaderIndexes(header = []) {
       const aliases = {
-        studentName: ["aluno", "student", "student_name", "nome_aluno", "email", "email_aluno", "student_email"],
+        studentName: ["aluno", "alumno", "student", "student_name", "nome_aluno", "nombre_alumno", "email", "email_aluno", "email_alumno", "student_email"],
         month: ["mes", "month", "competencia", "month_key"],
-        mealName: ["refeicao", "meal", "nome_refeicao", "meal_name"],
+        mealName: ["refeicao", "refeicao", "comida", "meal", "nome_refeicao", "nombre_comida", "meal_name"],
         items: ["alimentos", "foods", "items", "alimentos_e_quantidades", "foods_and_amounts"],
-        calories: ["calorias", "calories", "kcal"],
+        calories: ["calorias", "calories", "calorias", "kcal"],
         protein: ["proteina", "protein"],
         carbs: ["carbo", "carbs", "carboidrato", "carboidratos"],
-        fat: ["gordura", "fat"],
-        micros: ["micros", "micro", "observacoes", "observacoes_nutricionais", "nutrition_notes"],
-        substitutions: ["substituicoes", "substitutions", "trocas"],
-        notes: ["texto_personal", "personal", "nota", "notas", "trainer_note", "note"],
+        fat: ["gordura", "grasa", "fat"],
+        micros: ["micros", "micro", "observacoes", "observaciones", "observacoes_nutricionais", "observaciones_nutricionales", "nutrition_notes"],
+        substitutions: ["substituicoes", "sustituciones", "sustituiciones", "substitutions", "trocas"],
+        notes: ["texto_personal", "nota_entrenador", "personal", "nota", "notas", "trainer_note", "note"],
         targetCalories: ["meta_calorias", "target_calories", "calorias_meta"],
         targetProtein: ["meta_proteina", "target_protein", "proteina_meta"],
         targetCarbs: ["meta_carbo", "target_carbs", "carbo_meta"],
-        targetFat: ["meta_gordura", "target_fat", "gordura_meta"]
+        targetFat: ["meta_gordura", "meta_grasa", "target_fat", "gordura_meta", "grasa_meta"]
       };
       const normalized = header.map(normalizeDietCsvKey);
       return Object.fromEntries(Object.entries(aliases).map(([field, names]) => [
@@ -6174,8 +6340,31 @@
       return student.id;
     }
 
+    function csvLocaleValue(pt, en, es) {
+      const language = localStorage.getItem("monolith.language") || "pt";
+      if (language === "en") return en;
+      if (language === "es") return es;
+      return pt;
+    }
+
     function dietCsvHeader() {
-      return ["aluno", "mes", "refeicao", "alimentos", "calorias", "proteina", "carbo", "gordura", "micros", "substituicoes", "texto_personal", "meta_calorias", "meta_proteina", "meta_carbo", "meta_gordura"];
+      return [
+        csvLocaleValue("aluno", "student", "alumno"),
+        csvLocaleValue("mes", "month", "mes"),
+        csvLocaleValue("refeicao", "meal", "comida"),
+        csvLocaleValue("alimentos", "foods", "alimentos"),
+        csvLocaleValue("calorias", "calories", "calorias"),
+        csvLocaleValue("proteina", "protein", "proteina"),
+        csvLocaleValue("carbo", "carbs", "carbo"),
+        csvLocaleValue("gordura", "fat", "grasa"),
+        "micros",
+        csvLocaleValue("substituicoes", "substitutions", "sustituciones"),
+        csvLocaleValue("texto_personal", "trainer_note", "nota_entrenador"),
+        csvLocaleValue("meta_calorias", "target_calories", "meta_calorias"),
+        csvLocaleValue("meta_proteina", "target_protein", "meta_proteina"),
+        csvLocaleValue("meta_carbo", "target_carbs", "meta_carbo"),
+        csvLocaleValue("meta_gordura", "target_fat", "meta_grasa")
+      ];
     }
 
     function csvEscapeDiet(value, delimiter = ";") {
@@ -6252,8 +6441,8 @@
       const sampleStudent = students[0]?.name || "Thiago";
       const rows = [
         dietCsvHeader(),
-        [sampleStudent, currentMonthKey(), "Café da manhã", "Ovos, pão, fruta", "520", "35g", "48g", "18g", "Fibra e frutas", "Pão por tapioca", "Comer sem pressa", "2400", "150g", "260g", "70g"],
-        [sampleStudent, currentMonthKey(), "Almoço", "Arroz, frango, salada", "680", "52g", "72g", "20g", "Vegetais", "Frango por peixe", "Manter água junto", "2400", "150g", "260g", "70g"]
+        [sampleStudent, currentMonthKey(), csvLocaleValue("Café da manhã", "Breakfast", "Desayuno"), csvLocaleValue("Ovos, pão, fruta", "Eggs, bread, fruit", "Huevos, pan, fruta"), "520", "35g", "48g", "18g", csvLocaleValue("Fibra e frutas", "Fiber and fruit", "Fibra y fruta"), csvLocaleValue("Pão por tapioca", "Bread for tapioca", "Pan por tapioca"), csvLocaleValue("Comer sem pressa", "Eat slowly", "Comer sin prisa"), "2400", "150g", "260g", "70g"],
+        [sampleStudent, currentMonthKey(), csvLocaleValue("Almoço", "Lunch", "Almuerzo"), csvLocaleValue("Arroz, frango, salada", "Rice, chicken, salad", "Arroz, pollo, ensalada"), "680", "52g", "72g", "20g", csvLocaleValue("Vegetais", "Vegetables", "Vegetales"), csvLocaleValue("Frango por peixe", "Chicken for fish", "Pollo por pescado"), csvLocaleValue("Manter água junto", "Keep water with the meal", "Mantener agua junto a la comida"), "2400", "150g", "260g", "70g"]
       ];
       const content = rows.map(row => row.map(csvEscapeDiet).join(";")).join("\n");
       downloadTextFile("monolith-modelo-dieta.csv", "text/csv;charset=utf-8", content);
@@ -7191,6 +7380,22 @@
         "repeticoes": "reps",
         "peso": "weight",
         "descanso": "rest",
+        "mes": "month",
+        "refeicao": "meal",
+        "alimentos": "foods",
+        "calorias": "calories",
+        "proteina": "protein",
+        "carbo": "carbs",
+        "Peito A": "Chest A",
+        "Supino reto": "Bench press",
+        "Pernas A": "Legs A",
+        "Agachamento livre": "Back squat",
+        "Ovos, pão, fruta": "Eggs, bread, fruit",
+        "Arroz, frango, salada": "Rice, chicken, salad",
+        "Hipertrofia e progressao": "Hypertrophy and progression",
+        "Forca e amplitude": "Strength and range",
+        "Importado": "Imported",
+        "Aquecimento": "Warm-up",
         "Baixe o modelo, preencha uma linha por série e importe. O personal pode usar a coluna aluno para enviar vários treinos para vários alunos no mesmo arquivo.": "Download the template, fill one row per set and import it. Trainers can use the student column to send several workouts to several students in one file.",
         "Como preencher o arquivo": "How to fill the file",
         "Passo a passo": "Step by step",
@@ -8008,6 +8213,22 @@
         "repeticoes": "repeticiones",
         "peso": "peso",
         "descanso": "descanso",
+        "mes": "mes",
+        "refeicao": "comida",
+        "alimentos": "alimentos",
+        "calorias": "calorías",
+        "proteina": "proteína",
+        "carbo": "carbo",
+        "Peito A": "Pecho A",
+        "Supino reto": "Press banca",
+        "Pernas A": "Piernas A",
+        "Agachamento livre": "Sentadilla libre",
+        "Ovos, pão, fruta": "Huevos, pan, fruta",
+        "Arroz, frango, salada": "Arroz, pollo, ensalada",
+        "Hipertrofia e progressao": "Hipertrofia y progresión",
+        "Forca e amplitude": "Fuerza y amplitud",
+        "Importado": "Importado",
+        "Aquecimento": "Calentamiento",
         "Baixe o modelo, preencha uma linha por série e importe. O personal pode usar a coluna aluno para enviar vários treinos para vários alunos no mesmo arquivo.": "Descarga el modelo, completa una línea por serie e impórtalo. El entrenador puede usar la columna alumno para enviar varios entrenos a varios alumnos en un mismo archivo.",
         "Como preencher o arquivo": "Cómo completar el archivo",
         "Passo a passo": "Paso a paso",
@@ -9513,6 +9734,7 @@ ${photoSections}
           email,
           password,
           options: {
+            emailRedirectTo: authRedirectUrl(),
             data: {
               full_name: name,
               role: dbRoleFromApp(role)
@@ -10557,13 +10779,13 @@ ${photoSections}
 
       function csvHeaderIndexesV2(header = []) {
         const aliases = {
-          studentName: ["aluno", "nome_aluno", "student", "student_name", "student_email", "email_aluno", "email_do_aluno"],
-          workoutName: ["treino", "nome_treino", "workout", "workout_name", "name"],
-          goal: ["objetivo", "goal", "description", "descricao", "descrição"],
-          tag: ["tag", "grupo", "category", "categoria"],
-          exerciseName: ["exercicio", "exercício", "exercise", "exercise_name", "nome_exercicio", "nome_exercício"],
+          studentName: ["aluno", "alumno", "nome_aluno", "nombre_alumno", "student", "student_name", "student_email", "email_aluno", "email_alumno", "email_do_aluno"],
+          workoutName: ["treino", "entreno", "nome_treino", "nombre_entreno", "workout", "workout_name", "name"],
+          goal: ["objetivo", "goal", "description", "descricao", "descrição", "descripcion"],
+          tag: ["tag", "etiqueta", "grupo", "category", "categoria"],
+          exerciseName: ["exercicio", "exercício", "ejercicio", "exercise", "exercise_name", "nome_exercicio", "nome_exercício", "nombre_ejercicio"],
           set: ["serie", "série", "set", "set_number", "numero_serie", "n_serie"],
-          reps: ["repeticoes", "repetições", "reps", "rep"],
+          reps: ["repeticoes", "repetições", "repeticiones", "reps", "rep"],
           weight: ["peso", "weight", "load", "carga"],
           rest: ["descanso", "rest", "rest_seconds", "rest_s"],
           type: ["tipo", "type", "tecnica", "técnica", "set_type"]
@@ -10680,16 +10902,27 @@ ${photoSections}
       }
 
       function workoutCsvHeaderV2() {
-        return ["aluno", "treino", "objetivo", "tag", "exercicio", "serie", "repeticoes", "peso", "descanso", "tipo"];
+        return [
+          csvLocaleValue("aluno", "student", "alumno"),
+          csvLocaleValue("treino", "workout", "entreno"),
+          csvLocaleValue("objetivo", "goal", "objetivo"),
+          csvLocaleValue("tag", "tag", "etiqueta"),
+          csvLocaleValue("exercicio", "exercise", "ejercicio"),
+          csvLocaleValue("serie", "set", "serie"),
+          csvLocaleValue("repeticoes", "reps", "repeticiones"),
+          csvLocaleValue("peso", "weight", "peso"),
+          csvLocaleValue("descanso", "rest", "descanso"),
+          csvLocaleValue("tipo", "type", "tipo")
+        ];
       }
 
       function downloadWorkoutCsvTemplateV2() {
         const rows = [
           workoutCsvHeaderV2(),
-          ["Thiago", "Peito A", "Hipertrofia e progressao", "Importado", "Supino reto", "1", "12", "40", "90", "Aquecimento"],
-          ["Thiago", "Peito A", "Hipertrofia e progressao", "Importado", "Supino reto", "2", "10", "60", "120", "Normal"],
-          ["Gusfraba", "Pernas A", "Forca e amplitude", "Importado", "Agachamento livre", "1", "8", "80", "180", "Normal"],
-          ["Gusfraba", "Pernas A", "Forca e amplitude", "Importado", "Leg press", "1", "12", "120", "120", "Normal"]
+          ["Thiago", csvLocaleValue("Peito A", "Chest A", "Pecho A"), csvLocaleValue("Hipertrofia e progressao", "Hypertrophy and progression", "Hipertrofia y progresion"), csvLocaleValue("Importado", "Imported", "Importado"), csvLocaleValue("Supino reto", "Bench press", "Press banca"), "1", "12", "40", "90", csvLocaleValue("Aquecimento", "Warm-up", "Calentamiento")],
+          ["Thiago", csvLocaleValue("Peito A", "Chest A", "Pecho A"), csvLocaleValue("Hipertrofia e progressao", "Hypertrophy and progression", "Hipertrofia y progresion"), csvLocaleValue("Importado", "Imported", "Importado"), csvLocaleValue("Supino reto", "Bench press", "Press banca"), "2", "10", "60", "120", "Normal"],
+          ["Gusfraba", csvLocaleValue("Pernas A", "Legs A", "Piernas A"), csvLocaleValue("Forca e amplitude", "Strength and range", "Fuerza y amplitud"), csvLocaleValue("Importado", "Imported", "Importado"), csvLocaleValue("Agachamento livre", "Back squat", "Sentadilla libre"), "1", "8", "80", "180", "Normal"],
+          ["Gusfraba", csvLocaleValue("Pernas A", "Legs A", "Piernas A"), csvLocaleValue("Forca e amplitude", "Strength and range", "Fuerza y amplitud"), csvLocaleValue("Importado", "Imported", "Importado"), csvLocaleValue("Leg press", "Leg press", "Prensa"), "1", "12", "120", "120", "Normal"]
         ];
         const content = rows.map(row => row.map(csvEscapeV2).join(";")).join("\n");
         downloadTextFile("monolith-modelo-treino.csv", "text/csv;charset=utf-8", content);
