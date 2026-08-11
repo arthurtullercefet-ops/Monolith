@@ -652,6 +652,12 @@
       display: none !important;
     }
 
+    body.auth-role-personal .nav-btn[data-screen="trainerMap"],
+    .nav-btn[data-screen="measures"],
+    .nav-btn[data-screen="programs"] {
+      display: none !important;
+    }
+
     .nav-btn.active,
     .nav-btn:hover {
       border-color: var(--line);
@@ -1392,6 +1398,43 @@
       color: var(--muted);
       padding: 5px 8px;
       font-size: 12px;
+    }
+
+    .student-file-tabs {
+      display: flex;
+      gap: 6px;
+      flex-wrap: wrap;
+      margin-top: 14px;
+    }
+
+    .student-file-tab {
+      border: 1px solid var(--line);
+      background: #101010;
+      color: var(--muted);
+      min-height: 32px;
+      padding: 0 9px;
+      font-size: 12px;
+      font-weight: 750;
+      cursor: pointer;
+    }
+
+    .student-file-tab.primary,
+    .student-file-tab:hover {
+      color: var(--text);
+      border-color: var(--gold);
+      background: rgba(201, 162, 39, .12);
+    }
+
+    .student-file-tab:disabled {
+      cursor: not-allowed;
+      opacity: .55;
+    }
+
+    .student-file-actions {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      margin-top: 14px;
     }
 
     .exercise-table {
@@ -2897,49 +2940,45 @@
       </div>
 
       <nav aria-label="Principal">
-        <button class="nav-btn active" data-screen="home" title="Dashboard">
+        <button class="nav-btn active" data-screen="home" title="Início">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12l9-9 9 9"/><path d="M5 10v10h14V10"/></svg>
-          <span>Dashboard</span>
-        </button>
-        <button class="nav-btn" data-screen="checkin" title="Check-in">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
-          <span>Check-in</span>
-        </button>
-        <button class="nav-btn" data-screen="measures" title="Medidas">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19h16"/><path d="M6 17V8"/><path d="M10 17V5"/><path d="M14 17v-7"/><path d="M18 17V3"/></svg>
-          <span>Medidas</span>
-        </button>
-        <button class="nav-btn" data-screen="nutrition" title="Dieta">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 3a8 8 0 0 0-8 8c0 6 8 10 8 10s8-4 8-10a8 8 0 0 0-8-8Z"/><path d="M11 7v8"/><path d="M7 11h8"/></svg>
-          <span>Dieta</span>
-        </button>
-        <button class="nav-btn" data-screen="trainerMap" title="Mapa">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18l-6 3V6l6-3 6 3 6-3v15l-6 3-6-3Z"/><path d="M9 3v15"/><path d="M15 6v15"/></svg>
-          <span>Mapa</span>
-        </button>
-        <button class="nav-btn" data-screen="workouts" title="Treinos">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 7v10"/><path d="M18 7v10"/><path d="M3 9v6"/><path d="M21 9v6"/><path d="M6 12h12"/></svg>
-          <span>Treinos</span>
-        </button>
-        <button class="nav-btn" data-screen="programs" title="Programas">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19.5V5a2 2 0 0 1 2-2h12v18H6a2 2 0 0 1-2-1.5z"/><path d="M8 7h6"/><path d="M8 11h6"/></svg>
-          <span>Programas</span>
+          <span>Início</span>
         </button>
         <button class="nav-btn" data-screen="clients" data-role-only="personal" title="Alunos">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
           <span>Alunos</span>
         </button>
-        <button class="nav-btn" data-screen="stats" title="Estatísticas">
+        <button class="nav-btn" data-screen="workouts" title="Treinos">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 7v10"/><path d="M18 7v10"/><path d="M3 9v6"/><path d="M21 9v6"/><path d="M6 12h12"/></svg>
+          <span>Treinos</span>
+        </button>
+        <button class="nav-btn" data-screen="nutrition" title="Dietas">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 3a8 8 0 0 0-8 8c0 6 8 10 8 10s8-4 8-10a8 8 0 0 0-8-8Z"/><path d="M11 7v8"/><path d="M7 11h8"/></svg>
+          <span>Dietas</span>
+        </button>
+        <button class="nav-btn" data-screen="checkin" title="Check-ins">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
+          <span>Check-ins</span>
+        </button>
+        <button class="nav-btn" data-screen="stats" title="Evolução">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19V5"/><path d="M4 19h16"/><path d="M8 16V9"/><path d="M13 16V6"/><path d="M18 16v-4"/></svg>
-          <span>Estatísticas</span>
+          <span>Evolução</span>
         </button>
-        <button class="nav-btn" data-screen="backup" title="Backup">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3v12"/><path d="M7 10l5 5 5-5"/><path d="M5 21h14"/></svg>
-          <span>Backup</span>
-        </button>
-        <button class="nav-btn" data-screen="profile" title="Perfil">
+        <button class="nav-btn" data-screen="profile" title="Perfil e configurações">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/></svg>
           <span>Perfil</span>
+        </button>
+        <button class="nav-btn" data-screen="trainerMap" title="Mapa">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18l-6 3V6l6-3 6 3 6-3v15l-6 3-6-3Z"/><path d="M9 3v15"/><path d="M15 6v15"/></svg>
+          <span>Mapa</span>
+        </button>
+        <button class="nav-btn" data-screen="measures" title="Medidas">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19h16"/><path d="M6 17V8"/><path d="M10 17V5"/><path d="M14 17v-7"/><path d="M18 17V3"/></svg>
+          <span>Medidas</span>
+        </button>
+        <button class="nav-btn" data-screen="programs" title="Programas">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19.5V5a2 2 0 0 1 2-2h12v18H6a2 2 0 0 1-2-1.5z"/><path d="M8 7h6"/><path d="M8 11h6"/></svg>
+          <span>Programas</span>
         </button>
       </nav>
 
@@ -3062,80 +3101,12 @@
         <div class="topbar">
           <div>
             <h2>Medidas corporais</h2>
-            <div class="date">Peso, medidas e percentual de gordura em histórico separado</div>
+            <div class="date">Medidas corporais agora ficam dentro de Evolução.</div>
           </div>
         </div>
-        <div class="grid measure-layout">
-          <div class="panel">
-            <div class="section-title"><h3>Novo registro físico</h3><span>Evolução corporal completa</span></div>
-            <form class="measure-form-grid" id="bodyMeasureForm">
-              <div class="field">
-                <label for="measureDate">Data</label>
-                <input id="measureDate" type="date" />
-              </div>
-              <div class="field">
-                <label id="measureWeightLabel" for="measureWeight" data-i18n="Peso corporal">Peso corporal</label>
-                <input id="measureWeight" inputmode="decimal" placeholder="Ex: 82.4" data-i18n-placeholder="Ex: 82.4" />
-              </div>
-              <div class="field">
-                <label for="measureBodyFat">Gordura corporal (%)</label>
-                <input id="measureBodyFat" inputmode="decimal" placeholder="Ex: 14.8" data-i18n-placeholder="Ex: 14.8" />
-              </div>
-              <div class="field">
-                <label for="measureWaist">Cintura (cm)</label>
-                <input id="measureWaist" inputmode="decimal" placeholder="Ex: 82" data-i18n-placeholder="Ex: 82" />
-              </div>
-              <div class="field">
-                <label for="measureChest">Peito (cm)</label>
-                <input id="measureChest" inputmode="decimal" placeholder="Ex: 106" data-i18n-placeholder="Ex: 106" />
-              </div>
-              <div class="field">
-                <label for="measureArm">Braço (cm)</label>
-                <input id="measureArm" inputmode="decimal" placeholder="Ex: 39" data-i18n-placeholder="Ex: 39" />
-              </div>
-              <div class="field">
-                <label for="measureLeg">Perna (cm)</label>
-                <input id="measureLeg" inputmode="decimal" placeholder="Ex: 61" data-i18n-placeholder="Ex: 61" />
-              </div>
-              <div class="field">
-                <label for="measureHip">Quadril (cm)</label>
-                <input id="measureHip" inputmode="decimal" placeholder="Ex: 98" data-i18n-placeholder="Ex: 98" />
-              </div>
-              <div class="field">
-                <label for="measureNotes">Observações</label>
-                <textarea id="measureNotes" placeholder="Ex: Medida em jejum, após descanso" data-i18n-placeholder="Ex: Medida em jejum, após descanso"></textarea>
-              </div>
-              <button class="action" type="submit">Salvar medidas</button>
-            </form>
-          </div>
-          <div class="measure-charts">
-            <div class="grid metrics">
-              <div class="metric"><span>Último peso</span><b id="latestMeasureWeight">--</b></div>
-              <div class="metric"><span>Gordura corporal</span><b id="latestBodyFat">--</b></div>
-              <div class="metric"><span>Cintura</span><b id="latestWaist">--</b></div>
-              <div class="metric"><span>Registros</span><b id="measureCount">0</b></div>
-            </div>
-            <div class="measure-chart-card">
-              <h3>Evolução de peso</h3>
-              <p>Peso registrado junto das medidas corporais.</p>
-              <div class="mini-chart" id="measureWeightChart"></div>
-            </div>
-            <div class="measure-chart-card">
-              <h3>Percentual de gordura</h3>
-              <p>Acompanhe queda ou retenção de gordura corporal ao longo do tempo.</p>
-              <div class="mini-chart" id="bodyFatChart"></div>
-            </div>
-            <div class="measure-chart-card">
-              <h3>Medidas principais</h3>
-              <p>Cintura, peito, braço, perna e quadril no mesmo histórico.</p>
-              <div class="bars" id="bodyMeasureBars"></div>
-            </div>
-            <div class="measure-chart-card">
-              <h3>Histórico físico</h3>
-              <p>Registros mais recentes para revisão do aluno e do personal.</p>
-              <div class="measure-history" id="bodyMeasureHistory"></div>
-            </div>
-          </div>
+        <div class="panel">
+          <div class="report-line">Abra Evolução para registrar medidas, revisar fotos e acompanhar frequência no mesmo contexto do aluno selecionado.</div>
+          <button class="action" type="button" data-screen-jump="stats">Abrir evolução</button>
         </div>
       </section>
 
@@ -3608,9 +3579,12 @@
           </div>
 
           <div class="panel" id="profileTrainerPanel" data-role-only="personal" hidden>
-            <div class="section-title"><h3>Perfil profissional</h3><span>Mapa de personais</span></div>
-            <p>Atualize as informações exibidas no mapa, serviços, preços, especialidades e autorização de exibição.</p>
-            <button class="action" type="button" id="editTrainerProfileButton">Editar perfil profissional</button>
+            <div class="section-title"><h3>Perfil público</h3><span>Aparência no mapa</span></div>
+            <p>Atualize nome profissional, serviços, preços, localização, especialidades e autorização de exibição no mapa.</p>
+            <div class="settings-actions">
+              <button class="action" type="button" id="editTrainerProfileButton">Editar perfil público</button>
+              <button class="ghost" type="button" data-screen-jump="trainerMap">Ver aparência no mapa</button>
+            </div>
           </div>
 
           <div class="panel" id="profileStudentTrainerPanel" data-role-only="student" hidden>
@@ -3653,7 +3627,7 @@
       <section id="stats" class="screen">
         <div class="topbar">
           <div>
-            <h2>Estatísticas e evolução</h2>
+            <h2>Evolução</h2>
             <div class="date">Treinos, cardio, medidas, fotos e recordes</div>
           </div>
         </div>
@@ -3662,6 +3636,78 @@
             <div class="form-field">
               <label for="statsStudent">Aluno</label>
               <select id="statsStudent"></select>
+            </div>
+          </div>
+        </div>
+        <div class="grid measure-layout">
+          <div class="panel">
+            <div class="section-title"><h3>Medidas</h3><span>Evolução corporal completa</span></div>
+            <form class="measure-form-grid" id="bodyMeasureForm">
+              <div class="field">
+                <label for="measureDate">Data</label>
+                <input id="measureDate" type="date" />
+              </div>
+              <div class="field">
+                <label id="measureWeightLabel" for="measureWeight" data-i18n="Peso corporal">Peso corporal</label>
+                <input id="measureWeight" inputmode="decimal" placeholder="Ex: 82.4" data-i18n-placeholder="Ex: 82.4" />
+              </div>
+              <div class="field">
+                <label for="measureBodyFat">Gordura corporal (%)</label>
+                <input id="measureBodyFat" inputmode="decimal" placeholder="Ex: 14.8" data-i18n-placeholder="Ex: 14.8" />
+              </div>
+              <div class="field">
+                <label for="measureWaist">Cintura (cm)</label>
+                <input id="measureWaist" inputmode="decimal" placeholder="Ex: 82" data-i18n-placeholder="Ex: 82" />
+              </div>
+              <div class="field">
+                <label for="measureChest">Peito (cm)</label>
+                <input id="measureChest" inputmode="decimal" placeholder="Ex: 106" data-i18n-placeholder="Ex: 106" />
+              </div>
+              <div class="field">
+                <label for="measureArm">Braço (cm)</label>
+                <input id="measureArm" inputmode="decimal" placeholder="Ex: 39" data-i18n-placeholder="Ex: 39" />
+              </div>
+              <div class="field">
+                <label for="measureLeg">Perna (cm)</label>
+                <input id="measureLeg" inputmode="decimal" placeholder="Ex: 61" data-i18n-placeholder="Ex: 61" />
+              </div>
+              <div class="field">
+                <label for="measureHip">Quadril (cm)</label>
+                <input id="measureHip" inputmode="decimal" placeholder="Ex: 98" data-i18n-placeholder="Ex: 98" />
+              </div>
+              <div class="field">
+                <label for="measureNotes">Observações</label>
+                <textarea id="measureNotes" placeholder="Ex: Medida em jejum, após descanso" data-i18n-placeholder="Ex: Medida em jejum, após descanso"></textarea>
+              </div>
+              <button class="action" type="submit">Salvar medidas</button>
+            </form>
+          </div>
+          <div class="measure-charts">
+            <div class="grid metrics">
+              <div class="metric"><span>Último peso</span><b id="latestMeasureWeight">--</b></div>
+              <div class="metric"><span>Gordura corporal</span><b id="latestBodyFat">--</b></div>
+              <div class="metric"><span>Cintura</span><b id="latestWaist">--</b></div>
+              <div class="metric"><span>Registros</span><b id="measureCount">0</b></div>
+            </div>
+            <div class="measure-chart-card">
+              <h3>Evolução de peso</h3>
+              <p>Peso registrado junto das medidas corporais.</p>
+              <div class="mini-chart" id="measureWeightChart"></div>
+            </div>
+            <div class="measure-chart-card">
+              <h3>Percentual de gordura</h3>
+              <p>Acompanhe queda ou retenção de gordura corporal ao longo do tempo.</p>
+              <div class="mini-chart" id="bodyFatChart"></div>
+            </div>
+            <div class="measure-chart-card">
+              <h3>Medidas principais</h3>
+              <p>Cintura, peito, braço, perna e quadril no mesmo histórico.</p>
+              <div class="bars" id="bodyMeasureBars"></div>
+            </div>
+            <div class="measure-chart-card">
+              <h3>Histórico físico</h3>
+              <p>Registros mais recentes para revisão do aluno e do personal.</p>
+              <div class="measure-history" id="bodyMeasureHistory"></div>
             </div>
           </div>
         </div>
@@ -3823,6 +3869,7 @@
       function fallbackShowScreen(id) {
         if (window.monolithTrainerProfileRequired && id !== "trainerProfileOnboarding") id = "trainerProfileOnboarding";
         if (id === "backup") id = "stats";
+        if (id === "measures") id = "stats";
         const sessionId = localStorage.getItem("monolith.sessionUserId");
         const sessionAccount = fallbackAccounts().find(account => account.id === sessionId) || null;
         const user = demoAccounts[document.getElementById("loginEmail")?.value?.trim()?.toLowerCase()] || sessionAccount;
@@ -3839,6 +3886,7 @@
         if (id === "measures" && typeof renderBodyMeasures === "function") renderBodyMeasures();
         if (id === "stats") {
           if (typeof renderStats === "function") renderStats();
+          if (typeof renderBodyMeasures === "function") renderBodyMeasures();
           if (typeof renderPhotoVault === "function") renderPhotoVault();
           if (typeof refreshRemoteStudentData === "function") {
             refreshRemoteStudentData({ stats: true, measures: true, photos: true, summary: true }).catch(() => {});
@@ -4895,6 +4943,7 @@
         const checkins = lastThirtyCheckinsForStudent(student.id);
         const score = checkins[0]?.score || 0;
         const missed = missedCheckinDays(checkins).length;
+        const lastCheckin = checkins[0]?.date ? localDateLabel(checkins[0].date) : t("Sem check-in");
         return `
           <article class="coach-card">
             <div>
@@ -4903,11 +4952,24 @@
               <p>${escapeHTML(student.email)} · ${checkins.length ? `${checkins.length} ${t("check-ins em 30 dias")}` : t("Aguardando primeiro check-in")}</p>
               <div class="pill-row">
                 <span class="pill">Score ${score}%</span>
+                <span class="pill">${escapeHTML(t("Último check-in"))}: ${escapeHTML(lastCheckin)}</span>
                 <span class="pill">${missed} ${t("faltas")}</span>
-                <span class="pill">${t("Relatório ativo")}</span>
+              </div>
+              <div class="student-file-tabs" aria-label="${escapeHTML(t("Ficha do aluno"))}">
+                <button class="student-file-tab primary" type="button" data-student-screen="stats" data-student-id="${escapeHTML(student.id)}">${escapeHTML(t("Visão geral"))}</button>
+                <button class="student-file-tab" type="button" data-student-screen="workouts" data-student-id="${escapeHTML(student.id)}">${escapeHTML(t("Treinos"))}</button>
+                <button class="student-file-tab" type="button" data-student-screen="nutrition" data-student-id="${escapeHTML(student.id)}">${escapeHTML(t("Dieta"))}</button>
+                <button class="student-file-tab" type="button" data-student-screen="checkin" data-student-id="${escapeHTML(student.id)}">${escapeHTML(t("Check-ins"))}</button>
+                <button class="student-file-tab" type="button" data-student-screen="stats" data-student-id="${escapeHTML(student.id)}">${escapeHTML(t("Evolução"))}</button>
+                <button class="student-file-tab" type="button" data-student-screen="stats" data-student-id="${escapeHTML(student.id)}">${escapeHTML(t("Medidas"))}</button>
+                <button class="student-file-tab" type="button" data-student-screen="stats" data-student-id="${escapeHTML(student.id)}">${escapeHTML(t("Fotos"))}</button>
+                <button class="student-file-tab" type="button" disabled title="${escapeHTML(t("Anotações dependem de um campo dedicado no backend."))}">${escapeHTML(t("Anotações"))}</button>
+              </div>
+              <div class="student-file-actions">
+                <button class="ghost open-student-report" type="button" data-student-id="${escapeHTML(student.id)}">${escapeHTML(t("Abrir relatório"))}</button>
+                <button class="ghost" type="button" data-student-screen="checkin" data-student-id="${escapeHTML(student.id)}">${escapeHTML(t("Registrar check-in"))}</button>
               </div>
             </div>
-            <button class="ghost open-student-report" type="button" data-student-id="${escapeHTML(student.id)}">${escapeHTML(t("Ver evolução"))}</button>
           </article>
         `;
       }).join("") || `<div class="panel"><div class="report-line">${escapeHTML(t("Nenhum aluno vinculado ainda. Gere um convite e envie o código para o aluno."))}</div></div>`;
@@ -9918,6 +9980,7 @@ ${photoSections}
     function showScreen(id) {
       if (trainerProfileOnboardingRequired && id !== "trainerProfileOnboarding") id = "trainerProfileOnboarding";
       if (id === "backup") id = "stats";
+      if (id === "measures") id = "stats";
       const navTarget = document.querySelector(`.nav-btn[data-screen="${id}"]`);
       if (navTarget?.dataset.roleOnly && navTarget.dataset.roleOnly !== currentAccount()?.role) id = "home";
       document.querySelectorAll(".screen").forEach(screen => screen.classList.toggle("active", screen.id === id));
@@ -9931,6 +9994,7 @@ ${photoSections}
       }
       if (id === "stats") {
         renderStats();
+        renderBodyMeasures();
         renderPhotoVault();
         refreshRemoteStudentData({ stats: true, measures: true, photos: true, summary: true }).catch(error => {
           console.warn("Monolith stats refresh failed", error);
@@ -9997,6 +10061,12 @@ ${photoSections}
       const studentReportButton = event.target.closest(".open-student-report");
       if (studentReportButton) {
         openStudentReport(studentReportButton.dataset.studentId);
+      }
+
+      const studentScreenButton = event.target.closest("[data-student-screen]");
+      if (studentScreenButton && !studentScreenButton.disabled) {
+        setSelectedStudentForPersonal(studentScreenButton.dataset.studentId);
+        showScreen(studentScreenButton.dataset.studentScreen);
       }
 
       const setDone = event.target.closest(".set-done");
