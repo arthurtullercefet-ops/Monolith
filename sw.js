@@ -1,4 +1,4 @@
-const CACHE_NAME = "monolith-v76-button-polish-mobile-labels";
+const CACHE_NAME = "monolith-v78-report-cycle-anamnesis";
 
 self.addEventListener("install", event => {
   self.skipWaiting();

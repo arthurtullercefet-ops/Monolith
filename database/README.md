@@ -40,7 +40,9 @@ Official docs:
    This repairs the private `progress-photos` bucket and Storage policies used by progress photo uploads.
 13. Paste and run `monolith-production-step-10-student-unlink.sql`.
    This allows a student to unlink their own trainer relationship from the profile screen.
-14. Confirm these tables exist:
+14. Paste and run `monolith-production-step-11-anamnesis.sql`.
+   This adds the student health questionnaire. Students own their answers; linked trainers have read-only access.
+15. Confirm these tables exist:
    - `profiles`
    - `trainer_students`
    - `trainer_invites`
@@ -53,15 +55,16 @@ Official docs:
    - `diet_plans`
    - `food_logs`
    - `progress_photos`
+   - `student_anamneses`
    - `app_plans`
    - `subscriptions`
    - `influencer_codes`
    - `referral_attributions`
-15. Confirm these functions exist:
+16. Confirm these functions exist:
    - `create_trainer_invite`
    - `accept_trainer_invite`
    - `accept_influencer_code`
-16. Confirm Storage has a private bucket called `progress-photos`.
+17. Confirm Storage has a private bucket called `progress-photos`.
 
 ## Step 2: connect the frontend
 
@@ -81,6 +84,7 @@ For real Supabase users, large datasets are not kept permanently in `localStorag
 | `monolith.dietPlans` | `diet_plans` |
 | `monolith.foodLogs` | `food_logs` |
 | `monolith.progressPhotos` | `progress_photos` plus Storage |
+| `monolith.anamneses` | `student_anamneses` |
 
 ## Step 3: production rules
 

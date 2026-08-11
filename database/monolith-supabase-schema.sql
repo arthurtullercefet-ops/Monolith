@@ -123,6 +123,19 @@ create table public.progress_photos (
   unique (student_id, photo_month, angle)
 );
 
+create table public.student_anamneses (
+  id uuid primary key default gen_random_uuid(),
+  student_id uuid not null unique references public.profiles(id) on delete cascade,
+  answers jsonb not null default '{}'::jsonb,
+  risk_flags jsonb not null default '[]'::jsonb,
+  medical_clearance_recommended boolean not null default false,
+  consent boolean not null default false,
+  status text not null default 'submitted' check (status in ('draft', 'submitted', 'reviewed')),
+  submitted_at timestamptz,
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now()
+);
+
 create or replace function public.touch_updated_at()
 returns trigger
 language plpgsql
@@ -153,6 +166,10 @@ create trigger food_logs_touch_updated_at
 before update on public.food_logs
 for each row execute function public.touch_updated_at();
 
+create trigger student_anamneses_touch_updated_at
+before update on public.student_anamneses
+for each row execute function public.touch_updated_at();
+
 create or replace function public.is_trainer_for(student uuid)
 returns boolean
 language sql
@@ -177,6 +194,7 @@ alter table public.completed_workouts enable row level security;
 alter table public.diet_plans enable row level security;
 alter table public.food_logs enable row level security;
 alter table public.progress_photos enable row level security;
+alter table public.student_anamneses enable row level security;
 
 create policy "profiles_select_self_or_linked"
 on public.profiles for select
@@ -285,6 +303,19 @@ using (student_id = auth.uid() or public.is_trainer_for(student_id));
 
 create policy "progress_photos_write_owner"
 on public.progress_photos for all
+using (student_id = auth.uid())
+with check (student_id = auth.uid());
+
+create policy "student_anamneses_select_owner_or_trainer"
+on public.student_anamneses for select
+using (student_id = auth.uid() or public.is_trainer_for(student_id));
+
+create policy "student_anamneses_insert_owner"
+on public.student_anamneses for insert
+with check (student_id = auth.uid());
+
+create policy "student_anamneses_update_owner"
+on public.student_anamneses for update
 using (student_id = auth.uid())
 with check (student_id = auth.uid());
 

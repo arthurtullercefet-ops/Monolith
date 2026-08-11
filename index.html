@@ -14,7 +14,7 @@
   <link rel="manifest" href="manifest.webmanifest" />
   <link rel="icon" href="monolith-icon.svg" />
   <script>
-    window.MONOLITH_BUILD = "monolith-v77-trainer-ux-validation";
+    window.MONOLITH_BUILD = "monolith-v78-report-cycle-anamnesis";
     window.MONOLITH_VERSION_LABEL = "Monolith v77 · 11/08/2026";
     (function clearOldAppCaches() {
       if ("serviceWorker" in navigator) {
@@ -3034,6 +3034,55 @@
         flex-direction: column;
       }
     }
+
+    .anamnesis-layout {
+      display: grid;
+      gap: 14px;
+    }
+
+    .anamnesis-section {
+      border-top: 1px solid var(--line);
+      padding-top: 16px;
+    }
+
+    .anamnesis-section:first-child {
+      border-top: 0;
+      padding-top: 0;
+    }
+
+    .anamnesis-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 12px;
+    }
+
+    .anamnesis-grid .field.full {
+      grid-column: 1 / -1;
+    }
+
+    .anamnesis-risk {
+      border-left: 3px solid var(--gold);
+      background: rgba(184, 145, 31, .08);
+      padding: 12px;
+    }
+
+    .anamnesis-risk.danger {
+      border-left-color: var(--red);
+      background: rgba(190, 54, 54, .08);
+    }
+
+    .anamnesis-consent {
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+      padding: 12px;
+      border: 1px solid var(--line);
+    }
+
+    @media (max-width: 760px) {
+      .anamnesis-grid { grid-template-columns: 1fr; }
+      .anamnesis-grid .field.full { grid-column: auto; }
+    }
   </style>
 </head>
 <body>
@@ -3088,7 +3137,7 @@
           <button class="action" id="loginButton" type="button">Entrar</button>
           <div class="auth-tools">
             <button class="auth-secondary" id="clearDeviceSessionButton" type="button">Limpar sessão/cache deste aparelho</button>
-            <div class="build-version" id="buildVersionLabel">Versão do app: Monolith v77 · 11/08/2026</div>
+            <div class="build-version" id="buildVersionLabel">Versão do app: Monolith v78 · 11/08/2026</div>
           </div>
         </form>
       </div>
@@ -3240,6 +3289,7 @@
           button.classList.toggle("active", button.getAttribute("data-screen") === id);
         });
         if (id === "nutrition" && typeof renderNutrition === "function") renderNutrition();
+        if (id === "anamnesis" && typeof renderAnamnesis === "function") renderAnamnesis();
         if (id === "profile" && typeof renderProfile === "function") renderProfile();
         if (id === "stats") {
           if (typeof renderStats === "function") renderStats();
@@ -3371,6 +3421,10 @@
         <button class="nav-btn" data-screen="checkin" title="Check-ins">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
           <span>Check-ins</span>
+        </button>
+        <button class="nav-btn" data-screen="anamnesis" title="Anamnese">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 5h6"/><path d="M9 3h6a2 2 0 0 1 2 2v1h2v15H5V6h2V5a2 2 0 0 1 2-2Z"/><path d="M9 11h6"/><path d="M9 15h6"/></svg>
+          <span>Anamnese</span>
         </button>
         <button class="nav-btn" data-screen="stats" title="Evolução">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19V5"/><path d="M4 19h16"/><path d="M8 16V9"/><path d="M13 16V6"/><path d="M18 16v-4"/></svg>
@@ -4136,6 +4190,98 @@
         <div class="grid programs" id="clientList"></div>
       </section>
 
+      <section id="anamnesis" class="screen">
+        <div class="topbar">
+          <div>
+            <h2>Anamnese</h2>
+            <div class="date">Histórico de saúde, rotina e objetivos para orientar o treino</div>
+          </div>
+        </div>
+        <div class="panel" id="anamnesisStudentPanel" hidden>
+          <div class="factor-form">
+            <div class="form-field">
+              <label for="anamnesisStudent">Aluno</label>
+              <select id="anamnesisStudent"></select>
+            </div>
+            <div class="report-line">O personal visualiza as respostas do aluno em modo somente leitura.</div>
+          </div>
+        </div>
+        <div class="panel empty-state" id="anamnesisEmptyState" hidden>
+          <div><strong>Selecione um aluno</strong><span>Escolha um aluno vinculado para consultar a anamnese.</span></div>
+        </div>
+        <div class="panel" id="anamnesisPanel">
+          <div class="section-title"><h3>Questionário inicial</h3><span id="anamnesisStatus">Ainda não preenchida</span></div>
+          <div class="anamnesis-risk" id="anamnesisRiskNotice">Este questionário ajuda no planejamento do treino e não substitui avaliação ou diagnóstico médico.</div>
+          <form id="anamnesisForm" class="anamnesis-layout">
+            <div class="anamnesis-section">
+              <div class="section-title"><h3>Dados e objetivos</h3><span>Contexto do aluno</span></div>
+              <div class="anamnesis-grid">
+                <div class="field"><label for="anamnesisBirthDate">Data de nascimento</label><input id="anamnesisBirthDate" name="birthDate" type="date" /></div>
+                <div class="field"><label for="anamnesisOccupation">Profissão e rotina de trabalho</label><input id="anamnesisOccupation" name="occupation" placeholder="Ex: trabalho sentado, turnos, esforço físico" data-i18n-placeholder="Ex: trabalho sentado, turnos, esforço físico" /></div>
+                <div class="field"><label for="anamnesisPrimaryGoal">Objetivo principal</label><select id="anamnesisPrimaryGoal" name="primaryGoal" required><option value="">Selecione</option><option value="weight_loss">Emagrecimento</option><option value="muscle_gain">Ganho de massa muscular</option><option value="strength">Força</option><option value="conditioning">Condicionamento</option><option value="health">Saúde e qualidade de vida</option><option value="performance">Performance esportiva</option><option value="rehabilitation">Retorno após lesão</option></select></div>
+                <div class="field full"><label for="anamnesisGoalDetails">Explique sua meta e o que espera alcançar</label><textarea id="anamnesisGoalDetails" name="goalDetails" rows="3"></textarea></div>
+              </div>
+            </div>
+
+            <div class="anamnesis-section">
+              <div class="section-title"><h3>Saúde e segurança</h3><span>Responda com atenção</span></div>
+              <div class="anamnesis-grid">
+                <div class="field"><label for="anamnesisHeartCondition">Algum médico já informou problema cardíaco?</label><select id="anamnesisHeartCondition" name="heartCondition" required><option value="">Selecione</option><option value="no">Não</option><option value="yes">Sim</option></select></div>
+                <div class="field"><label for="anamnesisChestPain">Sente dor no peito durante esforço ou em repouso?</label><select id="anamnesisChestPain" name="chestPain" required><option value="">Selecione</option><option value="no">Não</option><option value="yes">Sim</option></select></div>
+                <div class="field"><label for="anamnesisDizziness">Teve tontura, desmaio ou perda de equilíbrio?</label><select id="anamnesisDizziness" name="dizziness" required><option value="">Selecione</option><option value="no">Não</option><option value="yes">Sim</option></select></div>
+                <div class="field"><label for="anamnesisBloodPressure">Possui pressão alta ou baixa sem controle?</label><select id="anamnesisBloodPressure" name="bloodPressure" required><option value="">Selecione</option><option value="no">Não</option><option value="yes">Sim</option></select></div>
+                <div class="field"><label for="anamnesisDoctorRestriction">Possui restrição médica para exercício?</label><select id="anamnesisDoctorRestriction" name="doctorRestriction" required><option value="">Selecione</option><option value="no">Não</option><option value="yes">Sim</option></select></div>
+                <div class="field"><label for="anamnesisPregnancy">Está grávida ou existe possibilidade de gravidez?</label><select id="anamnesisPregnancy" name="pregnancy"><option value="not_applicable">Não se aplica</option><option value="no">Não</option><option value="yes">Sim</option></select></div>
+                <div class="field full"><label for="anamnesisConditions">Diagnósticos, doenças, cirurgias ou internações relevantes</label><textarea id="anamnesisConditions" name="conditions" rows="3"></textarea></div>
+                <div class="field full"><label for="anamnesisMedications">Medicamentos de uso contínuo e motivo</label><textarea id="anamnesisMedications" name="medications" rows="3"></textarea></div>
+              </div>
+            </div>
+
+            <div class="anamnesis-section">
+              <div class="section-title"><h3>Dores e limitações</h3><span>Histórico físico</span></div>
+              <div class="anamnesis-grid">
+                <div class="field full"><label for="anamnesisInjuries">Lesões, cirurgias ortopédicas ou dores atuais</label><textarea id="anamnesisInjuries" name="injuries" rows="3"></textarea></div>
+                <div class="field"><label for="anamnesisPainLocations">Onde sente dor ou desconforto?</label><input id="anamnesisPainLocations" name="painLocations" placeholder="Ex: lombar, joelho direito, ombro" data-i18n-placeholder="Ex: lombar, joelho direito, ombro" /></div>
+                <div class="field"><label for="anamnesisMovementRestrictions">Movimentos que não consegue ou deve evitar</label><input id="anamnesisMovementRestrictions" name="movementRestrictions" /></div>
+              </div>
+            </div>
+
+            <div class="anamnesis-section">
+              <div class="section-title"><h3>Experiência e disponibilidade</h3><span>Planejamento do treino</span></div>
+              <div class="anamnesis-grid">
+                <div class="field"><label for="anamnesisExperience">Experiência com treino</label><select id="anamnesisExperience" name="experience"><option value="none">Nunca treinei</option><option value="beginner">Iniciante</option><option value="intermediate">Intermediário</option><option value="advanced">Avançado</option></select></div>
+                <div class="field"><label for="anamnesisWeeklyFrequency">Quantos dias por semana pode treinar?</label><input id="anamnesisWeeklyFrequency" name="weeklyFrequency" type="number" min="1" max="7" inputmode="numeric" /></div>
+                <div class="field full"><label for="anamnesisPreferredActivities">Atividades que gosta ou gostaria de fazer</label><input id="anamnesisPreferredActivities" name="preferredActivities" /></div>
+                <div class="field full"><label for="anamnesisEquipment">Equipamentos e local disponíveis</label><textarea id="anamnesisEquipment" name="equipment" rows="3" placeholder="Ex: academia completa, halteres em casa, elásticos" data-i18n-placeholder="Ex: academia completa, halteres em casa, elásticos"></textarea></div>
+              </div>
+            </div>
+
+            <div class="anamnesis-section">
+              <div class="section-title"><h3>Rotina e recuperação</h3><span>Hábitos gerais</span></div>
+              <div class="anamnesis-grid">
+                <div class="field"><label for="anamnesisActivityLevel">Nível de atividade atual</label><select id="anamnesisActivityLevel" name="activityLevel"><option value="sedentary">Sedentário</option><option value="light">Levemente ativo</option><option value="moderate">Moderadamente ativo</option><option value="high">Muito ativo</option></select></div>
+                <div class="field"><label for="anamnesisSleepHours">Média de sono por noite</label><input id="anamnesisSleepHours" name="sleepHours" type="number" min="0" max="16" step="0.5" inputmode="decimal" /></div>
+                <div class="field"><label for="anamnesisStressLevel">Nível de estresse</label><select id="anamnesisStressLevel" name="stressLevel"><option value="low">Baixo</option><option value="moderate">Moderado</option><option value="high">Alto</option></select></div>
+                <div class="field"><label for="anamnesisSmoking">Fuma?</label><select id="anamnesisSmoking" name="smoking"><option value="no">Não</option><option value="occasionally">Ocasionalmente</option><option value="yes">Sim</option></select></div>
+                <div class="field"><label for="anamnesisAlcohol">Consumo de álcool</label><select id="anamnesisAlcohol" name="alcohol"><option value="none">Não consumo</option><option value="occasionally">Ocasional</option><option value="frequent">Frequente</option></select></div>
+                <div class="field full"><label for="anamnesisNutritionNotes">Restrições alimentares, alergias ou informações nutricionais importantes</label><textarea id="anamnesisNutritionNotes" name="nutritionNotes" rows="3"></textarea></div>
+              </div>
+            </div>
+
+            <div class="anamnesis-section">
+              <div class="section-title"><h3>Contato de emergência</h3><span>Segurança</span></div>
+              <div class="anamnesis-grid">
+                <div class="field"><label for="anamnesisEmergencyName">Nome do contato</label><input id="anamnesisEmergencyName" name="emergencyName" /></div>
+                <div class="field"><label for="anamnesisEmergencyPhone">Telefone do contato</label><input id="anamnesisEmergencyPhone" name="emergencyPhone" type="tel" /></div>
+              </div>
+            </div>
+
+            <label class="anamnesis-consent"><input id="anamnesisConsent" name="consent" type="checkbox" required /><span>Confirmo que as informações fornecidas são verdadeiras e autorizo seu uso pelo personal vinculado para planejamento e acompanhamento do treino.</span></label>
+            <div class="action-row"><button class="action" id="saveAnamnesis" type="submit">Salvar anamnese</button></div>
+          </form>
+        </div>
+      </section>
+
       <section id="stats" class="screen">
         <div class="topbar">
           <div>
@@ -4343,8 +4489,8 @@
   <script>
     const MONOLITH_SUPABASE_URL = "https://jhxasnxuvmkhntbwepau.supabase.co";
     const MONOLITH_SUPABASE_KEY = "sb_publishable_lDtAXIOtkMwgwsAZyghBdg_gyLHGwpH";
-    const MONOLITH_BUILD = window.MONOLITH_BUILD || "monolith-v77-trainer-ux-validation";
-    const MONOLITH_VERSION_LABEL = window.MONOLITH_VERSION_LABEL || "Monolith v77 · 11/08/2026";
+    const MONOLITH_BUILD = window.MONOLITH_BUILD || "monolith-v78-report-cycle-anamnesis";
+    const MONOLITH_VERSION_LABEL = window.MONOLITH_VERSION_LABEL || "Monolith v78 · 11/08/2026";
     const monolithSupabase = window.supabase?.createClient?.(MONOLITH_SUPABASE_URL, MONOLITH_SUPABASE_KEY, {
       auth: {
         storage: window.sessionStorage,
@@ -5422,7 +5568,8 @@
         .select("id,email,full_name,role")
         .in("id", ids);
       if (profileError) throw profileError;
-        return (profiles || [])
+      const linkByStudent = new Map((links || []).map(link => [link.student_id, link]));
+      return (profiles || [])
         .map(profile => ({
           id: profile.id,
           role: appRoleFromDb(profile.role),
@@ -5431,7 +5578,8 @@
           email: profile.email || "",
           plan: planFromDbRole(profile.role),
           source: "supabase",
-          trainerId
+          trainerId,
+          trainerLinkedAt: linkByStudent.get(profile.id)?.created_at || ""
         }))
         .sort((a, b) => a.name.localeCompare(b.name, undefined, { sensitivity: "base" }));
     }
@@ -5545,6 +5693,7 @@
                     <button class="ghost" type="button" data-student-screen="workouts" data-student-id="${escapeHTML(student.id)}">${escapeHTML(t("Treinos"))}</button>
                     <button class="ghost" type="button" data-student-screen="nutrition" data-student-id="${escapeHTML(student.id)}">${escapeHTML(t("Dieta"))}</button>
                     <button class="ghost" type="button" data-student-screen="checkin" data-student-id="${escapeHTML(student.id)}">${escapeHTML(t("Registrar check-in"))}</button>
+                    <button class="ghost" type="button" data-student-screen="anamnesis" data-student-id="${escapeHTML(student.id)}">${escapeHTML(t("Anamnese"))}</button>
                     <button class="ghost open-student-report" type="button" data-student-id="${escapeHTML(student.id)}">${escapeHTML(t("Relatório HTML"))}</button>
                   </div>
                 </details>
@@ -5693,7 +5842,7 @@
       }
     }
 
-    function saveStudentTrainerLink(user, trainerId, trainer = null) {
+    function saveStudentTrainerLink(user, trainerId, trainer = null, linkedAt = "") {
       if (!user?.id || !trainerId) return;
       const accounts = loadAccounts();
       const trainerAccount = trainer ? {
@@ -5705,8 +5854,9 @@
         plan: planFromDbRole(trainer.role),
         source: "supabase"
       } : null;
-      let nextAccounts = accounts.map(account => account.id === user.id ? { ...account, trainerId } : account);
-      if (!nextAccounts.some(account => account.id === user.id)) nextAccounts.push({ ...user, trainerId });
+      const trainerLinkedAt = linkedAt || user.trainerLinkedAt || new Date().toISOString();
+      let nextAccounts = accounts.map(account => account.id === user.id ? { ...account, trainerId, trainerLinkedAt } : account);
+      if (!nextAccounts.some(account => account.id === user.id)) nextAccounts.push({ ...user, trainerId, trainerLinkedAt });
       if (trainerAccount) {
         nextAccounts = [
           trainerAccount,
@@ -5718,12 +5868,12 @@
 
     async function ensureStudentTrainerId(user = currentAccount()) {
       if (!user || user.role !== "student") return "";
-      if (user.trainerId) return user.trainerId;
+      if (user.trainerId && (user.trainerLinkedAt || user.source !== "supabase")) return user.trainerId;
       if (!user.source || user.source !== "supabase" || !monolithSupabase) return "";
       try {
         const { data: links, error } = await monolithSupabase
           .from("trainer_students")
-          .select("trainer_id,status")
+          .select("trainer_id,status,created_at")
           .eq("student_id", user.id)
           .eq("status", "active")
           .limit(1);
@@ -5735,7 +5885,7 @@
           .select("id,email,full_name,role")
           .eq("id", trainerId)
           .maybeSingle();
-        saveStudentTrainerLink(user, trainerId, trainer);
+        saveStudentTrainerLink(user, trainerId, trainer, links?.[0]?.created_at || "");
         return trainerId;
       } catch (error) {
         console.warn("Monolith trainer link lookup failed", error);
@@ -5814,6 +5964,7 @@
         if (account.id === user.id) {
           const next = { ...account };
           delete next.trainerId;
+          delete next.trainerLinkedAt;
           return next;
         }
         if (account.id === trainerId) {
@@ -5868,7 +6019,8 @@
           trainerId = data;
         }
         const accounts = loadAccounts();
-        saveAccounts(accounts.map(account => account.id === user.id ? { ...account, trainerId } : account));
+        const trainerLinkedAt = new Date().toISOString();
+        saveAccounts(accounts.map(account => account.id === user.id ? { ...account, trainerId, trainerLinkedAt } : account));
         await renderTrainerLinkPanel();
         authMessage("Personal vinculado com sucesso.");
         return true;
@@ -5881,7 +6033,7 @@
         return false;
       }
       saveAccounts(accounts.map(account => {
-        if (account.id === user.id) return { ...account, trainerId: trainer.id };
+        if (account.id === user.id) return { ...account, trainerId: trainer.id, trainerLinkedAt: new Date().toISOString() };
         if (account.id === trainer.id) return { ...account, students: [...new Set([...(account.students || []), user.id])] };
         return account;
       }));
@@ -6227,6 +6379,73 @@
 
     function currentMonthKey() {
       return new Date().toISOString().slice(0, 7);
+    }
+
+    function dateFromKey(dateKey = "") {
+      const [year, month, day] = String(dateKey || "").slice(0, 10).split("-").map(Number);
+      if (!year || !month || !day) return null;
+      const date = new Date(year, month - 1, day);
+      return Number.isNaN(date.getTime()) ? null : date;
+    }
+
+    function cycleBoundary(anchorDate, monthOffset = 0) {
+      if (!(anchorDate instanceof Date) || Number.isNaN(anchorDate.getTime())) return null;
+      const targetMonth = new Date(anchorDate.getFullYear(), anchorDate.getMonth() + monthOffset, 1);
+      const lastDay = new Date(targetMonth.getFullYear(), targetMonth.getMonth() + 1, 0).getDate();
+      return new Date(targetMonth.getFullYear(), targetMonth.getMonth(), Math.min(anchorDate.getDate(), lastDay));
+    }
+
+    function reportPeriodForStudent(student = null) {
+      const today = dateFromKey(todayKey()) || new Date();
+      const linkedAt = student?.trainerLinkedAt || (student?.id === currentAccount()?.id ? currentAccount()?.trainerLinkedAt : "") || "";
+      const anchor = dateFromKey(linkedAt);
+      if (!anchor || anchor > today) {
+        const start = new Date(today);
+        start.setDate(start.getDate() - 29);
+        const end = new Date(today);
+        end.setDate(end.getDate() + 1);
+        const dateKeys = [];
+        for (let cursor = new Date(start); cursor < end; cursor.setDate(cursor.getDate() + 1)) dateKeys.push(todayKey(cursor));
+        return { startKey: todayKey(start), endKey: todayKey(end), displayEndKey: todayKey(today), dateKeys, dayCount: dateKeys.length, linkedAt: "", anchored: false };
+      }
+      let cycleIndex = 0;
+      while (cycleBoundary(anchor, cycleIndex + 1) <= today) cycleIndex += 1;
+      const start = cycleBoundary(anchor, cycleIndex);
+      const end = cycleBoundary(anchor, cycleIndex + 1);
+      const elapsedEnd = new Date(Math.min(end.getTime(), new Date(today.getFullYear(), today.getMonth(), today.getDate() + 1).getTime()));
+      const dateKeys = [];
+      for (let cursor = new Date(start); cursor < elapsedEnd; cursor.setDate(cursor.getDate() + 1)) dateKeys.push(todayKey(cursor));
+      return {
+        startKey: todayKey(start),
+        endKey: todayKey(end),
+        displayEndKey: todayKey(end),
+        dateKeys,
+        dayCount: dateKeys.length,
+        linkedAt,
+        anchored: true
+      };
+    }
+
+    function dateKeyInPeriod(dateValue, period) {
+      const key = entryDateKey(dateValue);
+      return Boolean(key && period && key >= period.startKey && key < period.endKey);
+    }
+
+    function monthKeysForPeriod(period) {
+      if (!period?.startKey || !period?.endKey) return [currentMonthKey()];
+      const result = [];
+      const start = dateFromKey(period.startKey);
+      const end = dateFromKey(period.endKey);
+      if (!start || !end) return [currentMonthKey()];
+      const cursor = new Date(start.getFullYear(), start.getMonth(), 1);
+      const inclusiveEnd = new Date(end);
+      inclusiveEnd.setDate(inclusiveEnd.getDate() - 1);
+      const last = new Date(inclusiveEnd.getFullYear(), inclusiveEnd.getMonth(), 1);
+      while (cursor <= last) {
+        result.push(`${cursor.getFullYear()}-${String(cursor.getMonth() + 1).padStart(2, "0")}`);
+        cursor.setMonth(cursor.getMonth() + 1);
+      }
+      return [...new Set(result)];
     }
 
     function loadDietPlans() {
@@ -6934,14 +7153,17 @@
     async function hydrateRemoteReportData(student = null) {
       const studentId = activeDataStudentId(student);
       if (!studentId || !isRealSupabaseAccount(currentAccount())) return;
+      const reportStudent = student || (currentAccount()?.role === "student" ? currentAccount() : reportStudentFromId(studentId));
+      const periodMonths = monthKeysForPeriod(reportPeriodForStudent(reportStudent));
       try {
         await Promise.all([
           loadRemoteCheckins(studentId),
           loadRemoteBodyMeasures(studentId),
           loadRemoteCompletedWorkouts(studentId),
           loadRemoteProgressPhotos(studentId),
-          loadRemoteDietPlan(studentId, currentMonthKey()),
-          loadRemoteFactorsForStudent(studentId)
+          ...periodMonths.map(month => loadRemoteDietPlan(studentId, month)),
+          loadRemoteFactorsForStudent(studentId),
+          loadRemoteAnamnesis(studentId)
         ]);
       } catch (error) {
         console.warn("Monolith remote report hydration failed", error);
@@ -6954,6 +7176,218 @@
       const plan = storedDietPlanForStudent(studentId, month);
       const meta = dietPlanMetaForKey(key);
       return meta.archived || meta.status === "archived" ? null : plan;
+    }
+
+    const anamnesisRiskFields = ["heartCondition", "chestPain", "dizziness", "bloodPressure", "doctorRestriction", "pregnancy"];
+    const anamnesisReportFields = [
+      { key: "primaryGoal", label: "Objetivo principal" },
+      { key: "goalDetails", label: "Detalhes da meta" },
+      { key: "conditions", label: "Condições de saúde" },
+      { key: "medications", label: "Medicamentos" },
+      { key: "injuries", label: "Lesões e dores" },
+      { key: "movementRestrictions", label: "Restrições de movimento" },
+      { key: "experience", label: "Experiência com treino" },
+      { key: "weeklyFrequency", label: "Dias disponíveis por semana" },
+      { key: "sleepHours", label: "Média de sono" },
+      { key: "stressLevel", label: "Nível de estresse" },
+      { key: "equipment", label: "Equipamentos disponíveis" },
+      { key: "nutritionNotes", label: "Restrições e observações alimentares" }
+    ];
+    let anamnesisMemoryCache = {};
+
+    function loadLocalAnamneses() {
+      try {
+        return JSON.parse(localStorage.getItem("monolith.anamneses") || "{}");
+      } catch {
+        return {};
+      }
+    }
+
+    function cacheAnamnesis(record) {
+      if (!record?.studentId) return;
+      anamnesisMemoryCache[record.studentId] = record;
+      if (!isRealSupabaseAccount(currentAccount())) {
+        const local = loadLocalAnamneses();
+        local[record.studentId] = record;
+        localStorage.setItem("monolith.anamneses", JSON.stringify(local));
+      }
+    }
+
+    function storedAnamnesis(studentId) {
+      return anamnesisMemoryCache[studentId] || loadLocalAnamneses()[studentId] || null;
+    }
+
+    function anamnesisValueLabel(value, language = reportLanguage()) {
+      const labels = {
+        weight_loss: "Emagrecimento", muscle_gain: "Ganho de massa muscular", strength: "Força", conditioning: "Condicionamento",
+        health: "Saúde e qualidade de vida", performance: "Performance esportiva", rehabilitation: "Retorno após lesão",
+        none: "Nenhum", beginner: "Iniciante", intermediate: "Intermediário", advanced: "Avançado",
+        sedentary: "Sedentário", light: "Levemente ativo", moderate: "Moderado", high: "Alto",
+        low: "Baixo", occasionally: "Ocasionalmente", frequent: "Frequente", yes: "Sim", no: "Não", not_applicable: "Não se aplica"
+      };
+      return t(labels[value] || value || "--", language);
+    }
+
+    function remoteAnamnesisFromRow(row) {
+      return {
+        id: row.id,
+        studentId: row.student_id,
+        answers: row.answers || {},
+        riskFlags: row.risk_flags || [],
+        medicalClearanceRecommended: row.medical_clearance_recommended === true,
+        consent: row.consent === true,
+        status: row.status || "submitted",
+        submittedAt: row.submitted_at || row.created_at || "",
+        updatedAt: row.updated_at || row.created_at || ""
+      };
+    }
+
+    async function loadRemoteAnamnesis(studentId = activeDataStudentId()) {
+      if (!monolithSupabase || !studentId || !isRealSupabaseAccount(currentAccount()) || !canAccessStudentData(studentId)) return null;
+      const { data, error } = await monolithSupabase
+        .from("student_anamneses")
+        .select("id,student_id,answers,risk_flags,medical_clearance_recommended,consent,status,submitted_at,created_at,updated_at")
+        .eq("student_id", studentId)
+        .maybeSingle();
+      if (error) throw error;
+      if (!data) return null;
+      const record = remoteAnamnesisFromRow(data);
+      cacheAnamnesis(record);
+      return record;
+    }
+
+    async function saveRemoteAnamnesis(record) {
+      const user = currentAccount();
+      if (!monolithSupabase || !isRealSupabaseAccount(user) || user.role !== "student" || record.studentId !== user.id) return false;
+      const payload = {
+        student_id: user.id,
+        answers: record.answers,
+        risk_flags: record.riskFlags,
+        medical_clearance_recommended: record.medicalClearanceRecommended,
+        consent: record.consent,
+        status: "submitted",
+        submitted_at: record.submittedAt
+      };
+      const { data, error } = await monolithSupabase
+        .from("student_anamneses")
+        .upsert(payload, { onConflict: "student_id" })
+        .select("id,student_id,answers,risk_flags,medical_clearance_recommended,consent,status,submitted_at,created_at,updated_at")
+        .single();
+      if (error) throw error;
+      if (data) cacheAnamnesis(remoteAnamnesisFromRow(data));
+      return true;
+    }
+
+    function anamnesisTargetStudentId() {
+      const user = currentAccount();
+      if (!user) return "";
+      if (user.role === "student") return user.id;
+      const selected = document.getElementById("anamnesisStudent")?.value || selectedStudentForPersonal();
+      return scopedStudentId(selected);
+    }
+
+    async function renderAnamnesisStudentSelect() {
+      const user = currentAccount();
+      const panel = document.getElementById("anamnesisStudentPanel");
+      const select = document.getElementById("anamnesisStudent");
+      if (!panel || !select) return "";
+      panel.hidden = user?.role !== "personal";
+      if (user?.role !== "personal") return user?.id || "";
+      const students = await ensureLinkedStudentsForPersonal(user.id);
+      const preferred = selectedStudentForPersonal();
+      select.innerHTML = `<option value="">${escapeHTML(t("Selecionar aluno"))}</option>${students.map(student => `<option value="${escapeHTML(student.id)}">${escapeHTML(student.name)}${student.email ? ` - ${escapeHTML(student.email)}` : ""}</option>`).join("")}`;
+      select.value = students.some(student => student.id === preferred) ? preferred : "";
+      return select.value;
+    }
+
+    function clearAnamnesisForm() {
+      const form = document.getElementById("anamnesisForm");
+      if (!form) return;
+      form.reset();
+    }
+
+    function fillAnamnesisForm(record = null) {
+      clearAnamnesisForm();
+      if (!record?.answers) return;
+      const form = document.getElementById("anamnesisForm");
+      Object.entries(record.answers).forEach(([name, value]) => {
+        const control = form?.elements?.namedItem(name);
+        if (!control) return;
+        if (control.type === "checkbox") control.checked = value === true;
+        else control.value = value ?? "";
+      });
+      const consent = document.getElementById("anamnesisConsent");
+      if (consent) consent.checked = record.consent === true;
+    }
+
+    function setAnamnesisReadOnly(readOnly) {
+      const form = document.getElementById("anamnesisForm");
+      if (!form) return;
+      [...form.elements].forEach(control => {
+        if (control.id !== "saveAnamnesis") control.disabled = readOnly;
+      });
+      const saveButton = document.getElementById("saveAnamnesis");
+      if (saveButton) saveButton.hidden = readOnly;
+    }
+
+    function renderAnamnesisRisk(record = null) {
+      const notice = document.getElementById("anamnesisRiskNotice");
+      if (!notice) return;
+      const hasRisk = record?.medicalClearanceRecommended === true;
+      notice.classList.toggle("danger", hasRisk);
+      notice.textContent = hasRisk
+        ? t("Há respostas de atenção. Recomenda-se liberação médica antes de iniciar ou intensificar os exercícios.")
+        : t("Este questionário ajuda no planejamento do treino e não substitui avaliação ou diagnóstico médico.");
+    }
+
+    async function renderAnamnesis() {
+      const user = currentAccount();
+      const panel = document.getElementById("anamnesisPanel");
+      const empty = document.getElementById("anamnesisEmptyState");
+      const status = document.getElementById("anamnesisStatus");
+      if (!user || !panel || !empty || !status) return;
+      await renderAnamnesisStudentSelect();
+      const studentId = anamnesisTargetStudentId();
+      const needsSelection = user.role === "personal" && !studentId;
+      panel.hidden = needsSelection;
+      empty.hidden = !needsSelection;
+      if (needsSelection) return;
+      let record = storedAnamnesis(studentId);
+      if (isRealSupabaseAccount(user)) {
+        try {
+          record = await loadRemoteAnamnesis(studentId) || record;
+        } catch (error) {
+          console.warn("Monolith anamnesis load failed", error);
+          showToast(t("Não consegui carregar a anamnese agora."));
+        }
+      }
+      fillAnamnesisForm(record);
+      setAnamnesisReadOnly(user.role === "personal");
+      status.textContent = record
+        ? `${t("Preenchida em")} ${reportDateLabel(record.submittedAt || record.updatedAt, localStorage.getItem("monolith.language") || "pt")}`
+        : t("Ainda não preenchida");
+      renderAnamnesisRisk(record);
+    }
+
+    function readAnamnesisForm() {
+      const user = currentAccount();
+      const form = document.getElementById("anamnesisForm");
+      const data = new FormData(form);
+      const answers = {};
+      for (const [key, value] of data.entries()) {
+        if (key !== "consent") answers[key] = String(value).trim();
+      }
+      const riskFlags = anamnesisRiskFields.filter(field => answers[field] === "yes");
+      return {
+        studentId: user?.id || "",
+        answers,
+        riskFlags,
+        medicalClearanceRecommended: riskFlags.length > 0,
+        consent: document.getElementById("anamnesisConsent")?.checked === true,
+        status: "submitted",
+        submittedAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString()
+      };
     }
 
     function defaultMeal(index = 0) {
@@ -8158,6 +8592,97 @@
         "Registrar check-in": "Log check-in",
         "Anotações": "Notes",
         "Anotações dependem de um campo dedicado no backend.": "Notes require a dedicated backend field.",
+        "Anamnese": "Health questionnaire",
+        "Histórico de saúde, rotina e objetivos para orientar o treino": "Health history, routine and goals to guide training",
+        "O personal visualiza as respostas do aluno em modo somente leitura.": "The trainer views the student's answers in read-only mode.",
+        "Selecione um aluno": "Select a student",
+        "Escolha um aluno vinculado para consultar a anamnese.": "Choose a linked student to view the health questionnaire.",
+        "Questionário inicial": "Initial questionnaire",
+        "Ainda não preenchida": "Not completed yet",
+        "Este questionário ajuda no planejamento do treino e não substitui avaliação ou diagnóstico médico.": "This questionnaire supports training planning and does not replace medical evaluation or diagnosis.",
+        "Dados e objetivos": "Profile and goals",
+        "Contexto do aluno": "Student context",
+        "Data de nascimento": "Date of birth",
+        "Profissão e rotina de trabalho": "Occupation and work routine",
+        "Ex: trabalho sentado, turnos, esforço físico": "Ex: desk work, shifts, physical labor",
+        "Objetivo principal": "Primary goal",
+        "Emagrecimento": "Weight loss",
+        "Ganho de massa muscular": "Muscle gain",
+        "Força": "Strength",
+        "Condicionamento": "Conditioning",
+        "Saúde e qualidade de vida": "Health and quality of life",
+        "Performance esportiva": "Sports performance",
+        "Retorno após lesão": "Return after injury",
+        "Explique sua meta e o que espera alcançar": "Explain your goal and what you expect to achieve",
+        "Saúde e segurança": "Health and safety",
+        "Responda com atenção": "Answer carefully",
+        "Algum médico já informou problema cardíaco?": "Has a doctor ever told you that you have a heart condition?",
+        "Sente dor no peito durante esforço ou em repouso?": "Do you feel chest pain during activity or at rest?",
+        "Teve tontura, desmaio ou perda de equilíbrio?": "Have you experienced dizziness, fainting or loss of balance?",
+        "Possui pressão alta ou baixa sem controle?": "Do you have uncontrolled high or low blood pressure?",
+        "Possui restrição médica para exercício?": "Do you have any medical restriction for exercise?",
+        "Está grávida ou existe possibilidade de gravidez?": "Are you pregnant or could you be pregnant?",
+        "Não se aplica": "Not applicable",
+        "Diagnósticos, doenças, cirurgias ou internações relevantes": "Relevant diagnoses, conditions, surgeries or hospitalizations",
+        "Medicamentos de uso contínuo e motivo": "Ongoing medications and reason",
+        "Dores e limitações": "Pain and limitations",
+        "Histórico físico": "Physical history",
+        "Lesões, cirurgias ortopédicas ou dores atuais": "Injuries, orthopedic surgeries or current pain",
+        "Onde sente dor ou desconforto?": "Where do you feel pain or discomfort?",
+        "Ex: lombar, joelho direito, ombro": "Ex: lower back, right knee, shoulder",
+        "Movimentos que não consegue ou deve evitar": "Movements you cannot do or should avoid",
+        "Experiência e disponibilidade": "Experience and availability",
+        "Planejamento do treino": "Training planning",
+        "Experiência com treino": "Training experience",
+        "Nunca treinei": "Never trained",
+        "Iniciante": "Beginner",
+        "Intermediário": "Intermediate",
+        "Avançado": "Advanced",
+        "Quantos dias por semana pode treinar?": "How many days per week can you train?",
+        "Atividades que gosta ou gostaria de fazer": "Activities you enjoy or would like to do",
+        "Equipamentos e local disponíveis": "Available equipment and training location",
+        "Ex: academia completa, halteres em casa, elásticos": "Ex: full gym, dumbbells at home, resistance bands",
+        "Rotina e recuperação": "Routine and recovery",
+        "Hábitos gerais": "General habits",
+        "Nível de atividade atual": "Current activity level",
+        "Sedentário": "Sedentary",
+        "Levemente ativo": "Lightly active",
+        "Moderadamente ativo": "Moderately active",
+        "Muito ativo": "Very active",
+        "Média de sono por noite": "Average sleep per night",
+        "Nível de estresse": "Stress level",
+        "Baixo": "Low",
+        "Moderado": "Moderate",
+        "Alto": "High",
+        "Fuma?": "Do you smoke?",
+        "Ocasionalmente": "Occasionally",
+        "Consumo de álcool": "Alcohol consumption",
+        "Não consumo": "I do not drink",
+        "Ocasional": "Occasional",
+        "Frequente": "Frequent",
+        "Restrições alimentares, alergias ou informações nutricionais importantes": "Dietary restrictions, allergies or important nutrition information",
+        "Contato de emergência": "Emergency contact",
+        "Segurança": "Safety",
+        "Nome do contato": "Contact name",
+        "Telefone do contato": "Contact phone",
+        "Confirmo que as informações fornecidas são verdadeiras e autorizo seu uso pelo personal vinculado para planejamento e acompanhamento do treino.": "I confirm that the information provided is true and authorize its use by my linked trainer for training planning and monitoring.",
+        "Salvar anamnese": "Save questionnaire",
+        "Há respostas de atenção. Recomenda-se liberação médica antes de iniciar ou intensificar os exercícios.": "Some answers require attention. Medical clearance is recommended before starting or intensifying exercise.",
+        "Preenchida em": "Completed on",
+        "Não consegui carregar a anamnese agora.": "Could not load the health questionnaire right now.",
+        "Somente o aluno pode preencher ou alterar a anamnese.": "Only the student can complete or change the health questionnaire.",
+        "Não consegui salvar a anamnese no Supabase. Rode a etapa 11 do banco e tente novamente.": "Could not save the questionnaire to Supabase. Run database step 11 and try again.",
+        "Anamnese salva no Supabase.": "Questionnaire saved to Supabase.",
+        "Anamnese salva.": "Questionnaire saved.",
+        "Detalhes da meta": "Goal details",
+        "Condições de saúde": "Health conditions",
+        "Medicamentos": "Medications",
+        "Lesões e dores": "Injuries and pain",
+        "Restrições de movimento": "Movement restrictions",
+        "Dias disponíveis por semana": "Available days per week",
+        "Média de sono": "Average sleep",
+        "Equipamentos disponíveis": "Available equipment",
+        "Restrições e observações alimentares": "Dietary restrictions and notes",
         "Reduzir refeições vai remover refeições preenchidas. Continuar?": "Reducing meals will remove filled meals. Continue?",
         "Copiar o mês anterior vai substituir os campos atuais. Continuar?": "Copying the previous month will replace the current fields. Continue?",
         "Usar modelo vai substituir os campos atuais. Continuar?": "Using a template will replace the current fields. Continue?",
@@ -8168,6 +8693,8 @@
         "Alunos ativos": "Active students",
         "Check-ins recebidos": "Check-ins received",
         "Check-ins em 30 dias": "Check-ins in 30 days",
+        "Check-ins no período": "Check-ins in the period",
+        "check-ins no período": "check-ins in the period",
         "Adesão média dos alunos": "Average student adherence",
         "Treinos concluídos hoje": "Workouts completed today",
         "Dietas ativas no mês": "Active diets this month",
@@ -8491,6 +9018,16 @@
         "Salvar como PDF": "Save as PDF",
         "Relatório mensal MONOLITH": "MONOLITH Monthly Report",
         "Gerado em": "Generated at",
+        "Período do aluno": "Student period",
+        "Vínculo iniciado em": "Trainer link started on",
+        "dias sem check-in no período.": "days without check-in in this period.",
+        "Frequência do período": "Period Frequency",
+        "Dieta ativa no período": "Active Diet for the Period",
+        "Anamnese do aluno": "Student Health Questionnaire",
+        "Resposta": "Answer",
+        "Atenção: liberação médica recomendada antes de iniciar ou intensificar exercícios.": "Attention: medical clearance is recommended before starting or intensifying exercise.",
+        "Nenhum sinal de atenção informado na anamnese.": "No warning sign was reported in the questionnaire.",
+        "Anamnese ainda não preenchida.": "The questionnaire has not been completed yet.",
         "Use o botão do navegador para salvar como PDF.": "Use the browser button to save as PDF.",
         "Alerta de check-in para o personal": "Trainer check-in alert",
         "dias sem check-in nos últimos 30 dias.": "days without check-in in the last 30 days.",
@@ -9028,6 +9565,97 @@
         "Registrar check-in": "Registrar check-in",
         "Anotações": "Notas",
         "Anotações dependem de um campo dedicado no backend.": "Las notas dependen de un campo dedicado en el backend.",
+        "Anamnese": "Anamnesis",
+        "Histórico de saúde, rotina e objetivos para orientar o treino": "Historial de salud, rutina y objetivos para orientar el entrenamiento",
+        "O personal visualiza as respostas do aluno em modo somente leitura.": "El entrenador ve las respuestas del alumno en modo de solo lectura.",
+        "Selecione um aluno": "Selecciona un alumno",
+        "Escolha um aluno vinculado para consultar a anamnese.": "Elige un alumno vinculado para consultar la anamnesis.",
+        "Questionário inicial": "Cuestionario inicial",
+        "Ainda não preenchida": "Aún no completada",
+        "Este questionário ajuda no planejamento do treino e não substitui avaliação ou diagnóstico médico.": "Este cuestionario ayuda a planificar el entrenamiento y no sustituye una evaluación o diagnóstico médico.",
+        "Dados e objetivos": "Datos y objetivos",
+        "Contexto do aluno": "Contexto del alumno",
+        "Data de nascimento": "Fecha de nacimiento",
+        "Profissão e rotina de trabalho": "Profesión y rutina de trabajo",
+        "Ex: trabalho sentado, turnos, esforço físico": "Ej: trabajo sentado, turnos, esfuerzo físico",
+        "Objetivo principal": "Objetivo principal",
+        "Emagrecimento": "Pérdida de peso",
+        "Ganho de massa muscular": "Ganancia de masa muscular",
+        "Força": "Fuerza",
+        "Condicionamento": "Acondicionamiento",
+        "Saúde e qualidade de vida": "Salud y calidad de vida",
+        "Performance esportiva": "Rendimiento deportivo",
+        "Retorno após lesão": "Regreso después de una lesión",
+        "Explique sua meta e o que espera alcançar": "Explica tu meta y lo que esperas lograr",
+        "Saúde e segurança": "Salud y seguridad",
+        "Responda com atenção": "Responde con atención",
+        "Algum médico já informou problema cardíaco?": "¿Algún médico te informó de un problema cardíaco?",
+        "Sente dor no peito durante esforço ou em repouso?": "¿Sientes dolor en el pecho durante el esfuerzo o en reposo?",
+        "Teve tontura, desmaio ou perda de equilíbrio?": "¿Tuviste mareos, desmayos o pérdida de equilibrio?",
+        "Possui pressão alta ou baixa sem controle?": "¿Tienes presión alta o baja sin controlar?",
+        "Possui restrição médica para exercício?": "¿Tienes alguna restricción médica para hacer ejercicio?",
+        "Está grávida ou existe possibilidade de gravidez?": "¿Estás embarazada o existe posibilidad de embarazo?",
+        "Não se aplica": "No aplica",
+        "Diagnósticos, doenças, cirurgias ou internações relevantes": "Diagnósticos, enfermedades, cirugías u hospitalizaciones relevantes",
+        "Medicamentos de uso contínuo e motivo": "Medicamentos de uso continuo y motivo",
+        "Dores e limitações": "Dolores y limitaciones",
+        "Histórico físico": "Historial físico",
+        "Lesões, cirurgias ortopédicas ou dores atuais": "Lesiones, cirugías ortopédicas o dolores actuales",
+        "Onde sente dor ou desconforto?": "¿Dónde sientes dolor o molestia?",
+        "Ex: lombar, joelho direito, ombro": "Ej: lumbar, rodilla derecha, hombro",
+        "Movimentos que não consegue ou deve evitar": "Movimientos que no puedes hacer o debes evitar",
+        "Experiência e disponibilidade": "Experiencia y disponibilidad",
+        "Planejamento do treino": "Planificación del entrenamiento",
+        "Experiência com treino": "Experiencia de entrenamiento",
+        "Nunca treinei": "Nunca entrené",
+        "Iniciante": "Principiante",
+        "Intermediário": "Intermedio",
+        "Avançado": "Avanzado",
+        "Quantos dias por semana pode treinar?": "¿Cuántos días por semana puedes entrenar?",
+        "Atividades que gosta ou gostaria de fazer": "Actividades que te gustan o te gustaría hacer",
+        "Equipamentos e local disponíveis": "Equipos y lugar disponibles",
+        "Ex: academia completa, halteres em casa, elásticos": "Ej: gimnasio completo, mancuernas en casa, bandas",
+        "Rotina e recuperação": "Rutina y recuperación",
+        "Hábitos gerais": "Hábitos generales",
+        "Nível de atividade atual": "Nivel de actividad actual",
+        "Sedentário": "Sedentario",
+        "Levemente ativo": "Ligeramente activo",
+        "Moderadamente ativo": "Moderadamente activo",
+        "Muito ativo": "Muy activo",
+        "Média de sono por noite": "Promedio de sueño por noche",
+        "Nível de estresse": "Nivel de estrés",
+        "Baixo": "Bajo",
+        "Moderado": "Moderado",
+        "Alto": "Alto",
+        "Fuma?": "¿Fumas?",
+        "Ocasionalmente": "Ocasionalmente",
+        "Consumo de álcool": "Consumo de alcohol",
+        "Não consumo": "No consumo",
+        "Ocasional": "Ocasional",
+        "Frequente": "Frecuente",
+        "Restrições alimentares, alergias ou informações nutricionais importantes": "Restricciones alimentarias, alergias o información nutricional importante",
+        "Contato de emergência": "Contacto de emergencia",
+        "Segurança": "Seguridad",
+        "Nome do contato": "Nombre del contacto",
+        "Telefone do contato": "Teléfono del contacto",
+        "Confirmo que as informações fornecidas são verdadeiras e autorizo seu uso pelo personal vinculado para planejamento e acompanhamento do treino.": "Confirmo que la información proporcionada es verdadera y autorizo su uso por mi entrenador vinculado para planificar y acompañar el entrenamiento.",
+        "Salvar anamnese": "Guardar anamnesis",
+        "Há respostas de atenção. Recomenda-se liberação médica antes de iniciar ou intensificar os exercícios.": "Hay respuestas que requieren atención. Se recomienda autorización médica antes de comenzar o intensificar los ejercicios.",
+        "Preenchida em": "Completada el",
+        "Não consegui carregar a anamnese agora.": "No pude cargar la anamnesis ahora.",
+        "Somente o aluno pode preencher ou alterar a anamnese.": "Solo el alumno puede completar o modificar la anamnesis.",
+        "Não consegui salvar a anamnese no Supabase. Rode a etapa 11 do banco e tente novamente.": "No pude guardar la anamnesis en Supabase. Ejecuta el paso 11 de la base de datos e inténtalo de nuevo.",
+        "Anamnese salva no Supabase.": "Anamnesis guardada en Supabase.",
+        "Anamnese salva.": "Anamnesis guardada.",
+        "Detalhes da meta": "Detalles de la meta",
+        "Condições de saúde": "Condiciones de salud",
+        "Medicamentos": "Medicamentos",
+        "Lesões e dores": "Lesiones y dolores",
+        "Restrições de movimento": "Restricciones de movimiento",
+        "Dias disponíveis por semana": "Días disponibles por semana",
+        "Média de sono": "Promedio de sueño",
+        "Equipamentos disponíveis": "Equipos disponibles",
+        "Restrições e observações alimentares": "Restricciones y observaciones alimentarias",
         "Reduzir refeições vai remover refeições preenchidas. Continuar?": "Reducir comidas eliminará comidas completadas. ¿Continuar?",
         "Copiar o mês anterior vai substituir os campos atuais. Continuar?": "Copiar el mes anterior reemplazará los campos actuales. ¿Continuar?",
         "Usar modelo vai substituir os campos atuais. Continuar?": "Usar modelo reemplazará los campos actuales. ¿Continuar?",
@@ -9038,6 +9666,8 @@
         "Alunos ativos": "Alumnos activos",
         "Check-ins recebidos": "Check-ins recibidos",
         "Check-ins em 30 dias": "Check-ins en 30 días",
+        "Check-ins no período": "Check-ins en el período",
+        "check-ins no período": "check-ins en el período",
         "Adesão média dos alunos": "Adherencia promedio de alumnos",
         "Treinos concluídos hoje": "Entrenos completados hoy",
         "Dietas ativas no mês": "Dietas activas del mes",
@@ -9361,6 +9991,16 @@
         "Salvar como PDF": "Guardar como PDF",
         "Relatório mensal MONOLITH": "Informe mensual MONOLITH",
         "Gerado em": "Generado el",
+        "Período do aluno": "Período del alumno",
+        "Vínculo iniciado em": "Vínculo iniciado el",
+        "dias sem check-in no período.": "días sin check-in en este período.",
+        "Frequência do período": "Frecuencia del período",
+        "Dieta ativa no período": "Dieta activa del período",
+        "Anamnese do aluno": "Anamnesis del alumno",
+        "Resposta": "Respuesta",
+        "Atenção: liberação médica recomendada antes de iniciar ou intensificar exercícios.": "Atención: se recomienda autorización médica antes de comenzar o intensificar el ejercicio.",
+        "Nenhum sinal de atenção informado na anamnese.": "No se informó ninguna señal de atención en la anamnesis.",
+        "Anamnese ainda não preenchida.": "La anamnesis aún no fue completada.",
         "Use o botão do navegador para salvar como PDF.": "Usa el botón del navegador para guardar como PDF.",
         "Alerta de check-in para o personal": "Alerta de check-in para el entrenador",
         "dias sem check-in nos últimos 30 dias.": "días sin check-in en los últimos 30 días.",
@@ -10037,9 +10677,9 @@
       });
     }
 
-    function missedCheckinDays(checkins = lastThirtyCheckins()) {
+    function missedCheckinDays(checkins = lastThirtyCheckins(), dateKeys = lastThirtyDateKeys()) {
       const saved = new Set(checkins.map(entry => entry.date));
-      return lastThirtyDateKeys().filter(date => !saved.has(date));
+      return dateKeys.filter(date => !saved.has(date));
     }
 
     function statsMetricHTML(label, value) {
@@ -10068,7 +10708,7 @@
       const latestWeight = latestMeasure?.weight || report.checkins.find(entry => entry.weight)?.weight || "";
       if (overview) {
         overview.innerHTML = [
-          statsMetricHTML("Check-ins em 30 dias", report.checkins.length),
+          statsMetricHTML("Check-ins no período", report.checkins.length),
           statsMetricHTML("Adesão média dos alunos", average === "--" ? "--" : `${average}%`),
           statsMetricHTML("Último peso", latestWeight ? formatWeight(latestWeight) : "--"),
           statsMetricHTML("Dieta ativa do mês", report.activeDietPlan ? dietPlanStatusLabel(report.activeDietPlan) : "--")
@@ -10080,7 +10720,7 @@
         `).join("") || `<div class="report-line">${escapeHTML(t("Sem treinos concluídos salvos."))}</div>`;
       }
       if (reportSummary) {
-        reportSummary.textContent = `${report.checkins.length} ${t("check-ins nos últimos 30 dias")}, ${t("aderência média de")} ${average === "--" ? 0 : average}%, ${report.completedWorkouts.length} ${t(report.completedWorkouts.length === 1 ? "treino concluído" : "treinos concluídos")}.`;
+        reportSummary.textContent = `${report.checkins.length} ${t("check-ins no período")}, ${t("aderência média de")} ${average === "--" ? 0 : average}%, ${report.completedWorkouts.length} ${t(report.completedWorkouts.length === 1 ? "treino concluído" : "treinos concluídos")}.`;
       }
     }
 
@@ -10424,29 +11064,41 @@
       const user = currentAccount();
       const reportStudent = student || (user?.role === "student" ? user : reportStudentFromId(selectedDietStudentId()));
       const reportStudentId = activeDataStudentId(reportStudent);
-      const checkins = lastThirtyCheckins().filter(entry => !reportStudentId || !entry.studentId || entry.studentId === reportStudentId);
-      let completedWorkouts = [];
+      const period = reportPeriodForStudent(reportStudent);
+      const checkins = loadCheckins(reportStudentId)
+        .filter(entry => dateKeyInPeriod(entry.date, period))
+        .sort((a, b) => String(b.date).localeCompare(String(a.date)));
+      let allCompletedWorkouts = [];
       try {
-        completedWorkouts = JSON.parse(localStorage.getItem("monolith.completedWorkouts") || "[]")
+        allCompletedWorkouts = JSON.parse(localStorage.getItem("monolith.completedWorkouts") || "[]")
           .filter(session => !reportStudentId || !session.studentId || session.studentId === reportStudentId);
       } catch {
-        completedWorkouts = [];
+        allCompletedWorkouts = [];
       }
+      const completedWorkouts = allCompletedWorkouts.filter(session => dateKeyInPeriod(session.completedAt || session.date, period));
+      const evolutionWorkouts = allCompletedWorkouts.filter(session => {
+        const key = entryDateKey(session.completedAt || session.date);
+        return !key || key < period.endKey;
+      });
       const reportFactors = factorsForStudent(reportStudentId);
       const stats = reportFactors.map(factor => {
         const appearances = checkins.filter(entry => entry.items?.some(item => item.id === factor.id));
         const completed = appearances.filter(entry => entry.items?.some(item => item.id === factor.id && item.completed)).length;
-        return { name: factor.name, completed, total: 30 };
+        return { name: factor.name, completed, total: period.dayCount };
       });
-      const evolution = exerciseEvolutionReport(completedWorkouts);
-      const missedDays = missedCheckinDays(checkins);
-      const bodyMeasures = loadBodyMeasures(reportStudentId);
+      const evolution = exerciseEvolutionReport(evolutionWorkouts);
+      const missedDays = missedCheckinDays(checkins, period.dateKeys);
+      const bodyMeasures = loadBodyMeasures(reportStudentId).filter(entry => dateKeyInPeriod(entry.date, period));
       const weights = physicalWeightSeries(checkins, bodyMeasures);
       const dietStudentId = reportStudent?.id || (user?.role === "student" ? user.id : selectedDietStudentId());
-      const activeDietPlan = activeDietForStudent(dietStudentId, currentMonthKey());
+      const activeDietPlan = monthKeysForPeriod(period)
+        .map(month => activeDietForStudent(dietStudentId, month))
+        .filter(Boolean)
+        .sort((a, b) => String(b.month || "").localeCompare(String(a.month || "")))[0] || null;
       const progressPhotos = loadProgressPhotos(reportStudentId);
+      const anamnesis = storedAnamnesis(reportStudentId);
       const locale = { pt: "pt-BR", en: "en-US", es: "es-ES" }[reportLanguage()] || "pt-BR";
-      return { student: reportStudent, checkins, completedWorkouts, stats, evolution, missedDays, weights, bodyMeasures, progressPhotos, activeDietPlan, generatedAt: new Date().toLocaleString(locale) };
+      return { student: reportStudent, period, checkins, completedWorkouts, stats, evolution, missedDays, weights, bodyMeasures, progressPhotos, activeDietPlan, anamnesis, generatedAt: new Date().toLocaleString(locale) };
     }
 
     function monthlyReportHTMLLegacy() {
@@ -10639,6 +11291,13 @@
       return language === "pt" ? key : reportTranslations[language]?.[key] || t(key, language);
     }
 
+    function reportDateLabel(dateKey, language = reportLanguage()) {
+      const date = dateFromKey(dateKey);
+      if (!date) return dateKey || "";
+      const locale = { pt: "pt-BR", en: "en-US", es: "es-ES" }[language] || "pt-BR";
+      return new Intl.DateTimeFormat(locale, { dateStyle: "short" }).format(date);
+    }
+
     function monthlyReportHTML(student = null) {
       const report = monthlyReportData(student);
       const language = reportLanguage();
@@ -10646,6 +11305,7 @@
       const htmlLang = language === "pt" ? "pt-BR" : language;
       const studentName = report.student?.name || report.student?.full_name || rt("Aluno");
       const studentEmail = report.student?.email || "";
+      const periodLabel = `${reportDateLabel(report.period.startKey, language)} - ${reportDateLabel(report.period.displayEndKey, language)}`;
       const statsRows = report.stats.map(item => `<tr><td>${escapeHTML(t(item.name, language))}</td><td>${item.completed}/${item.total}</td><td>${Math.round((item.completed / Math.max(1, item.total)) * 100)}%</td></tr>`).join("");
       const dayRows = report.checkins.map(day => `<tr><td>${escapeHTML(day.label || day.date)}</td><td>${day.weight ? formatWeight(day.weight) : rt("Peso não registrado")}</td><td>${day.completed}/${day.total}</td><td>${day.score}%</td><td>${day.items.map(item => `${escapeHTML(t(item.name, language))}: ${item.completed ? rt("ok") : rt("não")}`).join("<br>")}</td></tr>`).join("");
       const workoutRows = report.completedWorkouts.slice(0, 30).map(session => `<tr><td>${escapeHTML(session.date || session.completedAt || "-")}</td><td>${escapeHTML(t(session.workoutName || "Treino", language))}</td><td>${session.completedSets || 0}/${session.totalSets || 0} ${rt("séries")}</td></tr>`).join("");
@@ -10656,6 +11316,14 @@
       const bodyFatBars = reportChartBars(bodyMeasureSeries("bodyFat", report.bodyMeasures), "%");
       const measureRows = report.bodyMeasures.slice(0, 20).map(entry => `<tr><td>${escapeHTML(entry.date)}</td><td>${formatWeight(entry.weight)}</td><td>${formatMeasureValue(entry.bodyFat, "%")}</td><td>${formatMeasureValue(entry.waist, "cm")}</td><td>${formatMeasureValue(entry.chest, "cm")}</td><td>${formatMeasureValue(entry.arm, "cm")}</td><td>${formatMeasureValue(entry.leg, "cm")}</td><td>${formatMeasureValue(entry.hip, "cm")}</td><td>${escapeHTML(entry.notes || "")}</td></tr>`).join("");
       const dietRows = report.activeDietPlan?.meals?.map((meal, index) => `<tr><td>${index + 1}</td><td>${escapeHTML(meal.name || `${rt("Refeição")} ${index + 1}`)}</td><td>${escapeHTML(meal.items || "")}</td><td>${escapeHTML([meal.calories ? `${meal.calories} kcal` : "", meal.protein ? `P ${meal.protein}` : "", meal.carbs ? `C ${meal.carbs}` : "", meal.fat ? `G ${meal.fat}` : ""].filter(Boolean).join(" / "))}</td><td>${escapeHTML(meal.substitutions || "")}</td><td>${escapeHTML(meal.notes || "")}</td></tr>`).join("") || "";
+      const anamnesisRows = report.anamnesis ? anamnesisReportFields.map(field => {
+        const rawValue = report.anamnesis.answers?.[field.key];
+        const value = ["primaryGoal", "experience", "activityLevel", "stressLevel"].includes(field.key) ? anamnesisValueLabel(rawValue, language) : (rawValue || "--");
+        return `<tr><td>${escapeHTML(t(field.label, language))}</td><td>${escapeHTML(String(value))}</td></tr>`;
+      }).join("") : "";
+      const anamnesisSafety = report.anamnesis?.medicalClearanceRecommended
+        ? rt("Atenção: liberação médica recomendada antes de iniciar ou intensificar exercícios.")
+        : rt("Nenhum sinal de atenção informado na anamnese.");
       const photoSlots = [["frente", rt("Frente")], ["lado", rt("Lado")], ["costas", rt("Costas")]];
       const photoSections = [["last", rt("Mês passado")], ["current", rt("Este mês")]].map(([period, label]) => {
         const cards = photoSlots.map(([slot, slotLabel]) => {
@@ -10702,9 +11370,12 @@ th{background:#eee}.muted{color:#666}.gain{color:#137333;font-weight:700}.drop{c
 <button onclick="window.print()">${rt("Salvar como PDF")}</button>
 <h1>${rt("Relatório mensal MONOLITH")}</h1>
 <p><strong>${rt("Aluno")}:</strong> ${escapeHTML(studentName)}${studentEmail ? ` · ${escapeHTML(studentEmail)}` : ""}</p>
+<p><strong>${rt("Período do aluno")}:</strong> ${escapeHTML(periodLabel)}${report.period.linkedAt ? ` · ${rt("Vínculo iniciado em")}: ${escapeHTML(reportDateLabel(report.period.linkedAt, language))}` : ""}</p>
 <p class="muted">${rt("Gerado em")} ${escapeHTML(report.generatedAt)}. ${rt("Use o botão do navegador para salvar como PDF.")}</p>
+<h2>${rt("Anamnese do aluno")}</h2>
+${report.anamnesis ? `<div class="alert"><strong class="${report.anamnesis.medicalClearanceRecommended ? "drop" : "gain"}">${escapeHTML(anamnesisSafety)}</strong></div><table><thead><tr><th>${rt("Item")}</th><th>${rt("Resposta")}</th></tr></thead><tbody>${anamnesisRows}</tbody></table>` : `<p class="muted">${rt("Anamnese ainda não preenchida.")}</p>`}
 <h2>${rt("Alerta de check-in para o personal")}</h2>
-<div class="alert"><strong class="${alertLevel}">${report.missedDays.length} ${rt("dias sem check-in nos últimos 30 dias.")}</strong><br>${report.missedDays.length ? `${rt("Dias recentes sem registro")}: ${missedPreview}` : rt("Aluno manteve check-in completo no período.")}</div>
+<div class="alert"><strong class="${alertLevel}">${report.missedDays.length} ${rt("dias sem check-in no período.")}</strong><br>${report.missedDays.length ? `${rt("Dias recentes sem registro")}: ${missedPreview}` : rt("Aluno manteve check-in completo no período.")}</div>
 <h2>${rt("Evolução de peso corporal")}</h2>
 ${weightBars ? `<div class="chart">${weightBars}</div>` : `<p class="muted">${rt("Ainda não há pesos salvos no check-in ou nas medidas corporais.")}</p>`}
 <h2>${rt("Percentual de gordura corporal")}</h2>
@@ -10712,7 +11383,7 @@ ${bodyFatBars ? `<div class="chart">${bodyFatBars}</div>` : `<p class="muted">${
 <h2>${rt("Medidas corporais")}</h2>
 <table><thead><tr><th>${rt("Medida")}</th><th>${rt("Primeiro registro")}</th><th>${rt("Atual")}</th><th>${rt("Delta")}</th></tr></thead><tbody>${measureDeltaRows}</tbody></table>
 <table><thead><tr><th>${rt("Data")}</th><th>${rt("Peso")}</th><th>${rt("Gordura")}</th><th>${rt("Cintura")}</th><th>${rt("Peito")}</th><th>${rt("Braço")}</th><th>${rt("Perna")}</th><th>${rt("Quadril")}</th><th>${rt("Obs.")}</th></tr></thead><tbody>${measureRows || `<tr><td colspan="9">${rt("Sem medidas corporais salvas.")}</td></tr>`}</tbody></table>
-<h2>${rt("Dieta ativa do mês")}</h2>
+<h2>${rt("Dieta ativa no período")}</h2>
 <p class="muted">${rt("Meta")}: ${escapeHTML(report.activeDietPlan?.calories || "--")} kcal / P ${escapeHTML(report.activeDietPlan?.protein || "--")} / C ${escapeHTML(report.activeDietPlan?.carbs || "--")} / G ${escapeHTML(report.activeDietPlan?.fat || "--")}</p>
 <table><thead><tr><th>#</th><th>${rt("Refeição")}</th><th>${rt("Alimentos")}</th><th>${rt("Macros")}</th><th>${rt("Substituições")}</th><th>${rt("Observação")}</th></tr></thead><tbody>${dietRows || `<tr><td colspan="6">${rt("Nenhuma dieta ativa cadastrada para este mês.")}</td></tr>`}</tbody></table>
 <h2>${rt("Fotos de evolução")}</h2>
@@ -10721,7 +11392,7 @@ ${photoSections}
 <table><thead><tr><th>${rt("Exercício")}</th><th>${rt("Base")}</th><th>${rt("Primeiro registro")}</th><th>${rt("Atual")}</th><th>${rt("Último registro")}</th><th>${rt("Delta")}</th></tr></thead><tbody>${gainRows || `<tr><td colspan="6">${rt("Ainda precisa de pelo menos duas sessões salvas do mesmo exercício.")}</td></tr>`}</tbody></table>
 <h2>${rt("Top 5 maiores quedas")}</h2>
 <table><thead><tr><th>${rt("Exercício")}</th><th>${rt("Base")}</th><th>${rt("Primeiro registro")}</th><th>${rt("Atual")}</th><th>${rt("Último registro")}</th><th>${rt("Delta")}</th></tr></thead><tbody>${dropRows || `<tr><td colspan="6">${rt("Nenhuma queda relevante detectada.")}</td></tr>`}</tbody></table>
-<h2>${rt("Frequência dos últimos 30 dias")}</h2>
+<h2>${rt("Frequência do período")}</h2>
 <table><thead><tr><th>${rt("Item")}</th><th>${rt("Concluído")}</th><th>${rt("Aderência")}</th></tr></thead><tbody>${statsRows || `<tr><td colspan="3">${rt("Sem check-ins salvos.")}</td></tr>`}</tbody></table>
 <h2>${rt("Dia a dia")}</h2>
 <table><thead><tr><th>${rt("Dia")}</th><th>${rt("Peso simples")}</th><th>${rt("Score")}</th><th>%</th><th>${rt("Itens")}</th></tr></thead><tbody>${dayRows || `<tr><td colspan="5">${rt("Sem check-ins salvos.")}</td></tr>`}</tbody></table>
@@ -10778,6 +11449,7 @@ ${photoSections}
         { label: "Treinos", screen: "workouts", key: "workouts" },
         { label: "Dieta", screen: "nutrition", key: "nutrition" },
         { label: "Check-ins", screen: "checkin", key: "checkin" },
+        { label: "Anamnese", screen: "anamnesis", key: "anamnesis" },
         { label: "Evolução", screen: "stats", section: "evolution", key: "evolution" },
         { label: "Medidas", screen: "stats", section: "measures", key: "measures" },
         { label: "Fotos", screen: "stats", section: "photos", key: "photos" }
@@ -11585,6 +12257,7 @@ ${photoSections}
       }
       if (id === "trainerMap") renderTrainerMap();
       if (id === "nutrition") renderNutrition();
+      if (id === "anamnesis") renderAnamnesis();
       if (id === "backup") {
         renderTrainerSummary();
         refreshRemoteStudentData({ summary: true });
@@ -11789,6 +12462,32 @@ ${photoSections}
       const synced = await upsertTodayCheckin(entry);
       document.getElementById("dailyWeight").value = "";
       showToast(`${t("Check-in salvo")}: ${entry.completed}/${entry.total} ${t("itens concluídos.")} ${synced ? t("Supabase sincronizado.") : t("Salvo localmente.")}`);
+    });
+    document.getElementById("anamnesisStudent")?.addEventListener("change", async event => {
+      const studentId = event.target.value;
+      if (studentId) setSelectedStudentForPersonal(studentId);
+      else clearSelectedStudentScope();
+      await renderAnamnesis();
+    });
+    document.getElementById("anamnesisForm")?.addEventListener("submit", async event => {
+      event.preventDefault();
+      const user = currentAccount();
+      if (!user || user.role !== "student") {
+        showToast(t("Somente o aluno pode preencher ou alterar a anamnese."));
+        return;
+      }
+      const record = readAnamnesisForm();
+      cacheAnamnesis(record);
+      let synced = false;
+      try {
+        synced = await saveRemoteAnamnesis(record);
+      } catch (error) {
+        console.warn("Monolith anamnesis save failed", error);
+        showToast(t("Não consegui salvar a anamnese no Supabase. Rode a etapa 11 do banco e tente novamente."));
+        return;
+      }
+      await renderAnamnesis();
+      showToast(t(synced ? "Anamnese salva no Supabase." : "Anamnese salva."));
     });
     document.getElementById("bodyMeasureForm").addEventListener("submit", async event => {
       event.preventDefault();
