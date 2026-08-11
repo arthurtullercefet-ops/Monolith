@@ -1465,6 +1465,60 @@
       opacity: .55;
     }
 
+    .student-card-actions {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      margin-top: 16px;
+    }
+
+    .student-card-menu {
+      position: relative;
+    }
+
+    .student-card-menu summary {
+      width: 40px;
+      min-height: 40px;
+      border: 1px solid var(--line);
+      display: grid;
+      place-items: center;
+      cursor: pointer;
+      list-style: none;
+      font-weight: 900;
+      color: var(--text);
+    }
+
+    .student-card-menu summary::-webkit-details-marker {
+      display: none;
+    }
+
+    .student-card-menu[open] summary,
+    .student-card-menu summary:hover {
+      border-color: var(--gold);
+      background: rgba(201, 162, 39, .1);
+    }
+
+    .student-card-menu-panel {
+      position: absolute;
+      right: 0;
+      top: calc(100% + 8px);
+      z-index: 5;
+      min-width: 190px;
+      border: 1px solid var(--line);
+      background: #111;
+      padding: 8px;
+      display: grid;
+      gap: 6px;
+      box-shadow: 0 18px 40px rgba(0, 0, 0, .42);
+    }
+
+    .student-card-menu-panel .ghost {
+      width: 100%;
+      justify-content: flex-start;
+      text-align: left;
+    }
+
     .student-file-actions {
       display: flex;
       gap: 8px;
@@ -1486,6 +1540,18 @@
       align-items: center;
       gap: 12px;
       min-width: 220px;
+    }
+
+    .student-context-tabs {
+      flex-basis: 100%;
+      margin-top: 6px;
+    }
+
+    .focused-stats-section {
+      outline: 2px solid rgba(201, 162, 39, .78);
+      outline-offset: 4px;
+      box-shadow: 0 0 0 1px rgba(201, 162, 39, .18);
+      transition: outline-color .2s ease, box-shadow .2s ease;
     }
 
     .student-avatar {
@@ -3714,7 +3780,7 @@
           </div>
         </div>
         <div class="panel student-context" id="studentContextHeader" hidden></div>
-        <div class="grid measure-layout">
+        <div class="grid measure-layout" id="studentMeasuresSection" data-stats-section="measures">
           <div class="panel">
             <div class="section-title"><h3>Medidas</h3><span>Evolução corporal completa</span></div>
             <form class="measure-form-grid" id="bodyMeasureForm">
@@ -3787,11 +3853,11 @@
           </div>
         </div>
         <div class="grid stats-layout">
-          <div class="panel">
+          <div class="panel" id="studentEvolutionSection" data-stats-section="evolution">
             <div class="section-title"><h3>Frequência</h3><span>Últimos 30 dias</span></div>
             <div class="bars" id="frequencyBars"></div>
           </div>
-          <div class="panel">
+          <div class="panel" id="studentPhotosSection" data-stats-section="photos">
             <div class="section-title"><h3>Fotos</h3><span>Protegidas</span></div>
             <div class="photo-vault">
               <div class="photo-period">
@@ -5018,36 +5084,30 @@
       container.innerHTML = students.map(student => {
         const checkins = lastThirtyCheckinsForStudent(student.id);
         const score = checkins.length ? `${checkins[0]?.score || 0}%` : "--";
-        const missedCount = checkins.length ? missedCheckinDays(checkins).length : 0;
-        const missed = checkins.length ? quantityLabel(missedCount, "falta", "faltas") : t("Sem dados suficientes");
         const lastCheckin = checkins[0]?.date ? localDateLabel(checkins[0].date) : t("Sem check-in");
         const status = !checkins.length ? t("Novo aluno") : missedCheckinDays(checkins).length >= 7 ? t("Precisa de atenção") : t("Em dia");
         return `
-          <article class="coach-card" data-student-screen="stats" data-student-id="${escapeHTML(student.id)}">
+          <article class="coach-card">
             <div>
               <div class="kicker">${escapeHTML(t(student.plan || "Aluno"))}</div>
               <h3>${escapeHTML(student.name)}</h3>
-              <p>${escapeHTML(student.email)} · ${checkins.length ? `${checkins.length} ${t("check-ins em 30 dias")}` : t("Aguardando primeiro check-in")}</p>
+              <p>${checkins.length ? `${checkins.length} ${escapeHTML(t("check-ins em 30 dias"))}` : escapeHTML(t("Aguardando primeiro check-in"))}</p>
               <div class="pill-row">
                 <span class="pill">Score ${escapeHTML(score)}</span>
                 <span class="pill">${escapeHTML(t("Último check-in"))}: ${escapeHTML(lastCheckin)}</span>
-                <span class="pill">${escapeHTML(missed)}</span>
                 <span class="pill">${escapeHTML(status)}</span>
               </div>
-              <div class="student-file-tabs" aria-label="${escapeHTML(t("Ficha do aluno"))}">
-                <button class="student-file-tab primary" type="button" data-student-screen="stats" data-student-id="${escapeHTML(student.id)}">${escapeHTML(t("Visão geral"))}</button>
-                <button class="student-file-tab" type="button" data-student-screen="workouts" data-student-id="${escapeHTML(student.id)}">${escapeHTML(t("Treinos"))}</button>
-                <button class="student-file-tab" type="button" data-student-screen="nutrition" data-student-id="${escapeHTML(student.id)}">${escapeHTML(t("Dieta"))}</button>
-                <button class="student-file-tab" type="button" data-student-screen="checkin" data-student-id="${escapeHTML(student.id)}">${escapeHTML(t("Check-ins"))}</button>
-                <button class="student-file-tab" type="button" data-student-screen="stats" data-student-id="${escapeHTML(student.id)}">${escapeHTML(t("Evolução"))}</button>
-                <button class="student-file-tab" type="button" data-student-screen="stats" data-student-id="${escapeHTML(student.id)}">${escapeHTML(t("Medidas"))}</button>
-                <button class="student-file-tab" type="button" data-student-screen="stats" data-student-id="${escapeHTML(student.id)}">${escapeHTML(t("Fotos"))}</button>
-                <button class="student-file-tab" type="button" disabled title="${escapeHTML(t("Anotações dependem de um campo dedicado no backend."))}">${escapeHTML(t("Anotações"))}</button>
-              </div>
-              <div class="student-file-actions">
-                <button class="ghost" type="button" data-student-screen="stats" data-student-id="${escapeHTML(student.id)}">${escapeHTML(t("Ver evolução"))}</button>
-                <button class="ghost open-student-report" type="button" data-student-id="${escapeHTML(student.id)}">${escapeHTML(t("Relatório HTML"))}</button>
-                <button class="ghost" type="button" data-student-screen="checkin" data-student-id="${escapeHTML(student.id)}">${escapeHTML(t("Registrar check-in"))}</button>
+              <div class="student-card-actions">
+                <button class="action" type="button" data-student-screen="stats" data-student-section="overview" data-student-id="${escapeHTML(student.id)}">${escapeHTML(t("Abrir ficha"))}</button>
+                <details class="student-card-menu">
+                  <summary aria-label="${escapeHTML(t("Ações rápidas"))}">...</summary>
+                  <div class="student-card-menu-panel">
+                    <button class="ghost" type="button" data-student-screen="workouts" data-student-id="${escapeHTML(student.id)}">${escapeHTML(t("Treinos"))}</button>
+                    <button class="ghost" type="button" data-student-screen="nutrition" data-student-id="${escapeHTML(student.id)}">${escapeHTML(t("Dieta"))}</button>
+                    <button class="ghost" type="button" data-student-screen="checkin" data-student-id="${escapeHTML(student.id)}">${escapeHTML(t("Registrar check-in"))}</button>
+                    <button class="ghost open-student-report" type="button" data-student-id="${escapeHTML(student.id)}">${escapeHTML(t("Relatório HTML"))}</button>
+                  </div>
+                </details>
               </div>
             </div>
           </article>
@@ -6282,11 +6342,46 @@
       return { name: t(names[index] || "Refeição"), items: "", substitutions: "", notes: "", calories: "", protein: "", carbs: "", fat: "", micros: "" };
     }
 
+    function mealFromBuilderCard(card) {
+      return {
+        name: card.querySelector(".meal-name")?.value.trim() || "",
+        items: card.querySelector(".meal-items")?.value.trim() || "",
+        substitutions: card.querySelector(".meal-substitutions")?.value.trim() || "",
+        notes: card.querySelector(".meal-notes")?.value.trim() || "",
+        calories: card.querySelector(".meal-calories")?.value.trim() || "",
+        protein: card.querySelector(".meal-protein")?.value.trim() || "",
+        carbs: card.querySelector(".meal-carbs")?.value.trim() || "",
+        fat: card.querySelector(".meal-fat")?.value.trim() || "",
+        micros: card.querySelector(".meal-micros")?.value.trim() || ""
+      };
+    }
+
+    function readDietMealBuilderEntries() {
+      return [...document.querySelectorAll("#dietMealBuilder .meal-card")].map(mealFromBuilderCard);
+    }
+
+    function mealHasUserContent(meal = {}, index = 0) {
+      const defaultName = defaultMeal(index).name;
+      return Boolean(
+        (meal.name && meal.name !== defaultName) ||
+        meal.items ||
+        meal.substitutions ||
+        meal.notes ||
+        meal.calories ||
+        meal.protein ||
+        meal.carbs ||
+        meal.fat ||
+        meal.micros
+      );
+    }
+
     function renderDietMealBuilder(meals = null) {
       const container = document.getElementById("dietMealBuilder");
-      const count = Number(document.getElementById("dietMealCount")?.value || 5);
+      const countInput = document.getElementById("dietMealCount");
+      const count = Number(countInput?.value || 5);
       if (!container) return;
-      const source = meals || Array.from({ length: count }, (_, index) => defaultMeal(index));
+      const existingMeals = meals || readDietMealBuilderEntries();
+      const source = Array.from({ length: count }, (_, index) => existingMeals[index] || defaultMeal(index));
       container.innerHTML = source.slice(0, count).map((meal, index) => `
         <article class="meal-card" data-meal-index="${index}">
           <header><h4>${escapeHTML(t("Refeição"))} ${index + 1}</h4><span>${escapeHTML(t("Macros por refeição"))}</span></header>
@@ -6303,22 +6398,13 @@
           <div class="field"><label>${escapeHTML(t("Texto do personal"))}</label><textarea class="meal-notes" placeholder="${escapeHTML(t("Orientação específica para o aluno"))}">${escapeHTML(meal.notes || "")}</textarea></div>
         </article>
       `).join("");
+      if (countInput) countInput.dataset.lastCount = String(count);
     }
 
     function readDietPlanForm() {
       const studentId = selectedDietStudentId();
       const month = document.getElementById("dietMonth")?.value || currentMonthKey();
-      const meals = [...document.querySelectorAll("#dietMealBuilder .meal-card")].map(card => ({
-        name: card.querySelector(".meal-name").value.trim(),
-        items: card.querySelector(".meal-items").value.trim(),
-        substitutions: card.querySelector(".meal-substitutions").value.trim(),
-        notes: card.querySelector(".meal-notes").value.trim(),
-        calories: card.querySelector(".meal-calories").value.trim(),
-        protein: card.querySelector(".meal-protein").value.trim(),
-        carbs: card.querySelector(".meal-carbs").value.trim(),
-        fat: card.querySelector(".meal-fat").value.trim(),
-        micros: card.querySelector(".meal-micros").value.trim()
-      }));
+      const meals = readDietMealBuilderEntries();
       return {
         id: dietPlanKey(studentId, month),
         studentId,
@@ -7260,6 +7346,19 @@
         "Você passou de 15 alunos. O Personal Pro será necessário para manter novos alunos ativos.": "You passed 15 students. Personal Pro will be required to keep new students active.",
         "check-ins em 30 dias": "check-ins in 30 days",
         "Aguardando primeiro check-in": "Waiting for first check-in",
+        "Novo aluno": "New student",
+        "Precisa de atenção": "Needs attention",
+        "Em dia": "On track",
+        "Último check-in": "Last check-in",
+        "Abrir ficha": "Open file",
+        "Ações rápidas": "Quick actions",
+        "Ficha do aluno": "Student file",
+        "Visão geral": "Overview",
+        "Relatório HTML": "HTML report",
+        "Registrar check-in": "Log check-in",
+        "Anotações": "Notes",
+        "Anotações dependem de um campo dedicado no backend.": "Notes require a dedicated backend field.",
+        "Reduzir refeições vai remover refeições preenchidas. Continuar?": "Reducing meals will remove filled meals. Continue?",
         "falta": "miss",
         "faltas": "misses",
         "Relatório ativo": "Active report",
@@ -8099,6 +8198,19 @@
         "Você passou de 15 alunos. O Personal Pro será necessário para manter novos alunos ativos.": "Pasaste de 15 alumnos. Personal Pro será necesario para mantener nuevos alumnos activos.",
         "check-ins em 30 dias": "check-ins en 30 días",
         "Aguardando primeiro check-in": "Esperando el primer check-in",
+        "Novo aluno": "Alumno nuevo",
+        "Precisa de atenção": "Necesita atención",
+        "Em dia": "Al día",
+        "Último check-in": "Último check-in",
+        "Abrir ficha": "Abrir ficha",
+        "Ações rápidas": "Acciones rápidas",
+        "Ficha do aluno": "Ficha del alumno",
+        "Visão geral": "Vista general",
+        "Relatório HTML": "Informe HTML",
+        "Registrar check-in": "Registrar check-in",
+        "Anotações": "Notas",
+        "Anotações dependem de um campo dedicado no backend.": "Las notas dependen de un campo dedicado en el backend.",
+        "Reduzir refeições vai remover refeições preenchidas. Continuar?": "Reducir comidas eliminará comidas completadas. ¿Continuar?",
         "falta": "falta",
         "faltas": "faltas",
         "Relatório ativo": "Informe activo",
@@ -9671,6 +9783,35 @@ ${photoSections}
       return (parts[0]?.[0] || "A") + (parts[1]?.[0] || "");
     }
 
+    let activeStudentStatsSection = "overview";
+
+    function normalizedStudentSection(section = "") {
+      return ["overview", "evolution", "measures", "photos"].includes(section) ? section : "overview";
+    }
+
+    function studentFileTabsHTML(studentId) {
+      const activeScreen = document.querySelector(".screen.active")?.id || "";
+      const activeKey = activeScreen === "stats" ? normalizedStudentSection(activeStudentStatsSection) : activeScreen;
+      const tabs = [
+        { label: "Visão geral", screen: "stats", section: "overview", key: "overview" },
+        { label: "Treinos", screen: "workouts", key: "workouts" },
+        { label: "Dieta", screen: "nutrition", key: "nutrition" },
+        { label: "Check-ins", screen: "checkin", key: "checkin" },
+        { label: "Evolução", screen: "stats", section: "evolution", key: "evolution" },
+        { label: "Medidas", screen: "stats", section: "measures", key: "measures" },
+        { label: "Fotos", screen: "stats", section: "photos", key: "photos" }
+      ];
+      const buttons = tabs.map(tab => `
+        <button class="student-file-tab ${activeKey === tab.key ? "primary" : ""}" type="button" data-student-screen="${tab.screen}" data-student-section="${tab.section || ""}" data-student-id="${escapeHTML(studentId)}">${escapeHTML(t(tab.label))}</button>
+      `).join("");
+      return `
+        <div class="student-file-tabs student-context-tabs" aria-label="${escapeHTML(t("Ficha do aluno"))}">
+          ${buttons}
+          <button class="student-file-tab" type="button" disabled title="${escapeHTML(t("Anotações dependem de um campo dedicado no backend."))}">${escapeHTML(t("Anotações"))}</button>
+        </div>
+      `;
+    }
+
     function renderStudentContextHeader() {
       const header = document.getElementById("studentContextHeader");
       if (!header) return;
@@ -9705,6 +9846,7 @@ ${photoSections}
           <span class="pill">${escapeHTML(t("Último check-in"))}: ${escapeHTML(lastCheckin)}</span>
           <span class="pill">${escapeHTML(status)}</span>
         </div>
+        ${studentFileTabsHTML(student.id)}
       `;
     }
 
@@ -9891,7 +10033,21 @@ ${photoSections}
       if (!button) return;
       setWeightUnit(button.dataset.unit);
     });
-    document.getElementById("dietMealCount")?.addEventListener("change", () => renderDietMealBuilder());
+    document.getElementById("dietMealCount")?.addEventListener("change", event => {
+      const select = event.target;
+      const currentMeals = readDietMealBuilderEntries();
+      const nextCount = Number(select.value || 5);
+      const previousCount = currentMeals.length || Number(select.dataset.lastCount || 5);
+      if (nextCount < previousCount) {
+        const removedMeals = currentMeals.slice(nextCount);
+        const removesFilledMeal = removedMeals.some((meal, index) => mealHasUserContent(meal, nextCount + index));
+        if (removesFilledMeal && !window.confirm(t("Reduzir refeições vai remover refeições preenchidas. Continuar?"))) {
+          select.value = String(previousCount);
+          return;
+        }
+      }
+      renderDietMealBuilder(currentMeals);
+    });
     document.getElementById("dietStudent")?.addEventListener("change", event => {
       if (currentAccount()?.role !== "personal") {
         event.target.innerHTML = "";
@@ -10316,10 +10472,59 @@ ${photoSections}
       if (summary) renderTrainerSummary();
     }
 
-    function showScreen(id) {
+    function statsSectionHash(section = "overview") {
+      const hashes = {
+        overview: "#ficha",
+        evolution: "#evolucao",
+        measures: "#medidas",
+        photos: "#fotos"
+      };
+      return hashes[normalizedStudentSection(section)] || "#ficha";
+    }
+
+    function updateStatsHash(section = "overview") {
+      if (!history?.replaceState) return;
+      history.replaceState(null, "", `${location.href.split("#")[0]}${statsSectionHash(section)}`);
+    }
+
+    function clearStatsSectionFocus() {
+      document.querySelectorAll("[data-stats-section]").forEach(section => section.classList.remove("focused-stats-section"));
+    }
+
+    function focusStatsSection(section = "overview") {
+      const targetSection = normalizedStudentSection(section);
+      activeStudentStatsSection = targetSection;
+      clearStatsSectionFocus();
+      renderStudentContextHeader();
+      const targets = {
+        overview: document.getElementById("studentContextHeader") || document.getElementById("stats"),
+        evolution: document.getElementById("studentEvolutionSection"),
+        measures: document.getElementById("studentMeasuresSection"),
+        photos: document.getElementById("studentPhotosSection")
+      };
+      const target = targets[targetSection];
+      updateStatsHash(targetSection);
+      if (targetSection === "overview" || !target) {
+        window.scrollTo({ top: 0, behavior: "smooth" });
+        return;
+      }
+      target.classList.add("focused-stats-section");
+      target.scrollIntoView({ behavior: "smooth", block: "start" });
+    }
+
+    function clearScreenHash() {
+      if (history?.replaceState && location.hash) history.replaceState(null, "", location.href.split("#")[0]);
+    }
+
+    function showScreen(id, options = {}) {
       if (trainerProfileOnboardingRequired && id !== "trainerProfileOnboarding") id = "trainerProfileOnboarding";
+      const requestedId = id;
+      let statsSection = options.section || "";
       if (id === "backup") id = "stats";
-      if (id === "measures") id = "stats";
+      if (id === "measures") {
+        id = "stats";
+        statsSection = "measures";
+      }
       const navTarget = document.querySelector(`.nav-btn[data-screen="${id}"]`);
       if (navTarget?.dataset.roleOnly && navTarget.dataset.roleOnly !== currentAccount()?.role) id = "home";
       document.querySelectorAll(".screen").forEach(screen => screen.classList.toggle("active", screen.id === id));
@@ -10332,6 +10537,7 @@ ${photoSections}
         });
       }
       if (id === "stats") {
+        activeStudentStatsSection = normalizedStudentSection(statsSection || (requestedId === "measures" ? "measures" : "overview"));
         renderStats();
         renderBodyMeasures();
         renderStudentContextHeader();
@@ -10340,16 +10546,10 @@ ${photoSections}
           console.warn("Monolith stats refresh failed", error);
           renderPhotoVault();
         });
-      }
-      if (id === "measures") {
-        renderBodyMeasures();
-        const user = currentAccount();
-        if (user?.id && isRealSupabaseAccount(user)) {
-          loadRemoteBodyMeasures(user.id)
-            .then(() => renderBodyMeasures())
-            .catch(error => console.warn("Monolith own measurements refresh failed", error));
-        }
-        renderTrainerSummary();
+        window.setTimeout(() => focusStatsSection(activeStudentStatsSection), 80);
+      } else {
+        clearStatsSectionFocus();
+        clearScreenHash();
       }
       if (id === "checkin") {
         renderCheckinStudentSelect().then(loadFactorsForCheckinTarget);
@@ -10360,13 +10560,13 @@ ${photoSections}
         renderTrainerSummary();
         refreshRemoteStudentData({ summary: true });
       }
-      window.scrollTo({ top: 0, behavior: "smooth" });
+      if (id !== "stats") window.scrollTo({ top: 0, behavior: "smooth" });
     }
 
     document.querySelectorAll("[data-screen]").forEach(nav => {
       nav.addEventListener("click", event => {
         event.preventDefault();
-        showScreen(nav.dataset.screen);
+        showScreen(nav.dataset.screen, { section: nav.dataset.screen === "stats" ? "overview" : "" });
       });
     });
 
@@ -10377,7 +10577,7 @@ ${photoSections}
     document.querySelectorAll("[data-screen-jump]").forEach(jump => {
       jump.addEventListener("click", event => {
         event.preventDefault();
-        showScreen(jump.dataset.screenJump);
+        showScreen(jump.dataset.screenJump, { section: jump.dataset.statsSection || "" });
       });
     });
 
@@ -10407,7 +10607,9 @@ ${photoSections}
       const studentScreenButton = event.target.closest("[data-student-screen]");
       if (studentScreenButton && !studentScreenButton.disabled) {
         setSelectedStudentForPersonal(studentScreenButton.dataset.studentId);
-        showScreen(studentScreenButton.dataset.studentScreen);
+        studentScreenButton.closest("details")?.removeAttribute("open");
+        showScreen(studentScreenButton.dataset.studentScreen, { section: studentScreenButton.dataset.studentSection || "" });
+        return;
       }
 
       const setDone = event.target.closest(".set-done");
