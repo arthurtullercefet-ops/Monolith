@@ -14,7 +14,8 @@
   <link rel="manifest" href="manifest.webmanifest" />
   <link rel="icon" href="monolith-icon.svg" />
   <script>
-    window.MONOLITH_BUILD = "monolith-v76-button-polish-mobile-labels";
+    window.MONOLITH_BUILD = "monolith-v77-trainer-ux-validation";
+    window.MONOLITH_VERSION_LABEL = "Monolith v77 · 11/08/2026";
     (function clearOldAppCaches() {
       if ("serviceWorker" in navigator) {
         navigator.serviceWorker.getRegistrations?.()
@@ -138,15 +139,20 @@
   <style>
     :root {
       --black: #0a0a0a;
-      --panel: #151515;
-      --panel-2: #1a1a1a;
-      --line: #2a2a2a;
+      --panel: #181818;
+      --panel-2: #202020;
+      --line: rgba(255, 255, 255, .1);
       --text: #f5f5f5;
       --muted: #a7a7a7;
       --gold: #c9a227;
       --green: #58c77a;
       --red: #e05050;
       --blue: #8ab4ff;
+      --radius-card: 14px;
+      --radius-button: 10px;
+      --radius-field: 10px;
+      --radius-modal: 18px;
+      --shadow-soft: 0 14px 38px rgba(0, 0, 0, .22);
     }
 
     * { box-sizing: border-box; }
@@ -273,6 +279,7 @@
       color: var(--muted);
       cursor: pointer;
       font-weight: 800;
+      border-radius: var(--radius-button);
     }
 
     .auth-tab.active {
@@ -285,6 +292,8 @@
       border: 1px solid var(--line);
       background: rgba(15, 15, 15, .94);
       padding: 22px;
+      border-radius: var(--radius-card);
+      box-shadow: var(--shadow-soft);
     }
 
     .auth-card h2,
@@ -332,6 +341,7 @@
       background: #0d0d0d;
       color: var(--text);
       padding: 0 11px;
+      border-radius: var(--radius-field);
     }
 
     .auth-grid {
@@ -364,6 +374,7 @@
       cursor: pointer;
       font-weight: 800;
       padding: 0 12px;
+      border-radius: var(--radius-button);
     }
 
     .auth-secondary:hover {
@@ -438,6 +449,7 @@
       padding: 16px;
       display: grid;
       gap: 12px;
+      border-radius: var(--radius-card);
     }
 
     .trainer-profile-section h3 {
@@ -502,6 +514,7 @@
       cursor: pointer;
       font-size: 13px;
       line-height: 1.25;
+      border-radius: var(--radius-button);
     }
 
     .choice-card input {
@@ -616,6 +629,7 @@
       cursor: pointer;
       text-align: left;
       font-weight: 650;
+      border-radius: var(--radius-button);
       transition: border-color .16s ease, background .16s ease, color .16s ease, transform .16s ease;
     }
 
@@ -704,6 +718,8 @@
       padding: 12px;
       display: grid;
       gap: 10px;
+      border-radius: var(--radius-card);
+      box-shadow: var(--shadow-soft);
     }
 
     .session-card strong {
@@ -745,6 +761,7 @@
       padding: 12px;
       display: grid;
       gap: 4px;
+      border-radius: var(--radius-card);
     }
 
     .profile-summary-row span {
@@ -823,6 +840,7 @@
       place-items: center;
       cursor: pointer;
       font-size: 17px;
+      border-radius: var(--radius-button);
       transition: border-color .16s ease, background .16s ease, color .16s ease;
     }
 
@@ -911,6 +929,7 @@
       padding: 12px;
       display: grid;
       gap: 10px;
+      border-radius: var(--radius-card);
     }
 
     .meal-card header {
@@ -932,6 +951,7 @@
       color: var(--text);
       padding: 10px;
       resize: vertical;
+      border-radius: var(--radius-field);
     }
 
     .macro-grid {
@@ -992,6 +1012,7 @@
       padding: 0 14px;
       font-weight: 750;
       cursor: pointer;
+      border-radius: var(--radius-button);
       transition: filter .16s ease, transform .16s ease, box-shadow .16s ease;
     }
 
@@ -1002,7 +1023,15 @@
       min-height: 40px;
       padding: 0 12px;
       cursor: pointer;
+      border-radius: var(--radius-button);
       transition: border-color .16s ease, background .16s ease, color .16s ease;
+    }
+
+    .action:disabled,
+    .ghost:disabled {
+      cursor: not-allowed;
+      filter: grayscale(.35);
+      opacity: .52;
     }
 
     .action:hover {
@@ -1090,6 +1119,8 @@
       justify-content: space-between;
       gap: 10px;
       align-items: center;
+      border-radius: var(--radius-card);
+      background: rgba(255, 255, 255, .02);
     }
 
     .attention-item b {
@@ -1106,6 +1137,8 @@
       border: 1px solid var(--line);
       background: var(--panel);
       padding: 18px;
+      border-radius: var(--radius-card);
+      box-shadow: var(--shadow-soft);
     }
 
     .hero {
@@ -1191,6 +1224,7 @@
       display: flex;
       flex-direction: column;
       justify-content: space-between;
+      border-radius: var(--radius-card);
     }
 
     .metric span {
@@ -1231,6 +1265,7 @@
       background: #101010;
       color: var(--muted);
       cursor: pointer;
+      border-radius: var(--radius-button);
     }
 
     .toggle.yes.active {
@@ -1257,6 +1292,7 @@
       font-size: 18px;
       font-weight: 800;
       letter-spacing: 0;
+      border-radius: var(--radius-button);
       opacity: 0;
       pointer-events: none;
       transition: opacity .16s ease, border-color .16s ease, color .16s ease;
@@ -1302,6 +1338,8 @@
       color: var(--text);
       padding: 0 10px;
       width: 100%;
+      border-radius: var(--radius-field);
+      transition: border-color .16s ease, box-shadow .16s ease;
     }
 
     .factor-form .action {
@@ -1350,6 +1388,8 @@
       display: flex;
       flex-direction: column;
       justify-content: space-between;
+      border-radius: var(--radius-card);
+      box-shadow: var(--shadow-soft);
     }
 
     .workout h3 {
@@ -1387,6 +1427,7 @@
       margin: 12px 0;
       display: grid;
       gap: 12px;
+      border-radius: var(--radius-card);
     }
 
     .guide-grid {
@@ -1402,6 +1443,7 @@
       display: grid;
       gap: 6px;
       min-height: 112px;
+      border-radius: var(--radius-card);
     }
 
     .guide-card b {
@@ -1418,6 +1460,7 @@
     .csv-example {
       border: 1px solid var(--line);
       overflow-x: auto;
+      border-radius: var(--radius-card);
     }
 
     .csv-example-row {
@@ -1451,6 +1494,7 @@
       border: 1px solid var(--line);
       background: rgba(255, 255, 255, .025);
       overflow-x: auto;
+      border-radius: var(--radius-card);
     }
 
     .csv-preview[hidden] {
@@ -1554,6 +1598,7 @@
       font-size: 12px;
       font-weight: 750;
       cursor: pointer;
+      border-radius: var(--radius-button);
     }
 
     .student-file-tab.primary,
@@ -1590,6 +1635,7 @@
       list-style: none;
       font-weight: 900;
       color: var(--text);
+      border-radius: var(--radius-button);
     }
 
     .student-card-menu summary::-webkit-details-marker {
@@ -1613,6 +1659,7 @@
       padding: 8px;
       display: grid;
       gap: 6px;
+      border-radius: var(--radius-card);
       box-shadow: 0 18px 40px rgba(0, 0, 0, .42);
     }
 
@@ -1655,6 +1702,69 @@
       outline-offset: 4px;
       box-shadow: 0 0 0 1px rgba(201, 162, 39, .18);
       transition: outline-color .2s ease, box-shadow .2s ease;
+    }
+
+    .stats-tabs {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin: 0 0 16px;
+    }
+
+    .stats-tab {
+      min-height: 38px;
+      border: 1px solid var(--line);
+      background: #101010;
+      color: var(--muted);
+      padding: 0 12px;
+      border-radius: var(--radius-button);
+      font-weight: 750;
+      cursor: pointer;
+    }
+
+    .stats-tab.active,
+    .stats-tab:hover {
+      border-color: var(--gold);
+      background: rgba(201, 162, 39, .12);
+      color: var(--text);
+    }
+
+    .diet-management-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 12px;
+    }
+
+    .client-view-toggle.active {
+      border-color: var(--gold);
+      background: rgba(201, 162, 39, .12);
+    }
+
+    .client-table-panel {
+      overflow-x: auto;
+    }
+
+    .client-table {
+      width: 100%;
+      min-width: 720px;
+      border-collapse: collapse;
+    }
+
+    .client-table th,
+    .client-table td {
+      border-bottom: 1px solid var(--line);
+      padding: 12px 10px;
+      text-align: left;
+      vertical-align: middle;
+      font-size: 13px;
+    }
+
+    .client-table th {
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      font-size: 11px;
     }
 
     .student-avatar {
@@ -1815,11 +1925,13 @@
     .coach-card {
       border: 1px solid var(--line);
       background: var(--panel);
-      padding: 16px;
+      padding: 20px;
       min-height: 170px;
       display: flex;
       flex-direction: column;
       justify-content: space-between;
+      border-radius: var(--radius-card);
+      box-shadow: var(--shadow-soft);
     }
 
     .coach-card h3 {
@@ -1829,6 +1941,11 @@
     .coach-card p {
       color: var(--muted);
       line-height: 1.5;
+      overflow-wrap: anywhere;
+    }
+
+    #clientList {
+      grid-template-columns: repeat(2, minmax(320px, 1fr));
     }
 
     .map-filters {
@@ -1847,7 +1964,7 @@
       color: var(--text);
       padding: 0 10px;
       font: inherit;
-      border-radius: 0;
+      border-radius: var(--radius-field);
       color-scheme: dark;
     }
 
@@ -1874,6 +1991,8 @@
       display: grid;
       gap: 14px;
       align-content: space-between;
+      border-radius: var(--radius-card);
+      box-shadow: var(--shadow-soft);
     }
 
     .trainer-map-card h3 {
@@ -1956,6 +2075,7 @@
       border: 1px solid var(--line);
       background: #101010;
       padding: 14px;
+      border-radius: var(--radius-card);
     }
 
     .measure-chart-card h3 {
@@ -1979,6 +2099,7 @@
       border: 1px solid var(--line);
       padding: 12px;
       background: #0c0c0c;
+      border-radius: var(--radius-card);
     }
 
     .mini-bar {
@@ -2013,6 +2134,7 @@
       padding: 12px;
       display: grid;
       gap: 8px;
+      border-radius: var(--radius-card);
     }
 
     .measure-entry header {
@@ -2038,6 +2160,7 @@
       color: var(--muted);
       padding: 4px 7px;
       font-size: 11px;
+      border-radius: var(--radius-button);
     }
 
     .photo-grid {
@@ -2054,6 +2177,7 @@
       color: var(--muted);
       background: #101010;
       font-size: 13px;
+      border-radius: var(--radius-card);
     }
 
     .photo-vault {
@@ -2080,6 +2204,7 @@
       padding: 10px;
       display: grid;
       gap: 8px;
+      border-radius: var(--radius-card);
     }
 
     .photo-preview {
@@ -2185,6 +2310,25 @@
       color: var(--muted);
       line-height: 1.45;
       font-size: 13px;
+      border-radius: var(--radius-card);
+    }
+
+    .empty-state {
+      display: grid;
+      min-height: 180px;
+      place-items: center;
+      text-align: center;
+    }
+
+    .empty-state strong {
+      display: block;
+      margin-bottom: 6px;
+      font-size: 18px;
+    }
+
+    .empty-state span {
+      color: var(--muted);
+      line-height: 1.45;
     }
 
     .backup-row {
@@ -2214,6 +2358,7 @@
       border: 1px solid var(--line);
       background: var(--panel);
       padding: 18px;
+      border-radius: var(--radius-modal);
       box-shadow: 0 24px 70px rgba(0, 0, 0, .5);
     }
 
@@ -2239,6 +2384,7 @@
       display: grid;
       place-items: center;
       cursor: pointer;
+      border-radius: var(--radius-button);
     }
 
     .form-grid {
@@ -2266,6 +2412,26 @@
       background: #101010;
       color: var(--text);
       padding: 10px;
+      border-radius: var(--radius-field);
+      transition: border-color .16s ease, box-shadow .16s ease;
+    }
+
+    .field input.field-invalid,
+    .field select.field-invalid,
+    .field textarea.field-invalid,
+    .form-field input.field-invalid,
+    .form-field select.field-invalid,
+    .form-field textarea.field-invalid,
+    .set-row input.field-invalid,
+    .exercise-table input.field-invalid {
+      border-color: rgba(224, 80, 80, .85);
+      box-shadow: 0 0 0 2px rgba(224, 80, 80, .12);
+    }
+
+    .field-error {
+      color: #ffaaa5;
+      font-size: 12px;
+      line-height: 1.35;
     }
 
     .field textarea {
@@ -2284,6 +2450,7 @@
       border: 1px solid var(--line);
       background: #111;
       padding: 14px;
+      border-radius: var(--radius-card);
     }
 
     .exercise-editor-head,
@@ -2334,6 +2501,7 @@
       background: #0d0d0d;
       color: var(--text);
       padding: 0 9px;
+      border-radius: var(--radius-field);
     }
 
     .set-index {
@@ -2390,6 +2558,7 @@
       padding: 0 7px;
       cursor: pointer;
       font-size: 12px;
+      border-radius: var(--radius-button);
     }
 
     .mini-btn:hover {
@@ -2519,6 +2688,7 @@
       .workout-import-actions,
       .settings-actions,
       .programs,
+      #clientList,
       .backup-row {
         grid-template-columns: repeat(2, minmax(0, 1fr));
       }
@@ -2684,6 +2854,7 @@
       .metrics,
       .workouts,
       .programs,
+      #clientList,
       .backup-row,
       .photo-grid {
         grid-template-columns: 1fr;
@@ -2917,7 +3088,7 @@
           <button class="action" id="loginButton" type="button">Entrar</button>
           <div class="auth-tools">
             <button class="auth-secondary" id="clearDeviceSessionButton" type="button">Limpar sessão/cache deste aparelho</button>
-            <div class="build-version" id="buildVersionLabel">Versão do app: monolith-v76-button-polish-mobile-labels</div>
+            <div class="build-version" id="buildVersionLabel">Versão do app: Monolith v77 · 11/08/2026</div>
           </div>
         </form>
       </div>
@@ -3176,7 +3347,6 @@
           <span id="sessionRole" data-no-i18n="true">Plano Supabase</span>
         </div>
         <div class="session-actions">
-          <button class="ghost" type="button" data-screen-jump="profile" id="profileShortcutButton">Perfil</button>
           <button class="ghost" type="button" id="logoutButton">Sair</button>
         </div>
       </div>
@@ -3332,7 +3502,13 @@
           </div>
           <button class="action" id="saveCheckin">Salvar dia</button>
         </div>
-        <div class="panel">
+        <div class="panel empty-state" id="checkinEmptyState" hidden>
+          <div>
+            <strong>Selecione um aluno</strong>
+            <span>Selecione um aluno para visualizar e editar o check-in.</span>
+          </div>
+        </div>
+        <div class="panel" id="checkinEditorPanel">
           <div class="factor-form" id="checkinStudentPanel" hidden>
             <div class="form-field">
               <label for="checkinStudent">Aluno do check-in</label>
@@ -3471,17 +3647,24 @@
               </div>
               <div class="macro-grid">
                 <div class="field"><label for="dietCalories">Calorias</label><input id="dietCalories" inputmode="numeric" placeholder="2400" /></div>
-                <div class="field"><label for="dietProtein">Proteína</label><input id="dietProtein" inputmode="numeric" placeholder="180g" /></div>
-                <div class="field"><label for="dietCarbs">Carbo</label><input id="dietCarbs" inputmode="numeric" placeholder="260g" /></div>
-                <div class="field"><label for="dietFat">Gordura</label><input id="dietFat" inputmode="numeric" placeholder="70g" /></div>
+                <div class="field"><label for="dietProtein">Proteína (g)</label><input id="dietProtein" inputmode="decimal" placeholder="180" /></div>
+                <div class="field"><label for="dietCarbs">Carbo (g)</label><input id="dietCarbs" inputmode="decimal" placeholder="260" /></div>
+                <div class="field"><label for="dietFat">Gordura (g)</label><input id="dietFat" inputmode="decimal" placeholder="70" /></div>
               </div>
               <div class="meal-stack" id="dietMealBuilder"></div>
-              <button class="action" type="submit">Salvar dieta do aluno</button>
+              <button class="action" id="saveDietPlanButton" type="submit">Salvar dieta do aluno</button>
             </form>
           </div>
 
           <div class="panel">
             <div class="section-title"><h3>Prévia da dieta</h3><span>Visão do aluno</span></div>
+            <div class="diet-management-actions" id="dietManagementActions" hidden>
+              <button class="ghost" type="button" id="publishDietButton">Publicada</button>
+              <button class="ghost" type="button" id="duplicateDietButton">Duplicar</button>
+              <button class="ghost" type="button" id="archiveDietButton">Arquivar</button>
+              <button class="ghost" type="button" id="restoreDietVersionButton">Restaurar versão</button>
+              <button class="ghost" type="button" id="deleteDietButton">Excluir</button>
+            </div>
             <div class="diet-view" id="dietPreview"></div>
           </div>
         </div>
@@ -3932,6 +4115,24 @@
           </div>
           <div class="report-line">O aluno entra no próprio login, cola este código em Vincular personal e confirma o vínculo.</div>
         </div>
+        <div class="panel compact-actions" id="clientViewControls" data-role-only="personal">
+          <div>
+            <h3>Lista de alunos</h3>
+            <div class="date">Cards para revisão, tabela para operação compacta</div>
+          </div>
+          <div class="action-row">
+            <button class="ghost client-view-toggle active" type="button" data-client-view="cards">Cards</button>
+            <button class="ghost client-view-toggle" type="button" data-client-view="table">Tabela</button>
+          </div>
+        </div>
+        <div class="panel client-table-panel" id="clientTablePanel" data-role-only="personal" hidden>
+          <table class="client-table">
+            <thead>
+              <tr><th>Aluno</th><th>Score</th><th>Último check-in</th><th>Status</th><th>Ações</th></tr>
+            </thead>
+            <tbody id="clientTableBody"></tbody>
+          </table>
+        </div>
         <div class="grid programs" id="clientList"></div>
       </section>
 
@@ -3951,6 +4152,18 @@
           </div>
         </div>
         <div class="panel student-context" id="studentContextHeader" hidden></div>
+        <div class="stats-tabs" id="statsInternalTabs" hidden>
+          <button class="stats-tab" type="button" data-stats-tab="overview">Resumo</button>
+          <button class="stats-tab" type="button" data-stats-tab="measures">Corpo</button>
+          <button class="stats-tab" type="button" data-stats-tab="evolution">Frequência</button>
+          <button class="stats-tab" type="button" data-stats-tab="training">Treinos</button>
+          <button class="stats-tab" type="button" data-stats-tab="photos">Fotos</button>
+          <button class="stats-tab" type="button" data-stats-tab="reports">Relatórios</button>
+        </div>
+        <div class="panel" id="studentStatsOverviewSection" data-stats-section="overview">
+          <div class="section-title"><h3>Resumo</h3><span>Visão rápida do aluno</span></div>
+          <div class="grid metrics" id="studentStatsOverviewMetrics"></div>
+        </div>
         <div class="grid measure-layout" id="studentMeasuresSection" data-stats-section="measures">
           <div class="panel">
             <div class="section-title"><h3>Medidas</h3><span>Evolução corporal completa</span></div>
@@ -4028,6 +4241,10 @@
             <div class="section-title"><h3>Frequência</h3><span>Últimos 30 dias</span></div>
             <div class="bars" id="frequencyBars"></div>
           </div>
+          <div class="panel" id="studentTrainingStatsSection" data-stats-section="training">
+            <div class="section-title"><h3>Treinos</h3><span>Últimas sessões concluídas</span></div>
+            <div class="habit-list" id="studentTrainingStatsList"></div>
+          </div>
           <div class="panel" id="studentPhotosSection" data-stats-section="photos">
             <div class="section-title"><h3>Fotos</h3><span>Protegidas</span></div>
             <div class="photo-vault">
@@ -4039,6 +4256,14 @@
                 <h4>Este mês</h4>
                 <div class="photo-grid" id="currentMonthPhotos"></div>
               </div>
+            </div>
+          </div>
+          <div class="panel" id="studentReportsStatsSection" data-stats-section="reports">
+            <div class="section-title"><h3>Relatórios</h3><span>Exportação do aluno selecionado</span></div>
+            <div class="report-line" id="studentStatsReportSummary">Relatório pronto para personal trainer: frequência dos últimos 30 dias, rotina diária e resumo de treinos concluídos.</div>
+            <div class="diet-management-actions">
+              <button class="action" id="openStatsMonthlyReport" type="button">Abrir relatório mensal</button>
+              <button class="ghost" id="downloadStatsMonthlyReport" type="button">Baixar relatório HTML</button>
             </div>
           </div>
         </div>
@@ -4118,7 +4343,8 @@
   <script>
     const MONOLITH_SUPABASE_URL = "https://jhxasnxuvmkhntbwepau.supabase.co";
     const MONOLITH_SUPABASE_KEY = "sb_publishable_lDtAXIOtkMwgwsAZyghBdg_gyLHGwpH";
-    const MONOLITH_BUILD = window.MONOLITH_BUILD || "monolith-v76-button-polish-mobile-labels";
+    const MONOLITH_BUILD = window.MONOLITH_BUILD || "monolith-v77-trainer-ux-validation";
+    const MONOLITH_VERSION_LABEL = window.MONOLITH_VERSION_LABEL || "Monolith v77 · 11/08/2026";
     const monolithSupabase = window.supabase?.createClient?.(MONOLITH_SUPABASE_URL, MONOLITH_SUPABASE_KEY, {
       auth: {
         storage: window.sessionStorage,
@@ -4559,7 +4785,7 @@
     function refreshBuildVersionLabel() {
       const label = document.getElementById("buildVersionLabel");
       if (!label) return;
-      label.textContent = `${t("Versão do app")}: ${MONOLITH_BUILD}`;
+      label.textContent = `${t("Versão do app")}: ${MONOLITH_VERSION_LABEL}`;
     }
 
     function toggleLoginPasswordVisibility() {
@@ -5225,6 +5451,7 @@
         container.innerHTML = `<div class="panel"><div class="report-line">${escapeHTML(t("Área disponível para personal trainer."))}</div></div>`;
         return;
       }
+      applyClientViewMode();
       if (user.source === "supabase") {
         container.innerHTML = `<div class="panel"><div class="report-line">${escapeHTML(t("Carregando alunos vinculados..."))}</div></div>`;
         try {
@@ -5248,15 +5475,57 @@
       renderClientCards(students);
     }
 
+    function clientViewMode() {
+      return localStorage.getItem("monolith.clientViewMode") === "table" ? "table" : "cards";
+    }
+
+    function applyClientViewMode(mode = clientViewMode()) {
+      const tablePanel = document.getElementById("clientTablePanel");
+      const cards = document.getElementById("clientList");
+      document.querySelectorAll(".client-view-toggle").forEach(button => {
+        button.classList.toggle("active", button.dataset.clientView === mode);
+      });
+      if (tablePanel) tablePanel.hidden = mode !== "table";
+      if (cards) cards.hidden = mode !== "cards";
+    }
+
+    function setClientViewMode(mode = "cards") {
+      localStorage.setItem("monolith.clientViewMode", mode === "table" ? "table" : "cards");
+      applyClientViewMode(mode);
+    }
+
+    function studentListSummary(student) {
+      const checkins = lastThirtyCheckinsForStudent(student.id);
+      const score = checkins.length ? `${checkins[0]?.score || 0}%` : "--";
+      const lastCheckin = checkins[0]?.date ? localDateLabel(checkins[0].date) : t("Sem check-in");
+      const status = !checkins.length ? t("Novo aluno") : missedCheckinDays(checkins).length >= 7 ? t("Precisa de atenção") : t("Em dia");
+      return { checkins, score, lastCheckin, status };
+    }
+
+    function renderClientTable(students = []) {
+      const body = document.getElementById("clientTableBody");
+      if (!body) return;
+      body.innerHTML = students.map(student => {
+        const summary = studentListSummary(student);
+        return `
+          <tr>
+            <td><strong>${escapeHTML(student.name)}</strong></td>
+            <td>${escapeHTML(summary.score)}</td>
+            <td>${escapeHTML(summary.lastCheckin)}</td>
+            <td>${escapeHTML(summary.status)}</td>
+            <td><button class="ghost" type="button" data-student-screen="stats" data-student-section="overview" data-student-id="${escapeHTML(student.id)}">${escapeHTML(t("Abrir ficha"))}</button></td>
+          </tr>
+        `;
+      }).join("") || `<tr><td colspan="5">${escapeHTML(t("Nenhum aluno vinculado ainda. Gere um convite e envie o código para o aluno."))}</td></tr>`;
+    }
+
     function renderClientCards(students = []) {
       const container = document.getElementById("clientList");
       if (!container) return;
       renderStudentPlanLimit(students.length);
+      renderClientTable(students);
       container.innerHTML = students.map(student => {
-        const checkins = lastThirtyCheckinsForStudent(student.id);
-        const score = checkins.length ? `${checkins[0]?.score || 0}%` : "--";
-        const lastCheckin = checkins[0]?.date ? localDateLabel(checkins[0].date) : t("Sem check-in");
-        const status = !checkins.length ? t("Novo aluno") : missedCheckinDays(checkins).length >= 7 ? t("Precisa de atenção") : t("Em dia");
+        const { checkins, score, lastCheckin, status } = studentListSummary(student);
         return `
           <article class="coach-card">
             <div>
@@ -5284,6 +5553,7 @@
           </article>
         `;
       }).join("") || `<div class="panel"><div class="report-line">${escapeHTML(t("Nenhum aluno vinculado ainda. Gere um convite e envie o código para o aluno."))}</div></div>`;
+      applyClientViewMode();
     }
 
     function loadCompletedWorkoutEntries() {
@@ -5971,6 +6241,56 @@
       localStorage.setItem("monolith.dietPlans", JSON.stringify(plans));
     }
 
+    function loadDietPlanMeta() {
+      try {
+        return JSON.parse(localStorage.getItem("monolith.dietPlanMeta") || "{}");
+      } catch {
+        return {};
+      }
+    }
+
+    function saveDietPlanMeta(meta) {
+      localStorage.setItem("monolith.dietPlanMeta", JSON.stringify(meta));
+    }
+
+    function dietPlanMetaForKey(key = "") {
+      return loadDietPlanMeta()[key] || {};
+    }
+
+    function updateDietPlanMeta(key = "", changes = {}) {
+      if (!key) return {};
+      const meta = loadDietPlanMeta();
+      meta[key] = { ...meta[key], ...changes, updatedAt: new Date().toISOString() };
+      saveDietPlanMeta(meta);
+      return meta[key];
+    }
+
+    function loadDietPlanHistory() {
+      try {
+        return JSON.parse(localStorage.getItem("monolith.dietPlanHistory") || "{}");
+      } catch {
+        return {};
+      }
+    }
+
+    function saveDietPlanHistory(history) {
+      localStorage.setItem("monolith.dietPlanHistory", JSON.stringify(history));
+    }
+
+    function rememberDietPlanVersion(plan, reason = "manual") {
+      if (!plan?.id) return;
+      const history = loadDietPlanHistory();
+      history[plan.id] = [
+        { plan: { ...plan, meals: (plan.meals || []).map(meal => ({ ...meal })) }, meta: dietPlanMetaForKey(plan.id), reason, savedAt: new Date().toISOString() },
+        ...(history[plan.id] || [])
+      ].slice(0, 8);
+      saveDietPlanHistory(history);
+    }
+
+    function latestDietPlanVersion(key = "") {
+      return (loadDietPlanHistory()[key] || [])[0] || null;
+    }
+
     function loadFoodLogs() {
       try {
         return JSON.parse(localStorage.getItem("monolith.foodLogs") || "{}");
@@ -6006,6 +6326,11 @@
 
     function dietPlanKey(studentId, month = currentMonthKey()) {
       return `${studentId}:${month}`;
+    }
+
+    function storedDietPlanForStudent(studentId, month = currentMonthKey()) {
+      if (!canAccessStudentData(studentId)) return null;
+      return loadDietPlans()[dietPlanKey(studentId, month)] || null;
     }
 
     function studentsForPersonal(personalId) {
@@ -6151,6 +6476,13 @@
       const [year, month] = String(monthKey || currentMonthKey()).split("-").map(Number);
       if (!year || !month) return lastMonthKey();
       const date = new Date(year, month - 2, 1);
+      return date.toISOString().slice(0, 7);
+    }
+
+    function nextMonthKey(monthKey = currentMonthKey()) {
+      const [year, month] = String(monthKey || currentMonthKey()).split("-").map(Number);
+      if (!year || !month) return currentMonthKey();
+      const date = new Date(year, month, 1);
       return date.toISOString().slice(0, 7);
     }
 
@@ -6551,6 +6883,19 @@
       return true;
     }
 
+    async function deleteRemoteDietPlan(studentId, month = currentMonthKey()) {
+      const user = currentAccount();
+      if (!monolithSupabase || !isRealSupabaseAccount(user) || user.role !== "personal") return false;
+      if (!studentId || !month || !canAccessStudentData(studentId)) return false;
+      const { error } = await monolithSupabase
+        .from("diet_plans")
+        .delete()
+        .eq("student_id", studentId)
+        .eq("month_key", month);
+      if (error) throw error;
+      return true;
+    }
+
     async function loadRemoteFoodLogs(studentId, limit = 90) {
       if (!monolithSupabase || !studentId || !isRealSupabaseAccount(currentAccount())) return [];
       if (currentAccount()?.role !== "student" || studentId !== currentAccount()?.id) return [];
@@ -6605,8 +6950,10 @@
     }
 
     function activeDietForStudent(studentId, month = currentMonthKey()) {
-      if (!canAccessStudentData(studentId)) return null;
-      return loadDietPlans()[dietPlanKey(studentId, month)] || null;
+      const key = dietPlanKey(studentId, month);
+      const plan = storedDietPlanForStudent(studentId, month);
+      const meta = dietPlanMetaForKey(key);
+      return meta.archived || meta.status === "archived" ? null : plan;
     }
 
     function defaultMeal(index = 0) {
@@ -6661,9 +7008,9 @@
           <div class="field"><label>${escapeHTML(t("Alimentos e quantidades"))}</label><textarea class="meal-items" placeholder="${escapeHTML(t("Ex: 150g arroz, 180g frango, salada"))}">${escapeHTML(meal.items || "")}</textarea></div>
           <div class="macro-grid">
             <div class="field"><label>${escapeHTML(t("Calorias"))}</label><input class="meal-calories" inputmode="numeric" value="${escapeHTML(meal.calories || "")}" placeholder="520" /></div>
-            <div class="field"><label>${escapeHTML(t("Proteína"))}</label><input class="meal-protein" value="${escapeHTML(meal.protein || "")}" placeholder="42g" /></div>
-            <div class="field"><label>${escapeHTML(t("Carbo"))}</label><input class="meal-carbs" value="${escapeHTML(meal.carbs || "")}" placeholder="58g" /></div>
-            <div class="field"><label>${escapeHTML(t("Gordura"))}</label><input class="meal-fat" value="${escapeHTML(meal.fat || "")}" placeholder="14g" /></div>
+            <div class="field"><label>${escapeHTML(t("Proteína"))} (g)</label><input class="meal-protein" inputmode="decimal" value="${escapeHTML(meal.protein || "")}" placeholder="42" /></div>
+            <div class="field"><label>${escapeHTML(t("Carbo"))} (g)</label><input class="meal-carbs" inputmode="decimal" value="${escapeHTML(meal.carbs || "")}" placeholder="58" /></div>
+            <div class="field"><label>${escapeHTML(t("Gordura"))} (g)</label><input class="meal-fat" inputmode="decimal" value="${escapeHTML(meal.fat || "")}" placeholder="14" /></div>
           </div>
           <div class="field"><label>${escapeHTML(t("Micros / observações nutricionais"))}</label><input class="meal-micros" value="${escapeHTML(meal.micros || "")}" placeholder="${escapeHTML(t("Ex: fibra, sódio, vegetais"))}" /></div>
           <div class="field"><label>${escapeHTML(t("Substituições"))}</label><textarea class="meal-substitutions" placeholder="${escapeHTML(t("Ex: frango por peixe, arroz por batata"))}">${escapeHTML(meal.substitutions || "")}</textarea></div>
@@ -6671,6 +7018,7 @@
         </article>
       `).join("");
       if (countInput) countInput.dataset.lastCount = String(count);
+      updateNumericSubmitStates();
     }
 
     function currentDietFormHasContent() {
@@ -6726,6 +7074,87 @@
       showToast("Dieta do mês anterior copiada.");
     }
 
+    function setCurrentDietStatus(nextStatus = "published") {
+      const { plan, key } = currentDietPlanSelection();
+      if (!plan) {
+        showToast("Selecione uma dieta salva primeiro.");
+        return;
+      }
+      rememberDietPlanVersion(plan, "status");
+      updateDietPlanMeta(key, { status: nextStatus, archived: nextStatus === "archived" });
+      renderDietPlan("dietPreview", plan);
+      showToast(nextStatus === "draft" ? "Dieta marcada como rascunho." : nextStatus === "archived" ? "Dieta arquivada." : "Dieta publicada.");
+    }
+
+    async function deleteCurrentDietPlan() {
+      const { studentId, month, key, plan } = currentDietPlanSelection();
+      if (!plan) {
+        showToast("Selecione uma dieta salva primeiro.");
+        return;
+      }
+      if (!window.confirm(t("Excluir esta dieta?"))) return;
+      rememberDietPlanVersion(plan, "delete");
+      const plans = loadDietPlans();
+      delete plans[key];
+      saveDietPlans(plans);
+      let synced = false;
+      try {
+        synced = await deleteRemoteDietPlan(studentId, month);
+      } catch (error) {
+        console.warn("Monolith remote diet delete failed", error);
+      }
+      renderNutrition();
+      showToast(synced ? "Dieta excluída no Supabase." : "Dieta excluída localmente.");
+    }
+
+    function duplicateCurrentDietPlan() {
+      const { month, plan } = currentDietPlanSelection();
+      if (!plan) {
+        showToast("Selecione uma dieta salva primeiro.");
+        return;
+      }
+      const targetMonth = window.prompt(t("Duplicar para qual mês?"), nextMonthKey(month));
+      if (!targetMonth) return;
+      if (!/^\d{4}-\d{2}$/.test(targetMonth)) {
+        showToast("Use o formato AAAA-MM.");
+        return;
+      }
+      const copy = {
+        ...plan,
+        id: dietPlanKey(plan.studentId, targetMonth),
+        month: targetMonth,
+        meals: (plan.meals || []).map(meal => ({ ...meal })),
+        savedAt: new Date().toISOString()
+      };
+      const plans = loadDietPlans();
+      if (plans[copy.id] && !window.confirm(t("Já existe dieta nesse mês. Substituir?"))) return;
+      if (plans[copy.id]) rememberDietPlanVersion(plans[copy.id], "duplicate_replace");
+      plans[copy.id] = copy;
+      saveDietPlans(plans);
+      updateDietPlanMeta(copy.id, { status: "draft", archived: false });
+      const monthInput = document.getElementById("dietMonth");
+      if (monthInput) monthInput.value = targetMonth;
+      renderNutrition();
+      showToast("Dieta duplicada como rascunho.");
+    }
+
+    function restoreCurrentDietVersion() {
+      const { key } = currentDietPlanSelection();
+      const version = latestDietPlanVersion(key);
+      if (!version?.plan) {
+        showToast("Nenhuma versão anterior para restaurar.");
+        return;
+      }
+      if (!window.confirm(t("Restaurar a versão anterior desta dieta?"))) return;
+      const plans = loadDietPlans();
+      if (plans[key]) rememberDietPlanVersion(plans[key], "before_restore");
+      plans[key] = { ...version.plan, meals: (version.plan.meals || []).map(meal => ({ ...meal })) };
+      saveDietPlans(plans);
+      updateDietPlanMeta(key, { ...(version.meta || {}), archived: version.meta?.archived === true || version.meta?.status === "archived", status: version.meta?.status || "published" });
+      renderNutrition();
+      showToast("Versão da dieta restaurada.");
+    }
+
     function readDietPlanForm() {
       const studentId = selectedDietStudentId();
       const month = document.getElementById("dietMonth")?.value || currentMonthKey();
@@ -6743,16 +7172,61 @@
       };
     }
 
+    function currentDietPlanSelection() {
+      const studentId = selectedDietStudentId();
+      const month = document.getElementById("dietMonth")?.value || currentMonthKey();
+      const key = dietPlanKey(studentId, month);
+      return { studentId, month, key, plan: storedDietPlanForStudent(studentId, month) };
+    }
+
+    function dietPlanStatusLabel(plan) {
+      if (!plan?.id) return "Rascunho";
+      const meta = dietPlanMetaForKey(plan.id);
+      if (meta.archived || meta.status === "archived") return "Arquivada";
+      return meta.status === "draft" ? "Rascunho" : "Publicada";
+    }
+
+    function updateDietManagementActions(plan = null) {
+      const actions = document.getElementById("dietManagementActions");
+      if (!actions) return;
+      const selection = currentDietPlanSelection();
+      const key = plan?.id || selection.key;
+      const canManage = currentAccount()?.role === "personal" && plan?.id;
+      const canRestore = currentAccount()?.role === "personal" && Boolean(latestDietPlanVersion(key));
+      actions.hidden = !canManage && !canRestore;
+      if (actions.hidden) return;
+      const meta = plan?.id ? dietPlanMetaForKey(plan.id) : {};
+      const statusButton = document.getElementById("publishDietButton");
+      const archiveButton = document.getElementById("archiveDietButton");
+      const duplicateButton = document.getElementById("duplicateDietButton");
+      const deleteButton = document.getElementById("deleteDietButton");
+      const restoreButton = document.getElementById("restoreDietVersionButton");
+      if (statusButton) {
+        statusButton.textContent = t(meta.status === "draft" ? "Publicar" : "Marcar rascunho");
+        statusButton.disabled = !canManage;
+      }
+      if (archiveButton) {
+        archiveButton.textContent = t(meta.archived || meta.status === "archived" ? "Reativar" : "Arquivar");
+        archiveButton.disabled = !canManage;
+      }
+      if (duplicateButton) duplicateButton.disabled = !canManage;
+      if (deleteButton) deleteButton.disabled = !canManage;
+      if (restoreButton) restoreButton.disabled = !canRestore;
+    }
+
     function renderDietPlan(containerId, plan, emptyText = "Nenhuma dieta prescrita para este mês.") {
       const container = document.getElementById(containerId);
       if (!container) return;
       if (!plan) {
         container.innerHTML = `<div class="report-line">${escapeHTML(t(emptyText))}</div>`;
+        if (containerId === "dietPreview") updateDietManagementActions(null);
         return;
       }
+      const statusLabel = dietPlanStatusLabel(plan);
       container.innerHTML = `
         <div class="metric"><span>${escapeHTML(t("Meta mensal"))}</span><b>${escapeHTML(plan.calories || "--")} kcal</b></div>
         <div class="pill-row">
+          <span class="pill">${escapeHTML(t(statusLabel))}</span>
           <span class="pill">${escapeHTML(t("Proteína"))}: ${escapeHTML(plan.protein || "--")}</span>
           <span class="pill">${escapeHTML(t("Carbo"))}: ${escapeHTML(plan.carbs || "--")}</span>
           <span class="pill">${escapeHTML(t("Gordura"))}: ${escapeHTML(plan.fat || "--")}</span>
@@ -6773,6 +7247,7 @@
           </article>
         `).join("")}
       `;
+      if (containerId === "dietPreview") updateDietManagementActions(plan);
     }
 
     function setDietCsvStatus(message = "", translated = false) {
@@ -7232,7 +7707,7 @@
         renderDietImportStudentSelect(students);
         const dietStudentId = selectedDietStudentId();
         const dietMonth = monthInput.value || currentMonthKey();
-        let plan = dietStudentId ? activeDietForStudent(dietStudentId, dietMonth) : null;
+        let plan = dietStudentId ? storedDietPlanForStudent(dietStudentId, dietMonth) : null;
         if (dietStudentId) {
           try {
             plan = await loadRemoteDietPlan(dietStudentId, dietMonth) || plan;
@@ -9107,6 +9582,94 @@
       return "";
     }
 
+    function numericRuleForInput(input) {
+      if (!input?.matches) return null;
+      if (input.matches("#dietCalories, .meal-calories, .food-calories")) return { label: "Calorias", integer: true, max: 20000 };
+      if (input.matches("#dietProtein, #dietCarbs, #dietFat, .meal-protein, .meal-carbs, .meal-fat")) return { label: "Macro", max: 1000 };
+      if (input.matches("#dailyWeight, #measureWeight, .set-weight, .session-weight")) return { label: "Peso", max: 1000, weight: true };
+      if (input.matches("#measureBodyFat")) return { label: "Gordura corporal", max: 70 };
+      if (input.matches("#measureWaist, #measureChest, #measureArm, #measureLeg, #measureHip")) return { label: "Medida corporal", max: 400 };
+      if (input.matches(".set-reps, .session-reps")) return { label: "Repetições", integer: true, max: 1000 };
+      if (input.matches(".set-rest, .session-rest")) return { label: "Descanso", integer: true, max: 3600 };
+      return null;
+    }
+
+    function sanitizeNumberText(value = "", integer = false) {
+      const raw = String(value ?? "");
+      if (integer) return raw.replace(/[^\d]/g, "");
+      const cleaned = raw.replace(/[^\d,.]/g, "");
+      const firstSeparator = cleaned.search(/[,.]/);
+      if (firstSeparator < 0) return cleaned;
+      return `${cleaned.slice(0, firstSeparator + 1)}${cleaned.slice(firstSeparator + 1).replace(/[,.]/g, "")}`;
+    }
+
+    function fieldErrorContainer(input) {
+      return input.closest(".field, .form-field, .set-row, td") || input.parentElement;
+    }
+
+    function setFieldError(input, message = "") {
+      if (!input) return;
+      input.classList.toggle("field-invalid", Boolean(message));
+      input.setAttribute("aria-invalid", message ? "true" : "false");
+      const container = fieldErrorContainer(input);
+      if (!container) return;
+      if (!input.dataset.validationKey) input.dataset.validationKey = input.id || `field-${Math.random().toString(36).slice(2)}`;
+      const key = input.dataset.validationKey;
+      let error = [...container.querySelectorAll(".field-error")].find(item => item.dataset.for === key);
+      if (!message) {
+        error?.remove();
+        return;
+      }
+      if (!error) {
+        error = document.createElement("div");
+        error.className = "field-error";
+        error.dataset.for = key;
+        input.insertAdjacentElement("afterend", error);
+      }
+      error.textContent = message;
+    }
+
+    function validateNumericField(input, { sanitize = false } = {}) {
+      const rule = numericRuleForInput(input);
+      if (!rule) return true;
+      if (sanitize) input.value = sanitizeNumberText(input.value, rule.integer);
+      const text = String(input.value ?? "").trim();
+      if (!text) {
+        setFieldError(input, "");
+        return true;
+      }
+      const parsed = rule.weight ? parseWeightInput(text) : Number(text.replace(",", "."));
+      const invalid = !Number.isFinite(parsed) || parsed <= 0 || parsed > rule.max;
+      setFieldError(input, invalid ? `${t(rule.label)}: ${t("use somente número positivo.")}` : "");
+      return !invalid;
+    }
+
+    function visibleNumericInputs(scope = document) {
+      if (!scope?.querySelectorAll) return [];
+      return [...scope.querySelectorAll("input")].filter(input => numericRuleForInput(input) && input.offsetParent !== null);
+    }
+
+    function validateVisibleNumericInputs(scope = document, options = {}) {
+      return visibleNumericInputs(scope).reduce((valid, input) => validateNumericField(input, options) && valid, true);
+    }
+
+    function updateNumericSubmitStates() {
+      const dietForm = document.getElementById("dietPlanForm");
+      const saveDiet = document.getElementById("saveDietPlanButton");
+      if (dietForm && saveDiet) saveDiet.disabled = !validateVisibleNumericInputs(dietForm, { sanitize: true });
+      const measureForm = document.getElementById("bodyMeasureForm");
+      const saveMeasures = measureForm?.querySelector("button[type='submit']");
+      if (measureForm && saveMeasures) saveMeasures.disabled = !validateVisibleNumericInputs(measureForm);
+      const workoutFormEl = document.getElementById("workoutForm");
+      const saveWorkout = workoutFormEl?.querySelector("button[type='submit']");
+      if (workoutFormEl && saveWorkout) saveWorkout.disabled = !validateVisibleNumericInputs(workoutFormEl, { sanitize: true });
+      const saveCheckin = document.getElementById("saveCheckin");
+      if (saveCheckin) {
+        const noStudent = currentAccount()?.role === "personal" && !document.getElementById("checkinStudent")?.value;
+        saveCheckin.disabled = noStudent || !validateNumericField(document.getElementById("dailyWeight"));
+      }
+    }
+
     function displayWeightSeries(series) {
       return series
         .map(item => ({ ...item, value: kgToDisplay(item.value) }))
@@ -9284,6 +9847,20 @@
       if (students.some(student => student.id === previousStudentId)) select.value = previousStudentId;
       else select.value = "";
       if (select.value) setSelectedCheckinStudentForPersonal(select.value);
+      updateCheckinSelectionState();
+    }
+
+    function updateCheckinSelectionState() {
+      const user = currentAccount();
+      const select = document.getElementById("checkinStudent");
+      const noStudent = user?.role === "personal" && !select?.value;
+      const emptyState = document.getElementById("checkinEmptyState");
+      const editor = document.getElementById("checkinEditorPanel");
+      const groups = document.getElementById("checkinGroups");
+      if (emptyState) emptyState.hidden = !noStudent;
+      if (editor) editor.hidden = noStudent;
+      if (groups) groups.hidden = noStudent;
+      updateNumericSubmitStates();
     }
 
     async function loadFactorsForCheckinTarget() {
@@ -9291,6 +9868,7 @@
       if (!targetStudentId) {
         factors = [];
         renderFactors();
+        updateCheckinSelectionState();
         return;
       }
       if (isRealSupabaseAccount(currentAccount())) {
@@ -9462,6 +10040,48 @@
     function missedCheckinDays(checkins = lastThirtyCheckins()) {
       const saved = new Set(checkins.map(entry => entry.date));
       return lastThirtyDateKeys().filter(date => !saved.has(date));
+    }
+
+    function statsMetricHTML(label, value) {
+      return `<div class="metric"><span>${escapeHTML(t(label))}</span><b>${escapeHTML(String(value))}</b></div>`;
+    }
+
+    function renderStatsSectionSummaries() {
+      const overview = document.getElementById("studentStatsOverviewMetrics");
+      const training = document.getElementById("studentTrainingStatsList");
+      const reportSummary = document.getElementById("studentStatsReportSummary");
+      const user = currentAccount();
+      const targetStudentId = activeDataStudentId();
+      if (user?.role === "personal" && !targetStudentId) {
+        const empty = `<div class="report-line">${escapeHTML(t("Selecione um aluno para visualizar a evolução."))}</div>`;
+        if (overview) overview.innerHTML = empty;
+        if (training) training.innerHTML = empty;
+        if (reportSummary) reportSummary.textContent = t("Selecione um aluno para gerar relatório.");
+        return;
+      }
+      const student = user?.role === "student" ? user : reportStudentFromId(targetStudentId);
+      const report = monthlyReportData(student);
+      const average = report.checkins.length
+        ? Math.round(report.checkins.reduce((total, entry) => total + (Number(entry.score) || 0), 0) / report.checkins.length)
+        : "--";
+      const latestMeasure = report.bodyMeasures[0];
+      const latestWeight = latestMeasure?.weight || report.checkins.find(entry => entry.weight)?.weight || "";
+      if (overview) {
+        overview.innerHTML = [
+          statsMetricHTML("Check-ins em 30 dias", report.checkins.length),
+          statsMetricHTML("Adesão média dos alunos", average === "--" ? "--" : `${average}%`),
+          statsMetricHTML("Último peso", latestWeight ? formatWeight(latestWeight) : "--"),
+          statsMetricHTML("Dieta ativa do mês", report.activeDietPlan ? dietPlanStatusLabel(report.activeDietPlan) : "--")
+        ].join("");
+      }
+      if (training) {
+        training.innerHTML = report.completedWorkouts.slice(0, 8).map(session => `
+          <div class="report-line"><strong>${escapeHTML(session.date || session.completedAt || "-")}</strong>: ${escapeHTML(t(session.workoutName || "Treino"))} · ${escapeHTML(String(session.completedSets || 0))}/${escapeHTML(String(session.totalSets || 0))} ${escapeHTML(t("séries"))}</div>
+        `).join("") || `<div class="report-line">${escapeHTML(t("Sem treinos concluídos salvos."))}</div>`;
+      }
+      if (reportSummary) {
+        reportSummary.textContent = `${report.checkins.length} ${t("check-ins nos últimos 30 dias")}, ${t("aderência média de")} ${average === "--" ? 0 : average}%, ${report.completedWorkouts.length} ${t(report.completedWorkouts.length === 1 ? "treino concluído" : "treinos concluídos")}.`;
+      }
     }
 
     function weightSeries(checkins = lastThirtyCheckins()) {
@@ -9652,6 +10272,7 @@
         container.appendChild(bar);
       });
       if (!reportFactors.length) container.innerHTML = `<div class="report-line">${escapeHTML(t("Adicione itens no check-in diário para começar a medir a frequência."))}</div>`;
+      renderStatsSectionSummaries();
     }
 
     function loadProgressPhotoStore() {
@@ -10146,7 +10767,7 @@ ${photoSections}
     let activeStudentStatsSection = "overview";
 
     function normalizedStudentSection(section = "") {
-      return ["overview", "evolution", "measures", "photos"].includes(section) ? section : "overview";
+      return ["overview", "evolution", "measures", "training", "photos", "reports"].includes(section) ? section : "overview";
     }
 
     function studentFileTabsHTML(studentId) {
@@ -10335,6 +10956,7 @@ ${photoSections}
         checkinGroups.appendChild(panel);
       });
       updateDailyScore();
+      updateCheckinSelectionState();
       renderStats();
       renderTrainerSummary();
     }
@@ -10419,6 +11041,19 @@ ${photoSections}
       showToast("Modelo de dieta aplicado.");
     });
     document.getElementById("copyPreviousDietButton")?.addEventListener("click", copyPreviousDietMonth);
+    document.getElementById("publishDietButton")?.addEventListener("click", () => {
+      const { plan } = currentDietPlanSelection();
+      const meta = plan?.id ? dietPlanMetaForKey(plan.id) : {};
+      setCurrentDietStatus(meta.status === "draft" ? "published" : "draft");
+    });
+    document.getElementById("archiveDietButton")?.addEventListener("click", () => {
+      const { plan } = currentDietPlanSelection();
+      const meta = plan?.id ? dietPlanMetaForKey(plan.id) : {};
+      setCurrentDietStatus(meta.archived || meta.status === "archived" ? "published" : "archived");
+    });
+    document.getElementById("duplicateDietButton")?.addEventListener("click", duplicateCurrentDietPlan);
+    document.getElementById("restoreDietVersionButton")?.addEventListener("click", restoreCurrentDietVersion);
+    document.getElementById("deleteDietButton")?.addEventListener("click", deleteCurrentDietPlan);
     document.getElementById("dietStudent")?.addEventListener("change", event => {
       if (currentAccount()?.role !== "personal") {
         event.target.innerHTML = "";
@@ -10453,8 +11088,8 @@ ${photoSections}
         return;
       }
       const dietValidation = validateDietNumbers();
-      if (dietValidation) {
-        authMessage(dietValidation);
+      if (dietValidation || !validateVisibleNumericInputs(event.target, { sanitize: true })) {
+        authMessage(dietValidation || "Corrija os campos numéricos antes de salvar.");
         return;
       }
       const plan = readDietPlanForm();
@@ -10464,8 +11099,11 @@ ${photoSections}
         return;
       }
       const plans = loadDietPlans();
+      if (plans[plan.id]) rememberDietPlanVersion(plans[plan.id], "save");
       plans[plan.id] = plan;
       saveDietPlans(plans);
+      const existingMeta = dietPlanMetaForKey(plan.id);
+      updateDietPlanMeta(plan.id, { status: existingMeta.status || "published", archived: false });
       let synced = false;
       try {
         synced = await saveRemoteDietPlan(plan);
@@ -10848,7 +11486,9 @@ ${photoSections}
         overview: "#ficha",
         evolution: "#evolucao",
         measures: "#medidas",
-        photos: "#fotos"
+        training: "#treinos",
+        photos: "#fotos",
+        reports: "#relatorios"
       };
       return hashes[normalizedStudentSection(section)] || "#ficha";
     }
@@ -10862,16 +11502,31 @@ ${photoSections}
       document.querySelectorAll("[data-stats-section]").forEach(section => section.classList.remove("focused-stats-section"));
     }
 
+    function applyStatsSectionVisibility(section = "overview") {
+      const targetSection = normalizedStudentSection(section);
+      document.querySelectorAll("#stats [data-stats-section]").forEach(element => {
+        element.hidden = element.dataset.statsSection !== targetSection;
+      });
+      const tabs = document.getElementById("statsInternalTabs");
+      if (tabs) tabs.hidden = false;
+      document.querySelectorAll(".stats-tab").forEach(tab => {
+        tab.classList.toggle("active", tab.dataset.statsTab === targetSection);
+      });
+    }
+
     function focusStatsSection(section = "overview") {
       const targetSection = normalizedStudentSection(section);
       activeStudentStatsSection = targetSection;
       clearStatsSectionFocus();
+      applyStatsSectionVisibility(targetSection);
       renderStudentContextHeader();
       const targets = {
-        overview: document.getElementById("studentContextHeader") || document.getElementById("stats"),
+        overview: document.getElementById("studentStatsOverviewSection") || document.getElementById("studentContextHeader") || document.getElementById("stats"),
         evolution: document.getElementById("studentEvolutionSection"),
         measures: document.getElementById("studentMeasuresSection"),
-        photos: document.getElementById("studentPhotosSection")
+        training: document.getElementById("studentTrainingStatsSection"),
+        photos: document.getElementById("studentPhotosSection"),
+        reports: document.getElementById("studentReportsStatsSection")
       };
       const target = targets[targetSection];
       updateStatsHash(targetSection);
@@ -10921,6 +11576,8 @@ ${photoSections}
         window.setTimeout(() => focusStatsSection(activeStudentStatsSection), 80);
       } else {
         clearStatsSectionFocus();
+        const statsTabs = document.getElementById("statsInternalTabs");
+        if (statsTabs) statsTabs.hidden = true;
         clearScreenHash();
       }
       if (id === "checkin") {
@@ -10932,6 +11589,7 @@ ${photoSections}
         renderTrainerSummary();
         refreshRemoteStudentData({ summary: true });
       }
+      updateNumericSubmitStates();
       if (id !== "stats") window.scrollTo({ top: 0, behavior: "smooth" });
     }
 
@@ -10974,6 +11632,18 @@ ${photoSections}
       const clickProxy = event.target.closest("[data-click-target]");
       if (clickProxy) {
         document.getElementById(clickProxy.dataset.clickTarget)?.click();
+        return;
+      }
+
+      const statsTab = event.target.closest("[data-stats-tab]");
+      if (statsTab) {
+        focusStatsSection(statsTab.dataset.statsTab);
+        return;
+      }
+
+      const clientViewButton = event.target.closest("[data-client-view]");
+      if (clientViewButton) {
+        setClientViewMode(clientViewButton.dataset.clientView);
         return;
       }
 
@@ -11052,6 +11722,18 @@ ${photoSections}
 
     });
 
+    document.addEventListener("input", event => {
+      if (!numericRuleForInput(event.target)) return;
+      validateNumericField(event.target, { sanitize: true });
+      updateNumericSubmitStates();
+    });
+
+    document.addEventListener("change", event => {
+      if (!numericRuleForInput(event.target)) return;
+      validateNumericField(event.target, { sanitize: true });
+      updateNumericSubmitStates();
+    });
+
     document.getElementById("newWorkoutButton").addEventListener("click", async () => {
       const user = currentAccount();
       if (user?.role === "student" && await ensureStudentTrainerId(user)) {
@@ -11089,7 +11771,12 @@ ${photoSections}
       showToast("Fator adicionado. Pontuação recalculada.");
     });
     document.getElementById("saveCheckin").addEventListener("click", async () => {
-      const weightValidation = validateWeightText(document.getElementById("dailyWeight")?.value, "Peso de hoje");
+      const dailyWeightInput = document.getElementById("dailyWeight");
+      if (!validateNumericField(dailyWeightInput, { sanitize: true })) {
+        showToast("Corrija os campos numéricos antes de salvar.");
+        return;
+      }
+      const weightValidation = validateWeightText(dailyWeightInput?.value, "Peso de hoje");
       if (weightValidation) {
         showToast(weightValidation);
         return;
@@ -11108,6 +11795,10 @@ ${photoSections}
       const user = currentAccount();
       if (user?.role !== "student" && user?.role !== "personal") {
         authMessage("Entre para salvar suas medidas.");
+        return;
+      }
+      if (!validateVisibleNumericInputs(event.target, { sanitize: true })) {
+        showToast("Corrija os campos numéricos antes de salvar.");
         return;
       }
       const measureWeightValidation = validateWeightText(document.getElementById("measureWeight")?.value, "Peso corporal");
@@ -11142,6 +11833,23 @@ ${photoSections}
       showToast("Histórico mensal limpo.");
     });
     document.getElementById("openMonthlyReport").addEventListener("click", () => openMonthlyReport());
+    document.getElementById("openStatsMonthlyReport")?.addEventListener("click", () => {
+      if (currentAccount()?.role === "personal" && !activeDataStudentId()) {
+        showToast("Selecione um aluno para gerar relatório.");
+        return;
+      }
+      const student = currentAccount()?.role === "student" ? currentAccount() : reportStudentFromId(activeDataStudentId());
+      openMonthlyReport(student);
+    });
+    document.getElementById("downloadStatsMonthlyReport")?.addEventListener("click", async () => {
+      if (currentAccount()?.role === "personal" && !activeDataStudentId()) {
+        showToast("Selecione um aluno para gerar relatório.");
+        return;
+      }
+      const student = currentAccount()?.role === "student" ? currentAccount() : reportStudentFromId(activeDataStudentId());
+      await hydrateRemoteReportData(student);
+      downloadTextFile(`monolith-report-${todayKey()}.html`, "text/html", monthlyReportHTML(student));
+    });
     document.addEventListener("change", async event => {
       const input = event.target.closest(".photo-card input[type='file']");
       if (!input || !input.files?.[0]) return;
@@ -12582,6 +13290,10 @@ ${photoSections}
           showScreen("workouts");
           return;
         }
+        if (!validateVisibleNumericInputs(document.getElementById("sessionExercises"), { sanitize: true })) {
+          toastV2(textV2("Corrija os campos numéricos antes de salvar."));
+          return;
+        }
         activeWorkoutV2.exercises.forEach((_, index) => completeExerciseV2(index));
         const session = readCompletedSessionV2();
         const synced = await saveCompletedWorkoutV2(session);
@@ -12604,6 +13316,10 @@ ${photoSections}
       formV2.addEventListener("submit", async event => {
         event.preventDefault();
         event.stopImmediatePropagation();
+        if (!validateVisibleNumericInputs(formV2, { sanitize: true })) {
+          toastV2(textV2("Corrija os campos numéricos antes de salvar."));
+          return;
+        }
         const draftWorkout = readWorkoutV2();
         const workout = await saveCustomWorkoutV2(draftWorkout);
         if (workout.assignedStudentId && currentAccount()?.role === "personal") {
