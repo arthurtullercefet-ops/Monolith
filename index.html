@@ -637,12 +637,16 @@
     body.auth-role-student #workoutStudentField,
     body.auth-role-student #checkinStudentPanel,
     body.auth-role-student #statsStudentPanel,
+    body.auth-role-student #personalHomeDashboard,
     body.auth-role-personal #nutritionStudentPanel,
+    body.auth-role-personal #studentHomeDashboard,
     body.auth-role-personal #trainerLinkPanel {
       display: none !important;
     }
 
     body:not(.auth-role-personal) #nutritionPersonalPanel,
+    body:not(.auth-role-personal) #personalHomeDashboard,
+    body:not(.auth-role-student) #studentHomeDashboard,
     body:not(.auth-role-student) #nutritionStudentPanel {
       display: none !important;
     }
@@ -1044,6 +1048,60 @@
       align-items: start;
     }
 
+    .trainer-home {
+      display: grid;
+      gap: 18px;
+    }
+
+    .trainer-home-grid {
+      display: grid;
+      grid-template-columns: minmax(0, 1.05fr) minmax(300px, .95fr);
+      gap: 18px;
+      align-items: start;
+    }
+
+    .compact-actions {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+
+    .compact-actions h3 {
+      margin: 0;
+    }
+
+    .action-row {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .attention-list {
+      display: grid;
+      gap: 10px;
+    }
+
+    .attention-item {
+      border: 1px solid var(--line);
+      padding: 10px;
+      display: flex;
+      justify-content: space-between;
+      gap: 10px;
+      align-items: center;
+    }
+
+    .attention-item b {
+      display: block;
+      margin-bottom: 4px;
+    }
+
+    .attention-item span {
+      color: var(--muted);
+      font-size: 13px;
+    }
+
     .panel {
       border: 1px solid var(--line);
       background: var(--panel);
@@ -1188,16 +1246,26 @@
     }
 
     .remove-factor {
-      min-width: 42px;
+      min-width: 28px;
+      width: 28px;
       height: 28px;
       border: 1px solid var(--line);
       background: transparent;
       color: var(--muted);
       cursor: pointer;
-      padding: 0 7px;
-      font-size: 11px;
+      padding: 0;
+      font-size: 18px;
       font-weight: 800;
       letter-spacing: 0;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity .16s ease, border-color .16s ease, color .16s ease;
+    }
+
+    .habit:hover .remove-factor,
+    .habit:focus-within .remove-factor {
+      opacity: 1;
+      pointer-events: auto;
     }
 
     .remove-factor:hover {
@@ -1411,6 +1479,41 @@
     .csv-preview tr.error td {
       background: rgba(224, 80, 80, .12);
       color: #ffaaa5;
+    }
+
+    .advanced-import-panel {
+      padding: 0;
+      overflow: hidden;
+    }
+
+    .advanced-import-panel summary {
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      align-items: center;
+      padding: 16px;
+      cursor: pointer;
+      list-style: none;
+    }
+
+    .advanced-import-panel summary::-webkit-details-marker {
+      display: none;
+    }
+
+    .advanced-import-panel summary h3 {
+      margin: 0;
+    }
+
+    .advanced-import-panel summary span {
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    .advanced-import-body {
+      border-top: 1px solid var(--line);
+      padding: 16px;
+      display: grid;
+      gap: 14px;
     }
 
     .file-action {
@@ -2400,6 +2503,7 @@
       .hero,
       .stats-layout,
       .measure-layout,
+      .trainer-home-grid,
       .nutrition-layout,
       .profile-layout {
         grid-template-columns: 1fr;
@@ -3130,13 +3234,52 @@
       <section id="home" class="screen active">
         <div class="topbar">
           <div>
-            <h2>Dashboard diário</h2>
+            <h2>Início</h2>
             <div class="date" id="today"></div>
           </div>
-          <button class="action" data-screen-jump="workouts">Iniciar treino</button>
+          <button class="action" data-screen-jump="workouts">Criar treino</button>
         </div>
 
-        <div class="grid dashboard">
+        <div class="trainer-home" id="personalHomeDashboard" data-role-only="personal" hidden>
+          <div class="panel compact-actions">
+            <div>
+              <h3>Painel do personal</h3>
+              <div class="date">Gestão de alunos, pendências e resultados</div>
+            </div>
+            <div class="action-row">
+              <button class="action" type="button" data-screen-jump="clients">Adicionar aluno</button>
+              <button class="ghost" type="button" data-screen-jump="workouts">Criar treino</button>
+              <button class="ghost" type="button" data-screen-jump="nutrition">Criar dieta</button>
+              <button class="ghost" type="button" data-screen-jump="checkin">Registrar check-in</button>
+            </div>
+          </div>
+
+          <div class="grid metrics">
+            <div class="metric"><span>Check-ins recebidos hoje</span><b id="trainerTodayCheckins">0</b></div>
+            <div class="metric"><span>Alunos que treinaram hoje</span><b id="trainerTodayWorkouts">0</b></div>
+            <div class="metric"><span>Adesão média dos alunos</span><b id="trainerAverageAdherence">--</b></div>
+            <div class="metric"><span>Precisam de atenção</span><b id="trainerAttentionCount">0</b></div>
+          </div>
+
+          <div class="trainer-home-grid">
+            <div class="panel">
+              <div class="section-title"><h3>Precisam de atenção</h3><span>Sem check-in, treino ou dieta recente</span></div>
+              <div class="attention-list" id="trainerAttentionList"></div>
+            </div>
+            <div class="grid">
+              <div class="panel">
+                <div class="section-title"><h3>Hoje</h3><span>Operação do dia</span></div>
+                <div class="habit-list" id="trainerTodayList"></div>
+              </div>
+              <div class="panel">
+                <div class="section-title"><h3>Resultados</h3><span>Últimos 30 dias</span></div>
+                <div class="habit-list" id="trainerResultsList"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="grid dashboard" id="studentHomeDashboard" data-role-only="student">
           <div class="grid">
             <div class="panel hero">
               <div>
@@ -3145,7 +3288,7 @@
                 <div class="quote">Seu objetivo é superar a sessão anterior. Uma carga melhor, uma repetição melhor, uma execução mais limpa.</div>
               </div>
               <div class="score-ring" aria-label="Pontuação do dia 86%">
-                <div><b id="score">86%</b><span>Excelente</span></div>
+                <div><b id="score">86%</b><span>Seu score pessoal hoje</span></div>
               </div>
             </div>
             <div class="grid metrics">
@@ -3257,39 +3400,54 @@
         </div>
 
         <div class="nutrition-layout" id="nutritionPersonalPanel" data-role-only="personal" hidden>
-          <div class="panel diet-import-panel" id="dietCsvPanel">
-            <div class="section-title"><h3>Importar dietas</h3><span>CSV</span></div>
-            <div class="report-line">Baixe o modelo, preencha uma linha por refeição e importe. O personal pode usar a coluna aluno para enviar dietas para vários alunos no mesmo arquivo.</div>
-            <div class="workout-import-guide">
-              <div class="section-title"><h3>Como preencher o arquivo</h3><span>Passo a passo</span></div>
-              <div class="guide-grid">
-                <div class="guide-card"><b>1. Baixe o modelo</b><span>Clique em Baixar modelo CSV e abra o arquivo no Excel, Google Sheets ou Numbers.</span></div>
-                <div class="guide-card"><b>2. Uma linha é uma refeição</b><span>Se a dieta tem 5 refeições, use 5 linhas para o mesmo aluno e mesmo mês.</span></div>
-                <div class="guide-card"><b>3. Informe o aluno</b><span>Na coluna aluno, coloque o nome ou e-mail exatamente como aparece na lista de alunos vinculados.</span></div>
-                <div class="guide-card"><b>4. Salve como CSV</b><span>Depois de preencher, salve ou baixe como CSV e clique em Importar CSV aqui no Monolith.</span></div>
-              </div>
-              <div class="csv-example">
-                <div class="kicker">Exemplo simples</div>
-                <div class="csv-example-row"><span>aluno</span><span>mes</span><span>refeicao</span><span>alimentos</span><span>calorias</span><span>proteina</span><span>carbo</span></div>
-                <div class="csv-example-row"><span>Thiago</span><span>2026-07</span><span>Café da manhã</span><span>Ovos, pão, fruta</span><span>520</span><span>35g</span><span>48g</span></div>
-                <div class="csv-example-row"><span>Thiago</span><span>2026-07</span><span>Almoço</span><span>Arroz, frango, salada</span><span>680</span><span>52g</span><span>72g</span></div>
-              </div>
+          <div class="panel compact-actions">
+            <div>
+              <h3>Prescrição de dieta</h3>
+              <div class="date">Crie, reutilize ou importe quando precisar</div>
             </div>
-            <div class="factor-form">
-              <div class="form-field" id="dietImportStudentField" hidden>
-                <label for="dietImportStudent">Destino padrão quando o CSV não tiver aluno</label>
-                <select id="dietImportStudent"></select>
-              </div>
-              <div class="workout-import-actions">
-                <button class="action" type="button" id="downloadDietCsvTemplate">Baixar modelo de dieta CSV</button>
-                <label class="action file-action" for="dietCsvInput">Importar dieta CSV</label>
-                <input id="dietCsvInput" type="file" accept=".csv,text/csv" hidden />
-                <button class="action" type="button" id="exportDietCsv">Exportar dietas CSV</button>
-              </div>
+            <div class="action-row">
+              <button class="action" type="button" data-focus-target="dietPlanForm">Criar dieta</button>
+              <button class="ghost" type="button" id="useDietTemplateButton">Usar modelo</button>
+              <button class="ghost" type="button" id="copyPreviousDietButton">Copiar mês anterior</button>
+              <button class="ghost" type="button" data-open-details="dietCsvPanel">Importar CSV</button>
             </div>
-            <div class="report-line" id="dietCsvStatus">Formato: aluno, mes, refeicao, alimentos, calorias, proteina, carbo, gordura, micros, substituicoes, texto_personal.</div>
-            <div class="csv-preview" id="dietCsvPreview" hidden></div>
           </div>
+
+          <details class="panel diet-import-panel advanced-import-panel" id="dietCsvPanel">
+            <summary><h3>Importação avançada por CSV</h3><span>Modelo, prévia, importação e exportação</span></summary>
+            <div class="advanced-import-body">
+              <div class="report-line">Baixe o modelo, preencha uma linha por refeição e importe. O personal pode usar a coluna aluno para enviar dietas para vários alunos no mesmo arquivo.</div>
+              <div class="workout-import-guide">
+                <div class="section-title"><h3>Como preencher o arquivo</h3><span>Passo a passo</span></div>
+                <div class="guide-grid">
+                  <div class="guide-card"><b>1. Baixe o modelo</b><span>Clique em Baixar modelo CSV e abra o arquivo no Excel, Google Sheets ou Numbers.</span></div>
+                  <div class="guide-card"><b>2. Uma linha é uma refeição</b><span>Se a dieta tem 5 refeições, use 5 linhas para o mesmo aluno e mesmo mês.</span></div>
+                  <div class="guide-card"><b>3. Informe o aluno</b><span>Na coluna aluno, coloque o nome ou e-mail exatamente como aparece na lista de alunos vinculados.</span></div>
+                  <div class="guide-card"><b>4. Salve como CSV</b><span>Depois de preencher, salve ou baixe como CSV e clique em Importar CSV aqui no Monolith.</span></div>
+                </div>
+                <div class="csv-example">
+                  <div class="kicker">Exemplo simples</div>
+                  <div class="csv-example-row"><span>aluno</span><span>mes</span><span>refeicao</span><span>alimentos</span><span>calorias</span><span>proteina</span><span>carbo</span></div>
+                  <div class="csv-example-row"><span>Thiago</span><span>2026-07</span><span>Café da manhã</span><span>Ovos, pão, fruta</span><span>520</span><span>35g</span><span>48g</span></div>
+                  <div class="csv-example-row"><span>Thiago</span><span>2026-07</span><span>Almoço</span><span>Arroz, frango, salada</span><span>680</span><span>52g</span><span>72g</span></div>
+                </div>
+              </div>
+              <div class="factor-form">
+                <div class="form-field" id="dietImportStudentField" hidden>
+                  <label for="dietImportStudent">Destino padrão quando o CSV não tiver aluno</label>
+                  <select id="dietImportStudent"></select>
+                </div>
+                <div class="workout-import-actions">
+                  <button class="action" type="button" id="downloadDietCsvTemplate">Baixar modelo de dieta CSV</button>
+                  <label class="action file-action" for="dietCsvInput">Importar dieta CSV</label>
+                  <input id="dietCsvInput" type="file" accept=".csv,text/csv" hidden />
+                  <button class="action" type="button" id="exportDietCsv">Exportar dietas CSV</button>
+                </div>
+              </div>
+              <div class="report-line" id="dietCsvStatus">Formato: aluno, mes, refeicao, alimentos, calorias, proteina, carbo, gordura, micros, substituicoes, texto_personal.</div>
+              <div class="csv-preview" id="dietCsvPreview" hidden></div>
+            </div>
+          </details>
 
           <div class="panel">
             <div class="section-title"><h3>Prescrição do personal</h3><span>1 a 10 refeições</span></div>
@@ -3397,39 +3555,52 @@
           </div>
           <button class="action" id="newWorkoutButton">Novo treino</button>
         </div>
-        <div class="panel" id="workoutCsvPanel">
-          <div class="section-title"><h3>Importar treinos</h3><span>CSV</span></div>
-          <div class="report-line">Baixe o modelo, preencha uma linha por série e importe. O personal pode usar a coluna aluno para enviar vários treinos para vários alunos no mesmo arquivo.</div>
-          <div class="workout-import-guide">
-            <div class="section-title"><h3>Como preencher o arquivo</h3><span>Passo a passo</span></div>
-            <div class="guide-grid">
-              <div class="guide-card"><b>1. Baixe o modelo</b><span>Clique em Baixar modelo CSV e abra o arquivo no Excel, Google Sheets ou Numbers.</span></div>
-              <div class="guide-card"><b>2. Uma linha é uma série</b><span>Se o exercício tem 4 séries, repita o mesmo exercício em 4 linhas e mude apenas série, repetições, peso ou descanso.</span></div>
-              <div class="guide-card"><b>3. Personal informa o aluno</b><span>Na coluna aluno, coloque o nome ou e-mail exatamente como aparece na lista de alunos vinculados.</span></div>
-              <div class="guide-card"><b>4. Salve como CSV</b><span>Depois de preencher, salve ou baixe como CSV e clique em Importar CSV aqui no Monolith.</span></div>
-            </div>
-            <div class="csv-example">
-              <div class="kicker">Exemplo simples</div>
-              <div class="csv-example-row"><span>aluno</span><span>treino</span><span>exercicio</span><span>serie</span><span>repeticoes</span><span>peso</span><span>descanso</span></div>
-              <div class="csv-example-row"><span>Thiago</span><span>Peito A</span><span>Supino reto</span><span>1</span><span>12</span><span>40</span><span>90</span></div>
-              <div class="csv-example-row"><span>Thiago</span><span>Peito A</span><span>Supino reto</span><span>2</span><span>10</span><span>60</span><span>120</span></div>
-            </div>
+        <div class="panel compact-actions">
+          <div>
+            <h3>Treinos do personal</h3>
+            <div class="date">Crie do zero, duplique modelos ou importe em lote</div>
           </div>
-          <div class="factor-form">
-            <div class="form-field" id="workoutImportStudentField" hidden>
-              <label for="workoutImportStudent">Destino padrão quando o CSV não tiver aluno</label>
-              <select id="workoutImportStudent"></select>
-            </div>
-            <div class="workout-import-actions">
-              <button class="action" type="button" id="downloadWorkoutCsvTemplate">Baixar modelo CSV</button>
-              <label class="action file-action" for="workoutCsvInput">Importar CSV</label>
-              <input id="workoutCsvInput" type="file" accept=".csv,text/csv" hidden />
-              <button class="action" type="button" id="exportWorkoutCsv">Exportar treinos CSV</button>
-            </div>
+          <div class="action-row">
+            <button class="action" type="button" data-click-target="newWorkoutButton">Criar treino</button>
+            <button class="ghost" type="button" data-focus-target="workoutList">Usar modelo</button>
+            <button class="ghost" type="button" data-open-details="workoutCsvPanel">Importar CSV</button>
           </div>
-          <div class="report-line" id="workoutCsvStatus">Formato: aluno, treino, objetivo, tag, exercicio, serie, repeticoes, peso, descanso, tipo.</div>
-          <div class="csv-preview" id="workoutCsvPreview" hidden></div>
         </div>
+        <details class="panel advanced-import-panel" id="workoutCsvPanel">
+          <summary><h3>Importação avançada por CSV</h3><span>Modelo, prévia, importação e exportação</span></summary>
+          <div class="advanced-import-body">
+            <div class="report-line">Baixe o modelo, preencha uma linha por série e importe. O personal pode usar a coluna aluno para enviar vários treinos para vários alunos no mesmo arquivo.</div>
+            <div class="workout-import-guide">
+              <div class="section-title"><h3>Como preencher o arquivo</h3><span>Passo a passo</span></div>
+              <div class="guide-grid">
+                <div class="guide-card"><b>1. Baixe o modelo</b><span>Clique em Baixar modelo CSV e abra o arquivo no Excel, Google Sheets ou Numbers.</span></div>
+                <div class="guide-card"><b>2. Uma linha é uma série</b><span>Se o exercício tem 4 séries, repita o mesmo exercício em 4 linhas e mude apenas série, repetições, peso ou descanso.</span></div>
+                <div class="guide-card"><b>3. Personal informa o aluno</b><span>Na coluna aluno, coloque o nome ou e-mail exatamente como aparece na lista de alunos vinculados.</span></div>
+                <div class="guide-card"><b>4. Salve como CSV</b><span>Depois de preencher, salve ou baixe como CSV e clique em Importar CSV aqui no Monolith.</span></div>
+              </div>
+              <div class="csv-example">
+                <div class="kicker">Exemplo simples</div>
+                <div class="csv-example-row"><span>aluno</span><span>treino</span><span>exercicio</span><span>serie</span><span>repeticoes</span><span>peso</span><span>descanso</span></div>
+                <div class="csv-example-row"><span>Thiago</span><span>Peito A</span><span>Supino reto</span><span>1</span><span>12</span><span>40</span><span>90</span></div>
+                <div class="csv-example-row"><span>Thiago</span><span>Peito A</span><span>Supino reto</span><span>2</span><span>10</span><span>60</span><span>120</span></div>
+              </div>
+            </div>
+            <div class="factor-form">
+              <div class="form-field" id="workoutImportStudentField" hidden>
+                <label for="workoutImportStudent">Destino padrão quando o CSV não tiver aluno</label>
+                <select id="workoutImportStudent"></select>
+              </div>
+              <div class="workout-import-actions">
+                <button class="action" type="button" id="downloadWorkoutCsvTemplate">Baixar modelo CSV</button>
+                <label class="action file-action" for="workoutCsvInput">Importar CSV</label>
+                <input id="workoutCsvInput" type="file" accept=".csv,text/csv" hidden />
+                <button class="action" type="button" id="exportWorkoutCsv">Exportar treinos CSV</button>
+              </div>
+            </div>
+            <div class="report-line" id="workoutCsvStatus">Formato: aluno, treino, objetivo, tag, exercicio, serie, repeticoes, peso, descanso, tipo.</div>
+            <div class="csv-preview" id="workoutCsvPreview" hidden></div>
+          </div>
+        </details>
         <div class="grid workouts" id="workoutList"></div>
       </section>
 
@@ -5115,6 +5286,100 @@
       }).join("") || `<div class="panel"><div class="report-line">${escapeHTML(t("Nenhum aluno vinculado ainda. Gere um convite e envie o código para o aluno."))}</div></div>`;
     }
 
+    function loadCompletedWorkoutEntries() {
+      try {
+        return JSON.parse(localStorage.getItem("monolith.completedWorkouts") || "[]");
+      } catch {
+        return [];
+      }
+    }
+
+    function loadAssignedWorkoutEntries() {
+      try {
+        return JSON.parse(localStorage.getItem("monolith.workouts") || "[]");
+      } catch {
+        return [];
+      }
+    }
+
+    function entryDateKey(value = "") {
+      const text = String(value || "");
+      if (/^\d{4}-\d{2}-\d{2}/.test(text)) return text.slice(0, 10);
+      return "";
+    }
+
+    function studentAttentionReason(student) {
+      const checkins = lastThirtyCheckinsForStudent(student.id);
+      const missedDays = checkins.length ? missedCheckinDays(checkins).length : 30;
+      const hasWorkout = loadAssignedWorkoutEntries().some(workout => workout.assignedStudentId === student.id || workout.assigned_student_id === student.id);
+      const hasCurrentDiet = Boolean(activeDietForStudent(student.id, currentMonthKey()));
+      if (!checkins.length) return "Sem check-in";
+      if (missedDays >= 7) return `${missedDays} ${t("dias sem check-in")}`;
+      if (!hasWorkout) return "Sem treino atribuído";
+      if (!hasCurrentDiet) return "Dieta do mês pendente";
+      return "";
+    }
+
+    function listLineHTML(label, value) {
+      return `<div class="report-line"><strong>${escapeHTML(t(label))}</strong>: ${escapeHTML(String(value))}</div>`;
+    }
+
+    function renderPersonalHome() {
+      const user = currentAccount();
+      if (user?.role !== "personal") return;
+      const students = studentsForPersonal(user.id);
+      const today = todayKey();
+      const allStudentCheckins = students.flatMap(student => lastThirtyCheckinsForStudent(student.id).map(entry => ({ ...entry, student })));
+      const todayCheckins = allStudentCheckins.filter(entry => entry.date === today);
+      const completedWorkouts = loadCompletedWorkoutEntries().filter(session => !session.studentId || isLinkedStudentForPersonal(session.studentId, user));
+      const todayWorkouts = completedWorkouts.filter(session => entryDateKey(session.completedAt || session.date) === today);
+      const averageAdherence = allStudentCheckins.length
+        ? Math.round(allStudentCheckins.reduce((total, entry) => total + (Number(entry.score) || 0), 0) / allStudentCheckins.length)
+        : null;
+      const attention = students
+        .map(student => ({ student, reason: studentAttentionReason(student) }))
+        .filter(item => item.reason);
+
+      const todayCheckinsEl = document.getElementById("trainerTodayCheckins");
+      const todayWorkoutsEl = document.getElementById("trainerTodayWorkouts");
+      const averageEl = document.getElementById("trainerAverageAdherence");
+      const attentionCountEl = document.getElementById("trainerAttentionCount");
+      if (todayCheckinsEl) todayCheckinsEl.textContent = String(todayCheckins.length);
+      if (todayWorkoutsEl) todayWorkoutsEl.textContent = String(new Set(todayWorkouts.map(session => session.studentId || session.workoutName)).size);
+      if (averageEl) averageEl.textContent = averageAdherence === null ? "--" : `${averageAdherence}%`;
+      if (attentionCountEl) attentionCountEl.textContent = String(attention.length);
+
+      const attentionList = document.getElementById("trainerAttentionList");
+      if (attentionList) {
+        attentionList.innerHTML = attention.slice(0, 6).map(item => `
+          <div class="attention-item">
+            <div><b>${escapeHTML(item.student.name)}</b><span>${escapeHTML(t(item.reason))}</span></div>
+            <button class="ghost" type="button" data-student-screen="stats" data-student-section="overview" data-student-id="${escapeHTML(item.student.id)}">${escapeHTML(t("Abrir ficha"))}</button>
+          </div>
+        `).join("") || `<div class="report-line">${escapeHTML(t(students.length ? "Nenhuma pendência crítica agora." : "Nenhum aluno vinculado ainda."))}</div>`;
+      }
+
+      const todayList = document.getElementById("trainerTodayList");
+      if (todayList) {
+        todayList.innerHTML = [
+          listLineHTML("Alunos ativos", students.length),
+          listLineHTML("Check-ins recebidos", todayCheckins.length),
+          listLineHTML("Treinos concluídos hoje", todayWorkouts.length),
+          listLineHTML("Alunos sem check-in recente", attention.filter(item => item.reason.includes("check-in")).length)
+        ].join("");
+      }
+
+      const resultsList = document.getElementById("trainerResultsList");
+      if (resultsList) {
+        resultsList.innerHTML = [
+          listLineHTML("Adesão média dos alunos", averageAdherence === null ? "--" : `${averageAdherence}%`),
+          listLineHTML("Treinos concluídos", completedWorkouts.length),
+          listLineHTML("Check-ins em 30 dias", allStudentCheckins.length),
+          listLineHTML("Dietas ativas no mês", students.filter(student => activeDietForStudent(student.id, currentMonthKey())).length)
+        ].join("");
+      }
+    }
+
     function renderStudentPlanLimit(count = studentsForPersonal(currentAccount()?.id).length) {
       const user = currentAccount();
       const panel = document.getElementById("studentPlanLimitPanel");
@@ -5882,6 +6147,13 @@
       return date.toISOString().slice(0, 7);
     }
 
+    function previousMonthKey(monthKey = currentMonthKey()) {
+      const [year, month] = String(monthKey || currentMonthKey()).split("-").map(Number);
+      if (!year || !month) return lastMonthKey();
+      const date = new Date(year, month - 2, 1);
+      return date.toISOString().slice(0, 7);
+    }
+
     function photoMonthFromPeriod(period) {
       return period === "last" ? lastMonthKey() : currentMonthKey();
     }
@@ -6401,6 +6673,59 @@
       if (countInput) countInput.dataset.lastCount = String(count);
     }
 
+    function currentDietFormHasContent() {
+      const plan = readDietPlanForm();
+      return Boolean(
+        plan.calories ||
+        plan.protein ||
+        plan.carbs ||
+        plan.fat ||
+        plan.meals.some((meal, index) => mealHasUserContent(meal, index))
+      );
+    }
+
+    function applyDietPlanToForm(plan) {
+      const mealCount = document.getElementById("dietMealCount");
+      if (mealCount) mealCount.value = String(Math.max(1, Math.min(10, plan?.meals?.length || 5)));
+      ["dietCalories", "dietProtein", "dietCarbs", "dietFat"].forEach(id => {
+        const key = id.replace("diet", "").toLowerCase();
+        const input = document.getElementById(id);
+        if (input) input.value = plan?.[key] || "";
+      });
+      renderDietMealBuilder(plan?.meals || Array.from({ length: Number(mealCount?.value || 5) }, (_, index) => defaultMeal(index)));
+      renderDietPlan("dietPreview", plan || null);
+    }
+
+    async function copyPreviousDietMonth() {
+      const studentId = selectedDietStudentId();
+      const month = document.getElementById("dietMonth")?.value || currentMonthKey();
+      if (!studentId) {
+        showToast("Selecione um aluno para copiar a dieta.");
+        return;
+      }
+      const sourceMonth = previousMonthKey(month);
+      let sourcePlan = activeDietForStudent(studentId, sourceMonth);
+      try {
+        sourcePlan = await loadRemoteDietPlan(studentId, sourceMonth) || sourcePlan;
+      } catch (error) {
+        console.warn("Monolith previous diet load failed", error);
+      }
+      if (!sourcePlan) {
+        showToast("Não encontrei dieta no mês anterior.");
+        return;
+      }
+      if (currentDietFormHasContent() && !window.confirm(t("Copiar o mês anterior vai substituir os campos atuais. Continuar?"))) return;
+      const copiedPlan = {
+        ...sourcePlan,
+        id: dietPlanKey(studentId, month),
+        studentId,
+        month,
+        meals: (sourcePlan.meals || []).map(meal => ({ ...meal }))
+      };
+      applyDietPlanToForm(copiedPlan);
+      showToast("Dieta do mês anterior copiada.");
+    }
+
     function readDietPlanForm() {
       const studentId = selectedDietStudentId();
       const month = document.getElementById("dietMonth")?.value || currentMonthKey();
@@ -6863,7 +7188,7 @@
           <div class="field"><label>${escapeHTML(t("Proteína"))}</label><input class="food-protein" placeholder="30g" /></div>
           <div class="field"><label>${escapeHTML(t("Carbo"))}</label><input class="food-carbs" placeholder="50g" /></div>
           <div class="field"><label>${escapeHTML(t("Gordura"))}</label><input class="food-fat" placeholder="12g" /></div>
-          <button class="ghost clear-food-row" type="button">DEL</button>
+          <button class="ghost clear-food-row" type="button" aria-label="Limpar refeição" title="Limpar">×</button>
         </div>
       `).join("");
     }
@@ -7359,6 +7684,24 @@
         "Anotações": "Notes",
         "Anotações dependem de um campo dedicado no backend.": "Notes require a dedicated backend field.",
         "Reduzir refeições vai remover refeições preenchidas. Continuar?": "Reducing meals will remove filled meals. Continue?",
+        "Copiar o mês anterior vai substituir os campos atuais. Continuar?": "Copying the previous month will replace the current fields. Continue?",
+        "Usar modelo vai substituir os campos atuais. Continuar?": "Using a template will replace the current fields. Continue?",
+        "Modelo de dieta aplicado.": "Diet template applied.",
+        "Dieta do mês anterior copiada.": "Previous month diet copied.",
+        "Selecione um aluno para copiar a dieta.": "Select a student to copy the diet.",
+        "Não encontrei dieta no mês anterior.": "I did not find a diet from the previous month.",
+        "Alunos ativos": "Active students",
+        "Check-ins recebidos": "Check-ins received",
+        "Check-ins em 30 dias": "Check-ins in 30 days",
+        "Adesão média dos alunos": "Average student adherence",
+        "Treinos concluídos hoje": "Workouts completed today",
+        "Dietas ativas no mês": "Active diets this month",
+        "Sem check-in": "No check-in",
+        "Sem treino atribuído": "No workout assigned",
+        "Dieta do mês pendente": "Monthly diet pending",
+        "Nenhuma pendência crítica agora.": "No critical pending items right now.",
+        "Nenhum aluno vinculado ainda.": "No linked students yet.",
+        "dias sem check-in": "days without check-in",
         "falta": "miss",
         "faltas": "misses",
         "Relatório ativo": "Active report",
@@ -8211,6 +8554,24 @@
         "Anotações": "Notas",
         "Anotações dependem de um campo dedicado no backend.": "Las notas dependen de un campo dedicado en el backend.",
         "Reduzir refeições vai remover refeições preenchidas. Continuar?": "Reducir comidas eliminará comidas completadas. ¿Continuar?",
+        "Copiar o mês anterior vai substituir os campos atuais. Continuar?": "Copiar el mes anterior reemplazará los campos actuales. ¿Continuar?",
+        "Usar modelo vai substituir os campos atuais. Continuar?": "Usar modelo reemplazará los campos actuales. ¿Continuar?",
+        "Modelo de dieta aplicado.": "Modelo de dieta aplicado.",
+        "Dieta do mês anterior copiada.": "Dieta del mes anterior copiada.",
+        "Selecione um aluno para copiar a dieta.": "Selecciona un alumno para copiar la dieta.",
+        "Não encontrei dieta no mês anterior.": "No encontré dieta del mes anterior.",
+        "Alunos ativos": "Alumnos activos",
+        "Check-ins recebidos": "Check-ins recibidos",
+        "Check-ins em 30 dias": "Check-ins en 30 días",
+        "Adesão média dos alunos": "Adherencia promedio de alumnos",
+        "Treinos concluídos hoje": "Entrenos completados hoy",
+        "Dietas ativas no mês": "Dietas activas del mes",
+        "Sem check-in": "Sin check-in",
+        "Sem treino atribuído": "Sin entreno asignado",
+        "Dieta do mês pendente": "Dieta mensual pendiente",
+        "Nenhuma pendência crítica agora.": "No hay pendientes críticos ahora.",
+        "Nenhum aluno vinculado ainda.": "Aún no hay alumnos vinculados.",
+        "dias sem check-in": "días sin check-in",
         "falta": "falta",
         "faltas": "faltas",
         "Relatório ativo": "Informe activo",
@@ -8988,13 +9349,12 @@
         return factor?.positive === false ? noActive : yesActive;
       }).length;
       const percentage = rows.length ? Math.round((completed / rows.length) * 100) : 0;
-      const pointsPerItem = rows.length ? Math.round(100 / rows.length) : 0;
       const score = document.getElementById("score");
       const ring = document.querySelector(".score-ring");
       score.textContent = `${percentage}%`;
       ring.style.setProperty("--score-angle", `${Math.max(0, Math.min(100, percentage)) * 3.6}deg`);
-      ring.setAttribute("aria-label", `Pontuação do dia ${percentage}%`);
-      document.querySelector(".score-ring span").textContent = rows.length ? `${pointsPerItem} pts por fator` : "Sem fatores";
+      ring.setAttribute("aria-label", `Seu score pessoal hoje ${percentage}%`);
+      document.querySelector(".score-ring span").textContent = "Seu score pessoal hoje";
     }
 
     function todayKey(date = new Date()) {
@@ -9807,7 +10167,6 @@ ${photoSections}
       return `
         <div class="student-file-tabs student-context-tabs" aria-label="${escapeHTML(t("Ficha do aluno"))}">
           ${buttons}
-          <button class="student-file-tab" type="button" disabled title="${escapeHTML(t("Anotações dependem de um campo dedicado no backend."))}">${escapeHTML(t("Anotações"))}</button>
         </div>
       `;
     }
@@ -9909,7 +10268,7 @@ ${photoSections}
         <span>${escapeHTML(t(factor.name))}</span>
         <button class="toggle yes ${factor.active ? "active" : ""}" aria-label="${escapeHTML(factor.name)} sim">✓</button>
         <button class="toggle no ${factor.active ? "" : "active"}" aria-label="${escapeHTML(factor.name)} não">×</button>
-        ${removable ? `<button class="remove-factor" type="button" aria-label="Remover ${escapeHTML(factor.name)}">DEL</button>` : ""}
+        ${removable ? `<button class="remove-factor" type="button" aria-label="Remover ${escapeHTML(factor.name)}" title="${escapeHTML(t("Remover"))}">×</button>` : ""}
       `;
       return row;
     }
@@ -10048,6 +10407,18 @@ ${photoSections}
       }
       renderDietMealBuilder(currentMeals);
     });
+    document.getElementById("useDietTemplateButton")?.addEventListener("click", () => {
+      if (currentDietFormHasContent() && !window.confirm(t("Usar modelo vai substituir os campos atuais. Continuar?"))) return;
+      applyDietPlanToForm({
+        meals: Array.from({ length: 5 }, (_, index) => defaultMeal(index)),
+        calories: "",
+        protein: "",
+        carbs: "",
+        fat: ""
+      });
+      showToast("Modelo de dieta aplicado.");
+    });
+    document.getElementById("copyPreviousDietButton")?.addEventListener("click", copyPreviousDietMonth);
     document.getElementById("dietStudent")?.addEventListener("change", event => {
       if (currentAccount()?.role !== "personal") {
         event.target.innerHTML = "";
@@ -10529,6 +10900,7 @@ ${photoSections}
       if (navTarget?.dataset.roleOnly && navTarget.dataset.roleOnly !== currentAccount()?.role) id = "home";
       document.querySelectorAll(".screen").forEach(screen => screen.classList.toggle("active", screen.id === id));
       document.querySelectorAll(".nav-btn").forEach(btn => btn.classList.toggle("active", btn.dataset.screen === id));
+      if (id === "home") renderPersonalHome();
       if (id === "clients") renderClientList();
       if (id === "profile") renderProfile();
       if (id === "workouts" && typeof renderWorkoutStudentSelect === "function") {
@@ -10582,6 +10954,29 @@ ${photoSections}
     });
 
     document.addEventListener("click", event => {
+      const detailsButton = event.target.closest("[data-open-details]");
+      if (detailsButton) {
+        const details = document.getElementById(detailsButton.dataset.openDetails);
+        if (details) {
+          details.open = true;
+          details.scrollIntoView({ behavior: "smooth", block: "start" });
+        }
+        return;
+      }
+
+      const focusButton = event.target.closest("[data-focus-target]");
+      if (focusButton) {
+        const target = document.getElementById(focusButton.dataset.focusTarget);
+        if (target) target.scrollIntoView({ behavior: "smooth", block: "start" });
+        return;
+      }
+
+      const clickProxy = event.target.closest("[data-click-target]");
+      if (clickProxy) {
+        document.getElementById(clickProxy.dataset.clickTarget)?.click();
+        return;
+      }
+
       const toggle = event.target.closest(".toggle");
       if (toggle) {
         const row = toggle.closest(".habit");
