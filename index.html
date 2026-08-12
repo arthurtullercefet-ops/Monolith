@@ -14,8 +14,8 @@
   <link rel="manifest" href="manifest.webmanifest" />
   <link rel="icon" href="monolith-icon.svg" />
   <script>
-    window.MONOLITH_BUILD = "monolith-v78-report-cycle-anamnesis";
-    window.MONOLITH_VERSION_LABEL = "Monolith v77 · 11/08/2026";
+    window.MONOLITH_BUILD = "monolith-v79-stability-i18n";
+    window.MONOLITH_VERSION_LABEL = "Monolith v79 · 11/08/2026";
     (function clearOldAppCaches() {
       if ("serviceWorker" in navigator) {
         navigator.serviceWorker.getRegistrations?.()
@@ -89,7 +89,8 @@
           for (let index = localStorage.length - 1; index >= 0; index -= 1) {
             const key = localStorage.key(index);
             if (!key) continue;
-            if (key.startsWith("monolith.") && !keep.has(key)) originalRemove.call(localStorage, key);
+            const keepPreference = keep.has(key) || key.startsWith("monolith.clientViewMode:");
+            if (key.startsWith("monolith.") && !keepPreference) originalRemove.call(localStorage, key);
             if (key.startsWith("sb-jhxasnxuvmkhntbwepau") || key === "supabase.auth.token") originalRemove.call(localStorage, key);
           }
         } catch {}
@@ -2573,6 +2574,27 @@
       margin-top: 16px;
     }
 
+    .save-target {
+      margin-top: 10px;
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.4;
+    }
+
+    .save-target.ready {
+      color: var(--gold);
+    }
+
+    .unsaved-modal {
+      width: min(460px, 100%);
+    }
+
+    .unsaved-modal p {
+      margin: 0;
+      color: var(--muted);
+      line-height: 1.5;
+    }
+
     .toast {
       position: fixed;
       right: 18px;
@@ -2593,6 +2615,23 @@
     .toast.active {
       opacity: 1;
       transform: translateY(0);
+    }
+
+    .toast.with-action {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      pointer-events: auto;
+    }
+
+    .toast.with-action button {
+      flex: 0 0 auto;
+      border: 0;
+      background: transparent;
+      color: var(--gold);
+      font: inherit;
+      font-weight: 800;
+      cursor: pointer;
     }
 
     [data-screen="programs"],
@@ -3137,7 +3176,7 @@
           <button class="action" id="loginButton" type="button">Entrar</button>
           <div class="auth-tools">
             <button class="auth-secondary" id="clearDeviceSessionButton" type="button">Limpar sessão/cache deste aparelho</button>
-            <div class="build-version" id="buildVersionLabel">Versão do app: Monolith v78 · 11/08/2026</div>
+            <div class="build-version" id="buildVersionLabel">Versão do app: Monolith v79 · 11/08/2026</div>
           </div>
         </form>
       </div>
@@ -3194,7 +3233,7 @@
           </div>
           <div>
             <label for="signupEmail">E-mail</label>
-            <input id="signupEmail" type="email" autocomplete="email" required placeholder="novo@monolith.app" />
+            <input id="signupEmail" type="email" autocomplete="email" required placeholder="email@example.com" />
           </div>
           <div>
             <label for="signupPassword">Senha</label>
@@ -3322,6 +3361,7 @@
           element.hidden = element.getAttribute("data-role-only") !== account.role;
         });
         showFallbackScreen(account.role === "personal" ? "clients" : "home", account.role);
+        if (typeof authMessage === "function") authMessage("Bem-vindo, {name}.", { name: account.name });
         return true;
       }
 
@@ -3345,17 +3385,19 @@
           }
           if (node.getAttribute && node.getAttribute("data-screen") && document.body.classList.contains("authenticated")) {
             event.preventDefault();
-            event.stopPropagation();
+            event.stopImmediatePropagation();
             var sessionId = localStorage.getItem("monolith.sessionUserId");
             var role = sessionId === "personal-demo" ? "personal" : "student";
-            showFallbackScreen(node.getAttribute("data-screen"), role);
+            if (typeof window.showScreen === "function") window.showScreen(node.getAttribute("data-screen"), { section: node.getAttribute("data-screen") === "stats" ? "overview" : "" });
+            else showFallbackScreen(node.getAttribute("data-screen"), role);
             return;
           }
           if (node.getAttribute && node.getAttribute("data-screen-jump") && document.body.classList.contains("authenticated")) {
             event.preventDefault();
-            event.stopPropagation();
+            event.stopImmediatePropagation();
             var sessionRole = localStorage.getItem("monolith.sessionUserId") === "personal-demo" ? "personal" : "student";
-            showFallbackScreen(node.getAttribute("data-screen-jump"), sessionRole);
+            if (typeof window.showScreen === "function") window.showScreen(node.getAttribute("data-screen-jump"));
+            else showFallbackScreen(node.getAttribute("data-screen-jump"), sessionRole);
             return;
           }
           node = node.parentNode;
@@ -3554,7 +3596,10 @@
             <h2>Check-in diário</h2>
             <div class="date">Execução do plano físico e mental</div>
           </div>
-          <button class="action" id="saveCheckin">Salvar dia</button>
+          <div>
+            <button class="action" id="saveCheckin">Salvar dia</button>
+            <div class="save-target" id="checkinSaveTarget" aria-live="polite"></div>
+          </div>
         </div>
         <div class="panel empty-state" id="checkinEmptyState" hidden>
           <div>
@@ -3707,6 +3752,7 @@
               </div>
               <div class="meal-stack" id="dietMealBuilder"></div>
               <button class="action" id="saveDietPlanButton" type="submit">Salvar dieta do aluno</button>
+              <div class="save-target" id="dietSaveTarget" aria-live="polite"></div>
             </form>
           </div>
 
@@ -4211,7 +4257,7 @@
         </div>
         <div class="panel" id="anamnesisPanel">
           <div class="section-title"><h3>Questionário inicial</h3><span id="anamnesisStatus">Ainda não preenchida</span></div>
-          <div class="anamnesis-risk" id="anamnesisRiskNotice">Este questionário ajuda no planejamento do treino e não substitui avaliação ou diagnóstico médico.</div>
+          <div class="anamnesis-risk" id="anamnesisRiskNotice" data-i18n="Este questionário ajuda no planejamento do treino e não substitui avaliação ou diagnóstico médico.">Este questionário ajuda no planejamento do treino e não substitui avaliação ou diagnóstico médico.</div>
           <form id="anamnesisForm" class="anamnesis-layout">
             <div class="anamnesis-section">
               <div class="section-title"><h3>Dados e objetivos</h3><span>Contexto do aluno</span></div>
@@ -4314,6 +4360,10 @@
           <div class="panel">
             <div class="section-title"><h3>Medidas</h3><span>Evolução corporal completa</span></div>
             <form class="measure-form-grid" id="bodyMeasureForm">
+              <div class="field" id="measureStudentField" hidden>
+                <label for="measureStudent">Destino das medidas</label>
+                <select id="measureStudent"></select>
+              </div>
               <div class="field">
                 <label for="measureDate">Data</label>
                 <input id="measureDate" type="date" />
@@ -4350,7 +4400,8 @@
                 <label for="measureNotes">Observações</label>
                 <textarea id="measureNotes" placeholder="Ex: Medida em jejum, após descanso" data-i18n-placeholder="Ex: Medida em jejum, após descanso"></textarea>
               </div>
-              <button class="action" type="submit">Salvar medidas</button>
+              <button class="action" id="saveBodyMeasuresButton" type="submit">Salvar medidas</button>
+              <div class="save-target" id="measureSaveTarget" aria-live="polite"></div>
             </form>
           </div>
           <div class="measure-charts">
@@ -4478,9 +4529,23 @@
       </div>
       <div class="modal-actions">
         <button class="ghost" type="button" id="cancelWorkout">Cancelar</button>
-        <button class="action" type="submit">Criar treino</button>
+        <button class="action" id="saveWorkoutButton" type="submit">Criar treino</button>
       </div>
+      <div class="save-target" id="workoutSaveTarget" aria-live="polite"></div>
     </form>
+  </div>
+
+  <div class="modal-backdrop" id="unsavedChangesModal" role="dialog" aria-modal="true" aria-labelledby="unsavedChangesTitle">
+    <div class="modal unsaved-modal">
+      <div class="modal-head">
+        <h3 id="unsavedChangesTitle">Alterações não salvas</h3>
+      </div>
+      <p id="unsavedChangesMessage">Você tem alterações não salvas. Deseja continuar editando ou descartar as alterações?</p>
+      <div class="modal-actions">
+        <button class="ghost" id="continueEditingButton" type="button">Continuar editando</button>
+        <button class="action" id="discardChangesButton" type="button">Descartar alterações</button>
+      </div>
+    </div>
   </div>
 
   <div class="toast" id="toast" role="status" aria-live="polite"></div>
@@ -4489,8 +4554,8 @@
   <script>
     const MONOLITH_SUPABASE_URL = "https://jhxasnxuvmkhntbwepau.supabase.co";
     const MONOLITH_SUPABASE_KEY = "sb_publishable_lDtAXIOtkMwgwsAZyghBdg_gyLHGwpH";
-    const MONOLITH_BUILD = window.MONOLITH_BUILD || "monolith-v78-report-cycle-anamnesis";
-    const MONOLITH_VERSION_LABEL = window.MONOLITH_VERSION_LABEL || "Monolith v78 · 11/08/2026";
+    const MONOLITH_BUILD = window.MONOLITH_BUILD || "monolith-v79-stability-i18n";
+    const MONOLITH_VERSION_LABEL = window.MONOLITH_VERSION_LABEL || "Monolith v79 · 11/08/2026";
     const monolithSupabase = window.supabase?.createClient?.(MONOLITH_SUPABASE_URL, MONOLITH_SUPABASE_KEY, {
       auth: {
         storage: window.sessionStorage,
@@ -4877,41 +4942,79 @@
       return role === "personal" ? "Personal trainer" : "Aluno";
     }
 
-    function authMessage(message) {
+    const uiMessageState = {
+      toast: null,
+      signupNotice: null,
+      loginNotice: null,
+      forgotPasswordNotice: null,
+      resetPasswordNotice: null
+    };
+    let authToastTimer;
+
+    function localizedMessage(message, params = {}, language) {
+      return t(message, language).replace(/\{([a-zA-Z0-9_]+)\}/g, (_, key) => params[key] ?? "");
+    }
+
+    function renderNoticeState(id) {
+      const notice = document.getElementById(id);
+      const state = uiMessageState[id];
+      if (!notice) return;
+      notice.hidden = !state?.message;
+      notice.textContent = state?.message ? localizedMessage(state.message, state.params) : "";
+    }
+
+    function setNoticeState(id, message = "", params = {}) {
+      uiMessageState[id] = message ? { message, params } : null;
+      renderNoticeState(id);
+    }
+
+    function clearAuthFormNotices() {
+      ["signupNotice", "loginNotice", "forgotPasswordNotice", "resetPasswordNotice"].forEach(id => setNoticeState(id));
+      clearTimeout(authToastTimer);
+      uiMessageState.toast = null;
       const toast = document.getElementById("toast");
       if (toast) {
-        toast.textContent = t(message);
-        toast.classList.add("active");
-        setTimeout(() => toast.classList.remove("active"), 2200);
+        toast.classList.remove("active", "with-action");
+        toast.textContent = "";
       }
     }
 
-    function showSignupNotice(message) {
-      const notice = document.getElementById("signupNotice");
-      if (!notice) return;
-      notice.hidden = !message;
-      notice.textContent = message ? t(message) : "";
+    function rerenderUiMessageStates() {
+      ["signupNotice", "loginNotice", "forgotPasswordNotice", "resetPasswordNotice"].forEach(renderNoticeState);
+      const toast = document.getElementById("toast");
+      if (toast && uiMessageState.toast?.message && !toast.classList.contains("with-action")) {
+        toast.textContent = localizedMessage(uiMessageState.toast.message, uiMessageState.toast.params);
+      }
     }
 
-    function showLoginNotice(message = "") {
-      const notice = document.getElementById("loginNotice");
-      if (!notice) return;
-      notice.hidden = !message;
-      notice.textContent = message ? t(message) : "";
+    function authMessage(message, params = {}) {
+      const toast = document.getElementById("toast");
+      if (!toast) return;
+      clearTimeout(authToastTimer);
+      uiMessageState.toast = { message, params };
+      toast.classList.remove("with-action");
+      toast.textContent = localizedMessage(message, params);
+      toast.classList.add("active");
+      authToastTimer = setTimeout(() => {
+        toast.classList.remove("active");
+        uiMessageState.toast = null;
+      }, 2200);
     }
 
-    function showForgotPasswordNotice(message = "") {
-      const notice = document.getElementById("forgotPasswordNotice");
-      if (!notice) return;
-      notice.hidden = !message;
-      notice.textContent = message ? t(message) : "";
+    function showSignupNotice(message = "", params = {}) {
+      setNoticeState("signupNotice", message, params);
     }
 
-    function showResetPasswordNotice(message = "") {
-      const notice = document.getElementById("resetPasswordNotice");
-      if (!notice) return;
-      notice.hidden = !message;
-      notice.textContent = message ? t(message) : "";
+    function showLoginNotice(message = "", params = {}) {
+      setNoticeState("loginNotice", message, params);
+    }
+
+    function showForgotPasswordNotice(message = "", params = {}) {
+      setNoticeState("forgotPasswordNotice", message, params);
+    }
+
+    function showResetPasswordNotice(message = "", params = {}) {
+      setNoticeState("resetPasswordNotice", message, params);
     }
 
     function showProfilePasswordNotice(message = "") {
@@ -5281,6 +5384,9 @@
       setValue("trainerAuthorization", profile.display_authorization || "");
       const responsibility = document.getElementById("trainerResponsibilityAccepted");
       if (responsibility) responsibility.checked = Boolean(profile.responsibility_accepted);
+      requestAnimationFrame(() => {
+        if (!dirtyScopes.get("trainerProfile")?.dirty) setDirtyBaseline("trainerProfile");
+      });
     }
 
     function setTrainerProfileFormMode(mode = "onboarding") {
@@ -5401,8 +5507,8 @@
         <article class="trainer-map-card">
           <div>
             <div class="kicker">${escapeHTML(location || t("Região não informada"))}</div>
-            <h3>${escapeHTML(profile.professional_name || profile.full_name || t("Personal trainer"))}</h3>
-            <p>${escapeHTML(profile.bio || t("Perfil profissional em construção."))}</p>
+            <h3 data-no-i18n="true">${escapeHTML(profile.professional_name || profile.full_name || t("Personal trainer"))}</h3>
+            <p data-no-i18n="true">${escapeHTML(profile.bio || t("Perfil profissional em construção."))}</p>
           </div>
           <div class="meta">
             ${services ? `<div><strong>${escapeHTML(t("Atendimento"))}:</strong> ${escapeHTML(services)}</div>` : ""}
@@ -5624,7 +5730,9 @@
     }
 
     function clientViewMode() {
-      return localStorage.getItem("monolith.clientViewMode") === "table" ? "table" : "cards";
+      const accountId = currentAccount()?.id || "guest";
+      const stored = localStorage.getItem(`monolith.clientViewMode:${accountId}`) || localStorage.getItem("monolith.clientViewMode");
+      return stored === "table" ? "table" : "cards";
     }
 
     function applyClientViewMode(mode = clientViewMode()) {
@@ -5638,8 +5746,10 @@
     }
 
     function setClientViewMode(mode = "cards") {
-      localStorage.setItem("monolith.clientViewMode", mode === "table" ? "table" : "cards");
-      applyClientViewMode(mode);
+      const safeMode = mode === "table" ? "table" : "cards";
+      const accountId = currentAccount()?.id || "guest";
+      localStorage.setItem(`monolith.clientViewMode:${accountId}`, safeMode);
+      applyClientViewMode(safeMode);
     }
 
     function studentListSummary(student) {
@@ -5657,7 +5767,7 @@
         const summary = studentListSummary(student);
         return `
           <tr>
-            <td><strong>${escapeHTML(student.name)}</strong></td>
+            <td><strong data-no-i18n="true">${escapeHTML(student.name)}</strong></td>
             <td>${escapeHTML(summary.score)}</td>
             <td>${escapeHTML(summary.lastCheckin)}</td>
             <td>${escapeHTML(summary.status)}</td>
@@ -5678,7 +5788,7 @@
           <article class="coach-card">
             <div>
               <div class="kicker">${escapeHTML(t(student.plan || "Aluno"))}</div>
-              <h3>${escapeHTML(student.name)}</h3>
+              <h3 data-no-i18n="true">${escapeHTML(student.name)}</h3>
               <p>${checkins.length ? `${checkins.length} ${escapeHTML(t("check-ins em 30 dias"))}` : escapeHTML(t("Aguardando primeiro check-in"))}</p>
               <div class="pill-row">
                 <span class="pill">Score ${escapeHTML(score)}</span>
@@ -6084,8 +6194,7 @@
       localStorage.removeItem("monolith.sessionUserId");
       const authStack = document.getElementById("authStack");
       if (authStack) authStack.dataset.authMode = "reset";
-      showLoginNotice("");
-      showForgotPasswordNotice("");
+      clearAuthFormNotices();
       showResetPasswordNotice(message);
       setTimeout(() => document.getElementById("resetPassword")?.focus(), 0);
     }
@@ -6097,9 +6206,7 @@
       const loginEmail = document.getElementById("loginEmail")?.value.trim() || "";
       const forgotEmail = document.getElementById("forgotPasswordEmail");
       if (forgotEmail && loginEmail && !forgotEmail.value) forgotEmail.value = loginEmail;
-      showLoginNotice("");
-      showResetPasswordNotice("");
-      showForgotPasswordNotice("");
+      clearAuthFormNotices();
       setTimeout(() => forgotEmail?.focus(), 0);
     }
 
@@ -6108,8 +6215,7 @@
       const authStack = document.getElementById("authStack");
       if (authStack) authStack.dataset.authMode = "login";
       document.querySelectorAll(".auth-tab").forEach(tab => tab.classList.toggle("active", tab.dataset.authTab === "login"));
-      showForgotPasswordNotice("");
-      showResetPasswordNotice("");
+      clearAuthFormNotices();
       showLoginNotice(message);
     }
 
@@ -6341,7 +6447,7 @@
           applyAuthState();
           hydrateRemoteFactors(account);
           if (!await maybeRequireTrainerProfile(account)) showScreen(account.role === "personal" ? "clients" : "home");
-          authMessage(`${t("Bem-vindo")}, ${account.name}.`);
+          authMessage("Bem-vindo, {name}.", { name: account.name });
           return true;
         } catch (profileError) {
           console.warn("Monolith Supabase profile login failed", profileError);
@@ -6373,7 +6479,7 @@
       applyAuthState();
       hydrateRemoteFactors(account);
       if (!await maybeRequireTrainerProfile(account)) showScreen(account.role === "personal" ? "clients" : "home");
-      authMessage(`${t("Bem-vindo")}, ${account.name}.`);
+      authMessage("Bem-vindo, {name}.", { name: account.name });
       return true;
     }
 
@@ -6679,10 +6785,20 @@
       return user.role === "personal" ? selectedStudentForPersonal() : user.id;
     }
 
+    function currentLocale(language = localStorage.getItem("monolith.language") || "pt") {
+      return language === "pt" ? "pt-BR" : language === "es" ? "es-ES" : "en-US";
+    }
+
     function localDateLabel(dateKey) {
       const [year, month, day] = String(dateKey || "").split("-").map(Number);
       if (!year || !month || !day) return dateKey || "";
-      return new Intl.DateTimeFormat("pt-BR", { dateStyle: "short" }).format(new Date(year, month - 1, day));
+      return new Intl.DateTimeFormat(currentLocale(), { dateStyle: "short" }).format(new Date(year, month - 1, day));
+    }
+
+    function localDateTimeLabel(value) {
+      const date = value instanceof Date ? value : new Date(value);
+      if (Number.isNaN(date.getTime())) return String(value || "");
+      return new Intl.DateTimeFormat(currentLocale(), { dateStyle: "medium", timeStyle: "short" }).format(date);
     }
 
     function lastMonthKey() {
@@ -6785,7 +6901,7 @@
         workoutId: row.workout_template_id || "",
         workoutName: row.workout_name || "Treino",
         completedAt: row.completed_at,
-        date: row.completed_at ? new Intl.DateTimeFormat("pt-BR", { dateStyle: "medium", timeStyle: "short" }).format(new Date(row.completed_at)) : "",
+        date: row.completed_at ? localDateTimeLabel(row.completed_at) : "",
         completedExercises: row.completed_exercises || 0,
         totalExercises: row.total_exercises || 0,
         completedSets: row.completed_sets || 0,
@@ -7505,6 +7621,7 @@
         meals: (sourcePlan.meals || []).map(meal => ({ ...meal }))
       };
       applyDietPlanToForm(copiedPlan);
+      markDirty("diet");
       showToast("Dieta do mês anterior copiada.");
     }
 
@@ -7668,16 +7785,16 @@
         </div>
         ${(plan.meals || []).map((meal, index) => `
           <article class="meal-card">
-            <header><h4>${escapeHTML(meal.name || `${t("Refeição")} ${index + 1}`)}</h4><span>${escapeHTML(meal.calories || "--")} kcal</span></header>
-            <p>${escapeHTML(meal.items || t("Sem alimentos cadastrados."))}</p>
+            <header><h4 data-no-i18n="true">${escapeHTML(meal.name || `${t("Refeição")} ${index + 1}`)}</h4><span>${escapeHTML(meal.calories || "--")} kcal</span></header>
+            <p data-no-i18n="true">${escapeHTML(meal.items || t("Sem alimentos cadastrados."))}</p>
             <div class="pill-row">
               <span class="pill">P ${escapeHTML(meal.protein || "--")}</span>
               <span class="pill">C ${escapeHTML(meal.carbs || "--")}</span>
               <span class="pill">G ${escapeHTML(meal.fat || "--")}</span>
             </div>
-            ${meal.micros ? `<p><strong>${escapeHTML(t("Micros"))}:</strong> ${escapeHTML(meal.micros)}</p>` : ""}
-            ${meal.substitutions ? `<p><strong>${escapeHTML(t("Substituições"))}:</strong> ${escapeHTML(meal.substitutions)}</p>` : ""}
-            ${meal.notes ? `<p><strong>${escapeHTML(t("Personal"))}:</strong> ${escapeHTML(meal.notes)}</p>` : ""}
+            ${meal.micros ? `<p data-no-i18n="true"><strong>${escapeHTML(t("Micros"))}:</strong> ${escapeHTML(meal.micros)}</p>` : ""}
+            ${meal.substitutions ? `<p data-no-i18n="true"><strong>${escapeHTML(t("Substituições"))}:</strong> ${escapeHTML(meal.substitutions)}</p>` : ""}
+            ${meal.notes ? `<p data-no-i18n="true"><strong>${escapeHTML(t("Personal"))}:</strong> ${escapeHTML(meal.notes)}</p>` : ""}
           </article>
         `).join("")}
       `;
@@ -7898,7 +8015,23 @@
       const indexes = dietCsvHeaderIndexes(rows[0]);
       const hasHeader = Object.values(indexes).some(index => index >= 0);
       const dataRows = hasHeader ? rows.slice(1) : rows;
-      const fallback = {
+      const fallback = hasHeader ? {
+        studentName: -1,
+        month: -1,
+        mealName: -1,
+        items: -1,
+        calories: -1,
+        protein: -1,
+        carbs: -1,
+        fat: -1,
+        micros: -1,
+        substitutions: -1,
+        notes: -1,
+        targetCalories: -1,
+        targetProtein: -1,
+        targetCarbs: -1,
+        targetFat: -1
+      } : {
         studentName: 0,
         month: 1,
         mealName: 2,
@@ -8010,7 +8143,12 @@
       const hasHeader = Object.values(indexes).some(index => index >= 0);
       const dataRows = hasHeader ? rows.slice(1) : rows;
       const lineOffset = hasHeader ? 2 : 1;
-      const fallback = {
+      const fallback = hasHeader ? {
+        studentName: -1,
+        month: -1,
+        mealName: -1,
+        items: -1
+      } : {
         studentName: 0,
         month: 1,
         mealName: 2,
@@ -8049,7 +8187,7 @@
         renderCsvPreview("dietCsvPreview", previewRows);
         const blocked = blockedCsvRows(previewRows);
         if (blocked.length) {
-          setDietCsvStatus(`${blocked.length} ${t("linha(s) precisam de correção antes de importar.")}`, true);
+          setDietCsvStatus(quantityLabel(blocked.length, "linha precisa de correção antes de importar.", "linhas precisam de correção antes de importar."), true);
           return;
         }
         if (!await confirmCsvImport(t("dietas"), previewRows)) {
@@ -8108,7 +8246,7 @@
       const logs = loadFoodLogs()[studentId] || [];
       container.innerHTML = logs.slice(0, 7).map(log => {
         const total = log.meals.reduce((sum, meal) => sum + (Number(String(meal.calories || "").replace(",", ".")) || 0), 0);
-        return `<article class="meal-card"><header><h4>${escapeHTML(log.date)}</h4><span>${total} kcal</span></header><p>${escapeHTML(log.note || t("Diário alimentar"))}</p><div class="pill-row"><span class="pill">${escapeHTML(quantityLabel(log.meals.length, "refeição", "refeições"))}</span></div></article>`;
+        return `<article class="meal-card"><header><h4>${escapeHTML(log.date)}</h4><span>${total} kcal</span></header><p data-no-i18n="true">${escapeHTML(log.note || t("Diário alimentar"))}</p><div class="pill-row"><span class="pill">${escapeHTML(quantityLabel(log.meals.length, "refeição", "refeições"))}</span></div></article>`;
       }).join("") || `<div class="report-line">${escapeHTML(t("Nenhum diário alimentar salvo ainda."))}</div>`;
     }
 
@@ -8176,10 +8314,107 @@
           renderFoodLogSummary();
         }
       }
+      updateNumericSubmitStates();
+      if (!dirtyScopes.get("diet")?.dirty) {
+        requestAnimationFrame(() => {
+          if (!dirtyScopes.get("diet")?.dirty) setDirtyBaseline("diet");
+        });
+      }
     }
 
     const translations = {
       en: {
+        "Início": "Home",
+        "Dietas": "Diets",
+        "Evolução": "Progress",
+        "Painel do personal": "Trainer dashboard",
+        "Gestão de alunos, pendências e resultados": "Student management, pending items and results",
+        "Adicionar aluno": "Add student",
+        "Criar dieta": "Create diet",
+        "Check-ins recebidos hoje": "Check-ins received today",
+        "Alunos que treinaram hoje": "Students who trained today",
+        "Precisam de atenção": "Need attention",
+        "Resultados": "Results",
+        "Lista de alunos": "Student list",
+        "Cards para revisão, tabela para operação compacta": "Cards for review, table for compact operation",
+        "Tabela": "Table",
+        "Alterações não salvas": "Unsaved changes",
+        "Você tem alterações não salvas. Deseja continuar editando ou descartar as alterações?": "You have unsaved changes. Do you want to keep editing or discard them?",
+        "Continuar editando": "Keep editing",
+        "Descartar alterações": "Discard changes",
+        "Desfazer": "Undo",
+        "Bem-vindo, {name}.": "Welcome, {name}.",
+        "Selecione um aluno antes de salvar.": "Select a student before saving.",
+        "Selecione um aluno ou seu próprio perfil antes de criar.": "Select a student or your own profile before creating.",
+        "Salvar dieta para {name} · {month}": "Save diet for {name} · {month}",
+        "Criar treino para {name}": "Create workout for {name}",
+        "Salvar check-in de {name} · {date}": "Save {name}'s check-in · {date}",
+        "Registrar medidas de {name} · {date}": "Record {name}'s measurements · {date}",
+        "Entre para registrar medidas.": "Log in to record measurements.",
+        "Selecione um aluno ou seu próprio perfil antes de registrar.": "Select a student or your own profile before recording.",
+        "Confirmar dieta para {name} · {month}?": "Confirm diet for {name} · {month}?",
+        "Confirmar treino para {name}?": "Confirm workout for {name}?",
+        "Confirmar check-in de {name} · {date}?": "Confirm {name}'s check-in · {date}?",
+        "Confirmar medidas de {name} · {date}?": "Confirm {name}'s measurements · {date}?",
+        "Destino das medidas inválido.": "Invalid measurement destination.",
+        "Destino das medidas": "Measurement destination",
+        "Meu próprio perfil": "My own profile",
+        "Sem check-in, treino ou dieta recente": "No recent check-in, workout or diet",
+        "Operação do dia": "Today's operation",
+        "Alunos sem check-in recente": "Students without a recent check-in",
+        "Selecione um aluno para visualizar e editar o check-in.": "Select a student to view and edit the check-in.",
+        "Prescrição de dieta": "Diet prescription",
+        "Copiar mês anterior": "Copy previous month",
+        "Importação avançada por CSV": "Advanced CSV import",
+        "Modelo, prévia, importação e exportação": "Template, preview, import and export",
+        "Proteína (g)": "Protein (g)",
+        "Treinos do personal": "Trainer workouts",
+        "Resumo": "Overview",
+        "Corpo": "Body",
+        "Relatórios": "Reports",
+        "Visão rápida do aluno": "Student quick view",
+        "Selecione um aluno para visualizar a evolução.": "Select a student to view progress.",
+        "Perfil público": "Public profile",
+        "Aparência no mapa": "Map appearance",
+        "Atualize nome profissional, serviços, preços, localização, especialidades e autorização de exibição no mapa.": "Update your professional name, services, prices, location, specialties and map display authorization.",
+        "Editar perfil público": "Edit public profile",
+        "Ver aparência no mapa": "View map appearance",
+        "Usar modelo": "Use template",
+        "Crie do zero, duplique modelos ou importe em lote": "Create from scratch, duplicate templates or import in bulk",
+        "Apenas o aluno pode enviar fotos próprias.": "Only the student can upload their own photos.",
+        "Apenas o personal pode prescrever dieta para aluno.": "Only the trainer can prescribe a student's diet.",
+        "Check-in salvo localmente. Não consegui sincronizar agora.": "Check-in saved locally. Sync is unavailable right now.",
+        "Confirmar importação de": "Confirm import of",
+        "Conteúdo": "Content",
+        "Corrija os campos numéricos antes de salvar.": "Correct the numeric fields before saving.",
+        "Dieta duplicada como rascunho.": "Diet duplicated as a draft.",
+        "Duplicar para qual mês?": "Duplicate to which month?",
+        "Escolha destino para linhas sem aluno": "Choose a destination for rows without a student",
+        "Evite salvar medidas em data futura.": "Do not save measurements with a future date.",
+        "Excluir esta dieta?": "Delete this diet?",
+        "Excluir exercício?": "Delete exercise?",
+        "Excluir tarefa do check-in?": "Delete check-in task?",
+        "Excluir treino?": "Delete workout?",
+        "Exclusão desfeita.": "Deletion undone.",
+        "Exercício removido.": "Exercise removed.",
+        "Já existe dieta nesse mês. Substituir?": "A diet already exists for this month. Replace it?",
+        "Linha sem aluno no CSV.": "CSV row has no student.",
+        "Login feito. Perfil remoto pendente de sincronização.": "Logged in. Remote profile sync is pending.",
+        "Macros das refeições devem ser números positivos.": "Meal macros must be positive numbers.",
+        "Nenhum destino encontrado.": "No destination found.",
+        "Nenhuma versão anterior para restaurar.": "There is no previous version to restore.",
+        "Não consegui carregar todos os dados remotos agora. Usei o cache local.": "Some remote data could not be loaded. Local cache was used.",
+        "Prévia limitada às primeiras 30 linhas.": "Preview limited to the first 30 rows.",
+        "Restaurar a versão anterior desta dieta?": "Restore the previous version of this diet?",
+        "Selecione um aluno para gerar relatório.": "Select a student to generate a report.",
+        "Selecione um aluno vinculado para salvar a dieta.": "Select a linked student before saving the diet.",
+        "Selecione uma dieta salva primeiro.": "Select a saved diet first.",
+        "Sem aluno": "No student",
+        "Série registrada.": "Set recorded.",
+        "Versão da dieta restaurada.": "Diet version restored.",
+        "Você não tem acesso a este aluno.": "You do not have access to this student.",
+        "Você não tem acesso ao relatório deste aluno.": "You do not have access to this student's report.",
+        "use somente número positivo.": "use a positive number only.",
         "Idioma": "Language",
         "Português": "Portuguese",
         "Unidade de peso": "Weight unit",
@@ -8746,6 +8981,8 @@
         "Próximo treino": "Next workout",
         "Escolher": "Choose",
         "0 dias": "0 days",
+        "dia": "day",
+        "dias": "days",
         "Sequência": "Streak",
         "Recordes": "Records",
         "Volume semanal": "Weekly volume",
@@ -9150,9 +9387,131 @@
         "Gerenciar assinatura": "Manage subscription",
         "Cancelar assinatura": "Cancel subscription",
         "Gerenciamento de assinatura será conectado ao provedor de pagamento antes do lançamento.": "Subscription management will be connected to the payment provider before launch.",
-        "Cancelamento de assinatura será conectado ao provedor de pagamento antes do lançamento.": "Subscription cancellation will be connected to the payment provider before launch."
+        "Cancelamento de assinatura será conectado ao provedor de pagamento antes do lançamento.": "Subscription cancellation will be connected to the payment provider before launch.",
+        "Medidas corporais agora ficam dentro de Evolução.": "Body measurements are now available in Progress.",
+        "Abra Evolução para registrar medidas, revisar fotos e acompanhar frequência no mesmo contexto do aluno selecionado.": "Open Progress to record measurements, review photos and track frequency for the selected student.",
+        "Abrir evolução": "Open progress",
+        "Últimas sessões concluídas": "Latest completed sessions",
+        "Exportação do aluno selecionado": "Selected student export",
+        "Perfil e configurações": "Profile and settings",
+        "Seu score pessoal hoje": "Your personal score today",
+        "sim": "yes",
+        "não": "no",
+        "Remover {name}": "Remove {name}",
+        "Use o formato AAAA-MM.": "Use the YYYY-MM format.",
+        "Linha": "Row",
+        "Destino": "Destination",
+        "Preparando prévia do CSV...": "Preparing CSV preview...",
+        "linha precisa de correção antes de importar.": "row needs correction before import.",
+        "linhas precisam de correção antes de importar.": "rows need correction before import.",
+        "dietas": "diets",
+        "treinos": "workouts",
+        "Importação cancelada.": "Import canceled.",
+        "Desfazer?": "Undo?",
+        "Percentual de gordura fora do intervalo esperado.": "Body-fat percentage is outside the expected range."
       },
       es: {
+        "Início": "Inicio",
+        "Dietas": "Dietas",
+        "Evolução": "Evolución",
+        "Painel do personal": "Panel del entrenador",
+        "Gestão de alunos, pendências e resultados": "Gestión de alumnos, pendientes y resultados",
+        "Adicionar aluno": "Agregar alumno",
+        "Criar dieta": "Crear dieta",
+        "Check-ins recebidos hoje": "Check-ins recibidos hoy",
+        "Alunos que treinaram hoje": "Alumnos que entrenaron hoy",
+        "Precisam de atenção": "Necesitan atención",
+        "Resultados": "Resultados",
+        "Lista de alunos": "Lista de alumnos",
+        "Cards para revisão, tabela para operação compacta": "Tarjetas para revisión, tabla para operación compacta",
+        "Tabela": "Tabla",
+        "Alterações não salvas": "Cambios sin guardar",
+        "Você tem alterações não salvas. Deseja continuar editando ou descartar as alterações?": "Tienes cambios sin guardar. ¿Deseas seguir editando o descartarlos?",
+        "Continuar editando": "Seguir editando",
+        "Descartar alterações": "Descartar cambios",
+        "Desfazer": "Deshacer",
+        "Bem-vindo, {name}.": "Bienvenido, {name}.",
+        "Selecione um aluno antes de salvar.": "Selecciona un alumno antes de guardar.",
+        "Selecione um aluno ou seu próprio perfil antes de criar.": "Selecciona un alumno o tu propio perfil antes de crear.",
+        "Salvar dieta para {name} · {month}": "Guardar dieta para {name} · {month}",
+        "Criar treino para {name}": "Crear entrenamiento para {name}",
+        "Salvar check-in de {name} · {date}": "Guardar check-in de {name} · {date}",
+        "Registrar medidas de {name} · {date}": "Registrar medidas de {name} · {date}",
+        "Entre para registrar medidas.": "Inicia sesión para registrar medidas.",
+        "Selecione um aluno ou seu próprio perfil antes de registrar.": "Selecciona un alumno o tu propio perfil antes de registrar.",
+        "Confirmar dieta para {name} · {month}?": "¿Confirmar dieta para {name} · {month}?",
+        "Confirmar treino para {name}?": "¿Confirmar entrenamiento para {name}?",
+        "Confirmar check-in de {name} · {date}?": "¿Confirmar check-in de {name} · {date}?",
+        "Confirmar medidas de {name} · {date}?": "¿Confirmar medidas de {name} · {date}?",
+        "Destino das medidas inválido.": "Destino de medidas no válido.",
+        "Destino das medidas": "Destino de las medidas",
+        "Meu próprio perfil": "Mi propio perfil",
+        "Sem check-in, treino ou dieta recente": "Sin check-in, entrenamiento o dieta reciente",
+        "Operação do dia": "Operación del día",
+        "Alunos sem check-in recente": "Alumnos sin check-in reciente",
+        "Selecione um aluno para visualizar e editar o check-in.": "Selecciona un alumno para ver y editar el check-in.",
+        "Prescrição de dieta": "Prescripción de dieta",
+        "Copiar mês anterior": "Copiar mes anterior",
+        "Importação avançada por CSV": "Importación avanzada por CSV",
+        "Modelo, prévia, importação e exportação": "Plantilla, vista previa, importación y exportación",
+        "Proteína (g)": "Proteína (g)",
+        "Treinos do personal": "Entrenamientos del entrenador",
+        "Resumo": "Resumen",
+        "Corpo": "Cuerpo",
+        "Relatórios": "Informes",
+        "Visão rápida do aluno": "Vista rápida del alumno",
+        "Selecione um aluno para visualizar a evolução.": "Selecciona un alumno para ver la evolución.",
+        "Perfil público": "Perfil público",
+        "Aparência no mapa": "Apariencia en el mapa",
+        "Atualize nome profissional, serviços, preços, localização, especialidades e autorização de exibição no mapa.": "Actualiza el nombre profesional, servicios, precios, ubicación, especialidades y autorización de visualización en el mapa.",
+        "Editar perfil público": "Editar perfil público",
+        "Ver aparência no mapa": "Ver apariencia en el mapa",
+        "Usar modelo": "Usar plantilla",
+        "Crie do zero, duplique modelos ou importe em lote": "Crea desde cero, duplica plantillas o importa en lote",
+        "Abrir ficha": "Abrir ficha",
+        "Abrir perfil": "Abrir perfil",
+        "Apenas o aluno pode enviar fotos próprias.": "Solo el alumno puede subir sus propias fotos.",
+        "Apenas o personal pode prescrever dieta para aluno.": "Solo el entrenador puede prescribir la dieta del alumno.",
+        "Check-in salvo localmente. Não consegui sincronizar agora.": "Check-in guardado localmente. No se pudo sincronizar ahora.",
+        "Confirmar importação de": "Confirmar importación de",
+        "Conteúdo": "Contenido",
+        "Corrija os campos numéricos antes de salvar.": "Corrige los campos numéricos antes de guardar.",
+        "Descanso": "Descanso",
+        "Descanso de": "Descanso de",
+        "Descanso s": "Descanso s",
+        "Dieta duplicada como rascunho.": "Dieta duplicada como borrador.",
+        "Duplicar para qual mês?": "¿Duplicar para qué mes?",
+        "Escolha destino para linhas sem aluno": "Elige un destino para filas sin alumno",
+        "Evite salvar medidas em data futura.": "No guardes medidas con una fecha futura.",
+        "Excluir esta dieta?": "¿Eliminar esta dieta?",
+        "Excluir exercício?": "¿Eliminar ejercicio?",
+        "Excluir tarefa do check-in?": "¿Eliminar tarea del check-in?",
+        "Excluir treino?": "¿Eliminar entrenamiento?",
+        "Exclusão desfeita.": "Eliminación deshecha.",
+        "Exercício removido.": "Ejercicio eliminado.",
+        "Já existe dieta nesse mês. Substituir?": "Ya existe una dieta para este mes. ¿Reemplazarla?",
+        "Linha sem aluno no CSV.": "La fila del CSV no tiene alumno.",
+        "Login feito. Perfil remoto pendente de sincronização.": "Sesión iniciada. La sincronización del perfil remoto está pendiente.",
+        "Macros das refeições devem ser números positivos.": "Los macros de las comidas deben ser números positivos.",
+        "Modelo de dieta aplicado.": "Plantilla de dieta aplicada.",
+        "Nenhum destino encontrado.": "No se encontró ningún destino.",
+        "Nenhuma versão anterior para restaurar.": "No hay una versión anterior para restaurar.",
+        "Não consegui carregar todos os dados remotos agora. Usei o cache local.": "No se pudieron cargar todos los datos remotos. Se usó la caché local.",
+        "Proteína": "Proteína",
+        "Prévia limitada às primeiras 30 linhas.": "Vista previa limitada a las primeras 30 filas.",
+        "Registrar check-in": "Registrar check-in",
+        "Restaurar a versão anterior desta dieta?": "¿Restaurar la versión anterior de esta dieta?",
+        "Selecione um aluno para gerar relatório.": "Selecciona un alumno para generar un informe.",
+        "Selecione um aluno vinculado para salvar a dieta.": "Selecciona un alumno vinculado antes de guardar la dieta.",
+        "Selecione uma dieta salva primeiro.": "Selecciona primero una dieta guardada.",
+        "Sem aluno": "Sin alumno",
+        "Série registrada.": "Serie registrada.",
+        "Técnica": "Técnica",
+        "Versão da dieta restaurada.": "Versión de la dieta restaurada.",
+        "Você não tem acesso a este aluno.": "No tienes acceso a este alumno.",
+        "Você não tem acesso ao relatório deste aluno.": "No tienes acceso al informe de este alumno.",
+        "use somente número positivo.": "usa solo un número positivo.",
+        "Último check-in": "Último check-in",
         "Idioma": "Idioma",
         "Português": "Portugués",
         "Unidade de peso": "Unidad de peso",
@@ -9719,6 +10078,8 @@
         "Próximo treino": "Próximo entreno",
         "Escolher": "Elegir",
         "0 dias": "0 días",
+        "dia": "día",
+        "dias": "días",
         "Sequência": "Racha",
         "Recordes": "Récords",
         "Volume semanal": "Volumen semanal",
@@ -10123,7 +10484,28 @@
         "Gerenciar assinatura": "Gestionar suscripción",
         "Cancelar assinatura": "Cancelar suscripción",
         "Gerenciamento de assinatura será conectado ao provedor de pagamento antes do lançamento.": "La gestión de suscripción se conectará al proveedor de pago antes del lanzamiento.",
-        "Cancelamento de assinatura será conectado ao provedor de pagamento antes do lançamento.": "La cancelación de suscripción se conectará al proveedor de pago antes del lanzamiento."
+        "Cancelamento de assinatura será conectado ao provedor de pagamento antes do lançamento.": "La cancelación de suscripción se conectará al proveedor de pago antes del lanzamiento.",
+        "Medidas corporais agora ficam dentro de Evolução.": "Las medidas corporales ahora están disponibles en Evolución.",
+        "Abra Evolução para registrar medidas, revisar fotos e acompanhar frequência no mesmo contexto do aluno selecionado.": "Abre Evolución para registrar medidas, revisar fotos y seguir la frecuencia del alumno seleccionado.",
+        "Abrir evolução": "Abrir evolución",
+        "Últimas sessões concluídas": "Últimas sesiones completadas",
+        "Exportação do aluno selecionado": "Exportación del alumno seleccionado",
+        "Perfil e configurações": "Perfil y configuración",
+        "Seu score pessoal hoje": "Tu puntuación personal de hoy",
+        "sim": "sí",
+        "não": "no",
+        "Remover {name}": "Eliminar {name}",
+        "Use o formato AAAA-MM.": "Usa el formato AAAA-MM.",
+        "Linha": "Fila",
+        "Destino": "Destino",
+        "Preparando prévia do CSV...": "Preparando la vista previa del CSV...",
+        "linha precisa de correção antes de importar.": "fila necesita corrección antes de importar.",
+        "linhas precisam de correção antes de importar.": "filas necesitan corrección antes de importar.",
+        "dietas": "dietas",
+        "treinos": "entrenamientos",
+        "Importação cancelada.": "Importación cancelada.",
+        "Desfazer?": "¿Deshacer?",
+        "Percentual de gordura fora do intervalo esperado.": "El porcentaje de grasa está fuera del rango esperado."
       }
     };
 
@@ -10293,21 +10675,69 @@
       return visibleNumericInputs(scope).reduce((valid, input) => validateNumericField(input, options) && valid, true);
     }
 
+    function accountNameForTarget(studentId) {
+      if (!studentId) return "";
+      const account = loadAccounts().find(item => item.id === studentId);
+      return account?.name || account?.email || "";
+    }
+
+    function localizedMonthLabel(monthKey) {
+      const [year, month] = String(monthKey || "").split("-").map(Number);
+      if (!year || !month) return monthKey || "";
+      return new Intl.DateTimeFormat(currentLocale(), { month: "long", year: "numeric" }).format(new Date(year, month - 1, 1));
+    }
+
+    function setSaveTarget(id, message, params = {}, ready = false) {
+      const element = document.getElementById(id);
+      if (!element) return;
+      element.textContent = localizedMessage(message, params);
+      element.classList.toggle("ready", ready);
+    }
+
+    function updateWriteDestinationUI() {
+      const user = currentAccount();
+      const personal = user?.role === "personal";
+      const dietStudentId = personal ? selectedDietStudentId() : user?.id || "";
+      const dietName = accountNameForTarget(dietStudentId);
+      const dietMonth = localizedMonthLabel(document.getElementById("dietMonth")?.value || currentMonthKey());
+      setSaveTarget("dietSaveTarget", dietStudentId ? "Salvar dieta para {name} · {month}" : "Selecione um aluno antes de salvar.", { name: dietName, month: dietMonth }, Boolean(dietStudentId));
+
+      const workoutTarget = personal ? selectedWorkoutTarget() : user?.id || "";
+      const workoutName = workoutTarget === selfWorkoutTarget ? user?.name || "" : accountNameForTarget(workoutTarget);
+      setSaveTarget("workoutSaveTarget", workoutTarget ? "Criar treino para {name}" : "Selecione um aluno ou seu próprio perfil antes de criar.", { name: workoutName }, Boolean(workoutTarget));
+
+      const checkinStudentId = personal ? selectedCheckinStudentId() : user?.id || "";
+      setSaveTarget("checkinSaveTarget", checkinStudentId ? "Salvar check-in de {name} · {date}" : "Selecione um aluno antes de salvar.", {
+        name: accountNameForTarget(checkinStudentId),
+        date: localDateLabel(todayKey())
+      }, Boolean(checkinStudentId));
+
+      const measureTargetId = selectedMeasureTargetId();
+      const missingMeasureTargetMessage = personal ? "Selecione um aluno ou seu próprio perfil antes de registrar." : "Entre para registrar medidas.";
+      setSaveTarget("measureSaveTarget", measureTargetId ? "Registrar medidas de {name} · {date}" : missingMeasureTargetMessage, {
+        name: accountNameForTarget(measureTargetId),
+        date: localDateLabel(document.getElementById("measureDate")?.value || todayKey())
+      }, Boolean(measureTargetId));
+    }
+
     function updateNumericSubmitStates() {
       const dietForm = document.getElementById("dietPlanForm");
       const saveDiet = document.getElementById("saveDietPlanButton");
-      if (dietForm && saveDiet) saveDiet.disabled = !validateVisibleNumericInputs(dietForm, { sanitize: true });
+      const missingDietTarget = currentAccount()?.role === "personal" && !selectedDietStudentId();
+      if (dietForm && saveDiet) saveDiet.disabled = missingDietTarget || !validateVisibleNumericInputs(dietForm, { sanitize: true });
       const measureForm = document.getElementById("bodyMeasureForm");
-      const saveMeasures = measureForm?.querySelector("button[type='submit']");
-      if (measureForm && saveMeasures) saveMeasures.disabled = !validateVisibleNumericInputs(measureForm);
+      const saveMeasures = document.getElementById("saveBodyMeasuresButton");
+      if (measureForm && saveMeasures) saveMeasures.disabled = !selectedMeasureTargetId() || !validateVisibleNumericInputs(measureForm);
       const workoutFormEl = document.getElementById("workoutForm");
-      const saveWorkout = workoutFormEl?.querySelector("button[type='submit']");
-      if (workoutFormEl && saveWorkout) saveWorkout.disabled = !validateVisibleNumericInputs(workoutFormEl, { sanitize: true });
+      const saveWorkout = document.getElementById("saveWorkoutButton");
+      const missingWorkoutTarget = currentAccount()?.role === "personal" && !selectedWorkoutTarget();
+      if (workoutFormEl && saveWorkout) saveWorkout.disabled = missingWorkoutTarget || !validateVisibleNumericInputs(workoutFormEl, { sanitize: true });
       const saveCheckin = document.getElementById("saveCheckin");
       if (saveCheckin) {
         const noStudent = currentAccount()?.role === "personal" && !document.getElementById("checkinStudent")?.value;
         saveCheckin.disabled = noStudent || !validateNumericField(document.getElementById("dailyWeight"));
       }
+      updateWriteDestinationUI();
     }
 
     function displayWeightSeries(series) {
@@ -10347,7 +10777,7 @@
       document.querySelectorAll(".language-button").forEach(button => {
         button.classList.toggle("active", button.dataset.lang === language);
       });
-      document.querySelectorAll("button:not(.language-button), h1, h2, h3, h4, label, span, option, p, strong, b, .date, .kicker, .hero-title, .quote, .measure-note, .report-line, .auth-warning, .locked-note, .build-version").forEach(element => {
+      document.querySelectorAll("[data-i18n], button:not(.language-button), h1, h2, h3, h4, label, span, option, p, strong, b, .date, .kicker, .hero-title, .quote, .measure-note, .report-line, .auth-warning, .locked-note, .build-version").forEach(element => {
         if (element.closest("[data-no-i18n]")) return;
         if (element.matches("button") && (element.classList.contains("nav-btn") || element.classList.contains("icon-btn") || element.querySelector("svg"))) return;
         if (element.matches("label") && element.querySelector("input")) return;
@@ -10362,12 +10792,26 @@
       document.querySelectorAll("[data-i18n-placeholder]").forEach(element => {
         element.placeholder = t(element.dataset.i18nPlaceholder, language);
       });
+      document.querySelectorAll("[aria-label], [title]").forEach(element => {
+        [["aria-label", "i18nAriaLabel"], ["title", "i18nTitle"]].forEach(([attribute, dataKey]) => {
+          const current = element.getAttribute(attribute)?.trim();
+          if (!current) return;
+          if (!element.dataset[dataKey] && (translations.en[current] || translations.es[current])) element.dataset[dataKey] = current;
+          const key = element.dataset[dataKey];
+          if (key) element.setAttribute(attribute, t(key, language));
+        });
+      });
       renderTrainerProfileOptionGroups();
       renderMapFilterOptions();
       updateWeightUnitLabels();
       refreshBuildVersionLabel();
       applyAuthState();
       renderStudentContextHeader();
+      updateTodayLabel(language);
+      rerenderUiMessageStates();
+      updateNumericSubmitStates();
+      renderFactors();
+      renderStats();
     }
 
     const workoutModal = document.getElementById("workoutModal");
@@ -10379,11 +10823,199 @@
     const toast = document.getElementById("toast");
     let toastTimer;
 
-    function showToast(message) {
+    function showToast(message, params = {}) {
       clearTimeout(toastTimer);
-      toast.textContent = t(message);
+      clearTimeout(authToastTimer);
+      uiMessageState.toast = { message, params };
+      toast.classList.remove("with-action");
+      toast.textContent = localizedMessage(message, params);
       toast.classList.add("active");
-      toastTimer = setTimeout(() => toast.classList.remove("active"), 2400);
+      toastTimer = setTimeout(() => {
+        toast.classList.remove("active");
+        uiMessageState.toast = null;
+      }, 2400);
+    }
+
+    function showUndoToast(message, undo) {
+      clearTimeout(toastTimer);
+      clearTimeout(authToastTimer);
+      uiMessageState.toast = null;
+      toast.textContent = "";
+      toast.classList.add("active", "with-action");
+      const label = document.createElement("span");
+      label.textContent = t(message);
+      const button = document.createElement("button");
+      button.type = "button";
+      button.className = "undo-toast-button";
+      button.textContent = t("Desfazer");
+      button.addEventListener("click", () => {
+        undo?.();
+        toast.classList.remove("active", "with-action");
+      }, { once: true });
+      toast.append(label, button);
+      toastTimer = setTimeout(() => toast.classList.remove("active", "with-action"), 6500);
+    }
+
+    const dirtyScopeForms = {
+      diet: ["dietPlanForm", "foodLogForm"],
+      workout: ["workoutForm"],
+      measures: ["bodyMeasureForm"],
+      trainerProfile: ["trainerProfileForm"]
+    };
+    const dirtyScopes = new Map(Object.keys(dirtyScopeForms).map(scope => [scope, { dirty: false, baseline: [] }]));
+    let pendingDirtyAction = null;
+    let dirtyGuardBypass = false;
+
+    function captureFormState(form) {
+      return [...form.querySelectorAll("input, select, textarea")].map((field, index) => ({
+        index,
+        id: field.id || "",
+        type: field.type || field.tagName,
+        value: field.value,
+        checked: Boolean(field.checked)
+      }));
+    }
+
+    function restoreFormState(form, snapshot = []) {
+      const fields = [...form.querySelectorAll("input, select, textarea")];
+      snapshot.forEach(item => {
+        const field = item.id ? form.querySelector(`#${CSS.escape(item.id)}`) : fields[item.index];
+        if (!field) return;
+        if (field.type === "checkbox" || field.type === "radio") field.checked = item.checked;
+        else field.value = item.value;
+      });
+    }
+
+    function setDirtyBaseline(scope) {
+      const state = dirtyScopes.get(scope);
+      if (!state) return;
+      state.dirty = false;
+      state.baseline = dirtyScopeForms[scope].map(id => {
+        const form = document.getElementById(id);
+        return { id, fields: form ? captureFormState(form) : [] };
+      });
+    }
+
+    function markDirty(scope) {
+      const state = dirtyScopes.get(scope);
+      if (state) state.dirty = true;
+    }
+
+    function clearDirty(scope, { restore = false } = {}) {
+      const state = dirtyScopes.get(scope);
+      if (!state) return;
+      if (restore) {
+        state.baseline.forEach(item => {
+          const form = document.getElementById(item.id);
+          if (form) restoreFormState(form, item.fields);
+        });
+      }
+      state.dirty = false;
+    }
+
+    function dirtyScopeForForm(form) {
+      return Object.entries(dirtyScopeForms).find(([, ids]) => ids.includes(form?.id))?.[0] || "";
+    }
+
+    function activeDirtyScope() {
+      if (workoutModal?.classList.contains("active") && dirtyScopes.get("workout")?.dirty) return "workout";
+      const activeScreen = document.querySelector(".screen.active")?.id;
+      if (activeScreen === "nutrition" && dirtyScopes.get("diet")?.dirty) return "diet";
+      if (activeScreen === "stats" && dirtyScopes.get("measures")?.dirty) return "measures";
+      if (activeScreen === "trainerProfileOnboarding" && dirtyScopes.get("trainerProfile")?.dirty) return "trainerProfile";
+      return [...dirtyScopes.entries()].find(([, state]) => state.dirty)?.[0] || "";
+    }
+
+    function closeUnsavedChangesModal() {
+      document.getElementById("unsavedChangesModal")?.classList.remove("active");
+      pendingDirtyAction = null;
+    }
+
+    function requestDirtyAction(action, scope = activeDirtyScope()) {
+      if (dirtyGuardBypass || !scope || !dirtyScopes.get(scope)?.dirty) {
+        action?.();
+        return true;
+      }
+      pendingDirtyAction = { action, scope };
+      document.getElementById("unsavedChangesModal")?.classList.add("active");
+      return false;
+    }
+
+    function initializeUnsavedProtection() {
+      Object.keys(dirtyScopeForms).forEach(setDirtyBaseline);
+      document.addEventListener("input", event => {
+        const scope = dirtyScopeForForm(event.target.closest("form"));
+        if (scope && !dirtyGuardBypass && !["dietStudent", "dietMonth", "workoutStudent", "statsStudent", "measureStudent"].includes(event.target.id)) markDirty(scope);
+      }, true);
+      document.addEventListener("change", event => {
+        const scope = dirtyScopeForForm(event.target.closest("form"));
+        if (scope && !dirtyGuardBypass && !["dietStudent", "dietMonth", "workoutStudent", "statsStudent", "measureStudent"].includes(event.target.id)) markDirty(scope);
+      }, true);
+      ["dietStudent", "dietMonth", "workoutStudent", "statsStudent", "measureStudent"].forEach(id => {
+        const select = document.getElementById(id);
+        const scope = { dietStudent: "diet", dietMonth: "diet", workoutStudent: "workout", statsStudent: "measures", measureStudent: "measures" }[id];
+        const rememberCommittedValue = () => {
+          if (!dirtyScopes.get(scope)?.dirty || !select.dataset.committedValue) select.dataset.committedValue = select.value;
+        };
+        select?.addEventListener("focusin", rememberCommittedValue, true);
+        select?.addEventListener("pointerdown", rememberCommittedValue, true);
+      });
+      document.addEventListener("change", event => {
+        const scopeById = { dietStudent: "diet", dietMonth: "diet", workoutStudent: "workout", statsStudent: "measures", measureStudent: "measures" };
+        const scope = scopeById[event.target.id];
+        if (!scope || dirtyGuardBypass) return;
+        const nextValue = event.target.value;
+        const previousValue = event.target.dataset.committedValue ?? "";
+        if (!dirtyScopes.get(scope)?.dirty) {
+          event.target.dataset.committedValue = nextValue;
+          return;
+        }
+        event.preventDefault();
+        event.stopImmediatePropagation();
+        event.target.value = previousValue;
+        event.target.dataset.committedValue = previousValue;
+        requestAnimationFrame(() => {
+          if (!dirtyGuardBypass && dirtyScopes.get(scope)?.dirty) {
+            event.target.value = previousValue;
+            event.target.dataset.committedValue = previousValue;
+          }
+        });
+        requestDirtyAction(() => {
+          clearDirty(scope, { restore: true });
+          event.target.value = nextValue;
+          event.target.dataset.committedValue = nextValue;
+          dirtyGuardBypass = true;
+          event.target.dispatchEvent(new Event("change", { bubbles: true }));
+          dirtyGuardBypass = false;
+        }, scope);
+      }, true);
+      document.addEventListener("click", event => {
+        const languageButton = event.target.closest(".language-button");
+        const scope = activeDirtyScope();
+        if (!languageButton || !scope || dirtyGuardBypass) return;
+        event.preventDefault();
+        event.stopImmediatePropagation();
+        requestDirtyAction(() => {
+          clearDirty(scope, { restore: true });
+          dirtyGuardBypass = true;
+          languageButton.click();
+          dirtyGuardBypass = false;
+        }, scope);
+      }, true);
+      window.addEventListener("beforeunload", event => {
+        if (!activeDirtyScope()) return;
+        event.preventDefault();
+        event.returnValue = "";
+      });
+      document.getElementById("continueEditingButton")?.addEventListener("click", closeUnsavedChangesModal);
+      document.getElementById("discardChangesButton")?.addEventListener("click", () => {
+        const pending = pendingDirtyAction;
+        if (!pending) return closeUnsavedChangesModal();
+        clearDirty(pending.scope, { restore: true });
+        document.getElementById("unsavedChangesModal")?.classList.remove("active");
+        pendingDirtyAction = null;
+        pending.action?.();
+      });
     }
 
     function escapeHTML(value) {
@@ -10432,6 +11064,33 @@
       return target === selfWorkoutTarget ? "" : target;
     }
 
+    function selectedMeasureTargetId() {
+      const user = currentAccount();
+      if (!user) return "";
+      if (user.role !== "personal") return user.id;
+      const target = document.getElementById("measureStudent")?.value || "";
+      if (target === selfWorkoutTarget) return user.id;
+      return target && isLinkedStudentForPersonal(target, user) ? target : "";
+    }
+
+    function renderMeasureStudentSelect() {
+      const field = document.getElementById("measureStudentField");
+      const select = document.getElementById("measureStudent");
+      const user = currentAccount();
+      if (!field || !select) return;
+      field.hidden = user?.role !== "personal";
+      if (!user || user.role !== "personal") {
+        select.innerHTML = "";
+        return;
+      }
+      const students = studentsForPersonal(user.id);
+      const targetTouched = localStorage.getItem("monolith.measureTargetTouched") === "true";
+      const previousTarget = select.value || localStorage.getItem("monolith.selectedMeasureTargetId") || (!targetTouched ? selectedStudentForPersonal() : "");
+      select.innerHTML = `<option value="">${escapeHTML(t("Selecionar aluno"))}</option><option value="${selfWorkoutTarget}">${escapeHTML(t("Meu próprio perfil"))}</option>` + students.map(student => `<option value="${escapeHTML(student.id)}">${escapeHTML(student.name)} - ${escapeHTML(student.email)}</option>`).join("");
+      if (previousTarget === selfWorkoutTarget || students.some(student => student.id === previousTarget)) select.value = previousTarget;
+      else select.value = "";
+    }
+
     function setSelectedWorkoutTarget(target) {
       const user = currentAccount();
       if (!user || user.role !== "personal") return;
@@ -10469,6 +11128,7 @@
       else select.value = "";
       if (select.value) setSelectedWorkoutTarget(select.value);
       else localStorage.removeItem("monolith.selectedWorkoutStudentId");
+      updateNumericSubmitStates();
     }
 
     async function renderCheckinStudentSelect() {
@@ -10488,6 +11148,7 @@
       else select.value = "";
       if (select.value) setSelectedCheckinStudentForPersonal(select.value);
       updateCheckinSelectionState();
+      updateNumericSubmitStates();
     }
 
     function updateCheckinSelectionState() {
@@ -10528,12 +11189,22 @@
     async function openWorkoutModal() {
       await renderWorkoutStudentSelect();
       workoutModal.classList.add("active");
+      updateNumericSubmitStates();
+      requestAnimationFrame(() => {
+        if (!dirtyScopes.get("workout")?.dirty) setDirtyBaseline("workout");
+      });
       workoutName.focus();
     }
 
-    function closeWorkoutModal() {
+    function closeWorkoutModal(options = {}) {
+      if (!options.skipDirtyGuard && dirtyScopes.get("workout")?.dirty) {
+        requestDirtyAction(() => closeWorkoutModal({ skipDirtyGuard: true }), "workout");
+        return;
+      }
       workoutModal.classList.remove("active");
       workoutForm.reset();
+      window.monolithResetWorkoutBuilder?.();
+      clearDirty("workout");
     }
 
     function createWorkoutCard(name, goal, exercises, shouldSave = true) {
@@ -10544,8 +11215,8 @@
       article.className = "workout";
       article.innerHTML = `
         <div>
-          <h3>${safeName}</h3>
-          <p>${safeGoal}</p>
+          <h3 data-no-i18n="true">${safeName}</h3>
+          <p data-no-i18n="true">${safeGoal}</p>
           <div class="pill-row">
             <span class="pill">${items.length || 1} exercícios</span>
             <span class="pill">Novo</span>
@@ -10571,8 +11242,8 @@
       const ring = document.querySelector(".score-ring");
       score.textContent = `${percentage}%`;
       ring.style.setProperty("--score-angle", `${Math.max(0, Math.min(100, percentage)) * 3.6}deg`);
-      ring.setAttribute("aria-label", `Seu score pessoal hoje ${percentage}%`);
-      document.querySelector(".score-ring span").textContent = "Seu score pessoal hoje";
+      ring.setAttribute("aria-label", `${t("Seu score pessoal hoje")} ${percentage}%`);
+      document.querySelector(".score-ring span").textContent = t("Seu score pessoal hoje");
     }
 
     function todayKey(date = new Date()) {
@@ -10624,7 +11295,7 @@
       return {
         date: todayKey(),
         studentId: targetStudentId || currentAccount()?.id || "",
-        label: new Intl.DateTimeFormat("pt-BR", { dateStyle: "short" }).format(new Date()),
+        label: localDateLabel(todayKey()),
         savedAt: new Date().toISOString(),
         weight: weight ?? "",
         completed,
@@ -10716,7 +11387,7 @@
       }
       if (training) {
         training.innerHTML = report.completedWorkouts.slice(0, 8).map(session => `
-          <div class="report-line"><strong>${escapeHTML(session.date || session.completedAt || "-")}</strong>: ${escapeHTML(t(session.workoutName || "Treino"))} · ${escapeHTML(String(session.completedSets || 0))}/${escapeHTML(String(session.totalSets || 0))} ${escapeHTML(t("séries"))}</div>
+          <div class="report-line"><strong>${escapeHTML(session.date || session.completedAt || "-")}</strong>: <span data-no-i18n="true">${escapeHTML(session.workoutName || t("Treino"))}</span> · ${escapeHTML(String(session.completedSets || 0))}/${escapeHTML(String(session.totalSets || 0))} ${escapeHTML(t("séries"))}</div>
         `).join("") || `<div class="report-line">${escapeHTML(t("Sem treinos concluídos salvos."))}</div>`;
       }
       if (reportSummary) {
@@ -10812,7 +11483,9 @@
       const user = currentAccount();
       const canMeasureSelf = user?.role === "student" || user?.role === "personal";
       if (measureForm) measureForm.hidden = !canMeasureSelf;
-      const entries = canMeasureSelf ? loadBodyMeasures(user.id) : [];
+      renderMeasureStudentSelect();
+      const measureTargetId = selectedMeasureTargetId();
+      const entries = canMeasureSelf && measureTargetId ? loadBodyMeasures(measureTargetId) : [];
       const latest = entries[0];
       const setText = (id, value) => {
         const target = document.getElementById(id);
@@ -10847,7 +11520,7 @@
             ["Gordura", entry.bodyFat, "%"],
             ...bodyMeasureFields.map(field => [field.label, entry[field.key], field.unit])
           ].filter(([, value]) => value !== null && value !== undefined && value !== "").map(([label, value, unit]) => `<span>${escapeHTML(t(label))}: ${unit === "weight" ? formatWeight(value) : `${value}${unit ? ` ${unit}` : ""}`}</span>`).join("");
-          return `<article class="measure-entry"><header><strong>${escapeHTML(entry.date)}</strong><span>${escapeHTML(entry.notes || "")}</span></header><div class="measure-tags">${tags}</div></article>`;
+          return `<article class="measure-entry"><header><strong>${escapeHTML(entry.date)}</strong><span data-no-i18n="true">${escapeHTML(entry.notes || "")}</span></header><div class="measure-tags">${tags}</div></article>`;
         }).join("") || `<div class="report-line">${t("Nenhum registro físico salvo ainda.")}</div>`;
       }
     }
@@ -10856,7 +11529,7 @@
       const date = document.getElementById("measureDate").value || todayKey();
       const entry = {
         id: `measure-${date}`,
-        studentId: currentAccount()?.id || "",
+        studentId: selectedMeasureTargetId(),
         date,
         weight: parseWeightInput(document.getElementById("measureWeight").value),
         bodyFat: parseMeasureValue(document.getElementById("measureBodyFat").value),
@@ -10908,7 +11581,7 @@
         const percent = Math.round((completed / Math.max(1, total)) * 100);
         const bar = document.createElement("div");
         bar.className = "bar";
-        bar.innerHTML = `<span><b>${escapeHTML(t(factor.name))}</b><b>${completed}/${total} dias</b></span><div class="track"><div class="fill" style="width: ${percent}%"></div></div>`;
+        bar.innerHTML = `<span><b>${escapeHTML(t(factor.name))}</b><b>${completed}/${total} ${escapeHTML(t("dias"))}</b></span><div class="track"><div class="fill" style="width: ${percent}%"></div></div>`;
         container.appendChild(bar);
       });
       if (!reportFactors.length) container.innerHTML = `<div class="report-line">${escapeHTML(t("Adicione itens no check-in diário para começar a medir a frequência."))}</div>`;
@@ -11489,8 +12162,8 @@ ${photoSections}
         <div class="student-context-main" data-no-i18n="true">
           <div class="student-avatar">${escapeHTML(studentInitials(student.name).toUpperCase())}</div>
           <div>
-            <h3>${escapeHTML(student.name)}</h3>
-            <p>${escapeHTML(student.email)} · ${escapeHTML(student.plan || t("Aluno"))}</p>
+            <h3 data-no-i18n="true">${escapeHTML(student.name)}</h3>
+            <p><span data-no-i18n="true">${escapeHTML(student.email)}</span> · ${escapeHTML(t(student.plan || "Aluno"))}</p>
           </div>
         </div>
         <div class="pill-row">
@@ -11545,23 +12218,28 @@ ${photoSections}
       showToast(`${t("Exportação")} ${config[0]} ${t("criada.")}`);
     }
 
-    const today = new Intl.DateTimeFormat("pt-BR", {
-      weekday: "long",
-      day: "2-digit",
-      month: "long",
-      year: "numeric"
-    }).format(new Date());
-    document.getElementById("today").textContent = today;
+    function updateTodayLabel(language = localStorage.getItem("monolith.language") || "pt") {
+      const target = document.getElementById("today");
+      if (!target) return;
+      target.textContent = new Intl.DateTimeFormat(currentLocale(language), {
+        weekday: "long",
+        day: "2-digit",
+        month: "long",
+        year: "numeric"
+      }).format(new Date());
+    }
+    updateTodayLabel();
 
     function makeHabit(factor, removable = true) {
       const row = document.createElement("div");
       row.className = "habit";
       row.dataset.factorId = factor.id;
+      const translatedName = t(factor.name);
       row.innerHTML = `
-        <span>${escapeHTML(t(factor.name))}</span>
-        <button class="toggle yes ${factor.active ? "active" : ""}" aria-label="${escapeHTML(factor.name)} sim">✓</button>
-        <button class="toggle no ${factor.active ? "" : "active"}" aria-label="${escapeHTML(factor.name)} não">×</button>
-        ${removable ? `<button class="remove-factor" type="button" aria-label="Remover ${escapeHTML(factor.name)}" title="${escapeHTML(t("Remover"))}">×</button>` : ""}
+        <span>${escapeHTML(translatedName)}</span>
+        <button class="toggle yes ${factor.active ? "active" : ""}" aria-label="${escapeHTML(`${translatedName} ${t("sim")}`)}">✓</button>
+        <button class="toggle no ${factor.active ? "" : "active"}" aria-label="${escapeHTML(`${translatedName} ${t("não")}`)}">×</button>
+        ${removable ? `<button class="remove-factor" type="button" aria-label="${escapeHTML(localizedMessage("Remover {name}", { name: translatedName }))}" title="${escapeHTML(t("Remover"))}">×</button>` : ""}
       `;
       return row;
     }
@@ -11650,6 +12328,7 @@ ${photoSections}
       else select.value = "";
       if (select.value) setSelectedStudentForPersonal(select.value);
       renderStudentContextHeader();
+      updateNumericSubmitStates();
     }
 
     renderFactors();
@@ -11665,8 +12344,6 @@ ${photoSections}
       const button = event.target.closest(".language-button");
       if (!button) return;
       applyLanguage(button.dataset.lang);
-      renderFactors();
-      renderStats();
       renderBodyMeasures();
       renderPhotoVault();
       renderNutrition();
@@ -11677,6 +12354,7 @@ ${photoSections}
     document.querySelectorAll(".auth-tab").forEach(button => {
       button.addEventListener("click", () => {
         const mode = button.dataset.authTab;
+        clearAuthFormNotices();
         document.getElementById("authStack").dataset.authMode = mode;
         document.querySelectorAll(".auth-tab").forEach(tab => tab.classList.toggle("active", tab === button));
       });
@@ -11710,6 +12388,7 @@ ${photoSections}
         carbs: "",
         fat: ""
       });
+      markDirty("diet");
       showToast("Modelo de dieta aplicado.");
     });
     document.getElementById("copyPreviousDietButton")?.addEventListener("click", copyPreviousDietMonth);
@@ -11770,6 +12449,8 @@ ${photoSections}
         renderNutrition();
         return;
       }
+      const studentName = accountNameForTarget(plan.studentId);
+      if (!window.confirm(localizedMessage("Confirmar dieta para {name} · {month}?", { name: studentName, month: localizedMonthLabel(plan.month) }))) return;
       const plans = loadDietPlans();
       if (plans[plan.id]) rememberDietPlanVersion(plans[plan.id], "save");
       plans[plan.id] = plan;
@@ -11784,6 +12465,7 @@ ${photoSections}
         showToast("Dieta salva localmente. Não consegui sincronizar agora.");
       }
       renderDietPlan("dietPreview", plan);
+      setDirtyBaseline("diet");
       authMessage(synced ? "Dieta do aluno salva no Supabase." : "Dieta salva localmente. Não consegui sincronizar agora.");
     });
     document.getElementById("foodMealCount")?.addEventListener("change", renderFoodLogMeals);
@@ -11814,6 +12496,7 @@ ${photoSections}
         showToast("Diário alimentar salvo localmente. Não consegui sincronizar agora.");
       }
       renderFoodLogSummary();
+      setDirtyBaseline("diet");
       authMessage("Diário alimentar salvo.");
     });
     async function submitLogin() {
@@ -12053,13 +12736,29 @@ ${photoSections}
       if (!event.target.value) {
         clearSelectedStudentScope();
         renderStats();
+        renderBodyMeasures();
         renderTrainerSummary();
         renderStudentContextHeader();
         return;
       }
       setSelectedStudentForPersonal(event.target.value);
       renderStats();
+      renderBodyMeasures();
       renderTrainerSummary();
+    });
+    document.getElementById("measureStudent")?.addEventListener("change", event => {
+      const user = currentAccount();
+      const target = event.target.value;
+      if (user?.role !== "personal" || (target && target !== selfWorkoutTarget && !isLinkedStudentForPersonal(target, user))) {
+        renderMeasureStudentSelect();
+        return;
+      }
+      localStorage.setItem("monolith.measureTargetTouched", "true");
+      if (target) localStorage.setItem("monolith.selectedMeasureTargetId", target);
+      else localStorage.removeItem("monolith.selectedMeasureTargetId");
+      if (target && target !== selfWorkoutTarget) setSelectedStudentForPersonal(target);
+      renderBodyMeasures();
+      updateNumericSubmitStates();
     });
     document.getElementById("trainerProfileForm")?.addEventListener("submit", async event => {
       event.preventDefault();
@@ -12078,6 +12777,7 @@ ${photoSections}
         window.monolithTrainerProfileRequired = false;
         showToast("Perfil profissional salvo.");
         authMessage("Perfil profissional salvo.");
+        setDirtyBaseline("trainerProfile");
         applyAuthState();
         const nextScreen = trainerProfileReturnScreen || "clients";
         trainerProfileReturnScreen = "clients";
@@ -12215,6 +12915,12 @@ ${photoSections}
     }
 
     function showScreen(id, options = {}) {
+      const activeScreen = document.querySelector(".screen.active")?.id;
+      const dirtyScope = activeDirtyScope();
+      if (!options.skipDirtyGuard && dirtyScope && (id !== activeScreen || dirtyScope === "workout")) {
+        requestDirtyAction(() => showScreen(id, { ...options, skipDirtyGuard: true }), dirtyScope);
+        return false;
+      }
       if (trainerProfileOnboardingRequired && id !== "trainerProfileOnboarding") id = "trainerProfileOnboarding";
       const requestedId = id;
       let statsSection = options.section || "";
@@ -12264,6 +12970,7 @@ ${photoSections}
       }
       updateNumericSubmitStates();
       if (id !== "stats") window.scrollTo({ top: 0, behavior: "smooth" });
+      return true;
     }
 
     document.querySelectorAll("[data-screen]").forEach(nav => {
@@ -12402,8 +13109,7 @@ ${photoSections}
     });
 
     document.addEventListener("change", event => {
-      if (!numericRuleForInput(event.target)) return;
-      validateNumericField(event.target, { sanitize: true });
+      if (numericRuleForInput(event.target)) validateNumericField(event.target, { sanitize: true });
       updateNumericSubmitStates();
     });
 
@@ -12459,6 +13165,10 @@ ${photoSections}
         showToast("Escolha um aluno para salvar o check-in.");
         return;
       }
+      if (!window.confirm(localizedMessage("Confirmar check-in de {name} · {date}?", {
+        name: accountNameForTarget(entry.studentId),
+        date: localDateLabel(entry.date)
+      }))) return;
       const synced = await upsertTodayCheckin(entry);
       document.getElementById("dailyWeight").value = "";
       showToast(`${t("Check-in salvo")}: ${entry.completed}/${entry.total} ${t("itens concluídos.")} ${synced ? t("Supabase sincronizado.") : t("Salvo localmente.")}`);
@@ -12518,8 +13228,17 @@ ${photoSections}
         showToast("Preencha pelo menos uma medida física.");
         return;
       }
+      if (!entry.studentId || !canAccessStudentData(entry.studentId, { allowPersonalSelf: true })) {
+        showToast("Destino das medidas inválido.");
+        return;
+      }
+      if (!window.confirm(localizedMessage("Confirmar medidas de {name} · {date}?", {
+        name: accountNameForTarget(entry.studentId),
+        date: localDateLabel(entry.date)
+      }))) return;
       const synced = await upsertBodyMeasure(entry);
       clearBodyMeasureForm();
+      setDirtyBaseline("measures");
       showToast(synced ? "Medidas corporais salvas no Supabase." : "Medidas corporais salvas.");
     });
     document.getElementById("clearHistoryButton").addEventListener("click", () => {
@@ -12588,13 +13307,7 @@ ${photoSections}
     workoutModal.addEventListener("click", event => {
       if (event.target === workoutModal) closeWorkoutModal();
     });
-    workoutForm.addEventListener("submit", event => {
-      event.preventDefault();
-      createWorkoutCard(workoutName.value.trim(), workoutGoal.value.trim(), workoutExercises.value.trim());
-      closeWorkoutModal();
-      showScreen("workouts");
-      showToast("Treino criado na biblioteca.");
-    });
+    initializeUnsavedProtection();
   </script>
   <script>
     (() => {
@@ -13444,7 +14157,7 @@ ${photoSections}
           renderCsvPreview("workoutCsvPreview", previewRows);
           const blocked = blockedCsvRows(previewRows);
           if (blocked.length) {
-            setWorkoutCsvStatusV2(`${blocked.length} ${textV2("linha(s) precisam de correção antes de importar.")}`, true);
+            setWorkoutCsvStatusV2(quantityLabel(blocked.length, "linha precisa de correção antes de importar.", "linhas precisam de correção antes de importar."), true);
             return;
           }
           if (!await confirmCsvImport(textV2("treinos"), previewRows)) {
@@ -13582,14 +14295,14 @@ ${photoSections}
           activeWorkoutV2 = workoutsForCurrentUserV2()[0] || null;
           renderSessionV2(activeWorkoutV2);
         }
-        if (window.confirm(`${textV2(workout.name)} ${textV2("excluído.")}\n${textV2("Desfazer?")}`)) {
+        if (window.confirm(`${workout.name} ${textV2("excluído.")}\n${textV2("Desfazer?")}`)) {
           workoutsV2 = previousWorkouts;
           saveWorkoutsV2(workoutsV2.filter(item => !item.id.startsWith("library-")));
           renderWorkoutListV2();
           toastV2(textV2("Exclusão desfeita."));
         } else {
           if (workout.source === "supabase") await deleteRemoteWorkoutV2(id);
-          toastV2(`${textV2(workout.name)} ${textV2("excluído.")}`);
+          toastV2(`${workout.name} ${textV2("excluído.")}`);
         }
       }
 
@@ -13656,13 +14369,13 @@ ${photoSections}
           card.className = "workout";
           card.innerHTML = `
             <div>
-              <h3>${htmlT(workout.name)}</h3>
-              <p>${htmlT(workout.goal)}</p>
+              <h3 data-no-i18n="true">${html(workout.name)}</h3>
+              <p data-no-i18n="true">${html(workout.goal)}</p>
               <div class="pill-row">
                 <span class="pill">${html(quantityLabel(workout.exercises.length, "exercício", "exercícios"))}</span>
                 <span class="pill">${html(quantityLabel(totalSets, "série", "séries"))}</span>
                 ${assignedStudent ? `<span class="pill">${htmlT("Aluno")}: ${html(assignedStudent.name)}</span>` : ""}
-                <span class="pill">${htmlT(workout.tag || "Local")}</span>
+                <span class="pill">${html(["Local", "Importado", "Supabase", "CSV"].includes(workout.tag) ? textV2(workout.tag) : workout.tag || textV2("Local"))}</span>
                 ${workout.syncStatus === "failed" && workout.assignedStudentId ? `<span class="pill">${htmlT("Não enviado ao aluno")}</span>` : ""}
               </div>
             </div>
@@ -13782,6 +14495,8 @@ ${photoSections}
         addExerciseEditorV2();
       }
 
+      window.monolithResetWorkoutBuilder = resetBuilderV2;
+
       function readWorkoutV2() {
         const exercises = [...builder.querySelectorAll(".exercise-editor")].map((editor, index) => {
           const name = editor.querySelector(".exercise-name").value.trim() || `Exercício ${index + 1}`;
@@ -13864,7 +14579,7 @@ ${photoSections}
           return;
         }
         activeWorkoutV2 = workout;
-        document.getElementById("sessionTitle").textContent = textV2(workout.name);
+        document.getElementById("sessionTitle").textContent = workout.name;
         document.getElementById("sessionMeta").textContent = quantityLabel(workout.exercises.length, "exercício no treino", "exercícios no treino");
         const container = document.getElementById("sessionExercises");
         container.innerHTML = "";
@@ -13877,7 +14592,7 @@ ${photoSections}
             <div class="session-exercise-head">
               <div>
                 <div class="kicker">${htmlT("Exercício")} ${exerciseIndex + 1}</div>
-                <h3>${htmlT(exercise.name)}</h3>
+                <h3 data-no-i18n="true">${html(exercise.name)}</h3>
               </div>
               <div class="pill-row">
                 <button class="ghost add-session-set-v2" type="button" data-exercise-index="${exerciseIndex}">${htmlT("Adicionar série")}</button>
@@ -13943,7 +14658,7 @@ ${photoSections}
         const lastSetRow = setRows[setRows.length - 1];
         if (lastSetRow) startRestTimerV2(lastSetRow);
         updateSessionProgressV2();
-        toastV2(`${textV2(activeWorkoutV2.exercises[index].name)} ${textV2("concluído. Descanso entre exercícios iniciado.")}`);
+        toastV2(`${activeWorkoutV2.exercises[index].name} ${textV2("concluído. Descanso entre exercícios iniciado.")}`);
       }
 
       function readCompletedSessionV2() {
@@ -13972,7 +14687,7 @@ ${photoSections}
           workoutId: activeWorkoutV2.id,
           workoutName: activeWorkoutV2.name,
           completedAt: new Date().toISOString(),
-          date: new Intl.DateTimeFormat("pt-BR", { dateStyle: "medium", timeStyle: "short" }).format(new Date()),
+          date: localDateTimeLabel(new Date()),
           completedExercises: exercises.filter(exercise => exercise.done).length,
           totalExercises: exercises.length,
           completedSets,
@@ -14019,12 +14734,22 @@ ${photoSections}
           toastV2(textV2("Corrija os campos numéricos antes de salvar."));
           return;
         }
+        const user = currentAccount();
+        const target = user?.role === "personal" ? selectedWorkoutTarget() : user?.id || "";
+        if (!target) {
+          toastV2(textV2("Selecione um aluno ou seu próprio perfil antes de criar."));
+          updateNumericSubmitStates();
+          return;
+        }
+        const targetName = target === selfWorkoutTarget ? user?.name || "" : accountNameForTarget(target);
+        if (!window.confirm(localizedMessage("Confirmar treino para {name}?", { name: targetName }))) return;
         const draftWorkout = readWorkoutV2();
         const workout = await saveCustomWorkoutV2(draftWorkout);
         if (workout.assignedStudentId && currentAccount()?.role === "personal") {
           setSelectedStudentForPersonal(workout.assignedStudentId);
         }
         await refreshWorkoutsV2();
+        setDirtyBaseline("workout");
         document.getElementById("workoutModal").classList.remove("active");
         formV2.reset();
         resetBuilderV2();
@@ -14052,7 +14777,22 @@ ${photoSections}
       });
 
       document.getElementById("finishExercise").addEventListener("click", finishWorkoutV2, true);
-      document.getElementById("addExerciseButton").addEventListener("click", () => addExerciseEditorV2());
+      document.getElementById("addExerciseButton").addEventListener("click", () => {
+        addExerciseEditorV2();
+        markDirty("workout");
+      });
+
+      function editorSetHasUserData(row) {
+        const weight = row.querySelector(".set-weight")?.value.trim() || "";
+        const reps = row.querySelector(".set-reps")?.value.trim() || "";
+        const type = row.querySelector(".set-type")?.value || "Normal";
+        const rest = row.querySelector(".set-rest")?.value.trim() || "90";
+        return Boolean(weight || reps || type !== "Normal" || rest !== "90");
+      }
+
+      function sessionSetHasUserData(set = {}) {
+        return Boolean(set.weight !== "" || set.reps !== "" || (set.type || "Normal") !== "Normal" || String(set.rest || "90") !== "90" || set.done);
+      }
 
       document.addEventListener("click", async event => {
         const open = event.target.closest(".open-workout-session-v2");
@@ -14084,16 +14824,21 @@ ${photoSections}
         }
 
         const addSet = event.target.closest(".add-set-v2");
-        if (addSet) addSetEditorV2(addSet.closest(".exercise-editor"));
+        if (addSet) {
+          addSetEditorV2(addSet.closest(".exercise-editor"));
+          markDirty("workout");
+        }
 
         const applyPreset = event.target.closest(".apply-set-preset-v2");
         if (applyPreset) {
           applyPresetToEditorV2(applyPreset.closest(".exercise-editor"), applyPreset.dataset.preset);
+          markDirty("workout");
         }
 
         const addExercisePreset = event.target.closest(".add-exercise-preset-v2");
         if (addExercisePreset) {
           addExerciseEditorV2({ sets: presetSetsV2(addExercisePreset.dataset.preset) });
+          markDirty("workout");
           builder.lastElementChild?.scrollIntoView({ behavior: "smooth", block: "center" });
         }
 
@@ -14109,17 +14854,18 @@ ${photoSections}
         if (removeSet) {
           const editor = removeSet.closest(".exercise-editor");
           const row = removeSet.closest(".set-row");
-          const exerciseName = editor.querySelector(".exercise-name")?.value.trim() || textV2("exercício");
-          const hasData = [...row.querySelectorAll("input, select")].some(input => String(input.value || "").trim());
-          const setNumber = [...editor.querySelectorAll(".set-row")].indexOf(row) + 1;
-          if (hasData && !window.confirm(`${textV2("Excluir série?")}\n${textV2("Série")} ${setNumber} - ${exerciseName}`)) return;
-          const previousHTML = row.outerHTML;
+          const hasData = editorSetHasUserData(row);
+          if (hasData && !window.confirm(textV2("Remover esta série?"))) return;
+          const nextRow = row.nextElementSibling;
+          const rows = editor.querySelector(".sets-editor");
           row.remove();
           refreshEditorIndexes(editor);
-          if (hasData && window.confirm(`${textV2("Série removida.")}\n${textV2("Desfazer?")}`)) {
-            editor.querySelector(".sets-editor").insertAdjacentHTML("beforeend", previousHTML);
+          markDirty("workout");
+          showUndoToast("Série removida.", () => {
+            rows.insertBefore(row, nextRow?.parentElement === rows ? nextRow : null);
             refreshEditorIndexes(editor);
-          }
+            markDirty("workout");
+          });
         }
 
         const removeExercise = event.target.closest(".remove-exercise-v2");
@@ -14130,6 +14876,7 @@ ${photoSections}
           if (hasData && !window.confirm(`${textV2("Excluir exercício?")}\n${exerciseName}`)) return;
           const previousHTML = editor.outerHTML;
           editor.remove();
+          markDirty("workout");
           if (hasData && window.confirm(`${textV2("Exercício removido.")}\n${textV2("Desfazer?")}`)) {
             builder.insertAdjacentHTML("beforeend", previousHTML);
           }
@@ -14143,20 +14890,26 @@ ${photoSections}
           const previousRest = exercise.sets[exercise.sets.length - 1]?.rest || "90";
           exercise.sets.push({ weight: "", reps: "", type: "Normal", rest: previousRest });
           renderSessionV2(activeWorkoutV2);
-          toastV2(`${textV2("Nova série adicionada em")} ${textV2(exercise.name)}.`);
+          toastV2(`${textV2("Nova série adicionada em")} ${exercise.name}.`);
         }
 
         const removeSessionSet = event.target.closest(".remove-session-set-v2");
         if (removeSessionSet) {
           const exerciseIndex = Number(removeSessionSet.dataset.exerciseIndex);
           const setIndex = Number(removeSessionSet.dataset.setIndex);
-          if (!window.confirm(textV2("Remover esta série?"))) return;
           syncActiveWorkoutFromSessionV2();
           const exercise = activeWorkoutV2.exercises[exerciseIndex];
           if (!exercise?.sets?.[setIndex]) return;
+          const removedSet = { ...exercise.sets[setIndex] };
+          if (sessionSetHasUserData(removedSet) && !window.confirm(textV2("Remover esta série?"))) return;
           exercise.sets.splice(setIndex, 1);
           renderSessionV2(activeWorkoutV2);
-          toastV2(textV2("Série removida."));
+          showUndoToast("Série removida.", () => {
+            const targetExercise = activeWorkoutV2?.exercises?.[exerciseIndex];
+            if (!targetExercise) return;
+            targetExercise.sets.splice(Math.min(setIndex, targetExercise.sets.length), 0, removedSet);
+            renderSessionV2(activeWorkoutV2);
+          });
         }
 
         const restPreset = event.target.closest(".rest-preset-v2");

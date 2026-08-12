@@ -1,4 +1,4 @@
-const CACHE_NAME = "monolith-v78-report-cycle-anamnesis";
+const CACHE_NAME = "monolith-v79-stability-i18n";
 
 self.addEventListener("install", event => {
   self.skipWaiting();
