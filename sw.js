@@ -1,4 +1,4 @@
-const CACHE_NAME = "monolith-v79-stability-i18n";
+const CACHE_NAME = "monolith-v80-navigation-numbers";
 
 self.addEventListener("install", event => {
   self.skipWaiting();

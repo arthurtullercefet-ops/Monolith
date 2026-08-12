@@ -14,8 +14,8 @@
   <link rel="manifest" href="manifest.webmanifest" />
   <link rel="icon" href="monolith-icon.svg" />
   <script>
-    window.MONOLITH_BUILD = "monolith-v79-stability-i18n";
-    window.MONOLITH_VERSION_LABEL = "Monolith v79 · 11/08/2026";
+    window.MONOLITH_BUILD = "monolith-v80-navigation-numbers";
+    window.MONOLITH_VERSION_LABEL = "Monolith v80 · 11/08/2026";
     (function clearOldAppCaches() {
       if ("serviceWorker" in navigator) {
         navigator.serviceWorker.getRegistrations?.()
@@ -147,6 +147,7 @@
       --muted: #a7a7a7;
       --gold: #c9a227;
       --green: #58c77a;
+      --orange: #e8a23a;
       --red: #e05050;
       --blue: #8ab4ff;
       --radius-card: 14px;
@@ -790,8 +791,35 @@
     }
 
     .settings-actions .danger {
-      border-color: rgba(255, 78, 78, .45);
-      color: #ff8b8b;
+      border-color: rgba(224, 80, 80, .48);
+      background: rgba(224, 80, 80, .06);
+      color: #ff9b96;
+    }
+
+    #deleteDietButton,
+    .delete-workout-v2,
+    .remove-exercise-v2,
+    .remove-set-v2,
+    .remove-session-set-v2 {
+      border-color: rgba(224, 80, 80, .34);
+      color: #ff9b96;
+    }
+
+    .settings-actions .danger:hover,
+    #deleteDietButton:hover,
+    .delete-workout-v2:hover,
+    .remove-exercise-v2:hover,
+    .remove-set-v2:hover,
+    .remove-session-set-v2:hover {
+      border-color: rgba(224, 80, 80, .72);
+      background: rgba(224, 80, 80, .1);
+      color: #ffaaa5;
+    }
+
+    #archiveDietButton:hover {
+      border-color: rgba(232, 162, 58, .72);
+      background: rgba(232, 162, 58, .09);
+      color: #ffc36c;
     }
 
     .profile-password-form .action {
@@ -1115,6 +1143,7 @@
 
     .attention-item {
       border: 1px solid var(--line);
+      border-left: 3px solid var(--orange);
       padding: 10px;
       display: flex;
       justify-content: space-between;
@@ -1132,6 +1161,39 @@
     .attention-item span {
       color: var(--muted);
       font-size: 13px;
+    }
+
+    .dashboard-empty-state {
+      min-height: 116px;
+      border: 1px dashed rgba(255, 255, 255, .12);
+      background: rgba(255, 255, 255, .018);
+      border-radius: var(--radius-card);
+      padding: 18px;
+      display: flex;
+      align-items: center;
+      gap: 13px;
+      color: var(--muted);
+    }
+
+    .dashboard-empty-state svg {
+      width: 22px;
+      height: 22px;
+      flex: 0 0 22px;
+      color: var(--green);
+    }
+
+    .dashboard-empty-state.attention svg {
+      color: var(--orange);
+    }
+
+    .dashboard-empty-state p {
+      margin: 0;
+      line-height: 1.45;
+    }
+
+    .dashboard-empty-state .ghost {
+      margin-left: auto;
+      flex: 0 0 auto;
     }
 
     .panel {
@@ -2435,6 +2497,41 @@
       line-height: 1.35;
     }
 
+    .numeric-input-shell {
+      position: relative;
+      width: 100%;
+      min-width: 0;
+    }
+
+    .numeric-input-shell input {
+      width: 100%;
+      padding-right: 42px !important;
+    }
+
+    .numeric-unit-label {
+      position: absolute;
+      top: 50%;
+      right: 10px;
+      transform: translateY(-50%);
+      color: var(--muted);
+      font-size: 11px;
+      font-weight: 800;
+      line-height: 1;
+      pointer-events: none;
+      text-transform: lowercase;
+    }
+
+    .set-row .numeric-input-shell input,
+    .exercise-table .numeric-input-shell input {
+      padding-right: 28px !important;
+    }
+
+    .set-row .numeric-unit-label,
+    .exercise-table .numeric-unit-label {
+      right: 7px;
+      font-size: 10px;
+    }
+
     .field textarea {
       min-height: 86px;
       resize: vertical;
@@ -2582,7 +2679,7 @@
     }
 
     .save-target.ready {
-      color: var(--gold);
+      color: var(--green);
     }
 
     .unsaved-modal {
@@ -2904,8 +3001,9 @@
       }
 
       .set-row {
-        grid-template-columns: 42px minmax(72px, 1fr) minmax(58px, .75fr);
+        grid-template-columns: minmax(110px, 1.15fr) minmax(84px, .85fr);
         gap: 8px;
+        align-items: start;
         border: 1px solid var(--line);
         background: #0d0d0d;
         padding: 9px;
@@ -2924,11 +3022,20 @@
       }
 
       .set-row .set-type {
-        grid-column: 1 / 3;
+        grid-column: 1 / 2;
       }
 
-      .set-row .set-rest {
-        grid-column: 3 / 4;
+      .set-row .set-rest,
+      .set-row .set-rest-shell {
+        grid-column: 2 / 3;
+      }
+
+      .set-row .set-weight-shell {
+        grid-column: 1 / 2;
+      }
+
+      .set-row .set-reps-shell {
+        grid-column: 2 / 3;
       }
 
       .set-row .remove-set-v2 {
@@ -3388,7 +3495,7 @@
             event.stopImmediatePropagation();
             var sessionId = localStorage.getItem("monolith.sessionUserId");
             var role = sessionId === "personal-demo" ? "personal" : "student";
-            if (typeof window.showScreen === "function") window.showScreen(node.getAttribute("data-screen"), { section: node.getAttribute("data-screen") === "stats" ? "overview" : "" });
+            if (typeof window.showScreen === "function") window.showScreen(node.getAttribute("data-screen"), { section: node.getAttribute("data-screen") === "stats" ? "overview" : "", historyMode: "push" });
             else showFallbackScreen(node.getAttribute("data-screen"), role);
             return;
           }
@@ -3396,7 +3503,7 @@
             event.preventDefault();
             event.stopImmediatePropagation();
             var sessionRole = localStorage.getItem("monolith.sessionUserId") === "personal-demo" ? "personal" : "student";
-            if (typeof window.showScreen === "function") window.showScreen(node.getAttribute("data-screen-jump"));
+            if (typeof window.showScreen === "function") window.showScreen(node.getAttribute("data-screen-jump"), { historyMode: "push" });
             else showFallbackScreen(node.getAttribute("data-screen-jump"), sessionRole);
             return;
           }
@@ -3503,7 +3610,6 @@
             <h2>Início</h2>
             <div class="date" id="today"></div>
           </div>
-          <button class="action" data-screen-jump="workouts">Criar treino</button>
         </div>
 
         <div class="trainer-home" id="personalHomeDashboard" data-role-only="personal" hidden>
@@ -3746,9 +3852,9 @@
               </div>
               <div class="macro-grid">
                 <div class="field"><label for="dietCalories">Calorias</label><input id="dietCalories" inputmode="numeric" placeholder="2400" /></div>
-                <div class="field"><label for="dietProtein">Proteína (g)</label><input id="dietProtein" inputmode="decimal" placeholder="180" /></div>
-                <div class="field"><label for="dietCarbs">Carbo (g)</label><input id="dietCarbs" inputmode="decimal" placeholder="260" /></div>
-                <div class="field"><label for="dietFat">Gordura (g)</label><input id="dietFat" inputmode="decimal" placeholder="70" /></div>
+                <div class="field"><label for="dietProtein">Proteína</label><input id="dietProtein" inputmode="decimal" placeholder="180" /></div>
+                <div class="field"><label for="dietCarbs">Carbo</label><input id="dietCarbs" inputmode="decimal" placeholder="260" /></div>
+                <div class="field"><label for="dietFat">Gordura</label><input id="dietFat" inputmode="decimal" placeholder="70" /></div>
               </div>
               <div class="meal-stack" id="dietMealBuilder"></div>
               <button class="action" id="saveDietPlanButton" type="submit">Salvar dieta do aluno</button>
@@ -3880,7 +3986,7 @@
                 <button class="action" type="button" id="exportWorkoutCsv">Exportar treinos CSV</button>
               </div>
             </div>
-            <div class="report-line" id="workoutCsvStatus">Formato: aluno, treino, objetivo, tag, exercicio, serie, repeticoes, peso, descanso, tipo.</div>
+            <div class="report-line" id="workoutCsvStatus">Formato: aluno, treino, objetivo, tag, exercicio, serie, repeticoes, peso_kg, descanso, tipo.</div>
             <div class="csv-preview" id="workoutCsvPreview" hidden></div>
           </div>
         </details>
@@ -4373,27 +4479,27 @@
                 <input id="measureWeight" inputmode="decimal" placeholder="Ex: 82.4" data-i18n-placeholder="Ex: 82.4" />
               </div>
               <div class="field">
-                <label for="measureBodyFat">Gordura corporal (%)</label>
+                <label for="measureBodyFat">Gordura corporal</label>
                 <input id="measureBodyFat" inputmode="decimal" placeholder="Ex: 14.8" data-i18n-placeholder="Ex: 14.8" />
               </div>
               <div class="field">
-                <label for="measureWaist">Cintura (cm)</label>
+                <label for="measureWaist">Cintura</label>
                 <input id="measureWaist" inputmode="decimal" placeholder="Ex: 82" data-i18n-placeholder="Ex: 82" />
               </div>
               <div class="field">
-                <label for="measureChest">Peito (cm)</label>
+                <label for="measureChest">Peito</label>
                 <input id="measureChest" inputmode="decimal" placeholder="Ex: 106" data-i18n-placeholder="Ex: 106" />
               </div>
               <div class="field">
-                <label for="measureArm">Braço (cm)</label>
+                <label for="measureArm">Braço</label>
                 <input id="measureArm" inputmode="decimal" placeholder="Ex: 39" data-i18n-placeholder="Ex: 39" />
               </div>
               <div class="field">
-                <label for="measureLeg">Perna (cm)</label>
+                <label for="measureLeg">Perna</label>
                 <input id="measureLeg" inputmode="decimal" placeholder="Ex: 61" data-i18n-placeholder="Ex: 61" />
               </div>
               <div class="field">
-                <label for="measureHip">Quadril (cm)</label>
+                <label for="measureHip">Quadril</label>
                 <input id="measureHip" inputmode="decimal" placeholder="Ex: 98" data-i18n-placeholder="Ex: 98" />
               </div>
               <div class="field">
@@ -4554,7 +4660,7 @@
   <script>
     const MONOLITH_SUPABASE_URL = "https://jhxasnxuvmkhntbwepau.supabase.co";
     const MONOLITH_SUPABASE_KEY = "sb_publishable_lDtAXIOtkMwgwsAZyghBdg_gyLHGwpH";
-    const MONOLITH_BUILD = window.MONOLITH_BUILD || "monolith-v79-stability-i18n";
+    const MONOLITH_BUILD = window.MONOLITH_BUILD || "monolith-v80-navigation-numbers";
     const MONOLITH_VERSION_LABEL = window.MONOLITH_VERSION_LABEL || "Monolith v79 · 11/08/2026";
     const monolithSupabase = window.supabase?.createClient?.(MONOLITH_SUPABASE_URL, MONOLITH_SUPABASE_KEY, {
       auth: {
@@ -5853,6 +5959,22 @@
       return `<div class="report-line"><strong>${escapeHTML(t(label))}</strong>: ${escapeHTML(String(value))}</div>`;
     }
 
+    function dashboardEmptyHTML(message, { tone = "success", action = "", screen = "" } = {}) {
+      const actionButton = action && screen
+        ? `<button class="ghost" type="button" data-empty-screen="${escapeHTML(screen)}">${escapeHTML(t(action))}</button>`
+        : "";
+      return `
+        <div class="dashboard-empty-state ${tone === "attention" ? "attention" : ""}">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <circle cx="12" cy="12" r="9"></circle>
+            <path d="m8 12 2.5 2.5L16 9"></path>
+          </svg>
+          <p>${escapeHTML(t(message))}</p>
+          ${actionButton}
+        </div>
+      `;
+    }
+
     function renderPersonalHome() {
       const user = currentAccount();
       if (user?.role !== "personal") return;
@@ -5885,27 +6007,40 @@
             <div><b>${escapeHTML(item.student.name)}</b><span>${escapeHTML(t(item.reason))}</span></div>
             <button class="ghost" type="button" data-student-screen="stats" data-student-section="overview" data-student-id="${escapeHTML(item.student.id)}">${escapeHTML(t("Abrir ficha"))}</button>
           </div>
-        `).join("") || `<div class="report-line">${escapeHTML(t(students.length ? "Nenhuma pendência crítica agora." : "Nenhum aluno vinculado ainda."))}</div>`;
+        `).join("") || dashboardEmptyHTML("Nenhum aluno precisa de atenção.", {
+          action: students.length ? "" : "Adicionar aluno",
+          screen: "clients"
+        });
       }
 
       const todayList = document.getElementById("trainerTodayList");
       if (todayList) {
-        todayList.innerHTML = [
-          listLineHTML("Alunos ativos", students.length),
-          listLineHTML("Check-ins recebidos", todayCheckins.length),
-          listLineHTML("Treinos concluídos hoje", todayWorkouts.length),
-          listLineHTML("Alunos sem check-in recente", attention.filter(item => item.reason.includes("check-in")).length)
-        ].join("");
+        todayList.innerHTML = todayCheckins.length || todayWorkouts.length
+          ? [
+              listLineHTML("Alunos ativos", students.length),
+              listLineHTML("Check-ins recebidos", todayCheckins.length),
+              listLineHTML("Treinos concluídos hoje", todayWorkouts.length),
+              listLineHTML("Alunos sem check-in recente", attention.filter(item => item.reason.includes("check-in")).length)
+            ].join("")
+          : dashboardEmptyHTML("Nenhuma pendência para hoje.", {
+              action: students.length ? "Registrar check-in" : "Adicionar aluno",
+              screen: students.length ? "checkin" : "clients"
+            });
       }
 
       const resultsList = document.getElementById("trainerResultsList");
       if (resultsList) {
-        resultsList.innerHTML = [
-          listLineHTML("Adesão média dos alunos", averageAdherence === null ? "--" : `${averageAdherence}%`),
-          listLineHTML("Treinos concluídos", completedWorkouts.length),
-          listLineHTML("Check-ins em 30 dias", allStudentCheckins.length),
-          listLineHTML("Dietas ativas no mês", students.filter(student => activeDietForStudent(student.id, currentMonthKey())).length)
-        ].join("");
+        resultsList.innerHTML = allStudentCheckins.length || completedWorkouts.length
+          ? [
+              listLineHTML("Adesão média dos alunos", averageAdherence === null ? "--" : `${averageAdherence}%`),
+              listLineHTML("Treinos concluídos", completedWorkouts.length),
+              listLineHTML("Check-ins em 30 dias", allStudentCheckins.length),
+              listLineHTML("Dietas ativas no mês", students.filter(student => activeDietForStudent(student.id, currentMonthKey())).length)
+            ].join("")
+          : dashboardEmptyHTML("Os resultados aparecerão após os primeiros check-ins.", {
+              action: students.length ? "Registrar check-in" : "Adicionar aluno",
+              screen: students.length ? "checkin" : "clients"
+            });
       }
     }
 
@@ -7558,9 +7693,9 @@
           <div class="field"><label>${escapeHTML(t("Alimentos e quantidades"))}</label><textarea class="meal-items" placeholder="${escapeHTML(t("Ex: 150g arroz, 180g frango, salada"))}">${escapeHTML(meal.items || "")}</textarea></div>
           <div class="macro-grid">
             <div class="field"><label>${escapeHTML(t("Calorias"))}</label><input class="meal-calories" inputmode="numeric" value="${escapeHTML(meal.calories || "")}" placeholder="520" /></div>
-            <div class="field"><label>${escapeHTML(t("Proteína"))} (g)</label><input class="meal-protein" inputmode="decimal" value="${escapeHTML(meal.protein || "")}" placeholder="42" /></div>
-            <div class="field"><label>${escapeHTML(t("Carbo"))} (g)</label><input class="meal-carbs" inputmode="decimal" value="${escapeHTML(meal.carbs || "")}" placeholder="58" /></div>
-            <div class="field"><label>${escapeHTML(t("Gordura"))} (g)</label><input class="meal-fat" inputmode="decimal" value="${escapeHTML(meal.fat || "")}" placeholder="14" /></div>
+            <div class="field"><label>${escapeHTML(t("Proteína"))}</label><input class="meal-protein" inputmode="decimal" value="${escapeHTML(meal.protein || "")}" placeholder="42" /></div>
+            <div class="field"><label>${escapeHTML(t("Carbo"))}</label><input class="meal-carbs" inputmode="decimal" value="${escapeHTML(meal.carbs || "")}" placeholder="58" /></div>
+            <div class="field"><label>${escapeHTML(t("Gordura"))}</label><input class="meal-fat" inputmode="decimal" value="${escapeHTML(meal.fat || "")}" placeholder="14" /></div>
           </div>
           <div class="field"><label>${escapeHTML(t("Micros / observações nutricionais"))}</label><input class="meal-micros" value="${escapeHTML(meal.micros || "")}" placeholder="${escapeHTML(t("Ex: fibra, sódio, vegetais"))}" /></div>
           <div class="field"><label>${escapeHTML(t("Substituições"))}</label><textarea class="meal-substitutions" placeholder="${escapeHTML(t("Ex: frango por peixe, arroz por batata"))}">${escapeHTML(meal.substitutions || "")}</textarea></div>
@@ -8232,9 +8367,9 @@
         <div class="food-log-row" data-food-index="${index}">
           <div class="field"><label>${escapeHTML(t("Refeição"))} ${index + 1}</label><input class="food-name" placeholder="${escapeHTML(t("O que comeu?"))}" /></div>
           <div class="field"><label>${escapeHTML(t("Calorias"))}</label><input class="food-calories" inputmode="numeric" placeholder="450" /></div>
-          <div class="field"><label>${escapeHTML(t("Proteína"))}</label><input class="food-protein" placeholder="30g" /></div>
-          <div class="field"><label>${escapeHTML(t("Carbo"))}</label><input class="food-carbs" placeholder="50g" /></div>
-          <div class="field"><label>${escapeHTML(t("Gordura"))}</label><input class="food-fat" placeholder="12g" /></div>
+          <div class="field"><label>${escapeHTML(t("Proteína"))}</label><input class="food-protein" inputmode="decimal" placeholder="30" /></div>
+          <div class="field"><label>${escapeHTML(t("Carbo"))}</label><input class="food-carbs" inputmode="decimal" placeholder="50" /></div>
+          <div class="field"><label>${escapeHTML(t("Gordura"))}</label><input class="food-fat" inputmode="decimal" placeholder="12" /></div>
           <button class="ghost clear-food-row" type="button" aria-label="Limpar refeição" title="Limpar">×</button>
         </div>
       `).join("");
@@ -8415,6 +8550,13 @@
         "Você não tem acesso a este aluno.": "You do not have access to this student.",
         "Você não tem acesso ao relatório deste aluno.": "You do not have access to this student's report.",
         "use somente número positivo.": "use a positive number only.",
+        "use apenas números, vírgula ou ponto.": "use numbers and a decimal separator only.",
+        "valores negativos não são permitidos.": "negative values are not allowed.",
+        "o valor deve ser maior que zero.": "the value must be greater than zero.",
+        "valor acima do limite permitido.": "value exceeds the allowed limit.",
+        "Peso inválido no CSV.": "Invalid weight in the CSV.",
+        "Repetições inválidas no CSV.": "Invalid reps in the CSV.",
+        "Descanso inválido no CSV.": "Invalid rest time in the CSV.",
         "Idioma": "Language",
         "Português": "Portuguese",
         "Unidade de peso": "Weight unit",
@@ -8931,6 +9073,7 @@
         "Check-ins no período": "Check-ins in the period",
         "check-ins no período": "check-ins in the period",
         "Adesão média dos alunos": "Average student adherence",
+        "Adesão média do aluno": "Student average adherence",
         "Treinos concluídos hoje": "Workouts completed today",
         "Dietas ativas no mês": "Active diets this month",
         "Sem check-in": "No check-in",
@@ -8938,6 +9081,9 @@
         "Dieta do mês pendente": "Monthly diet pending",
         "Nenhuma pendência crítica agora.": "No critical pending items right now.",
         "Nenhum aluno vinculado ainda.": "No linked students yet.",
+        "Nenhum aluno precisa de atenção.": "No student needs attention.",
+        "Nenhuma pendência para hoje.": "No pending items for today.",
+        "Os resultados aparecerão após os primeiros check-ins.": "Results will appear after the first check-ins.",
         "dias sem check-in": "days without check-in",
         "falta": "miss",
         "faltas": "misses",
@@ -9356,7 +9502,7 @@
         "Baixar modelo CSV": "Download CSV template",
         "Importar CSV": "Import CSV",
         "Exportar treinos CSV": "Export workouts CSV",
-        "Formato: aluno, treino, objetivo, tag, exercicio, serie, repeticoes, peso, descanso, tipo.": "Format: student, workout, goal, tag, exercise, set, reps, weight, rest, type.",
+        "Formato: aluno, treino, objetivo, tag, exercicio, serie, repeticoes, peso_kg, descanso, tipo.": "Format: student, workout, goal, tag, exercise, set, reps, weight_kg, rest, type.",
         "Meu próprio treino": "My own workout",
         "Modelo CSV baixado.": "CSV template downloaded.",
         "Nenhum treino para exportar.": "No workout to export.",
@@ -9511,6 +9657,13 @@
         "Você não tem acesso a este aluno.": "No tienes acceso a este alumno.",
         "Você não tem acesso ao relatório deste aluno.": "No tienes acceso al informe de este alumno.",
         "use somente número positivo.": "usa solo un número positivo.",
+        "use apenas números, vírgula ou ponto.": "usa solo números y un separador decimal.",
+        "valores negativos não são permitidos.": "no se permiten valores negativos.",
+        "o valor deve ser maior que zero.": "el valor debe ser mayor que cero.",
+        "valor acima do limite permitido.": "el valor supera el límite permitido.",
+        "Peso inválido no CSV.": "Peso inválido en el CSV.",
+        "Repetições inválidas no CSV.": "Repeticiones inválidas en el CSV.",
+        "Descanso inválido no CSV.": "Descanso inválido en el CSV.",
         "Último check-in": "Último check-in",
         "Idioma": "Idioma",
         "Português": "Portugués",
@@ -10028,6 +10181,7 @@
         "Check-ins no período": "Check-ins en el período",
         "check-ins no período": "check-ins en el período",
         "Adesão média dos alunos": "Adherencia promedio de alumnos",
+        "Adesão média do aluno": "Adherencia promedio del alumno",
         "Treinos concluídos hoje": "Entrenos completados hoy",
         "Dietas ativas no mês": "Dietas activas del mes",
         "Sem check-in": "Sin check-in",
@@ -10035,6 +10189,9 @@
         "Dieta do mês pendente": "Dieta mensual pendiente",
         "Nenhuma pendência crítica agora.": "No hay pendientes críticos ahora.",
         "Nenhum aluno vinculado ainda.": "Aún no hay alumnos vinculados.",
+        "Nenhum aluno precisa de atenção.": "Ningún alumno necesita atención.",
+        "Nenhuma pendência para hoje.": "No hay pendientes para hoy.",
+        "Os resultados aparecerão após os primeiros check-ins.": "Los resultados aparecerán después de los primeros check-ins.",
         "dias sem check-in": "días sin check-in",
         "falta": "falta",
         "faltas": "faltas",
@@ -10453,7 +10610,7 @@
         "Baixar modelo CSV": "Descargar modelo CSV",
         "Importar CSV": "Importar CSV",
         "Exportar treinos CSV": "Exportar entrenos CSV",
-        "Formato: aluno, treino, objetivo, tag, exercicio, serie, repeticoes, peso, descanso, tipo.": "Formato: alumno, entreno, objetivo, tag, ejercicio, serie, repeticiones, peso, descanso, tipo.",
+        "Formato: aluno, treino, objetivo, tag, exercicio, serie, repeticoes, peso_kg, descanso, tipo.": "Formato: alumno, entreno, objetivo, tag, ejercicio, serie, repeticiones, peso_kg, descanso, tipo.",
         "Meu próprio treino": "Mi propio entreno",
         "Modelo CSV baixado.": "Modelo CSV descargado.",
         "Nenhum treino para exportar.": "No hay entrenos para exportar.",
@@ -10606,27 +10763,46 @@
 
     function numericRuleForInput(input) {
       if (!input?.matches) return null;
-      if (input.matches("#dietCalories, .meal-calories, .food-calories")) return { label: "Calorias", integer: true, max: 20000 };
-      if (input.matches("#dietProtein, #dietCarbs, #dietFat, .meal-protein, .meal-carbs, .meal-fat")) return { label: "Macro", max: 1000 };
-      if (input.matches("#dailyWeight, #measureWeight, .set-weight, .session-weight")) return { label: "Peso", max: 1000, weight: true };
-      if (input.matches("#measureBodyFat")) return { label: "Gordura corporal", max: 70 };
-      if (input.matches("#measureWaist, #measureChest, #measureArm, #measureLeg, #measureHip")) return { label: "Medida corporal", max: 400 };
-      if (input.matches(".set-reps, .session-reps")) return { label: "Repetições", integer: true, max: 1000 };
-      if (input.matches(".set-rest, .session-rest")) return { label: "Descanso", integer: true, max: 3600 };
+      if (input.matches("#dietCalories, .meal-calories, .food-calories")) return { label: "Calorias", integer: true, max: 20000, unit: "kcal" };
+      if (input.matches("#dietProtein, #dietCarbs, #dietFat, .meal-protein, .meal-carbs, .meal-fat, .food-protein, .food-carbs, .food-fat")) return { label: "Macro", max: 1000, unit: "g" };
+      if (input.matches("#dailyWeight, #measureWeight, .set-weight, .session-weight")) return { label: "Peso", max: 1000, weight: true, unit: weightUnitLabel() };
+      if (input.matches("#measureBodyFat")) return { label: "Gordura corporal", max: 70, unit: "%" };
+      if (input.matches("#measureWaist, #measureChest, #measureArm, #measureLeg, #measureHip")) return { label: "Medida corporal", max: 400, unit: "cm" };
+      if (input.matches(".set-reps, .session-reps")) return { label: "Repetições", integer: true, max: 99, unit: "x" };
+      if (input.matches(".set-rest, .session-rest")) return { label: "Descanso", integer: true, max: 999, unit: "s" };
       return null;
     }
 
-    function sanitizeNumberText(value = "", integer = false) {
-      const raw = String(value ?? "");
-      if (integer) return raw.replace(/[^\d]/g, "");
-      const cleaned = raw.replace(/[^\d,.]/g, "");
-      const firstSeparator = cleaned.search(/[,.]/);
-      if (firstSeparator < 0) return cleaned;
-      return `${cleaned.slice(0, firstSeparator + 1)}${cleaned.slice(firstSeparator + 1).replace(/[,.]/g, "")}`;
+    function numericTextPattern(rule) {
+      return rule?.integer ? /^-?\d*$/ : /^-?\d*(?:[,.]\d*)?$/;
+    }
+
+    function decorateNumericInputs(scope = document) {
+      if (!scope?.querySelectorAll) return;
+      scope.querySelectorAll("input").forEach(input => {
+        const rule = numericRuleForInput(input);
+        if (!rule) return;
+        let shell = input.closest(".numeric-input-shell");
+        if (!shell) {
+          shell = document.createElement("div");
+          shell.className = "numeric-input-shell";
+          input.parentNode.insertBefore(shell, input);
+          shell.appendChild(input);
+          const unitLabel = document.createElement("span");
+          unitLabel.className = "numeric-unit-label";
+          unitLabel.setAttribute("aria-hidden", "true");
+          shell.appendChild(unitLabel);
+        }
+        ["set-weight", "set-reps", "set-rest"].forEach(className => {
+          shell.classList.toggle(`${className}-shell`, input.classList.contains(className));
+        });
+        const unitLabel = shell.querySelector(".numeric-unit-label");
+        if (unitLabel) unitLabel.textContent = rule.unit || "";
+      });
     }
 
     function fieldErrorContainer(input) {
-      return input.closest(".field, .form-field, .set-row, td") || input.parentElement;
+      return input.closest(".field, .form-field, .measure-field, .set-row, td") || input.parentElement;
     }
 
     function setFieldError(input, message = "") {
@@ -10640,30 +10816,50 @@
       let error = [...container.querySelectorAll(".field-error")].find(item => item.dataset.for === key);
       if (!message) {
         error?.remove();
+        input.removeAttribute("aria-describedby");
         return;
       }
       if (!error) {
         error = document.createElement("div");
         error.className = "field-error";
         error.dataset.for = key;
-        input.insertAdjacentElement("afterend", error);
+        error.id = `${key}-error`;
+        error.setAttribute("role", "alert");
+        const shell = input.closest(".numeric-input-shell");
+        if (shell && input.closest(".set-row, td")) shell.appendChild(error);
+        else (shell || input).insertAdjacentElement("afterend", error);
       }
+      input.setAttribute("aria-describedby", error.id);
       error.textContent = message;
     }
 
-    function validateNumericField(input, { sanitize = false } = {}) {
+    function validateNumericField(input) {
       const rule = numericRuleForInput(input);
       if (!rule) return true;
-      if (sanitize) input.value = sanitizeNumberText(input.value, rule.integer);
       const text = String(input.value ?? "").trim();
       if (!text) {
         setFieldError(input, "");
         return true;
       }
+      if (!numericTextPattern(rule).test(text)) {
+        setFieldError(input, `${t(rule.label)}: ${t("use apenas números, vírgula ou ponto.")}`);
+        return false;
+      }
+      if (text.startsWith("-")) {
+        setFieldError(input, `${t(rule.label)}: ${t("valores negativos não são permitidos.")}`);
+        return false;
+      }
       const parsed = rule.weight ? parseWeightInput(text) : Number(text.replace(",", "."));
-      const invalid = !Number.isFinite(parsed) || parsed <= 0 || parsed > rule.max;
-      setFieldError(input, invalid ? `${t(rule.label)}: ${t("use somente número positivo.")}` : "");
-      return !invalid;
+      if (!Number.isFinite(parsed) || parsed <= 0) {
+        setFieldError(input, `${t(rule.label)}: ${t("o valor deve ser maior que zero.")}`);
+        return false;
+      }
+      if (parsed > rule.max) {
+        setFieldError(input, `${t(rule.label)}: ${t("valor acima do limite permitido.")}`);
+        return false;
+      }
+      setFieldError(input, "");
+      return true;
     }
 
     function visibleNumericInputs(scope = document) {
@@ -10721,17 +10917,18 @@
     }
 
     function updateNumericSubmitStates() {
+      decorateNumericInputs();
       const dietForm = document.getElementById("dietPlanForm");
       const saveDiet = document.getElementById("saveDietPlanButton");
       const missingDietTarget = currentAccount()?.role === "personal" && !selectedDietStudentId();
-      if (dietForm && saveDiet) saveDiet.disabled = missingDietTarget || !validateVisibleNumericInputs(dietForm, { sanitize: true });
+      if (dietForm && saveDiet) saveDiet.disabled = missingDietTarget || !validateVisibleNumericInputs(dietForm);
       const measureForm = document.getElementById("bodyMeasureForm");
       const saveMeasures = document.getElementById("saveBodyMeasuresButton");
       if (measureForm && saveMeasures) saveMeasures.disabled = !selectedMeasureTargetId() || !validateVisibleNumericInputs(measureForm);
       const workoutFormEl = document.getElementById("workoutForm");
       const saveWorkout = document.getElementById("saveWorkoutButton");
       const missingWorkoutTarget = currentAccount()?.role === "personal" && !selectedWorkoutTarget();
-      if (workoutFormEl && saveWorkout) saveWorkout.disabled = missingWorkoutTarget || !validateVisibleNumericInputs(workoutFormEl, { sanitize: true });
+      if (workoutFormEl && saveWorkout) saveWorkout.disabled = missingWorkoutTarget || !validateVisibleNumericInputs(workoutFormEl);
       const saveCheckin = document.getElementById("saveCheckin");
       if (saveCheckin) {
         const noStudent = currentAccount()?.role === "personal" && !document.getElementById("checkinStudent")?.value;
@@ -10754,21 +10951,29 @@
     }
 
     function updateWeightUnitLabels() {
-      const unit = weightUnitLabel();
       const dailyLabel = document.getElementById("dailyWeightLabel");
       const measureLabel = document.getElementById("measureWeightLabel");
-      if (dailyLabel) dailyLabel.textContent = `${t("Peso de hoje")} (${unit})`;
-      if (measureLabel) measureLabel.textContent = `${t("Peso corporal")} (${unit})`;
+      if (dailyLabel) dailyLabel.textContent = t("Peso de hoje");
+      if (measureLabel) measureLabel.textContent = t("Peso corporal");
+      decorateNumericInputs();
     }
 
     function setWeightUnit(unit) {
-      localStorage.setItem("monolith.weightUnit", unit === "lb" ? "lb" : "kg");
+      const previousUnit = currentWeightUnit();
+      const nextUnit = unit === "lb" ? "lb" : "kg";
+      if (previousUnit === nextUnit) return;
+      const pendingWeights = [...document.querySelectorAll("#dailyWeight, #measureWeight, .set-weight, .session-weight")]
+        .map(input => ({ input, kg: displayToKg(input.value, previousUnit) }));
+      localStorage.setItem("monolith.weightUnit", nextUnit);
+      pendingWeights.forEach(({ input, kg }) => {
+        if (kg !== null) input.value = roundWeight(kgToDisplay(kg, nextUnit));
+      });
       updateWeightUnitUI();
       updateWeightUnitLabels();
       renderBodyMeasures();
       renderStats();
       renderTrainerSummary();
-      window.dispatchEvent(new CustomEvent("monolith-weight-unit-change"));
+      window.dispatchEvent(new CustomEvent("monolith-weight-unit-change", { detail: { previousUnit, nextUnit } }));
     }
 
     function applyLanguage(language) {
@@ -11380,7 +11585,7 @@
       if (overview) {
         overview.innerHTML = [
           statsMetricHTML("Check-ins no período", report.checkins.length),
-          statsMetricHTML("Adesão média dos alunos", average === "--" ? "--" : `${average}%`),
+          statsMetricHTML("Adesão média do aluno", average === "--" ? "--" : `${average}%`),
           statsMetricHTML("Último peso", latestWeight ? formatWeight(latestWeight) : "--"),
           statsMetricHTML("Dieta ativa do mês", report.activeDietPlan ? dietPlanStatusLabel(report.activeDietPlan) : "--")
         ].join("");
@@ -12837,10 +13042,14 @@ ${photoSections}
       }
       const restored = await restoreSupabaseSession();
       applyAuthState();
-      if (restored) {
-        const user = currentAccount();
-        if (user) hydrateRemoteFactors(user);
-        if (user && !await maybeRequireTrainerProfile(user)) showScreen(user.role === "personal" ? "clients" : "home");
+      const user = currentAccount();
+      if (restored && user) hydrateRemoteFactors(user);
+      if (user && !await maybeRequireTrainerProfile(user)) {
+        const sectionFromUrl = statsSectionFromHash();
+        showScreen(sectionFromUrl ? "stats" : (user.role === "personal" ? "clients" : "home"), {
+          section: sectionFromUrl || "",
+          historyMode: "replace"
+        });
       }
     });
 
@@ -12865,9 +13074,29 @@ ${photoSections}
       return hashes[normalizedStudentSection(section)] || "#ficha";
     }
 
-    function updateStatsHash(section = "overview") {
-      if (!history?.replaceState) return;
-      history.replaceState(null, "", `${location.href.split("#")[0]}${statsSectionHash(section)}`);
+    function statsSectionFromHash(hash = location.hash) {
+      const sections = {
+        "#ficha": "overview",
+        "#evolucao": "evolution",
+        "#medidas": "measures",
+        "#treinos": "training",
+        "#fotos": "photos",
+        "#relatorios": "reports"
+      };
+      return sections[String(hash || "").toLowerCase()] || "";
+    }
+
+    function writeAppLocation(screen, section = "", mode = "replace") {
+      if (mode === "none" || !history?.replaceState) return;
+      const hash = screen === "stats" ? statsSectionHash(section || "overview") : "";
+      const url = `${location.href.split("#")[0]}${hash}`;
+      const state = { monolithScreen: screen, monolithSection: screen === "stats" ? normalizedStudentSection(section) : "" };
+      const method = mode === "push" && url !== location.href ? "pushState" : "replaceState";
+      history[method](state, "", url);
+    }
+
+    function updateStatsHash(section = "overview", mode = "replace") {
+      writeAppLocation("stats", section, mode);
     }
 
     function clearStatsSectionFocus() {
@@ -12886,7 +13115,7 @@ ${photoSections}
       });
     }
 
-    function focusStatsSection(section = "overview") {
+    function focusStatsSection(section = "overview", { historyMode = "replace" } = {}) {
       const targetSection = normalizedStudentSection(section);
       activeStudentStatsSection = targetSection;
       clearStatsSectionFocus();
@@ -12901,7 +13130,7 @@ ${photoSections}
         reports: document.getElementById("studentReportsStatsSection")
       };
       const target = targets[targetSection];
-      updateStatsHash(targetSection);
+      updateStatsHash(targetSection, historyMode);
       if (targetSection === "overview" || !target) {
         window.scrollTo({ top: 0, behavior: "smooth" });
         return;
@@ -12910,8 +13139,8 @@ ${photoSections}
       target.scrollIntoView({ behavior: "smooth", block: "start" });
     }
 
-    function clearScreenHash() {
-      if (history?.replaceState && location.hash) history.replaceState(null, "", location.href.split("#")[0]);
+    function clearScreenHash(screen = "home", historyMode = "replace") {
+      writeAppLocation(screen, "", historyMode);
     }
 
     function showScreen(id, options = {}) {
@@ -12951,12 +13180,12 @@ ${photoSections}
           console.warn("Monolith stats refresh failed", error);
           renderPhotoVault();
         });
-        window.setTimeout(() => focusStatsSection(activeStudentStatsSection), 80);
+        window.setTimeout(() => focusStatsSection(activeStudentStatsSection, { historyMode: options.historyMode || "replace" }), 80);
       } else {
         clearStatsSectionFocus();
         const statsTabs = document.getElementById("statsInternalTabs");
         if (statsTabs) statsTabs.hidden = true;
-        clearScreenHash();
+        clearScreenHash(id, options.historyMode || "replace");
       }
       if (id === "checkin") {
         renderCheckinStudentSelect().then(loadFactorsForCheckinTarget);
@@ -12973,10 +13202,12 @@ ${photoSections}
       return true;
     }
 
+    window.showScreen = showScreen;
+
     document.querySelectorAll("[data-screen]").forEach(nav => {
       nav.addEventListener("click", event => {
         event.preventDefault();
-        showScreen(nav.dataset.screen, { section: nav.dataset.screen === "stats" ? "overview" : "" });
+        showScreen(nav.dataset.screen, { section: nav.dataset.screen === "stats" ? "overview" : "", historyMode: "push" });
       });
     });
 
@@ -12987,7 +13218,17 @@ ${photoSections}
     document.querySelectorAll("[data-screen-jump]").forEach(jump => {
       jump.addEventListener("click", event => {
         event.preventDefault();
-        showScreen(jump.dataset.screenJump, { section: jump.dataset.statsSection || "" });
+        showScreen(jump.dataset.screenJump, { section: jump.dataset.statsSection || "", historyMode: "push" });
+      });
+    });
+
+    window.addEventListener("popstate", event => {
+      if (!currentAccount()) return;
+      const section = statsSectionFromHash();
+      const screen = section ? "stats" : (event.state?.monolithScreen || "home");
+      showScreen(screen, {
+        section: section || event.state?.monolithSection || "",
+        historyMode: "replace"
       });
     });
 
@@ -13017,7 +13258,13 @@ ${photoSections}
 
       const statsTab = event.target.closest("[data-stats-tab]");
       if (statsTab) {
-        focusStatsSection(statsTab.dataset.statsTab);
+        focusStatsSection(statsTab.dataset.statsTab, { historyMode: "push" });
+        return;
+      }
+
+      const emptyScreenButton = event.target.closest("[data-empty-screen]");
+      if (emptyScreenButton) {
+        showScreen(emptyScreenButton.dataset.emptyScreen, { historyMode: "push" });
         return;
       }
 
@@ -13053,7 +13300,7 @@ ${photoSections}
       if (studentScreenButton && !studentScreenButton.disabled) {
         setSelectedStudentForPersonal(studentScreenButton.dataset.studentId);
         studentScreenButton.closest("details")?.removeAttribute("open");
-        showScreen(studentScreenButton.dataset.studentScreen, { section: studentScreenButton.dataset.studentSection || "" });
+        showScreen(studentScreenButton.dataset.studentScreen, { section: studentScreenButton.dataset.studentSection || "", historyMode: "push" });
         return;
       }
 
@@ -13102,14 +13349,39 @@ ${photoSections}
 
     });
 
+    document.addEventListener("beforeinput", event => {
+      const rule = numericRuleForInput(event.target);
+      if (!rule || event.isComposing || !String(event.inputType || "").startsWith("insert") || event.data === null) return;
+      const input = event.target;
+      const start = input.selectionStart ?? input.value.length;
+      const end = input.selectionEnd ?? start;
+      const nextValue = `${input.value.slice(0, start)}${event.data}${input.value.slice(end)}`;
+      if (!numericTextPattern(rule).test(nextValue)) event.preventDefault();
+    }, true);
+
+    document.addEventListener("paste", event => {
+      const rule = numericRuleForInput(event.target);
+      if (!rule) return;
+      const pasted = event.clipboardData?.getData("text") || "";
+      const input = event.target;
+      const start = input.selectionStart ?? input.value.length;
+      const end = input.selectionEnd ?? start;
+      const nextValue = `${input.value.slice(0, start)}${pasted}${input.value.slice(end)}`;
+      if (!numericTextPattern(rule).test(nextValue)) {
+        event.preventDefault();
+        setFieldError(input, `${t(rule.label)}: ${t("use apenas números, vírgula ou ponto.")}`);
+        updateNumericSubmitStates();
+      }
+    });
+
     document.addEventListener("input", event => {
       if (!numericRuleForInput(event.target)) return;
-      validateNumericField(event.target, { sanitize: true });
+      validateNumericField(event.target);
       updateNumericSubmitStates();
     });
 
     document.addEventListener("change", event => {
-      if (numericRuleForInput(event.target)) validateNumericField(event.target, { sanitize: true });
+      if (numericRuleForInput(event.target)) validateNumericField(event.target);
       updateNumericSubmitStates();
     });
 
@@ -13856,7 +14128,7 @@ ${photoSections}
         const shouldHide = !user || trainerControlled;
         workoutCsvPanel.hidden = shouldHide;
         if (shouldHide) return;
-        setWorkoutCsvStatusV2("Formato: aluno, treino, objetivo, tag, exercicio, serie, repeticoes, peso, descanso, tipo.");
+        setWorkoutCsvStatusV2("Formato: aluno, treino, objetivo, tag, exercicio, serie, repeticoes, peso_kg, descanso, tipo.");
         if (!workoutImportStudentField || !workoutImportStudent) return;
         workoutImportStudentField.hidden = user.role !== "personal";
         if (user.role !== "personal") {
@@ -13933,7 +14205,7 @@ ${photoSections}
           exerciseName: ["exercicio", "exercício", "ejercicio", "exercise", "exercise_name", "nome_exercicio", "nome_exercício", "nombre_ejercicio"],
           set: ["serie", "série", "set", "set_number", "numero_serie", "n_serie"],
           reps: ["repeticoes", "repetições", "repeticiones", "reps", "rep"],
-          weight: ["peso", "weight", "load", "carga"],
+          weight: ["peso", "weight", "load", "carga", "peso_kg", "weight_kg", "load_kg", "carga_kg", "peso_lb", "weight_lb", "load_lb", "carga_lb"],
           rest: ["descanso", "rest", "rest_seconds", "rest_s"],
           type: ["tipo", "type", "tecnica", "técnica", "set_type"]
         };
@@ -13960,9 +14232,30 @@ ${photoSections}
       }
 
       function normalizeRestValueV2(value = "") {
-        const parsed = Number(String(value || "").replace(/[^\d.,]/g, "").replace(",", "."));
-        if (!Number.isFinite(parsed)) return "90";
-        return String(Math.max(0, Math.min(999, Math.round(parsed))));
+        const text = String(value || "").trim();
+        if (!text) return "90";
+        if (!/^\d{1,3}$/.test(text) || Number(text) <= 0) throw new Error(textV2("Descanso inválido no CSV."));
+        return String(Number(text));
+      }
+
+      function normalizeRepsValueV2(value = "") {
+        const text = String(value || "").trim();
+        if (!text) return "";
+        if (!/^\d{1,2}$/.test(text) || Number(text) <= 0) throw new Error(textV2("Repetições inválidas no CSV."));
+        return String(Number(text));
+      }
+
+      function workoutCsvWeightUnitV2(header = [], indexes = {}, hasHeader = false) {
+        if (!hasHeader || indexes.weight === undefined) return "kg";
+        return normalizeCsvKeyV2(header[indexes.weight] || "").endsWith("_lb") ? "lb" : "kg";
+      }
+
+      function parseWorkoutCsvWeightV2(value = "", unit = "kg") {
+        const text = String(value || "").trim();
+        if (!text) return "";
+        const kg = displayToKg(text, unit);
+        if (kg === null || kg <= 0 || kg > 1000) throw new Error(textV2("Peso inválido no CSV."));
+        return Math.round(kg * 100) / 100;
       }
 
       function csvStudentAssignmentV2(value = "", fallbackStudentId = undefined, linkedStudents = []) {
@@ -13994,6 +14287,7 @@ ${photoSections}
         const headerIndexes = csvHeaderIndexesV2(rows[0]);
         const hasHeader = headerIndexes.exerciseName !== undefined && (headerIndexes.workoutName !== undefined || headerIndexes.reps !== undefined || headerIndexes.weight !== undefined);
         const indexes = hasHeader ? headerIndexes : {};
+        const csvWeightUnit = workoutCsvWeightUnitV2(rows[0], indexes, hasHeader);
         const dataRows = hasHeader ? rows.slice(1) : rows;
         const fallback = { studentName: -1, workoutName: 0, goal: 1, tag: 2, exerciseName: 3, set: 4, reps: 5, weight: 6, rest: 7, type: 8 };
         const workoutMap = new Map();
@@ -14028,8 +14322,8 @@ ${photoSections}
           const exercise = workout.exerciseLookup.get(exerciseKey);
           const weightText = csvValueV2(row, indexes, "weight", fallback.weight);
           exercise.sets.push({
-            weight: parseWeightInput(weightText) ?? "",
-            reps: csvValueV2(row, indexes, "reps", fallback.reps),
+            weight: parseWorkoutCsvWeightV2(weightText, csvWeightUnit),
+            reps: normalizeRepsValueV2(csvValueV2(row, indexes, "reps", fallback.reps)),
             type: normalizeSetTypeV2(csvValueV2(row, indexes, "type", fallback.type)),
             rest: normalizeRestValueV2(csvValueV2(row, indexes, "rest", fallback.rest))
           });
@@ -14090,7 +14384,7 @@ ${photoSections}
           csvLocaleValue("exercicio", "exercise", "ejercicio"),
           csvLocaleValue("serie", "set", "serie"),
           csvLocaleValue("repeticoes", "reps", "repeticiones"),
-          csvLocaleValue("peso", "weight", "peso"),
+          csvLocaleValue("peso_kg", "weight_kg", "peso_kg"),
           csvLocaleValue("descanso", "rest", "descanso"),
           csvLocaleValue("tipo", "type", "tipo")
         ];
@@ -14131,7 +14425,7 @@ ${photoSections}
                 exercise.name,
                 String(index + 1),
                 set.reps || "",
-                weightInputValue(set.weight),
+                set.weight === "" || set.weight === null || set.weight === undefined ? "" : roundWeight(Number(set.weight)),
                 set.rest || "90",
                 set.type || "Normal"
               ]);
@@ -14450,13 +14744,14 @@ ${photoSections}
         row.className = "set-row";
         row.innerHTML = `
           <span class="set-index">${htmlT("Série")}</span>
-          <input class="set-weight" placeholder="${htmlT("Peso")} ${weightUnitLabel()}" inputmode="decimal" maxlength="6" value="${html(weightInputValue(set.weight))}" />
+          <input class="set-weight" placeholder="${htmlT("Peso")}" inputmode="decimal" maxlength="6" value="${html(weightInputValue(set.weight))}" />
           <input class="set-reps" placeholder="${htmlT("Reps")}" inputmode="numeric" maxlength="2" value="${html(set.reps || "")}" />
           <select class="set-type">${typeOptions(set.type)}</select>
           <input class="set-rest" placeholder="${htmlT("Descanso s")}" inputmode="numeric" maxlength="3" value="${html(set.rest || "90")}" />
           <button class="ghost remove-set-v2" type="button">${htmlT("Remover")}</button>
         `;
         sets.appendChild(row);
+        decorateNumericInputs(row);
         refreshEditorIndexes(editor);
       }
 
@@ -14526,7 +14821,7 @@ ${photoSections}
         return `
           <tr data-exercise-index="${exerciseIndex}" data-set-index="${setIndex}" data-prev-weight="${html(previousSet?.weight || "")}" data-prev-reps="${html(previousSet?.reps || "")}">
             <td class="series-cell">${setIndex + 1}</td>
-            <td class="weight-cell"><input class="session-weight" value="${html(weightInputValue(set.weight))}" placeholder="${htmlT("Peso")} ${weightUnitLabel()}" inputmode="decimal" maxlength="6" /></td>
+            <td class="weight-cell"><input class="session-weight" value="${html(weightInputValue(set.weight))}" placeholder="${htmlT("Peso")}" inputmode="decimal" maxlength="6" /></td>
             <td class="reps-cell"><input class="session-reps" value="${html(set.reps || "")}" placeholder="${htmlT("Reps")}" inputmode="numeric" maxlength="2" /></td>
             <td class="type-cell"><select class="session-type">${typeOptions(set.type)}</select></td>
             <td class="rest-cell">
@@ -14600,7 +14895,7 @@ ${photoSections}
               </div>
             </div>
             <table class="exercise-table">
-              <thead><tr><th class="series-cell">${htmlT("Série")}</th><th class="weight-cell">${htmlT("Peso")} (${weightUnitLabel()})</th><th class="reps-cell">${htmlT("Reps")}</th><th class="type-cell">${htmlT("Técnica")}</th><th class="rest-cell">${htmlT("Descanso")}</th><th class="status-cell">${htmlT("Status")}</th></tr></thead>
+              <thead><tr><th class="series-cell">${htmlT("Série")}</th><th class="weight-cell">${htmlT("Peso")}</th><th class="reps-cell">${htmlT("Reps")}</th><th class="type-cell">${htmlT("Técnica")}</th><th class="rest-cell">${htmlT("Descanso")}</th><th class="status-cell">${htmlT("Status")}</th></tr></thead>
               <tbody>${exercise.sets.map((set, setIndex) => sessionSetRowV2(exerciseIndex, setIndex, set, previousExercise?.sets?.[setIndex]) + (setIndex < exercise.sets.length - 1 ? sessionMotivationRowV2(exerciseIndex, setIndex) : "")).join("")}</tbody>
             </table>
           `;
@@ -14612,6 +14907,7 @@ ${photoSections}
           }
           container.appendChild(block);
         });
+        decorateNumericInputs(container);
         document.querySelectorAll("#sessionExercises tr[data-set-index]").forEach(updateSetProgressV2);
         updateSessionProgressV2();
       }
@@ -14962,7 +15258,7 @@ ${photoSections}
         renderWorkoutListV2();
         renderWorkoutCsvControlsV2(currentAccount()?.role === "student" && Boolean(currentWorkoutLinkedTrainerIdV2));
         if (activeWorkoutV2) renderSessionV2(activeWorkoutV2);
-        resetBuilderV2();
+        updateNumericSubmitStates();
       });
 
     })();
