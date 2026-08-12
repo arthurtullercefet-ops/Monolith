@@ -1,4 +1,4 @@
-const CACHE_NAME = "monolith-v80-navigation-numbers";
+const CACHE_NAME = "monolith-v82-student-anamnesis";
 
 self.addEventListener("install", event => {
   self.skipWaiting();

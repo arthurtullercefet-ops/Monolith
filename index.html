@@ -14,8 +14,8 @@
   <link rel="manifest" href="manifest.webmanifest" />
   <link rel="icon" href="monolith-icon.svg" />
   <script>
-    window.MONOLITH_BUILD = "monolith-v80-navigation-numbers";
-    window.MONOLITH_VERSION_LABEL = "Monolith v80 · 11/08/2026";
+    window.MONOLITH_BUILD = "monolith-v82-student-anamnesis";
+    window.MONOLITH_VERSION_LABEL = "Monolith v82 · 11/08/2026";
     (function clearOldAppCaches() {
       if ("serviceWorker" in navigator) {
         navigator.serviceWorker.getRegistrations?.()
@@ -41,6 +41,7 @@
         "monolith.trainerMapProfiles",
         "monolith.trainerPublicProfiles",
         "monolith.deletedLibraryWorkouts",
+        "monolith.anamneses",
         "monolith.factors"
       ]);
       const sessionOnlyKeys = new Set([
@@ -1688,27 +1689,31 @@
       position: relative;
     }
 
-    .student-card-menu summary {
+    .student-card-menu-trigger {
       width: 40px;
-      min-height: 40px;
+      height: 40px;
       border: 1px solid var(--line);
+      background: #101010;
       display: grid;
       place-items: center;
       cursor: pointer;
-      list-style: none;
-      font-weight: 900;
       color: var(--text);
       border-radius: var(--radius-button);
+      padding: 0;
     }
 
-    .student-card-menu summary::-webkit-details-marker {
-      display: none;
+    .student-card-menu-trigger svg,
+    .student-menu-icon svg {
+      width: 18px;
+      height: 18px;
     }
 
-    .student-card-menu[open] summary,
-    .student-card-menu summary:hover {
+    .student-card-menu.open .student-card-menu-trigger,
+    .student-card-menu-trigger:hover,
+    .student-card-menu-trigger:focus-visible {
       border-color: var(--gold);
       background: rgba(201, 162, 39, .1);
+      outline: none;
     }
 
     .student-card-menu-panel {
@@ -1726,10 +1731,42 @@
       box-shadow: 0 18px 40px rgba(0, 0, 0, .42);
     }
 
+    .student-card-menu-panel.positioned {
+      position: fixed;
+      right: auto;
+      bottom: auto;
+      z-index: 80;
+    }
+
+    .student-card-menu.open-up .student-card-menu-panel {
+      top: auto;
+      bottom: calc(100% + 8px);
+    }
+
     .student-card-menu-panel .ghost {
       width: 100%;
       justify-content: flex-start;
       text-align: left;
+      display: flex;
+      align-items: center;
+      gap: 9px;
+      border-color: transparent;
+    }
+
+    .student-card-menu-panel .ghost:hover,
+    .student-card-menu-panel .ghost:focus-visible {
+      border-color: rgba(201, 162, 39, .36);
+      background: rgba(201, 162, 39, .12);
+      color: var(--text);
+      outline: none;
+    }
+
+    .student-menu-icon {
+      width: 20px;
+      min-width: 20px;
+      display: inline-grid;
+      place-items: center;
+      color: var(--gold);
     }
 
     .student-file-actions {
@@ -1808,6 +1845,33 @@
       overflow-x: auto;
     }
 
+    .client-table-tools {
+      display: grid;
+      grid-template-columns: minmax(220px, 1fr) repeat(2, minmax(170px, .42fr));
+      gap: 10px;
+      margin-bottom: 12px;
+      min-width: 720px;
+    }
+
+    .client-table-tools input,
+    .client-table-tools select {
+      width: 100%;
+      min-height: 40px;
+      border: 1px solid var(--line);
+      border-radius: var(--radius-field);
+      background: #101010;
+      color: var(--text);
+      padding: 0 11px;
+      font: inherit;
+      color-scheme: dark;
+    }
+
+    .client-table-tools input:focus,
+    .client-table-tools select:focus {
+      outline: 1px solid var(--gold);
+      border-color: var(--gold);
+    }
+
     .client-table {
       width: 100%;
       min-width: 720px;
@@ -1828,6 +1892,102 @@
       text-transform: uppercase;
       letter-spacing: 1px;
       font-size: 11px;
+      position: sticky;
+      top: 0;
+      z-index: 2;
+      background: var(--panel);
+    }
+
+    .client-name-cell {
+      display: flex;
+      align-items: center;
+      gap: 9px;
+      min-width: 180px;
+    }
+
+    .client-name-cell .student-avatar {
+      width: 34px;
+      height: 34px;
+      min-width: 34px;
+      font-size: 12px;
+    }
+
+    .student-status {
+      display: inline-flex;
+      align-items: center;
+      min-height: 26px;
+      padding: 3px 8px;
+      border: 1px solid rgba(45, 174, 96, .34);
+      border-radius: 999px;
+      color: var(--green);
+      white-space: nowrap;
+    }
+
+    .student-status.attention {
+      border-color: rgba(232, 146, 56, .42);
+      color: var(--orange);
+    }
+
+    .student-status.new {
+      border-color: var(--line);
+      color: var(--muted);
+    }
+
+    .client-table-pagination {
+      min-width: 720px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      margin-top: 12px;
+    }
+
+    .client-table-pagination .action-row {
+      margin: 0;
+    }
+
+    .student-overview-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 10px;
+      margin-top: 14px;
+    }
+
+    .student-overview-item {
+      border: 1px solid var(--line);
+      border-radius: var(--radius-field);
+      background: #101010;
+      padding: 13px;
+      display: grid;
+      gap: 5px;
+      min-height: 76px;
+    }
+
+    .student-overview-item span {
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    .student-overview-item strong {
+      line-height: 1.4;
+      overflow-wrap: anywhere;
+    }
+
+    .student-next-action {
+      margin-top: 12px;
+      border-left: 3px solid var(--gold);
+      border-radius: var(--radius-field);
+      background: rgba(201, 162, 39, .08);
+      padding: 13px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+    }
+
+    .student-next-action > div {
+      display: grid;
+      gap: 4px;
     }
 
     .student-avatar {
@@ -2049,8 +2209,8 @@
     .trainer-map-card {
       border: 1px solid var(--line);
       background: var(--panel);
-      min-height: 240px;
-      padding: 16px;
+      min-height: 300px;
+      padding: 18px;
       display: grid;
       gap: 14px;
       align-content: space-between;
@@ -2075,13 +2235,103 @@
       line-height: 1.45;
     }
 
+    .trainer-map-card-head {
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+    }
+
+    .trainer-map-avatar {
+      width: 56px;
+      height: 56px;
+      min-width: 56px;
+      border-radius: 50%;
+      border: 1px solid rgba(201, 162, 39, .46);
+      background: rgba(201, 162, 39, .12);
+      display: grid;
+      place-items: center;
+      color: var(--gold);
+      font-weight: 900;
+      font-size: 18px;
+      overflow: hidden;
+    }
+
+    .trainer-map-avatar img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    .trainer-map-card .pill-row {
+      align-items: flex-start;
+    }
+
+    .trainer-map-actions {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+    }
+
     .map-profile-link {
       min-height: 42px;
       display: grid;
       place-items: center;
       text-align: center;
       text-decoration: none;
-      margin-top: 2px;
+    }
+
+    .trainer-profile-modal {
+      max-width: 760px;
+    }
+
+    .trainer-profile-modal-body {
+      display: grid;
+      gap: 16px;
+    }
+
+    .trainer-profile-modal-hero {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      padding-bottom: 16px;
+      border-bottom: 1px solid var(--line);
+    }
+
+    .trainer-profile-modal-hero .trainer-map-avatar {
+      width: 72px;
+      height: 72px;
+      min-width: 72px;
+      font-size: 22px;
+    }
+
+    .trainer-profile-modal-hero h3 {
+      margin: 0 0 5px;
+      font-size: 24px;
+    }
+
+    .trainer-profile-modal-details {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 10px;
+    }
+
+    .trainer-profile-detail {
+      border: 1px solid var(--line);
+      border-radius: var(--radius-field);
+      background: #101010;
+      padding: 12px;
+      display: grid;
+      gap: 5px;
+    }
+
+    .trainer-profile-detail span {
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    .trainer-profile-detail strong {
+      line-height: 1.45;
+      overflow-wrap: anywhere;
     }
 
     .stats-layout {
@@ -2754,11 +3004,15 @@
       }
 
       .app {
-        grid-template-columns: 1fr;
+        width: 100%;
+        grid-template-columns: minmax(0, 1fr);
       }
 
       aside {
         position: static;
+        width: 100%;
+        min-width: 0;
+        max-width: 100%;
         height: auto;
         padding: 16px;
       }
@@ -2801,6 +3055,8 @@
       }
 
       main {
+        width: 100%;
+        max-width: 100%;
         padding: 18px;
       }
 
@@ -3187,13 +3443,15 @@
     }
 
     .anamnesis-section {
-      border-top: 1px solid var(--line);
-      padding-top: 16px;
+      display: none;
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      padding: 18px;
+      background: rgba(255, 255, 255, .015);
     }
 
-    .anamnesis-section:first-child {
-      border-top: 0;
-      padding-top: 0;
+    .anamnesis-section.active {
+      display: block;
     }
 
     .anamnesis-grid {
@@ -3217,17 +3475,201 @@
       background: rgba(190, 54, 54, .08);
     }
 
+    .anamnesis-status-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-bottom: 12px;
+    }
+
+    .anamnesis-status-badge {
+      display: inline-flex;
+      align-items: center;
+      min-height: 30px;
+      padding: 5px 10px;
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 800;
+    }
+
+    .anamnesis-status-badge.in-progress {
+      border-color: rgba(218, 166, 35, .55);
+      color: var(--gold);
+      background: rgba(218, 166, 35, .08);
+    }
+
+    .anamnesis-status-badge.complete,
+    .anamnesis-status-badge.recent {
+      border-color: rgba(55, 170, 92, .55);
+      color: var(--green);
+      background: rgba(55, 170, 92, .08);
+    }
+
+    .anamnesis-meta {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px 16px;
+      color: var(--muted);
+      font-size: 12px;
+      margin-bottom: 14px;
+    }
+
+    .anamnesis-progress {
+      display: grid;
+      gap: 9px;
+      margin: 16px 0;
+    }
+
+    .anamnesis-progress-head {
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    .anamnesis-progress-track {
+      height: 8px;
+      overflow: hidden;
+      border-radius: 999px;
+      background: var(--line);
+    }
+
+    .anamnesis-progress-bar {
+      width: 0;
+      height: 100%;
+      border-radius: inherit;
+      background: var(--gold);
+      transition: width .2s ease;
+    }
+
+    .anamnesis-step-nav {
+      display: grid;
+      grid-template-columns: repeat(6, minmax(0, 1fr));
+      gap: 8px;
+      margin-bottom: 14px;
+    }
+
+    .anamnesis-step-button {
+      min-height: 38px;
+      padding: 7px 8px;
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      background: transparent;
+      color: var(--muted);
+      font: inherit;
+      font-size: 11px;
+      cursor: pointer;
+    }
+
+    .anamnesis-step-button.active {
+      border-color: var(--gold);
+      color: var(--gold);
+      background: rgba(218, 166, 35, .08);
+    }
+
+    .anamnesis-step-button.complete::before {
+      content: "\2713 ";
+      color: var(--green);
+    }
+
+    .anamnesis-conditional {
+      grid-column: 1 / -1;
+      border-left: 2px solid var(--gold);
+      padding-left: 12px;
+    }
+
+    .anamnesis-required {
+      color: var(--gold);
+      margin-left: 3px;
+    }
+
+    .anamnesis-section .field label {
+      line-height: 1.35;
+    }
+
+    .anamnesis-review {
+      display: grid;
+      gap: 10px;
+      margin-bottom: 14px;
+    }
+
+    .anamnesis-review-item {
+      display: grid;
+      grid-template-columns: minmax(150px, .45fr) minmax(0, 1fr);
+      gap: 12px;
+      border-bottom: 1px solid var(--line);
+      padding: 9px 0;
+    }
+
+    .anamnesis-review-item span {
+      color: var(--muted);
+    }
+
+    .anamnesis-review-item.risk strong {
+      color: var(--red);
+    }
+
     .anamnesis-consent {
       display: flex;
       align-items: flex-start;
       gap: 10px;
       padding: 12px;
       border: 1px solid var(--line);
+      border-radius: 10px;
+    }
+
+    .anamnesis-actions {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+
+    .anamnesis-actions-group {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+    .anamnesis-no-record {
+      margin: 12px 0 0;
     }
 
     @media (max-width: 760px) {
       .anamnesis-grid { grid-template-columns: 1fr; }
       .anamnesis-grid .field.full { grid-column: auto; }
+      .anamnesis-section { padding: 14px; }
+      .anamnesis-step-nav {
+        display: flex;
+        overflow-x: auto;
+        padding-bottom: 4px;
+        scroll-snap-type: x proximity;
+      }
+      .anamnesis-step-button {
+        flex: 0 0 118px;
+        scroll-snap-align: start;
+      }
+      .anamnesis-review-item { grid-template-columns: 1fr; gap: 3px; }
+      .anamnesis-actions,
+      .anamnesis-actions-group { align-items: stretch; flex-direction: column; width: 100%; }
+      .anamnesis-actions button { width: 100%; min-height: 46px; }
+      .student-overview-grid,
+      .trainer-profile-modal-details,
+      .trainer-map-actions { grid-template-columns: 1fr; }
+      .student-next-action { align-items: stretch; flex-direction: column; }
+      .student-next-action .ghost { width: 100%; }
+      .client-table-panel { margin-inline: 0; }
+      .student-card-menu-panel.positioned {
+        width: min(250px, calc(100vw - 24px));
+        min-width: 0;
+      }
+      .trainer-profile-modal-hero { align-items: flex-start; }
     }
   </style>
 </head>
@@ -4332,12 +4774,34 @@
           </div>
         </div>
         <div class="panel client-table-panel" id="clientTablePanel" data-role-only="personal" hidden>
+          <div class="client-table-tools">
+            <input id="clientTableSearch" type="search" placeholder="Buscar por nome ou e-mail" data-i18n-placeholder="Buscar por nome ou e-mail" aria-label="Buscar alunos" />
+            <select id="clientTableStatusFilter" aria-label="Filtrar por status">
+              <option value="">Todos os status</option>
+              <option value="current">Em dia</option>
+              <option value="attention">Precisa de atenção</option>
+              <option value="new">Novo aluno</option>
+            </select>
+            <select id="clientTableSort" aria-label="Ordenar alunos">
+              <option value="name-asc">Nome A–Z</option>
+              <option value="name-desc">Nome Z–A</option>
+              <option value="activity-desc">Atividade mais recente</option>
+              <option value="score-desc">Maior score</option>
+            </select>
+          </div>
           <table class="client-table">
             <thead>
-              <tr><th>Aluno</th><th>Score</th><th>Último check-in</th><th>Status</th><th>Ações</th></tr>
+              <tr><th>Aluno</th><th>Objetivo</th><th>Score</th><th>Última atividade</th><th>Status</th><th>Ações</th></tr>
             </thead>
             <tbody id="clientTableBody"></tbody>
           </table>
+          <div class="client-table-pagination" id="clientTablePagination">
+            <span class="date" id="clientTablePageLabel">0 alunos</span>
+            <div class="action-row">
+              <button class="ghost" id="clientTablePrevious" type="button">Anterior</button>
+              <button class="ghost" id="clientTableNext" type="button">Próxima</button>
+            </div>
+          </div>
         </div>
         <div class="grid programs" id="clientList"></div>
       </section>
@@ -4346,7 +4810,7 @@
         <div class="topbar">
           <div>
             <h2>Anamnese</h2>
-            <div class="date">Histórico de saúde, rotina e objetivos para orientar o treino</div>
+            <div class="date">Informações de saúde, rotina e objetivos para um treino mais seguro e individualizado</div>
           </div>
         </div>
         <div class="panel" id="anamnesisStudentPanel" hidden>
@@ -4362,74 +4826,120 @@
           <div><strong>Selecione um aluno</strong><span>Escolha um aluno vinculado para consultar a anamnese.</span></div>
         </div>
         <div class="panel" id="anamnesisPanel">
-          <div class="section-title"><h3>Questionário inicial</h3><span id="anamnesisStatus">Ainda não preenchida</span></div>
+          <div class="anamnesis-status-row">
+            <div>
+              <h3>Questionário de prontidão física</h3>
+              <p class="report-line">Você pode salvar um rascunho e continuar depois. Campos marcados com * são obrigatórios para concluir.</p>
+            </div>
+            <span class="anamnesis-status-badge" id="anamnesisStatus">Não iniciada</span>
+          </div>
+          <div class="anamnesis-meta" id="anamnesisMeta" aria-live="polite"></div>
+          <div class="anamnesis-risk danger" id="anamnesisImportantUpdate" data-i18n="O aluno atualizou respostas importantes desde sua última visualização." hidden>O aluno atualizou respostas importantes desde sua última visualização.</div>
           <div class="anamnesis-risk" id="anamnesisRiskNotice" data-i18n="Este questionário ajuda no planejamento do treino e não substitui avaliação ou diagnóstico médico.">Este questionário ajuda no planejamento do treino e não substitui avaliação ou diagnóstico médico.</div>
+          <div class="empty-state anamnesis-no-record" id="anamnesisNoRecordNotice" hidden>
+            <div><strong>Anamnese ainda não preenchida</strong><span>O aluno ainda não iniciou este questionário.</span></div>
+          </div>
+          <div class="anamnesis-progress" id="anamnesisProgress">
+            <div class="anamnesis-progress-head"><strong id="anamnesisStepLabel">Etapa 1 de 6</strong><span id="anamnesisProgressLabel">0% concluído</span></div>
+            <div class="anamnesis-progress-track" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" aria-label="Progresso da anamnese"><div class="anamnesis-progress-bar" id="anamnesisProgressBar"></div></div>
+          </div>
+          <div class="anamnesis-step-nav" id="anamnesisStepNav" aria-label="Seções da anamnese">
+            <button class="anamnesis-step-button active" type="button" data-anamnesis-go="0">Objetivos</button>
+            <button class="anamnesis-step-button" type="button" data-anamnesis-go="1">Saúde</button>
+            <button class="anamnesis-step-button" type="button" data-anamnesis-go="2">Movimento</button>
+            <button class="anamnesis-step-button" type="button" data-anamnesis-go="3">Rotina</button>
+            <button class="anamnesis-step-button" type="button" data-anamnesis-go="4">Segurança</button>
+            <button class="anamnesis-step-button" type="button" data-anamnesis-go="5">Revisão</button>
+          </div>
           <form id="anamnesisForm" class="anamnesis-layout">
-            <div class="anamnesis-section">
-              <div class="section-title"><h3>Dados e objetivos</h3><span>Contexto do aluno</span></div>
+            <div class="anamnesis-section active" data-anamnesis-step="0" data-step-title="Objetivos e experiência">
+              <div class="section-title"><h3>Objetivos e experiência</h3><span>Contexto para planejar o treino</span></div>
               <div class="anamnesis-grid">
                 <div class="field"><label for="anamnesisBirthDate">Data de nascimento</label><input id="anamnesisBirthDate" name="birthDate" type="date" /></div>
                 <div class="field"><label for="anamnesisOccupation">Profissão e rotina de trabalho</label><input id="anamnesisOccupation" name="occupation" placeholder="Ex: trabalho sentado, turnos, esforço físico" data-i18n-placeholder="Ex: trabalho sentado, turnos, esforço físico" /></div>
-                <div class="field"><label for="anamnesisPrimaryGoal">Objetivo principal</label><select id="anamnesisPrimaryGoal" name="primaryGoal" required><option value="">Selecione</option><option value="weight_loss">Emagrecimento</option><option value="muscle_gain">Ganho de massa muscular</option><option value="strength">Força</option><option value="conditioning">Condicionamento</option><option value="health">Saúde e qualidade de vida</option><option value="performance">Performance esportiva</option><option value="rehabilitation">Retorno após lesão</option></select></div>
+                <div class="field"><label for="anamnesisPrimaryGoal">Objetivo principal<span class="anamnesis-required">*</span></label><select id="anamnesisPrimaryGoal" name="primaryGoal" data-anamnesis-required="true"><option value="">Selecione</option><option value="weight_loss">Emagrecimento</option><option value="muscle_gain">Ganho de massa muscular</option><option value="strength">Força</option><option value="conditioning">Condicionamento</option><option value="health">Saúde e qualidade de vida</option><option value="performance">Performance esportiva</option><option value="rehabilitation">Retorno após lesão</option></select></div>
+                <div class="field"><label for="anamnesisExperience">Experiência com exercícios<span class="anamnesis-required">*</span></label><select id="anamnesisExperience" name="experience" data-anamnesis-required="true"><option value="">Selecione</option><option value="none">Nunca treinei</option><option value="beginner">Iniciante</option><option value="intermediate">Intermediário</option><option value="advanced">Avançado</option></select></div>
                 <div class="field full"><label for="anamnesisGoalDetails">Explique sua meta e o que espera alcançar</label><textarea id="anamnesisGoalDetails" name="goalDetails" rows="3"></textarea></div>
-              </div>
-            </div>
-
-            <div class="anamnesis-section">
-              <div class="section-title"><h3>Saúde e segurança</h3><span>Responda com atenção</span></div>
-              <div class="anamnesis-grid">
-                <div class="field"><label for="anamnesisHeartCondition">Algum médico já informou problema cardíaco?</label><select id="anamnesisHeartCondition" name="heartCondition" required><option value="">Selecione</option><option value="no">Não</option><option value="yes">Sim</option></select></div>
-                <div class="field"><label for="anamnesisChestPain">Sente dor no peito durante esforço ou em repouso?</label><select id="anamnesisChestPain" name="chestPain" required><option value="">Selecione</option><option value="no">Não</option><option value="yes">Sim</option></select></div>
-                <div class="field"><label for="anamnesisDizziness">Teve tontura, desmaio ou perda de equilíbrio?</label><select id="anamnesisDizziness" name="dizziness" required><option value="">Selecione</option><option value="no">Não</option><option value="yes">Sim</option></select></div>
-                <div class="field"><label for="anamnesisBloodPressure">Possui pressão alta ou baixa sem controle?</label><select id="anamnesisBloodPressure" name="bloodPressure" required><option value="">Selecione</option><option value="no">Não</option><option value="yes">Sim</option></select></div>
-                <div class="field"><label for="anamnesisDoctorRestriction">Possui restrição médica para exercício?</label><select id="anamnesisDoctorRestriction" name="doctorRestriction" required><option value="">Selecione</option><option value="no">Não</option><option value="yes">Sim</option></select></div>
-                <div class="field"><label for="anamnesisPregnancy">Está grávida ou existe possibilidade de gravidez?</label><select id="anamnesisPregnancy" name="pregnancy"><option value="not_applicable">Não se aplica</option><option value="no">Não</option><option value="yes">Sim</option></select></div>
-                <div class="field full"><label for="anamnesisConditions">Diagnósticos, doenças, cirurgias ou internações relevantes</label><textarea id="anamnesisConditions" name="conditions" rows="3"></textarea></div>
-                <div class="field full"><label for="anamnesisMedications">Medicamentos de uso contínuo e motivo</label><textarea id="anamnesisMedications" name="medications" rows="3"></textarea></div>
-              </div>
-            </div>
-
-            <div class="anamnesis-section">
-              <div class="section-title"><h3>Dores e limitações</h3><span>Histórico físico</span></div>
-              <div class="anamnesis-grid">
-                <div class="field full"><label for="anamnesisInjuries">Lesões, cirurgias ortopédicas ou dores atuais</label><textarea id="anamnesisInjuries" name="injuries" rows="3"></textarea></div>
-                <div class="field"><label for="anamnesisPainLocations">Onde sente dor ou desconforto?</label><input id="anamnesisPainLocations" name="painLocations" placeholder="Ex: lombar, joelho direito, ombro" data-i18n-placeholder="Ex: lombar, joelho direito, ombro" /></div>
-                <div class="field"><label for="anamnesisMovementRestrictions">Movimentos que não consegue ou deve evitar</label><input id="anamnesisMovementRestrictions" name="movementRestrictions" /></div>
-              </div>
-            </div>
-
-            <div class="anamnesis-section">
-              <div class="section-title"><h3>Experiência e disponibilidade</h3><span>Planejamento do treino</span></div>
-              <div class="anamnesis-grid">
-                <div class="field"><label for="anamnesisExperience">Experiência com treino</label><select id="anamnesisExperience" name="experience"><option value="none">Nunca treinei</option><option value="beginner">Iniciante</option><option value="intermediate">Intermediário</option><option value="advanced">Avançado</option></select></div>
-                <div class="field"><label for="anamnesisWeeklyFrequency">Quantos dias por semana pode treinar?</label><input id="anamnesisWeeklyFrequency" name="weeklyFrequency" type="number" min="1" max="7" inputmode="numeric" /></div>
+                <div class="field"><label for="anamnesisWeeklyFrequency">Frequência de treino pretendida<span class="anamnesis-required">*</span></label><select id="anamnesisWeeklyFrequency" name="weeklyFrequency" data-anamnesis-required="true"><option value="">Selecione</option><option value="1">1 dia por semana</option><option value="2">2 dias por semana</option><option value="3">3 dias por semana</option><option value="4">4 dias por semana</option><option value="5">5 dias por semana</option><option value="6">6 dias por semana</option><option value="7">7 dias por semana</option></select></div>
+                <div class="field"><label for="anamnesisAvailability">Disponibilidade para treinar</label><input id="anamnesisAvailability" name="availability" placeholder="Ex: segundas, quartas e sextas à noite" data-i18n-placeholder="Ex: segundas, quartas e sextas à noite" /></div>
                 <div class="field full"><label for="anamnesisPreferredActivities">Atividades que gosta ou gostaria de fazer</label><input id="anamnesisPreferredActivities" name="preferredActivities" /></div>
                 <div class="field full"><label for="anamnesisEquipment">Equipamentos e local disponíveis</label><textarea id="anamnesisEquipment" name="equipment" rows="3" placeholder="Ex: academia completa, halteres em casa, elásticos" data-i18n-placeholder="Ex: academia completa, halteres em casa, elásticos"></textarea></div>
               </div>
             </div>
 
-            <div class="anamnesis-section">
+            <div class="anamnesis-section" data-anamnesis-step="1" data-step-title="Saúde e histórico médico">
+              <div class="section-title"><h3>Saúde e histórico médico</h3><span>Responda com atenção</span></div>
+              <div class="anamnesis-grid">
+                <div class="field"><label for="anamnesisHeartCondition">Algum médico já informou problema cardíaco?<span class="anamnesis-required">*</span></label><select id="anamnesisHeartCondition" name="heartCondition" data-anamnesis-required="true"><option value="">Selecione</option><option value="no">Não</option><option value="yes">Sim</option></select></div>
+                <div class="field"><label for="anamnesisChestPain">Sente dor no peito durante esforço ou em repouso?<span class="anamnesis-required">*</span></label><select id="anamnesisChestPain" name="chestPain" data-anamnesis-required="true"><option value="">Selecione</option><option value="no">Não</option><option value="yes">Sim</option></select></div>
+                <div class="field anamnesis-conditional" data-anamnesis-if="heartCondition" data-anamnesis-values="yes" hidden><label for="anamnesisHeartConditionDetails">Explique o problema cardíaco<span class="anamnesis-required">*</span></label><textarea id="anamnesisHeartConditionDetails" name="heartConditionDetails" rows="3" data-anamnesis-required-when-visible="true"></textarea></div>
+                <div class="field anamnesis-conditional" data-anamnesis-if="chestPain" data-anamnesis-values="yes" hidden><label for="anamnesisChestPainDetails">Quando e com que frequência sente dor no peito?<span class="anamnesis-required">*</span></label><textarea id="anamnesisChestPainDetails" name="chestPainDetails" rows="3" data-anamnesis-required-when-visible="true"></textarea></div>
+                <div class="field"><label for="anamnesisBloodPressure">Possui pressão alta ou baixa?<span class="anamnesis-required">*</span></label><select id="anamnesisBloodPressure" name="bloodPressure" data-anamnesis-required="true"><option value="">Selecione</option><option value="no">Não</option><option value="yes">Sim</option></select></div>
+                <div class="field"><label for="anamnesisDizziness">Já teve desmaios, tonturas ou perda de equilíbrio?<span class="anamnesis-required">*</span></label><select id="anamnesisDizziness" name="dizziness" data-anamnesis-required="true"><option value="">Selecione</option><option value="no">Não</option><option value="yes">Sim</option></select></div>
+                <div class="field anamnesis-conditional" data-anamnesis-if="bloodPressure" data-anamnesis-values="yes" hidden><label for="anamnesisBloodPressureDetails">Informe o diagnóstico, controle e orientações recebidas<span class="anamnesis-required">*</span></label><textarea id="anamnesisBloodPressureDetails" name="bloodPressureDetails" rows="3" data-anamnesis-required-when-visible="true"></textarea></div>
+                <div class="field anamnesis-conditional" data-anamnesis-if="dizziness" data-anamnesis-values="yes" hidden><label for="anamnesisDizzinessDetails">Explique quando ocorreu e se houve avaliação médica<span class="anamnesis-required">*</span></label><textarea id="anamnesisDizzinessDetails" name="dizzinessDetails" rows="3" data-anamnesis-required-when-visible="true"></textarea></div>
+                <div class="field"><label for="anamnesisDoctorRestriction">Possui restrição ou recomendação médica para exercício?<span class="anamnesis-required">*</span></label><select id="anamnesisDoctorRestriction" name="doctorRestriction" data-anamnesis-required="true"><option value="">Selecione</option><option value="no">Não</option><option value="yes">Sim</option></select></div>
+                <div class="field"><label for="anamnesisPregnancy">Está grávida ou existe possibilidade de gravidez?</label><select id="anamnesisPregnancy" name="pregnancy"><option value="not_applicable">Não se aplica</option><option value="no">Não</option><option value="yes">Sim</option></select></div>
+                <div class="field anamnesis-conditional" data-anamnesis-if="doctorRestriction" data-anamnesis-values="yes" hidden><label for="anamnesisDoctorRestrictionDetails">Descreva a restrição ou recomendação médica<span class="anamnesis-required">*</span></label><textarea id="anamnesisDoctorRestrictionDetails" name="doctorRestrictionDetails" rows="3" data-anamnesis-required-when-visible="true"></textarea></div>
+                <div class="field"><label for="anamnesisHasConditions">Possui doença ou condição médica diagnosticada?<span class="anamnesis-required">*</span></label><select id="anamnesisHasConditions" name="hasConditions" data-anamnesis-required="true"><option value="">Selecione</option><option value="no">Não</option><option value="yes">Sim</option></select></div>
+                <div class="field anamnesis-conditional" data-anamnesis-if="hasConditions" data-anamnesis-values="yes" hidden><label for="anamnesisConditions">Informe doenças, condições médicas ou internações<span class="anamnesis-required">*</span></label><textarea id="anamnesisConditions" name="conditions" rows="3" data-anamnesis-required-when-visible="true"></textarea></div>
+                <div class="field"><label for="anamnesisUsesMedication">Utiliza medicamentos atualmente?<span class="anamnesis-required">*</span></label><select id="anamnesisUsesMedication" name="usesMedication" data-anamnesis-required="true"><option value="">Selecione</option><option value="no">Não</option><option value="yes">Sim</option></select></div>
+                <div class="field anamnesis-conditional" data-anamnesis-if="usesMedication" data-anamnesis-values="yes" hidden><label for="anamnesisMedications">Informe medicamento, dose e motivo<span class="anamnesis-required">*</span></label><textarea id="anamnesisMedications" name="medications" rows="3" data-anamnesis-required-when-visible="true"></textarea></div>
+                <div class="field"><label for="anamnesisHasSurgeries">Já realizou alguma cirurgia?<span class="anamnesis-required">*</span></label><select id="anamnesisHasSurgeries" name="hasSurgeries" data-anamnesis-required="true"><option value="">Selecione</option><option value="no">Não</option><option value="yes">Sim</option></select></div>
+                <div class="field anamnesis-conditional" data-anamnesis-if="hasSurgeries" data-anamnesis-values="yes" hidden><label for="anamnesisSurgeries">Informe cirurgia, data aproximada e recuperação<span class="anamnesis-required">*</span></label><textarea id="anamnesisSurgeries" name="surgeries" rows="3" data-anamnesis-required-when-visible="true"></textarea></div>
+              </div>
+            </div>
+
+            <div class="anamnesis-section" data-anamnesis-step="2" data-step-title="Lesões e movimento">
+              <div class="section-title"><h3>Lesões, dores e movimento</h3><span>Histórico físico</span></div>
+              <div class="anamnesis-grid">
+                <div class="field"><label for="anamnesisHasInjuries">Possui lesão anterior ou atual?<span class="anamnesis-required">*</span></label><select id="anamnesisHasInjuries" name="hasInjuries" data-anamnesis-required="true"><option value="">Selecione</option><option value="no">Não</option><option value="yes">Sim</option></select></div>
+                <div class="field anamnesis-conditional" data-anamnesis-if="hasInjuries" data-anamnesis-values="yes" hidden><label for="anamnesisInjuries">Descreva a lesão, lado do corpo e situação atual<span class="anamnesis-required">*</span></label><textarea id="anamnesisInjuries" name="injuries" rows="3" data-anamnesis-required-when-visible="true"></textarea></div>
+                <div class="field"><label for="anamnesisHasPain">Sente dor ou desconforto atualmente?<span class="anamnesis-required">*</span></label><select id="anamnesisHasPain" name="hasPain" data-anamnesis-required="true"><option value="">Selecione</option><option value="no">Não</option><option value="yes">Sim</option></select></div>
+                <div class="field anamnesis-conditional" data-anamnesis-if="hasPain" data-anamnesis-values="yes" hidden><label for="anamnesisPainLocations">Onde sente dor, qual intensidade e em quais movimentos?<span class="anamnesis-required">*</span></label><textarea id="anamnesisPainLocations" name="painLocations" rows="3" placeholder="Ex: lombar, joelho direito, ombro" data-i18n-placeholder="Ex: lombar, joelho direito, ombro" data-anamnesis-required-when-visible="true"></textarea></div>
+                <div class="field"><label for="anamnesisHasMovementRestrictions">Possui limitação de movimento?<span class="anamnesis-required">*</span></label><select id="anamnesisHasMovementRestrictions" name="hasMovementRestrictions" data-anamnesis-required="true"><option value="">Selecione</option><option value="no">Não</option><option value="yes">Sim</option></select></div>
+                <div class="field anamnesis-conditional" data-anamnesis-if="hasMovementRestrictions" data-anamnesis-values="yes" hidden><label for="anamnesisMovementRestrictions">Movimentos que não consegue ou deve evitar<span class="anamnesis-required">*</span></label><textarea id="anamnesisMovementRestrictions" name="movementRestrictions" rows="3" data-anamnesis-required-when-visible="true"></textarea></div>
+                <div class="field full"><label for="anamnesisMedicalRecommendations">Outras recomendações médicas ou fisioterapêuticas</label><textarea id="anamnesisMedicalRecommendations" name="medicalRecommendations" rows="3"></textarea></div>
+              </div>
+            </div>
+
+            <div class="anamnesis-section" data-anamnesis-step="3" data-step-title="Rotina e recuperação">
               <div class="section-title"><h3>Rotina e recuperação</h3><span>Hábitos gerais</span></div>
               <div class="anamnesis-grid">
                 <div class="field"><label for="anamnesisActivityLevel">Nível de atividade atual</label><select id="anamnesisActivityLevel" name="activityLevel"><option value="sedentary">Sedentário</option><option value="light">Levemente ativo</option><option value="moderate">Moderadamente ativo</option><option value="high">Muito ativo</option></select></div>
+                <div class="field"><label for="anamnesisSleepQuality">Qualidade do sono<span class="anamnesis-required">*</span></label><select id="anamnesisSleepQuality" name="sleepQuality" data-anamnesis-required="true"><option value="">Selecione</option><option value="good">Boa</option><option value="regular">Regular</option><option value="poor">Ruim</option></select></div>
                 <div class="field"><label for="anamnesisSleepHours">Média de sono por noite</label><input id="anamnesisSleepHours" name="sleepHours" type="number" min="0" max="16" step="0.5" inputmode="decimal" /></div>
-                <div class="field"><label for="anamnesisStressLevel">Nível de estresse</label><select id="anamnesisStressLevel" name="stressLevel"><option value="low">Baixo</option><option value="moderate">Moderado</option><option value="high">Alto</option></select></div>
-                <div class="field"><label for="anamnesisSmoking">Fuma?</label><select id="anamnesisSmoking" name="smoking"><option value="no">Não</option><option value="occasionally">Ocasionalmente</option><option value="yes">Sim</option></select></div>
-                <div class="field"><label for="anamnesisAlcohol">Consumo de álcool</label><select id="anamnesisAlcohol" name="alcohol"><option value="none">Não consumo</option><option value="occasionally">Ocasional</option><option value="frequent">Frequente</option></select></div>
+                <div class="field"><label for="anamnesisStressLevel">Nível de estresse<span class="anamnesis-required">*</span></label><select id="anamnesisStressLevel" name="stressLevel" data-anamnesis-required="true"><option value="">Selecione</option><option value="low">Baixo</option><option value="moderate">Moderado</option><option value="high">Alto</option></select></div>
+                <div class="field"><label for="anamnesisSmoking">Tabagismo<span class="anamnesis-required">*</span></label><select id="anamnesisSmoking" name="smoking" data-anamnesis-required="true"><option value="">Selecione</option><option value="no">Não fumo</option><option value="occasionally">Ocasionalmente</option><option value="yes">Fumo regularmente</option></select></div>
+                <div class="field"><label for="anamnesisAlcohol">Consumo de álcool<span class="anamnesis-required">*</span></label><select id="anamnesisAlcohol" name="alcohol" data-anamnesis-required="true"><option value="">Selecione</option><option value="none">Não consumo</option><option value="occasionally">Ocasional</option><option value="frequent">Frequente</option></select></div>
+                <div class="field full"><label for="anamnesisRoutineNotes">Como é sua rotina profissional e diária?</label><textarea id="anamnesisRoutineNotes" name="routineNotes" rows="3" placeholder="Ex: tempo sentado, deslocamentos, turnos e esforço físico" data-i18n-placeholder="Ex: tempo sentado, deslocamentos, turnos e esforço físico"></textarea></div>
                 <div class="field full"><label for="anamnesisNutritionNotes">Restrições alimentares, alergias ou informações nutricionais importantes</label><textarea id="anamnesisNutritionNotes" name="nutritionNotes" rows="3"></textarea></div>
               </div>
             </div>
 
-            <div class="anamnesis-section">
-              <div class="section-title"><h3>Contato de emergência</h3><span>Segurança</span></div>
+            <div class="anamnesis-section" data-anamnesis-step="4" data-step-title="Segurança e observações">
+              <div class="section-title"><h3>Contato de emergência e observações</h3><span>Segurança</span></div>
               <div class="anamnesis-grid">
                 <div class="field"><label for="anamnesisEmergencyName">Nome do contato</label><input id="anamnesisEmergencyName" name="emergencyName" /></div>
                 <div class="field"><label for="anamnesisEmergencyPhone">Telefone do contato</label><input id="anamnesisEmergencyPhone" name="emergencyPhone" type="tel" /></div>
+                <div class="field full"><label for="anamnesisAdditionalNotes">Observações adicionais</label><textarea id="anamnesisAdditionalNotes" name="additionalNotes" rows="4" placeholder="Inclua qualquer informação que possa ajudar o personal a planejar seu treino" data-i18n-placeholder="Inclua qualquer informação que possa ajudar o personal a planejar seu treino"></textarea></div>
               </div>
             </div>
 
-            <label class="anamnesis-consent"><input id="anamnesisConsent" name="consent" type="checkbox" required /><span>Confirmo que as informações fornecidas são verdadeiras e autorizo seu uso pelo personal vinculado para planejamento e acompanhamento do treino.</span></label>
-            <div class="action-row"><button class="action" id="saveAnamnesis" type="submit">Salvar anamnese</button></div>
+            <div class="anamnesis-section" data-anamnesis-step="5" data-step-title="Revisão e consentimento">
+              <div class="section-title"><h3>Revisão e consentimento</h3><span>Confira antes de concluir</span></div>
+              <div class="anamnesis-review" id="anamnesisReview"></div>
+              <label class="anamnesis-consent"><input id="anamnesisConsent" name="consent" type="checkbox" /><span>Confirmo que as informações fornecidas são verdadeiras e autorizo o Monolith a armazená-las e compartilhá-las somente com o meu personal vinculado para planejamento e acompanhamento do treino. Entendo que esta anamnese não substitui avaliação médica.</span></label>
+            </div>
+
+            <div class="anamnesis-actions">
+              <button class="ghost" id="anamnesisPrevious" type="button">Anterior</button>
+              <div class="anamnesis-actions-group">
+                <button class="ghost" id="saveAnamnesisDraft" type="button">Salvar e continuar depois</button>
+                <button class="ghost" id="anamnesisNext" type="button">Próxima etapa</button>
+                <button class="action" id="saveAnamnesis" type="submit" hidden>Concluir anamnese</button>
+              </div>
+            </div>
           </form>
         </div>
       </section>
@@ -4461,6 +4971,8 @@
         <div class="panel" id="studentStatsOverviewSection" data-stats-section="overview">
           <div class="section-title"><h3>Resumo</h3><span>Visão rápida do aluno</span></div>
           <div class="grid metrics" id="studentStatsOverviewMetrics"></div>
+          <div class="student-overview-grid" id="studentStatsOverviewDetails"></div>
+          <div class="student-next-action" id="studentStatsNextAction"></div>
         </div>
         <div class="grid measure-layout" id="studentMeasuresSection" data-stats-section="measures">
           <div class="panel">
@@ -4598,6 +5110,19 @@
     <img id="photoLightboxImage" alt="Foto de progresso" />
   </div>
 
+  <div class="modal-backdrop" id="trainerMapProfileModal" role="dialog" aria-modal="true" aria-labelledby="trainerMapProfileTitle">
+    <div class="modal trainer-profile-modal">
+      <div class="modal-head">
+        <h3 id="trainerMapProfileTitle">Perfil do personal</h3>
+        <button class="icon-btn" type="button" id="closeTrainerMapProfile" aria-label="Fechar">×</button>
+      </div>
+      <div class="trainer-profile-modal-body" id="trainerMapProfileBody"></div>
+      <div class="modal-actions">
+        <button class="ghost" type="button" id="backToTrainerMap">Voltar ao mapa</button>
+      </div>
+    </div>
+  </div>
+
   <div class="modal-backdrop" id="workoutModal" role="dialog" aria-modal="true" aria-labelledby="workoutModalTitle">
     <form class="modal" id="workoutForm">
       <div class="modal-head">
@@ -4660,8 +5185,8 @@
   <script>
     const MONOLITH_SUPABASE_URL = "https://jhxasnxuvmkhntbwepau.supabase.co";
     const MONOLITH_SUPABASE_KEY = "sb_publishable_lDtAXIOtkMwgwsAZyghBdg_gyLHGwpH";
-    const MONOLITH_BUILD = window.MONOLITH_BUILD || "monolith-v80-navigation-numbers";
-    const MONOLITH_VERSION_LABEL = window.MONOLITH_VERSION_LABEL || "Monolith v79 · 11/08/2026";
+    const MONOLITH_BUILD = window.MONOLITH_BUILD || "monolith-v82-student-anamnesis";
+    const MONOLITH_VERSION_LABEL = window.MONOLITH_VERSION_LABEL || "Monolith v82 · 11/08/2026";
     const monolithSupabase = window.supabase?.createClient?.(MONOLITH_SUPABASE_URL, MONOLITH_SUPABASE_KEY, {
       auth: {
         storage: window.sessionStorage,
@@ -5379,6 +5904,15 @@
       return raw;
     }
 
+    function safeSocialUrl(value) {
+      try {
+        const url = new URL(normalizeSocialUrl(value));
+        return ["http:", "https:"].includes(url.protocol) ? url.href : "";
+      } catch {
+        return "";
+      }
+    }
+
     function trainerProfilePayloadFromForm() {
       const user = currentAccount();
       const displayAuthorization = inputValue("trainerAuthorization");
@@ -5598,37 +6132,106 @@
         && (!filters.format || (profile.training_formats || []).includes(filters.format));
     }
 
+    let trainerMapVisibleProfiles = [];
+
+    function trainerMapProfileName(profile) {
+      return profile.professional_name || profile.full_name || t("Personal trainer");
+    }
+
+    function trainerMapAvatarHTML(profile) {
+      const name = trainerMapProfileName(profile);
+      const photoUrl = profile.photo_url || profile.avatar_url || "";
+      return `<div class="trainer-map-avatar">${photoUrl ? `<img src="${escapeHTML(photoUrl)}" alt="${escapeHTML(name)}" loading="lazy" />` : escapeHTML(studentInitials(name).toUpperCase())}</div>`;
+    }
+
+    function trainerStartingPrice(profile) {
+      if (Number(profile.hourly_price) > 0) return `${t("A partir de")} $${profile.hourly_price}/${t("hora")}`;
+      if (Number(profile.monthly_price) > 0) return `${t("A partir de")} $${profile.monthly_price}/${t("mês")}`;
+      if (Number(profile.online_monthly_price) > 0) return `${t("A partir de")} $${profile.online_monthly_price}/${t("mês online")}`;
+      return t("Preço sob consulta");
+    }
+
+    function trainerDistanceLabel(profile) {
+      if (Number(profile.distance_km) >= 0) return `${Math.round(Number(profile.distance_km))} km`;
+      const filters = trainerMapFilters();
+      if (filters.city && String(profile.city || "").toLowerCase().includes(filters.city)) return t("Na cidade pesquisada");
+      return t("Distância não informada");
+    }
+
     function trainerMapCard(profile) {
       const location = [profile.city, profile.state].filter(Boolean).join(", ");
       const services = trainerOptionLabels("serviceTypes", profile.service_types).join(" · ");
       const formats = trainerOptionLabels("trainingFormats", profile.training_formats).join(" · ");
       const specialties = trainerOptionLabels("specialties", profile.specialties).slice(0, 5).join(" · ");
-      const price = [
-        profile.hourly_price ? `${t("Hora")}: $${profile.hourly_price}` : "",
-        profile.monthly_price ? `${t("Mensal")}: $${profile.monthly_price}` : "",
-        profile.online_monthly_price ? `${t("Online")}: $${profile.online_monthly_price}` : ""
-      ].filter(Boolean).join(" / ");
-      const social = profile.social_url ? `<a class="action map-profile-link" href="${escapeHTML(profile.social_url)}" target="_blank" rel="noreferrer">${escapeHTML(t("Abrir perfil"))}</a>` : "";
+      const availability = trainerOptionLabels("availability", profile.availability).join(" · ");
+      const languages = trainerOptionLabels("languages", profile.languages).join(" · ");
+      const name = trainerMapProfileName(profile);
+      const socialUrl = safeSocialUrl(profile.social_url);
+      const social = socialUrl ? `<a class="action map-profile-link" href="${escapeHTML(socialUrl)}" target="_blank" rel="noreferrer">Instagram</a>` : "";
       return `
         <article class="trainer-map-card">
-          <div>
-            <div class="kicker">${escapeHTML(location || t("Região não informada"))}</div>
-            <h3 data-no-i18n="true">${escapeHTML(profile.professional_name || profile.full_name || t("Personal trainer"))}</h3>
-            <p data-no-i18n="true">${escapeHTML(profile.bio || t("Perfil profissional em construção."))}</p>
+          <div class="trainer-map-card-head">
+            ${trainerMapAvatarHTML(profile)}
+            <div>
+              <div class="kicker">${escapeHTML(location || t("Região não informada"))}</div>
+              <h3 data-no-i18n="true">${escapeHTML(name)}</h3>
+              <p>${escapeHTML(trainerDistanceLabel(profile))}</p>
+            </div>
           </div>
           <div class="meta">
-            ${services ? `<div><strong>${escapeHTML(t("Atendimento"))}:</strong> ${escapeHTML(services)}</div>` : ""}
+            ${services ? `<div><strong>${escapeHTML(t("Modalidade"))}:</strong> ${escapeHTML(services)}</div>` : ""}
             ${formats ? `<div><strong>${escapeHTML(t("Formato"))}:</strong> ${escapeHTML(formats)}</div>` : ""}
-            ${specialties ? `<div><strong>${escapeHTML(t("Especialidades"))}:</strong> ${escapeHTML(specialties)}</div>` : ""}
-            ${price ? `<div><strong>${escapeHTML(t("Preço"))}:</strong> ${escapeHTML(price)}</div>` : ""}
+            ${languages ? `<div><strong>${escapeHTML(t("Idiomas"))}:</strong> ${escapeHTML(languages)}</div>` : ""}
+            ${availability ? `<div><strong>${escapeHTML(t("Disponibilidade"))}:</strong> ${escapeHTML(availability)}</div>` : ""}
+            <div><strong>${escapeHTML(t("Preço inicial"))}:</strong> ${escapeHTML(trainerStartingPrice(profile))}</div>
           </div>
           <div class="pill-row">
+            ${profile.verified ? `<span class="pill record">${escapeHTML(t("Perfil verificado"))}</span>` : ""}
+            ${specialties ? `<span class="pill">${escapeHTML(specialties)}</span>` : ""}
             ${profile.free_first_consultation ? `<span class="pill">${escapeHTML(t("Primeira consulta grátis"))}</span>` : ""}
             ${profile.package_discounts ? `<span class="pill">${escapeHTML(t("Pacotes com desconto"))}</span>` : ""}
           </div>
-          ${social}
+          <div class="trainer-map-actions">
+            <button class="ghost map-profile-link" type="button" data-open-trainer-profile="${escapeHTML(profile.trainer_id)}">${escapeHTML(t("Ver perfil"))}</button>
+            ${social || `<button class="ghost map-profile-link" type="button" disabled>Instagram</button>`}
+          </div>
         </article>
       `;
+    }
+
+    function openTrainerMapProfile(trainerId) {
+      const profile = trainerMapVisibleProfiles.find(item => item.trainer_id === trainerId);
+      const modal = document.getElementById("trainerMapProfileModal");
+      const body = document.getElementById("trainerMapProfileBody");
+      if (!profile || !modal || !body) return;
+      const name = trainerMapProfileName(profile);
+      const location = [profile.city, profile.state].filter(Boolean).join(", ") || t("Região não informada");
+      const details = [
+        ["Modalidade", trainerOptionLabels("serviceTypes", profile.service_types).join(" · ")],
+        ["Formato", trainerOptionLabels("trainingFormats", profile.training_formats).join(" · ")],
+        ["Especialidades", trainerOptionLabels("specialties", profile.specialties).join(" · ")],
+        ["Idiomas", trainerOptionLabels("languages", profile.languages).join(" · ")],
+        ["Disponibilidade", trainerOptionLabels("availability", profile.availability).join(" · ")],
+        ["Preço inicial", trainerStartingPrice(profile)]
+      ].filter(([, value]) => value);
+      body.innerHTML = `
+        <div class="trainer-profile-modal-hero">
+          ${trainerMapAvatarHTML(profile)}
+          <div><div class="kicker">${escapeHTML(location)}</div><h3 data-no-i18n="true">${escapeHTML(name)}</h3><p data-no-i18n="true">${escapeHTML(profile.bio || t("Perfil profissional em construção."))}</p></div>
+        </div>
+        <div class="trainer-profile-modal-details">${details.map(([label, value]) => `<div class="trainer-profile-detail"><span>${escapeHTML(t(label))}</span><strong>${escapeHTML(value)}</strong></div>`).join("")}</div>
+        <div class="pill-row">
+          ${profile.verified ? `<span class="pill record">${escapeHTML(t("Perfil verificado"))}</span>` : ""}
+          ${profile.free_first_consultation ? `<span class="pill">${escapeHTML(t("Primeira consulta grátis"))}</span>` : ""}
+          ${profile.package_discounts ? `<span class="pill">${escapeHTML(t("Pacotes com desconto"))}</span>` : ""}
+        </div>
+        ${safeSocialUrl(profile.social_url) ? `<a class="action map-profile-link" href="${escapeHTML(safeSocialUrl(profile.social_url))}" target="_blank" rel="noreferrer">${escapeHTML(t("Abrir Instagram"))}</a>` : ""}
+      `;
+      modal.classList.add("active");
+    }
+
+    function closeTrainerMapProfile() {
+      document.getElementById("trainerMapProfileModal")?.classList.remove("active");
     }
 
     async function renderTrainerMap() {
@@ -5639,6 +6242,7 @@
       const profiles = await loadTrainerMapProfiles();
       const filters = trainerMapFilters();
       const visible = profiles.filter(profile => profileMatchesTrainerMap(profile, filters));
+      trainerMapVisibleProfiles = visible;
       container.innerHTML = visible.map(trainerMapCard).join("")
         || `<div class="panel"><div class="report-line">${escapeHTML(t("Nenhum personal encontrado com esses filtros."))}</div></div>`;
     }
@@ -5858,36 +6462,116 @@
       applyClientViewMode(safeMode);
     }
 
+    let renderedClientStudents = [];
+    let clientTablePage = 1;
+    const clientTablePageSize = 10;
+
+    function studentPrimaryGoal(studentId) {
+      const value = storedAnamnesis(studentId)?.answers?.primaryGoal || "";
+      return value ? anamnesisValueLabel(value, localStorage.getItem("monolith.language") || "pt") : t("Não informado");
+    }
+
+    function studentActivitySummary(studentId) {
+      const candidates = [
+        ...lastThirtyCheckinsForStudent(studentId).map(entry => ({ value: entry.savedAt || entry.date, label: "Check-in" })),
+        ...loadCompletedWorkoutEntries().filter(entry => entry.studentId === studentId).map(entry => ({ value: entry.completedAt || entry.date, label: "Treino" })),
+        ...loadBodyMeasures(studentId).map(entry => ({ value: entry.savedAt || entry.createdAt || entry.date, label: "Medidas" }))
+      ].filter(item => item.value).sort((a, b) => String(b.value).localeCompare(String(a.value)));
+      const latest = candidates[0];
+      if (!latest) return { value: "", label: t("Sem atividade") };
+      const date = String(latest.value).includes("T") ? localDateTimeLabel(latest.value) : localDateLabel(String(latest.value).slice(0, 10));
+      return { value: String(latest.value), label: `${t(latest.label)} · ${date}` };
+    }
+
     function studentListSummary(student) {
       const checkins = lastThirtyCheckinsForStudent(student.id);
       const score = checkins.length ? `${checkins[0]?.score || 0}%` : "--";
       const lastCheckin = checkins[0]?.date ? localDateLabel(checkins[0].date) : t("Sem check-in");
-      const status = !checkins.length ? t("Novo aluno") : missedCheckinDays(checkins).length >= 7 ? t("Precisa de atenção") : t("Em dia");
-      return { checkins, score, lastCheckin, status };
+      const statusKey = !checkins.length ? "new" : missedCheckinDays(checkins).length >= 7 ? "attention" : "current";
+      const status = { new: t("Novo aluno"), attention: t("Precisa de atenção"), current: t("Em dia") }[statusKey];
+      const activity = studentActivitySummary(student.id);
+      return { checkins, score, scoreValue: Number(checkins[0]?.score) || 0, lastCheckin, status, statusKey, activity, objective: studentPrimaryGoal(student.id) };
     }
 
-    function renderClientTable(students = []) {
+    function clientActionIcon(name) {
+      const paths = {
+        workouts: '<path d="M6 7v10M18 7v10M3 9v6M21 9v6M6 12h12"/>',
+        nutrition: '<circle cx="12" cy="12" r="9"/><path d="M12 7v10M7 12h10"/>',
+        checkin: '<path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/>',
+        anamnesis: '<path d="M9 5h6M9 3h6a2 2 0 0 1 2 2v1h2v15H5V6h2V5a2 2 0 0 1 2-2Z"/><path d="M9 11h6M9 15h6"/>',
+        report: '<path d="M4 19V5M4 19h16M8 16V9M13 16V6M18 16v-4"/>'
+      };
+      return `<span class="student-menu-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${paths[name] || paths.report}</svg></span>`;
+    }
+
+    function studentActionsMenuHTML(student) {
+      const accessibleName = localizedMessage("Ações de {name}", { name: student.name });
+      return `
+        <div class="student-card-menu">
+          <button class="student-card-menu-trigger" type="button" aria-label="${escapeHTML(accessibleName)}" title="${escapeHTML(accessibleName)}" aria-haspopup="menu" aria-expanded="false">
+            <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><circle cx="12" cy="5" r="1.8"/><circle cx="12" cy="12" r="1.8"/><circle cx="12" cy="19" r="1.8"/></svg>
+          </button>
+          <div class="student-card-menu-panel" role="menu" hidden>
+            <button class="ghost" role="menuitem" type="button" data-student-screen="workouts" data-student-id="${escapeHTML(student.id)}">${clientActionIcon("workouts")}${escapeHTML(t("Treinos"))}</button>
+            <button class="ghost" role="menuitem" type="button" data-student-screen="nutrition" data-student-id="${escapeHTML(student.id)}">${clientActionIcon("nutrition")}${escapeHTML(t("Dieta"))}</button>
+            <button class="ghost" role="menuitem" type="button" data-student-screen="checkin" data-student-id="${escapeHTML(student.id)}">${clientActionIcon("checkin")}${escapeHTML(t("Registrar check-in"))}</button>
+            <button class="ghost" role="menuitem" type="button" data-student-screen="anamnesis" data-student-id="${escapeHTML(student.id)}">${clientActionIcon("anamnesis")}${escapeHTML(t("Ver anamnese"))}</button>
+            <button class="ghost open-student-report" role="menuitem" type="button" data-student-id="${escapeHTML(student.id)}">${clientActionIcon("report")}${escapeHTML(t("Relatório HTML"))}</button>
+          </div>
+        </div>
+      `;
+    }
+
+    function filteredClientTableStudents() {
+      const query = String(document.getElementById("clientTableSearch")?.value || "").trim().toLocaleLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+      const status = document.getElementById("clientTableStatusFilter")?.value || "";
+      const sort = document.getElementById("clientTableSort")?.value || "name-asc";
+      const rows = renderedClientStudents.map(student => ({ student, summary: studentListSummary(student) })).filter(({ student, summary }) => {
+        const haystack = `${student.name || ""} ${student.email || ""} ${summary.objective || ""}`.toLocaleLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+        return (!query || haystack.includes(query)) && (!status || summary.statusKey === status);
+      });
+      rows.sort((a, b) => {
+        if (sort === "name-desc") return b.student.name.localeCompare(a.student.name, undefined, { sensitivity: "base" });
+        if (sort === "activity-desc") return String(b.summary.activity.value).localeCompare(String(a.summary.activity.value));
+        if (sort === "score-desc") return b.summary.scoreValue - a.summary.scoreValue;
+        return a.student.name.localeCompare(b.student.name, undefined, { sensitivity: "base" });
+      });
+      return rows;
+    }
+
+    function renderClientTable() {
       const body = document.getElementById("clientTableBody");
       if (!body) return;
-      body.innerHTML = students.map(student => {
-        const summary = studentListSummary(student);
+      const rows = filteredClientTableStudents();
+      const totalPages = Math.max(1, Math.ceil(rows.length / clientTablePageSize));
+      clientTablePage = Math.min(Math.max(1, clientTablePage), totalPages);
+      const offset = (clientTablePage - 1) * clientTablePageSize;
+      body.innerHTML = rows.slice(offset, offset + clientTablePageSize).map(({ student, summary }) => {
         return `
           <tr>
-            <td><strong data-no-i18n="true">${escapeHTML(student.name)}</strong></td>
+            <td><div class="client-name-cell"><div class="student-avatar">${escapeHTML(studentInitials(student.name).toUpperCase())}</div><div><strong data-no-i18n="true">${escapeHTML(student.name)}</strong><div class="date" data-no-i18n="true">${escapeHTML(student.email)}</div></div></div></td>
+            <td>${escapeHTML(summary.objective)}</td>
             <td>${escapeHTML(summary.score)}</td>
-            <td>${escapeHTML(summary.lastCheckin)}</td>
-            <td>${escapeHTML(summary.status)}</td>
-            <td><button class="ghost" type="button" data-student-screen="stats" data-student-section="overview" data-student-id="${escapeHTML(student.id)}">${escapeHTML(t("Abrir ficha"))}</button></td>
+            <td>${escapeHTML(summary.activity.label)}</td>
+            <td><span class="student-status ${summary.statusKey}">${escapeHTML(summary.status)}</span></td>
+            <td><div class="action-row"><button class="ghost" type="button" data-student-screen="stats" data-student-section="overview" data-student-id="${escapeHTML(student.id)}">${escapeHTML(t("Abrir ficha"))}</button>${studentActionsMenuHTML(student)}</div></td>
           </tr>
         `;
-      }).join("") || `<tr><td colspan="5">${escapeHTML(t("Nenhum aluno vinculado ainda. Gere um convite e envie o código para o aluno."))}</td></tr>`;
+      }).join("") || `<tr><td colspan="6">${escapeHTML(t(renderedClientStudents.length ? "Nenhum aluno encontrado com esses filtros." : "Nenhum aluno vinculado ainda. Gere um convite e envie o código para o aluno."))}</td></tr>`;
+      const label = document.getElementById("clientTablePageLabel");
+      if (label) label.textContent = rows.length ? localizedMessage("Mostrando {start}–{end} de {total} alunos", { start: offset + 1, end: Math.min(offset + clientTablePageSize, rows.length), total: rows.length }) : t("0 alunos");
+      const previous = document.getElementById("clientTablePrevious");
+      const next = document.getElementById("clientTableNext");
+      if (previous) previous.disabled = clientTablePage <= 1;
+      if (next) next.disabled = clientTablePage >= totalPages;
     }
 
     function renderClientCards(students = []) {
       const container = document.getElementById("clientList");
       if (!container) return;
+      renderedClientStudents = [...students];
       renderStudentPlanLimit(students.length);
-      renderClientTable(students);
+      renderClientTable();
       container.innerHTML = students.map(student => {
         const { checkins, score, lastCheckin, status } = studentListSummary(student);
         return `
@@ -5903,16 +6587,7 @@
               </div>
               <div class="student-card-actions">
                 <button class="action" type="button" data-student-screen="stats" data-student-section="overview" data-student-id="${escapeHTML(student.id)}">${escapeHTML(t("Abrir ficha"))}</button>
-                <details class="student-card-menu">
-                  <summary aria-label="${escapeHTML(t("Ações rápidas"))}">...</summary>
-                  <div class="student-card-menu-panel">
-                    <button class="ghost" type="button" data-student-screen="workouts" data-student-id="${escapeHTML(student.id)}">${escapeHTML(t("Treinos"))}</button>
-                    <button class="ghost" type="button" data-student-screen="nutrition" data-student-id="${escapeHTML(student.id)}">${escapeHTML(t("Dieta"))}</button>
-                    <button class="ghost" type="button" data-student-screen="checkin" data-student-id="${escapeHTML(student.id)}">${escapeHTML(t("Registrar check-in"))}</button>
-                    <button class="ghost" type="button" data-student-screen="anamnesis" data-student-id="${escapeHTML(student.id)}">${escapeHTML(t("Anamnese"))}</button>
-                    <button class="ghost open-student-report" type="button" data-student-id="${escapeHTML(student.id)}">${escapeHTML(t("Relatório HTML"))}</button>
-                  </div>
-                </details>
+                ${studentActionsMenuHTML(student)}
               </div>
             </div>
           </article>
@@ -7429,14 +8104,29 @@
       return meta.archived || meta.status === "archived" ? null : plan;
     }
 
-    const anamnesisRiskFields = ["heartCondition", "chestPain", "dizziness", "bloodPressure", "doctorRestriction", "pregnancy"];
+    const anamnesisRiskFields = [
+      "heartCondition", "chestPain", "dizziness", "bloodPressure", "doctorRestriction", "pregnancy",
+      "hasConditions", "usesMedication", "hasSurgeries", "hasInjuries", "hasPain", "hasMovementRestrictions"
+    ];
+    const anamnesisImportantFields = [
+      ...anamnesisRiskFields,
+      "heartConditionDetails", "chestPainDetails", "dizzinessDetails", "bloodPressureDetails", "doctorRestrictionDetails",
+      "conditions", "medications", "surgeries", "injuries", "painLocations", "movementRestrictions", "medicalRecommendations"
+    ];
     const anamnesisReportFields = [
       { key: "primaryGoal", label: "Objetivo principal" },
       { key: "goalDetails", label: "Detalhes da meta" },
+      { key: "heartCondition", label: "Problemas cardíacos" },
+      { key: "bloodPressure", label: "Pressão alta ou baixa" },
+      { key: "dizziness", label: "Desmaios ou tonturas" },
+      { key: "doctorRestriction", label: "Restrição ou recomendação médica" },
       { key: "conditions", label: "Condições de saúde" },
       { key: "medications", label: "Medicamentos" },
+      { key: "surgeries", label: "Cirurgias" },
       { key: "injuries", label: "Lesões e dores" },
+      { key: "painLocations", label: "Dores atuais" },
       { key: "movementRestrictions", label: "Restrições de movimento" },
+      { key: "medicalRecommendations", label: "Recomendações médicas" },
       { key: "experience", label: "Experiência com treino" },
       { key: "weeklyFrequency", label: "Dias disponíveis por semana" },
       { key: "sleepHours", label: "Média de sono" },
@@ -7445,6 +8135,9 @@
       { key: "nutritionNotes", label: "Restrições e observações alimentares" }
     ];
     let anamnesisMemoryCache = {};
+    let anamnesisCurrentStep = 0;
+    let lastAnamnesisTargetId = "";
+    let anamnesisUnreadImportant = false;
 
     function loadLocalAnamneses() {
       try {
@@ -7465,7 +8158,12 @@
     }
 
     function storedAnamnesis(studentId) {
-      return anamnesisMemoryCache[studentId] || loadLocalAnamneses()[studentId] || null;
+      const record = anamnesisMemoryCache[studentId] || loadLocalAnamneses()[studentId] || null;
+      const user = currentAccount();
+      if (user?.role === "student" && studentId !== user.id) return null;
+      if (user?.role === "personal" && !canAccessStudentData(studentId)) return null;
+      if (user?.role === "personal" && record && (record.status === "draft" || record.consent !== true)) return null;
+      return record;
     }
 
     function anamnesisValueLabel(value, language = reportLanguage()) {
@@ -7474,9 +8172,14 @@
         health: "Saúde e qualidade de vida", performance: "Performance esportiva", rehabilitation: "Retorno após lesão",
         none: "Nenhum", beginner: "Iniciante", intermediate: "Intermediário", advanced: "Avançado",
         sedentary: "Sedentário", light: "Levemente ativo", moderate: "Moderado", high: "Alto",
-        low: "Baixo", occasionally: "Ocasionalmente", frequent: "Frequente", yes: "Sim", no: "Não", not_applicable: "Não se aplica"
+        low: "Baixo", good: "Boa", regular: "Regular", poor: "Ruim", occasionally: "Ocasionalmente", frequent: "Frequente",
+        yes: "Sim", no: "Não", not_applicable: "Não se aplica"
       };
       return t(labels[value] || value || "--", language);
+    }
+
+    function importantAnamnesisSignature(answers = {}) {
+      return JSON.stringify(Object.fromEntries(anamnesisImportantFields.map(key => [key, answers[key] || ""])));
     }
 
     function remoteAnamnesisFromRow(row) {
@@ -7488,18 +8191,32 @@
         medicalClearanceRecommended: row.medical_clearance_recommended === true,
         consent: row.consent === true,
         status: row.status || "submitted",
-        submittedAt: row.submitted_at || row.created_at || "",
+        submittedAt: row.submitted_at || (row.status === "draft" ? "" : row.created_at || ""),
+        draftSavedAt: row.draft_saved_at || "",
+        consentAcceptedAt: row.consent_accepted_at || "",
+        importantUpdatedAt: row.important_updated_at || row.updated_at || row.created_at || "",
+        createdAt: row.created_at || "",
         updatedAt: row.updated_at || row.created_at || ""
       };
     }
 
+    const anamnesisBaseSelect = "id,student_id,answers,risk_flags,medical_clearance_recommended,consent,status,submitted_at,created_at,updated_at";
+    const anamnesisExtendedSelect = `${anamnesisBaseSelect},draft_saved_at,consent_accepted_at,important_updated_at`;
+
     async function loadRemoteAnamnesis(studentId = activeDataStudentId()) {
       if (!monolithSupabase || !studentId || !isRealSupabaseAccount(currentAccount()) || !canAccessStudentData(studentId)) return null;
-      const { data, error } = await monolithSupabase
+      let { data, error } = await monolithSupabase
         .from("student_anamneses")
-        .select("id,student_id,answers,risk_flags,medical_clearance_recommended,consent,status,submitted_at,created_at,updated_at")
+        .select(anamnesisExtendedSelect)
         .eq("student_id", studentId)
         .maybeSingle();
+      if (error && /column|draft_saved_at|important_updated_at|consent_accepted_at/i.test(String(error.message || ""))) {
+        ({ data, error } = await monolithSupabase
+          .from("student_anamneses")
+          .select(anamnesisBaseSelect)
+          .eq("student_id", studentId)
+          .maybeSingle());
+      }
       if (error) throw error;
       if (!data) return null;
       const record = remoteAnamnesisFromRow(data);
@@ -7510,23 +8227,60 @@
     async function saveRemoteAnamnesis(record) {
       const user = currentAccount();
       if (!monolithSupabase || !isRealSupabaseAccount(user) || user.role !== "student" || record.studentId !== user.id) return false;
-      const payload = {
+      const basePayload = {
         student_id: user.id,
         answers: record.answers,
         risk_flags: record.riskFlags,
         medical_clearance_recommended: record.medicalClearanceRecommended,
         consent: record.consent,
-        status: "submitted",
-        submitted_at: record.submittedAt
+        status: record.status,
+        submitted_at: record.submittedAt || null
       };
-      const { data, error } = await monolithSupabase
+      const extendedPayload = {
+        ...basePayload,
+        draft_saved_at: record.status === "draft" ? record.updatedAt : record.draftSavedAt || null,
+        consent_accepted_at: record.consentAcceptedAt || null,
+        important_updated_at: record.importantUpdatedAt || null
+      };
+      let { data, error } = await monolithSupabase
         .from("student_anamneses")
-        .upsert(payload, { onConflict: "student_id" })
-        .select("id,student_id,answers,risk_flags,medical_clearance_recommended,consent,status,submitted_at,created_at,updated_at")
+        .upsert(extendedPayload, { onConflict: "student_id" })
+        .select(anamnesisExtendedSelect)
         .single();
+      if (error && /column|draft_saved_at|important_updated_at|consent_accepted_at/i.test(String(error.message || ""))) {
+        ({ data, error } = await monolithSupabase
+          .from("student_anamneses")
+          .upsert(basePayload, { onConflict: "student_id" })
+          .select(anamnesisBaseSelect)
+          .single());
+      }
       if (error) throw error;
       if (data) cacheAnamnesis(remoteAnamnesisFromRow(data));
       return true;
+    }
+
+    async function loadAnamnesisReadReceipt(anamnesisId) {
+      const user = currentAccount();
+      if (!monolithSupabase || user?.role !== "personal" || !anamnesisId || !isRealSupabaseAccount(user)) return null;
+      const { data, error } = await monolithSupabase
+        .from("student_anamnesis_reads")
+        .select("viewed_at")
+        .eq("anamnesis_id", anamnesisId)
+        .eq("trainer_id", user.id)
+        .maybeSingle();
+      if (error) return null;
+      return data || null;
+    }
+
+    async function markAnamnesisRead(anamnesisId) {
+      const user = currentAccount();
+      if (!monolithSupabase || user?.role !== "personal" || !anamnesisId || !isRealSupabaseAccount(user)) return false;
+      const { error } = await monolithSupabase.from("student_anamnesis_reads").upsert({
+        anamnesis_id: anamnesisId,
+        trainer_id: user.id,
+        viewed_at: new Date().toISOString()
+      }, { onConflict: "anamnesis_id,trainer_id" });
+      return !error;
     }
 
     function anamnesisTargetStudentId() {
@@ -7555,30 +8309,35 @@
       const form = document.getElementById("anamnesisForm");
       if (!form) return;
       form.reset();
+      form.querySelectorAll(".field-invalid").forEach(field => setFieldError(field, ""));
     }
 
     function fillAnamnesisForm(record = null) {
       clearAnamnesisForm();
-      if (!record?.answers) return;
       const form = document.getElementById("anamnesisForm");
-      Object.entries(record.answers).forEach(([name, value]) => {
-        const control = form?.elements?.namedItem(name);
-        if (!control) return;
-        if (control.type === "checkbox") control.checked = value === true;
-        else control.value = value ?? "";
-      });
+      if (record?.answers) {
+        Object.entries(record.answers).forEach(([name, value]) => {
+          const control = form?.elements?.namedItem(name);
+          if (!control) return;
+          if (control.type === "checkbox") control.checked = value === true;
+          else control.value = value ?? "";
+        });
+      }
       const consent = document.getElementById("anamnesisConsent");
-      if (consent) consent.checked = record.consent === true;
+      if (consent) consent.checked = record?.consent === true;
+      syncAnamnesisConditionalFields();
+      renderAnamnesisReview(record?.answers || {});
+      updateAnamnesisProgress();
     }
 
     function setAnamnesisReadOnly(readOnly) {
       const form = document.getElementById("anamnesisForm");
       if (!form) return;
-      [...form.elements].forEach(control => {
-        if (control.id !== "saveAnamnesis") control.disabled = readOnly;
-      });
+      form.querySelectorAll("input, select, textarea").forEach(control => control.disabled = readOnly);
       const saveButton = document.getElementById("saveAnamnesis");
+      const draftButton = document.getElementById("saveAnamnesisDraft");
       if (saveButton) saveButton.hidden = readOnly;
+      if (draftButton) draftButton.hidden = readOnly;
     }
 
     function renderAnamnesisRisk(record = null) {
@@ -7591,54 +8350,271 @@
         : t("Este questionário ajuda no planejamento do treino e não substitui avaliação ou diagnóstico médico.");
     }
 
-    async function renderAnamnesis() {
-      const user = currentAccount();
-      const panel = document.getElementById("anamnesisPanel");
-      const empty = document.getElementById("anamnesisEmptyState");
-      const status = document.getElementById("anamnesisStatus");
-      if (!user || !panel || !empty || !status) return;
-      await renderAnamnesisStudentSelect();
-      const studentId = anamnesisTargetStudentId();
-      const needsSelection = user.role === "personal" && !studentId;
-      panel.hidden = needsSelection;
-      empty.hidden = !needsSelection;
-      if (needsSelection) return;
-      let record = storedAnamnesis(studentId);
-      if (isRealSupabaseAccount(user)) {
-        try {
-          record = await loadRemoteAnamnesis(studentId) || record;
-        } catch (error) {
-          console.warn("Monolith anamnesis load failed", error);
-          showToast(t("Não consegui carregar a anamnese agora."));
-        }
-      }
-      fillAnamnesisForm(record);
-      setAnamnesisReadOnly(user.role === "personal");
-      status.textContent = record
-        ? `${t("Preenchida em")} ${reportDateLabel(record.submittedAt || record.updatedAt, localStorage.getItem("monolith.language") || "pt")}`
-        : t("Ainda não preenchida");
-      renderAnamnesisRisk(record);
+    function anamnesisStatusDetails(record = null) {
+      if (!record) return { label: "Não iniciada", className: "" };
+      if (record.status === "draft") return { label: "Em preenchimento", className: "in-progress" };
+      const updated = new Date(record.updatedAt || record.submittedAt || 0).getTime();
+      const recentlyUpdated = updated && Date.now() - updated <= 7 * 24 * 60 * 60 * 1000;
+      return recentlyUpdated
+        ? { label: "Atualizada recentemente", className: "recent" }
+        : { label: "Concluída", className: "complete" };
     }
 
-    function readAnamnesisForm() {
-      const user = currentAccount();
+    function renderAnamnesisStatus(record = null) {
+      const status = document.getElementById("anamnesisStatus");
+      const meta = document.getElementById("anamnesisMeta");
+      if (!status || !meta) return;
+      const details = anamnesisStatusDetails(record);
+      status.textContent = t(details.label);
+      status.className = `anamnesis-status-badge ${details.className}`.trim();
+      if (!record) {
+        meta.innerHTML = `<span>${escapeHTML(t("Nenhuma resposta salva ainda."))}</span>`;
+        return;
+      }
+      const created = record.createdAt || record.submittedAt || record.updatedAt;
+      const parts = [
+        created ? `${t("Criada em")}: ${reportDateLabel(created, localStorage.getItem("monolith.language") || "pt")}` : "",
+        record.updatedAt ? `${t("Última atualização")}: ${reportDateLabel(record.updatedAt, localStorage.getItem("monolith.language") || "pt")}` : "",
+        record.status === "draft"
+          ? t("Rascunho privado: ainda não compartilhado com o personal")
+          : record.consentAcceptedAt
+            ? `${t("Consentimento aceito em")}: ${reportDateLabel(record.consentAcceptedAt, localStorage.getItem("monolith.language") || "pt")}`
+            : "",
+        record.status === "draft" ? "" : t("Compartilhada somente com o personal vinculado")
+      ].filter(Boolean);
+      meta.innerHTML = parts.map(part => `<span>${escapeHTML(part)}</span>`).join("");
+    }
+
+    function syncAnamnesisConditionalFields() {
+      const form = document.getElementById("anamnesisForm");
+      if (!form) return;
+      form.querySelectorAll("[data-anamnesis-if]").forEach(wrapper => {
+        const source = form.elements.namedItem(wrapper.dataset.anamnesisIf);
+        const values = String(wrapper.dataset.anamnesisValues || "yes").split(",");
+        wrapper.hidden = !source || !values.includes(String(source.value));
+      });
+    }
+
+    function isAnamnesisControlRequired(control) {
+      if (!control || control.disabled || control.closest("[hidden]")) return false;
+      return control.dataset.anamnesisRequired === "true" || control.dataset.anamnesisRequiredWhenVisible === "true";
+    }
+
+    function anamnesisRequiredControls(scope = document.getElementById("anamnesisForm")) {
+      return scope ? [...scope.querySelectorAll("[data-anamnesis-required], [data-anamnesis-required-when-visible]")].filter(isAnamnesisControlRequired) : [];
+    }
+
+    function anamnesisStepComplete(step) {
+      const section = document.querySelector(`[data-anamnesis-step="${step}"]`);
+      const controls = anamnesisRequiredControls(section);
+      if (controls.length) return controls.every(control => String(control.value || "").trim());
+      return [...(section?.querySelectorAll("input[name], select[name], textarea[name]") || [])].some(control => String(control.value || "").trim());
+    }
+
+    function updateAnamnesisProgress() {
+      const required = anamnesisRequiredControls();
+      const answered = required.filter(control => String(control.value || "").trim()).length;
+      const consent = document.getElementById("anamnesisConsent")?.checked ? 1 : 0;
+      const total = required.length + 1;
+      const percent = total ? Math.round(((answered + consent) / total) * 100) : 0;
+      const bar = document.getElementById("anamnesisProgressBar");
+      const track = bar?.parentElement;
+      const label = document.getElementById("anamnesisProgressLabel");
+      if (bar) bar.style.width = `${percent}%`;
+      if (track) track.setAttribute("aria-valuenow", String(percent));
+      if (label) label.textContent = `${percent}% ${t("concluído")}`;
+      document.querySelectorAll(".anamnesis-step-button").forEach(button => {
+        const step = Number(button.dataset.anamnesisGo);
+        button.classList.toggle("complete", step < 5 ? anamnesisStepComplete(step) : percent === 100);
+      });
+    }
+
+    function showAnamnesisStep(step = 0, { focus = false } = {}) {
+      const sections = [...document.querySelectorAll("[data-anamnesis-step]")];
+      if (!sections.length) return;
+      anamnesisCurrentStep = Math.max(0, Math.min(sections.length - 1, Number(step) || 0));
+      sections.forEach(section => section.classList.toggle("active", Number(section.dataset.anamnesisStep) === anamnesisCurrentStep));
+      document.querySelectorAll(".anamnesis-step-button").forEach(button => button.classList.toggle("active", Number(button.dataset.anamnesisGo) === anamnesisCurrentStep));
+      const active = sections[anamnesisCurrentStep];
+      const stepLabel = document.getElementById("anamnesisStepLabel");
+      if (stepLabel) stepLabel.textContent = `${t("Etapa")} ${anamnesisCurrentStep + 1} ${t("de")} ${sections.length} · ${t(active.dataset.stepTitle || "")}`;
+      const previous = document.getElementById("anamnesisPrevious");
+      const next = document.getElementById("anamnesisNext");
+      const submit = document.getElementById("saveAnamnesis");
+      if (previous) previous.disabled = anamnesisCurrentStep === 0;
+      if (next) next.hidden = anamnesisCurrentStep === sections.length - 1;
+      if (submit) submit.hidden = currentAccount()?.role !== "student" || anamnesisCurrentStep !== sections.length - 1;
+      if (anamnesisCurrentStep === sections.length - 1) renderAnamnesisReview();
+      updateAnamnesisProgress();
+      if (focus) active.scrollIntoView({ behavior: "smooth", block: "start" });
+    }
+
+    function validateAnamnesis({ all = false } = {}) {
+      const scope = all ? document.getElementById("anamnesisForm") : document.querySelector(`[data-anamnesis-step="${anamnesisCurrentStep}"]`);
+      const controls = anamnesisRequiredControls(scope);
+      let firstInvalid = null;
+      controls.forEach(control => {
+        const invalid = !String(control.value || "").trim();
+        setFieldError(control, invalid ? t("Campo obrigatório.") : "");
+        if (invalid && !firstInvalid) firstInvalid = control;
+      });
+      if (all && !document.getElementById("anamnesisConsent")?.checked) {
+        const consent = document.getElementById("anamnesisConsent");
+        setFieldError(consent, t("Aceite o termo de consentimento para concluir."));
+        firstInvalid ||= consent;
+      } else {
+        setFieldError(document.getElementById("anamnesisConsent"), "");
+      }
+      if (firstInvalid) {
+        const invalidStep = Number(firstInvalid.closest("[data-anamnesis-step]")?.dataset.anamnesisStep || 0);
+        showAnamnesisStep(invalidStep);
+        firstInvalid.focus();
+        showToast(t("Revise os campos obrigatórios antes de continuar."));
+        return false;
+      }
+      return true;
+    }
+
+    function readAnamnesisAnswers() {
       const form = document.getElementById("anamnesisForm");
       const data = new FormData(form);
       const answers = {};
       for (const [key, value] of data.entries()) {
         if (key !== "consent") answers[key] = String(value).trim();
       }
+      form.querySelectorAll("[data-anamnesis-if][hidden] [name]").forEach(control => delete answers[control.name]);
+      return answers;
+    }
+
+    function anamnesisReviewValue(key, value) {
+      if (!value) return t("Não informado");
+      if (["primaryGoal", "experience", "activityLevel", "sleepQuality", "stressLevel", "smoking", "alcohol", ...anamnesisRiskFields].includes(key)) return anamnesisValueLabel(value);
+      if (key === "weeklyFrequency") return `${value} ${t(Number(value) === 1 ? "dia por semana" : "dias por semana")}`;
+      return String(value);
+    }
+
+    function renderAnamnesisReview(answers = readAnamnesisAnswers()) {
+      const target = document.getElementById("anamnesisReview");
+      if (!target) return;
+      const rows = [
+        ["primaryGoal", "Objetivo principal"], ["experience", "Experiência com exercícios"], ["weeklyFrequency", "Frequência de treino pretendida"],
+        ["heartCondition", "Problemas cardíacos"], ["bloodPressure", "Pressão alta ou baixa"], ["dizziness", "Desmaios ou tonturas"],
+        ["conditions", "Doenças ou condições médicas"], ["medications", "Medicamentos utilizados"], ["surgeries", "Cirurgias"],
+        ["injuries", "Lesões"], ["painLocations", "Dores atuais"], ["movementRestrictions", "Limitações de movimento"],
+        ["sleepQuality", "Qualidade do sono"], ["stressLevel", "Nível de estresse"], ["emergencyName", "Contato de emergência"]
+      ];
+      const importantDetailKeys = new Set(["conditions", "medications", "surgeries", "injuries", "painLocations", "movementRestrictions"]);
+      target.innerHTML = rows.map(([key, label]) => {
+        const value = anamnesisReviewValue(key, answers[key]);
+        const risky = (anamnesisRiskFields.includes(key) && answers[key] === "yes") || (importantDetailKeys.has(key) && Boolean(answers[key]));
+        return `<div class="anamnesis-review-item ${risky ? "risk" : ""}"><span>${escapeHTML(t(label))}</span><strong data-no-i18n="true">${escapeHTML(value)}</strong></div>`;
+      }).join("");
+    }
+
+    async function renderAnamnesis() {
+      const user = currentAccount();
+      const panel = document.getElementById("anamnesisPanel");
+      const empty = document.getElementById("anamnesisEmptyState");
+      const form = document.getElementById("anamnesisForm");
+      const noRecord = document.getElementById("anamnesisNoRecordNotice");
+      const importantNotice = document.getElementById("anamnesisImportantUpdate");
+      if (!user || !panel || !empty || !form || !noRecord || !importantNotice) return;
+      await renderAnamnesisStudentSelect();
+      const studentId = anamnesisTargetStudentId();
+      const needsSelection = user.role === "personal" && !studentId;
+      panel.hidden = needsSelection;
+      empty.hidden = !needsSelection;
+      if (needsSelection) return;
+      if (lastAnamnesisTargetId !== studentId) anamnesisCurrentStep = 0;
+      lastAnamnesisTargetId = studentId;
+      let record = storedAnamnesis(studentId);
+      if (isRealSupabaseAccount(user)) {
+        try {
+          record = await loadRemoteAnamnesis(studentId);
+        } catch (error) {
+          console.warn("Monolith anamnesis load failed", error);
+          if (user.role === "personal") record = null;
+          showToast(t("Não consegui carregar a anamnese agora."));
+        }
+      }
+      fillAnamnesisForm(record);
+      const trainerWithoutRecord = user.role === "personal" && !record;
+      form.hidden = trainerWithoutRecord;
+      document.getElementById("anamnesisProgress").hidden = trainerWithoutRecord;
+      document.getElementById("anamnesisStepNav").hidden = trainerWithoutRecord;
+      noRecord.hidden = !trainerWithoutRecord;
+      setAnamnesisReadOnly(user.role === "personal");
+      renderAnamnesisStatus(record);
+      renderAnamnesisRisk(record);
+      importantNotice.hidden = true;
+      anamnesisUnreadImportant = false;
+      if (user.role === "personal" && record?.id) {
+        const receipt = await loadAnamnesisReadReceipt(record.id);
+        const importantAt = new Date(record.importantUpdatedAt || 0).getTime();
+        const viewedAt = new Date(receipt?.viewed_at || 0).getTime();
+        anamnesisUnreadImportant = Boolean(importantAt && importantAt > viewedAt);
+        importantNotice.hidden = !anamnesisUnreadImportant;
+        markAnamnesisRead(record.id).catch(() => false);
+      }
+      if (user.role === "personal" && record) anamnesisCurrentStep = 5;
+      showAnamnesisStep(anamnesisCurrentStep);
+      requestAnimationFrame(() => setDirtyBaseline("anamnesis"));
+    }
+
+    function readAnamnesisForm(status = "submitted") {
+      const user = currentAccount();
+      const answers = readAnamnesisAnswers();
+      const existing = storedAnamnesis(user?.id);
+      const now = new Date().toISOString();
       const riskFlags = anamnesisRiskFields.filter(field => answers[field] === "yes");
+      const importantChanged = !existing || importantAnamnesisSignature(existing.answers) !== importantAnamnesisSignature(answers);
+      const submitted = status === "submitted";
       return {
         studentId: user?.id || "",
         answers,
         riskFlags,
         medicalClearanceRecommended: riskFlags.length > 0,
-        consent: document.getElementById("anamnesisConsent")?.checked === true,
-        status: "submitted",
-        submittedAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString()
+        consent: submitted && document.getElementById("anamnesisConsent")?.checked === true,
+        status,
+        submittedAt: submitted ? now : existing?.submittedAt || "",
+        draftSavedAt: status === "draft" ? now : existing?.draftSavedAt || "",
+        consentAcceptedAt: submitted ? now : existing?.consentAcceptedAt || "",
+        importantUpdatedAt: importantChanged ? now : existing?.importantUpdatedAt || now,
+        createdAt: existing?.createdAt || now,
+        updatedAt: now
       };
+    }
+
+    async function persistAnamnesis(status = "submitted") {
+      const user = currentAccount();
+      if (!user || user.role !== "student") {
+        showToast(t("Somente o aluno pode preencher ou alterar a anamnese."));
+        return false;
+      }
+      if (status === "submitted" && !validateAnamnesis({ all: true })) return false;
+      const record = readAnamnesisForm(status);
+      const saveButton = document.getElementById("saveAnamnesis");
+      const draftButton = document.getElementById("saveAnamnesisDraft");
+      if (saveButton) saveButton.disabled = true;
+      if (draftButton) draftButton.disabled = true;
+      let synced = false;
+      try {
+        if (isRealSupabaseAccount(user)) synced = await saveRemoteAnamnesis(record);
+        else cacheAnamnesis(record);
+      } catch (error) {
+        console.warn("Monolith anamnesis save failed", error);
+        showToast(t("Não consegui salvar a anamnese no Supabase. Rode a etapa 12 do banco e tente novamente."));
+        return false;
+      } finally {
+        if (saveButton) saveButton.disabled = false;
+        if (draftButton) draftButton.disabled = false;
+      }
+      if (!isRealSupabaseAccount(user)) cacheAnamnesis(record);
+      clearDirty("anamnesis");
+      await renderAnamnesis();
+      if (status === "draft") showToast(t(synced ? "Rascunho salvo no Supabase. Você pode continuar depois." : "Rascunho salvo. Você pode continuar depois."));
+      else showToast(t(synced ? "Anamnese concluída e compartilhada com seu personal vinculado." : "Anamnese concluída."));
+      return true;
     }
 
     function defaultMeal(index = 0) {
@@ -9554,7 +10530,199 @@
         "treinos": "workouts",
         "Importação cancelada.": "Import canceled.",
         "Desfazer?": "Undo?",
-        "Percentual de gordura fora do intervalo esperado.": "Body-fat percentage is outside the expected range."
+        "Percentual de gordura fora do intervalo esperado.": "Body-fat percentage is outside the expected range.",
+        "Buscar por nome ou e-mail": "Search by name or email",
+        "Buscar alunos": "Search students",
+        "Filtrar por status": "Filter by status",
+        "Ordenar alunos": "Sort students",
+        "Todos os status": "All statuses",
+        "Nome A–Z": "Name A–Z",
+        "Nome Z–A": "Name Z–A",
+        "Atividade mais recente": "Most recent activity",
+        "Maior score": "Highest score",
+        "Última atividade": "Last activity",
+        "Status": "Status",
+        "Ações": "Actions",
+        "Anterior": "Previous",
+        "Próxima": "Next",
+        "0 alunos": "0 students",
+        "Nenhum aluno encontrado com esses filtros.": "No students found with these filters.",
+        "Mostrando {start}–{end} de {total} alunos": "Showing {start}–{end} of {total} students",
+        "Ações de {name}": "Actions for {name}",
+        "Não informado": "Not provided",
+        "Sem atividade": "No activity",
+        "Check-in": "Check-in",
+        "Treino": "Workout",
+        "Medidas": "Measurements",
+        "Nenhum treino concluído": "No completed workout",
+        "Última dieta publicada": "Latest published diet",
+        "Nenhuma dieta publicada": "No published diet",
+        "Tendência de peso": "Weight trend",
+        "Sem dados suficientes": "Not enough data",
+        "Estável": "Stable",
+        "Alta": "Up",
+        "Queda": "Down",
+        "Check-ins": "Check-ins",
+        "Alerta": "Alert",
+        "Nenhum alerta ativo": "No active alert",
+        "Próxima ação recomendada": "Recommended next action",
+        "Acompanhar evolução": "Monitor progress",
+        "Abrir frequência": "Open frequency",
+        "Registrar o primeiro check-in": "Record the first check-in",
+        "Revisar a frequência recente": "Review recent frequency",
+        "Criar o primeiro treino": "Create the first workout",
+        "Publicar a dieta do mês": "Publish this month's diet",
+        "Modalidade": "Service type",
+        "Idiomas": "Languages",
+        "Disponibilidade": "Availability",
+        "Preço inicial": "Starting price",
+        "A partir de": "From",
+        "hora": "hour",
+        "mês": "month",
+        "mês online": "online month",
+        "Preço sob consulta": "Price on request",
+        "Na cidade pesquisada": "In the searched city",
+        "Distância não informada": "Distance not provided",
+        "Perfil verificado": "Verified profile",
+        "Ver perfil": "View profile",
+        "Perfil do personal": "Trainer profile",
+        "Voltar ao mapa": "Back to map",
+        "Abrir Instagram": "Open Instagram",
+        "Publicada": "Published",
+        "Anamnese": "Health questionnaire",
+        "Ver anamnese": "View health questionnaire",
+        "Informações de saúde, rotina e objetivos para um treino mais seguro e individualizado": "Health, routine and goal information for safer, personalized training",
+        "O personal visualiza as respostas do aluno em modo somente leitura.": "The trainer views the student's answers in read-only mode.",
+        "Questionário de prontidão física": "Physical readiness questionnaire",
+        "Você pode salvar um rascunho e continuar depois. Campos marcados com * são obrigatórios para concluir.": "You can save a draft and continue later. Fields marked with * are required to finish.",
+        "Não iniciada": "Not started",
+        "Em preenchimento": "In progress",
+        "Concluída": "Completed",
+        "Atualizada recentemente": "Updated recently",
+        "Nenhuma resposta salva ainda.": "No answers have been saved yet.",
+        "Criada em": "Created on",
+        "Última atualização": "Last updated",
+        "Consentimento aceito em": "Consent accepted on",
+        "Rascunho privado: ainda não compartilhado com o personal": "Private draft: not shared with the trainer yet",
+        "Compartilhada somente com o personal vinculado": "Shared only with the linked trainer",
+        "O aluno atualizou respostas importantes desde sua última visualização.": "The student updated important answers since your last view.",
+        "Anamnese ainda não preenchida": "Health questionnaire not completed yet",
+        "O aluno ainda não iniciou este questionário.": "The student has not started this questionnaire yet.",
+        "Etapa": "Step",
+        "de": "of",
+        "concluído": "complete",
+        "Progresso da anamnese": "Questionnaire progress",
+        "Seções da anamnese": "Questionnaire sections",
+        "Objetivos": "Goals",
+        "Saúde": "Health",
+        "Movimento": "Movement",
+        "Rotina": "Routine",
+        "Segurança": "Safety",
+        "Revisão": "Review",
+        "Objetivos e experiência": "Goals and experience",
+        "Contexto para planejar o treino": "Context for planning the workout",
+        "Data de nascimento": "Date of birth",
+        "Profissão e rotina de trabalho": "Occupation and work routine",
+        "Ex: trabalho sentado, turnos, esforço físico": "Ex: desk work, shifts, physical effort",
+        "Objetivo principal": "Primary goal",
+        "Experiência com exercícios": "Exercise experience",
+        "Explique sua meta e o que espera alcançar": "Describe your goal and what you expect to achieve",
+        "Frequência de treino pretendida": "Intended training frequency",
+        "1 dia por semana": "1 day per week",
+        "2 dias por semana": "2 days per week",
+        "3 dias por semana": "3 days per week",
+        "4 dias por semana": "4 days per week",
+        "5 dias por semana": "5 days per week",
+        "6 dias por semana": "6 days per week",
+        "7 dias por semana": "7 days per week",
+        "dia por semana": "day per week",
+        "dias por semana": "days per week",
+        "Disponibilidade para treinar": "Training availability",
+        "Ex: segundas, quartas e sextas à noite": "Ex: Monday, Wednesday and Friday evenings",
+        "Atividades que gosta ou gostaria de fazer": "Activities you enjoy or would like to do",
+        "Equipamentos e local disponíveis": "Available equipment and location",
+        "Ex: academia completa, halteres em casa, elásticos": "Ex: full gym, dumbbells at home, resistance bands",
+        "Saúde e histórico médico": "Health and medical history",
+        "Responda com atenção": "Answer carefully",
+        "Algum médico já informou problema cardíaco?": "Has a doctor ever diagnosed a heart problem?",
+        "Sente dor no peito durante esforço ou em repouso?": "Do you feel chest pain during exercise or at rest?",
+        "Explique o problema cardíaco": "Describe the heart condition",
+        "Quando e com que frequência sente dor no peito?": "When and how often do you feel chest pain?",
+        "Possui pressão alta ou baixa?": "Do you have high or low blood pressure?",
+        "Já teve desmaios, tonturas ou perda de equilíbrio?": "Have you experienced fainting, dizziness or loss of balance?",
+        "Informe o diagnóstico, controle e orientações recebidas": "Describe the diagnosis, management and guidance received",
+        "Explique quando ocorreu e se houve avaliação médica": "Explain when it happened and whether you received medical evaluation",
+        "Possui restrição ou recomendação médica para exercício?": "Do you have a medical restriction or recommendation for exercise?",
+        "Está grávida ou existe possibilidade de gravidez?": "Are you pregnant or could you be pregnant?",
+        "Descreva a restrição ou recomendação médica": "Describe the medical restriction or recommendation",
+        "Possui doença ou condição médica diagnosticada?": "Do you have a diagnosed medical condition?",
+        "Informe doenças, condições médicas ou internações": "List diseases, medical conditions or hospitalizations",
+        "Utiliza medicamentos atualmente?": "Do you currently take medication?",
+        "Informe medicamento, dose e motivo": "List the medication, dosage and reason",
+        "Já realizou alguma cirurgia?": "Have you had surgery?",
+        "Informe cirurgia, data aproximada e recuperação": "Describe the surgery, approximate date and recovery",
+        "Lesões e movimento": "Injuries and movement",
+        "Lesões, dores e movimento": "Injuries, pain and movement",
+        "Histórico físico": "Physical history",
+        "Possui lesão anterior ou atual?": "Do you have a previous or current injury?",
+        "Descreva a lesão, lado do corpo e situação atual": "Describe the injury, side of the body and current status",
+        "Sente dor ou desconforto atualmente?": "Do you currently feel pain or discomfort?",
+        "Onde sente dor, qual intensidade e em quais movimentos?": "Where is the pain, how intense is it and during which movements?",
+        "Ex: lombar, joelho direito, ombro": "Ex: lower back, right knee, shoulder",
+        "Possui limitação de movimento?": "Do you have a movement limitation?",
+        "Movimentos que não consegue ou deve evitar": "Movements you cannot perform or should avoid",
+        "Outras recomendações médicas ou fisioterapêuticas": "Other medical or physiotherapy recommendations",
+        "Rotina e recuperação": "Routine and recovery",
+        "Hábitos gerais": "General habits",
+        "Nível de atividade atual": "Current activity level",
+        "Qualidade do sono": "Sleep quality",
+        "Boa": "Good",
+        "Regular": "Fair",
+        "Ruim": "Poor",
+        "Média de sono por noite": "Average sleep per night",
+        "Nível de estresse": "Stress level",
+        "Tabagismo": "Smoking",
+        "Não fumo": "I do not smoke",
+        "Fumo regularmente": "I smoke regularly",
+        "Consumo de álcool": "Alcohol consumption",
+        "Não consumo": "I do not drink",
+        "Ocasional": "Occasional",
+        "Como é sua rotina profissional e diária?": "What is your work and daily routine like?",
+        "Ex: tempo sentado, deslocamentos, turnos e esforço físico": "Ex: sitting time, commuting, shifts and physical effort",
+        "Restrições alimentares, alergias ou informações nutricionais importantes": "Dietary restrictions, allergies or important nutrition information",
+        "Segurança e observações": "Safety and notes",
+        "Contato de emergência e observações": "Emergency contact and notes",
+        "Nome do contato": "Contact name",
+        "Telefone do contato": "Contact phone",
+        "Observações adicionais": "Additional notes",
+        "Inclua qualquer informação que possa ajudar o personal a planejar seu treino": "Add any information that may help the trainer plan your workout",
+        "Revisão e consentimento": "Review and consent",
+        "Confira antes de concluir": "Review before finishing",
+        "Problemas cardíacos": "Heart problems",
+        "Pressão alta ou baixa": "High or low blood pressure",
+        "Desmaios ou tonturas": "Fainting or dizziness",
+        "Restrição ou recomendação médica": "Medical restriction or recommendation",
+        "Recomendações médicas": "Medical recommendations",
+        "Doenças ou condições médicas": "Diseases or medical conditions",
+        "Medicamentos utilizados": "Medications used",
+        "Cirurgias": "Surgeries",
+        "Lesões": "Injuries",
+        "Dores atuais": "Current pain",
+        "Limitações de movimento": "Movement limitations",
+        "Contato de emergência": "Emergency contact",
+        "Confirmo que as informações fornecidas são verdadeiras e autorizo o Monolith a armazená-las e compartilhá-las somente com o meu personal vinculado para planejamento e acompanhamento do treino. Entendo que esta anamnese não substitui avaliação médica.": "I confirm that the information provided is true and authorize Monolith to store it and share it only with my linked trainer for workout planning and monitoring. I understand that this questionnaire does not replace a medical evaluation.",
+        "Anterior": "Previous",
+        "Salvar e continuar depois": "Save and continue later",
+        "Próxima etapa": "Next step",
+        "Concluir anamnese": "Complete questionnaire",
+        "Campo obrigatório.": "Required field.",
+        "Aceite o termo de consentimento para concluir.": "Accept the consent terms to finish.",
+        "Revise os campos obrigatórios antes de continuar.": "Review the required fields before continuing.",
+        "Rascunho salvo no Supabase. Você pode continuar depois.": "Draft saved to Supabase. You can continue later.",
+        "Rascunho salvo. Você pode continuar depois.": "Draft saved. You can continue later.",
+        "Anamnese concluída e compartilhada com seu personal vinculado.": "Questionnaire completed and shared with your linked trainer.",
+        "Anamnese concluída.": "Questionnaire completed.",
+        "Não consegui salvar a anamnese no Supabase. Rode a etapa 12 do banco e tente novamente.": "Could not save the questionnaire to Supabase. Run database step 12 and try again."
       },
       es: {
         "Início": "Inicio",
@@ -10662,7 +11830,199 @@
         "treinos": "entrenamientos",
         "Importação cancelada.": "Importación cancelada.",
         "Desfazer?": "¿Deshacer?",
-        "Percentual de gordura fora do intervalo esperado.": "El porcentaje de grasa está fuera del rango esperado."
+        "Percentual de gordura fora do intervalo esperado.": "El porcentaje de grasa está fuera del rango esperado.",
+        "Buscar por nome ou e-mail": "Buscar por nombre o email",
+        "Buscar alunos": "Buscar alumnos",
+        "Filtrar por status": "Filtrar por estado",
+        "Ordenar alunos": "Ordenar alumnos",
+        "Todos os status": "Todos los estados",
+        "Nome A–Z": "Nombre A–Z",
+        "Nome Z–A": "Nombre Z–A",
+        "Atividade mais recente": "Actividad más reciente",
+        "Maior score": "Mayor puntuación",
+        "Última atividade": "Última actividad",
+        "Status": "Estado",
+        "Ações": "Acciones",
+        "Anterior": "Anterior",
+        "Próxima": "Siguiente",
+        "0 alunos": "0 alumnos",
+        "Nenhum aluno encontrado com esses filtros.": "No se encontraron alumnos con estos filtros.",
+        "Mostrando {start}–{end} de {total} alunos": "Mostrando {start}–{end} de {total} alumnos",
+        "Ações de {name}": "Acciones de {name}",
+        "Não informado": "No informado",
+        "Sem atividade": "Sin actividad",
+        "Check-in": "Check-in",
+        "Treino": "Entreno",
+        "Medidas": "Medidas",
+        "Nenhum treino concluído": "Ningún entreno completado",
+        "Última dieta publicada": "Última dieta publicada",
+        "Nenhuma dieta publicada": "Ninguna dieta publicada",
+        "Tendência de peso": "Tendencia de peso",
+        "Sem dados suficientes": "Datos insuficientes",
+        "Estável": "Estable",
+        "Alta": "Subida",
+        "Queda": "Bajada",
+        "Check-ins": "Check-ins",
+        "Alerta": "Alerta",
+        "Nenhum alerta ativo": "Ninguna alerta activa",
+        "Próxima ação recomendada": "Siguiente acción recomendada",
+        "Acompanhar evolução": "Acompañar evolución",
+        "Abrir frequência": "Abrir frecuencia",
+        "Registrar o primeiro check-in": "Registrar el primer check-in",
+        "Revisar a frequência recente": "Revisar la frecuencia reciente",
+        "Criar o primeiro treino": "Crear el primer entreno",
+        "Publicar a dieta do mês": "Publicar la dieta del mes",
+        "Modalidade": "Modalidad",
+        "Idiomas": "Idiomas",
+        "Disponibilidade": "Disponibilidad",
+        "Preço inicial": "Precio inicial",
+        "A partir de": "Desde",
+        "hora": "hora",
+        "mês": "mes",
+        "mês online": "mes online",
+        "Preço sob consulta": "Precio a consultar",
+        "Na cidade pesquisada": "En la ciudad buscada",
+        "Distância não informada": "Distancia no informada",
+        "Perfil verificado": "Perfil verificado",
+        "Ver perfil": "Ver perfil",
+        "Perfil do personal": "Perfil del entrenador",
+        "Voltar ao mapa": "Volver al mapa",
+        "Abrir Instagram": "Abrir Instagram",
+        "Publicada": "Publicada",
+        "Anamnese": "Anamnesis",
+        "Ver anamnese": "Ver anamnesis",
+        "Informações de saúde, rotina e objetivos para um treino mais seguro e individualizado": "Información de salud, rutina y objetivos para un entrenamiento más seguro y personalizado",
+        "O personal visualiza as respostas do aluno em modo somente leitura.": "El entrenador ve las respuestas del alumno en modo de solo lectura.",
+        "Questionário de prontidão física": "Cuestionario de preparación física",
+        "Você pode salvar um rascunho e continuar depois. Campos marcados com * são obrigatórios para concluir.": "Puedes guardar un borrador y continuar después. Los campos marcados con * son obligatorios para finalizar.",
+        "Não iniciada": "No iniciada",
+        "Em preenchimento": "En progreso",
+        "Concluída": "Completada",
+        "Atualizada recentemente": "Actualizada recientemente",
+        "Nenhuma resposta salva ainda.": "Todavía no hay respuestas guardadas.",
+        "Criada em": "Creada el",
+        "Última atualização": "Última actualización",
+        "Consentimento aceito em": "Consentimiento aceptado el",
+        "Rascunho privado: ainda não compartilhado com o personal": "Borrador privado: todavía no compartido con el entrenador",
+        "Compartilhada somente com o personal vinculado": "Compartida solo con el entrenador vinculado",
+        "O aluno atualizou respostas importantes desde sua última visualização.": "El alumno actualizó respuestas importantes desde tu última visualización.",
+        "Anamnese ainda não preenchida": "Anamnesis aún no completada",
+        "O aluno ainda não iniciou este questionário.": "El alumno todavía no inició este cuestionario.",
+        "Etapa": "Paso",
+        "de": "de",
+        "concluído": "completado",
+        "Progresso da anamnese": "Progreso de la anamnesis",
+        "Seções da anamnese": "Secciones de la anamnesis",
+        "Objetivos": "Objetivos",
+        "Saúde": "Salud",
+        "Movimento": "Movimiento",
+        "Rotina": "Rutina",
+        "Segurança": "Seguridad",
+        "Revisão": "Revisión",
+        "Objetivos e experiência": "Objetivos y experiencia",
+        "Contexto para planejar o treino": "Contexto para planificar el entrenamiento",
+        "Data de nascimento": "Fecha de nacimiento",
+        "Profissão e rotina de trabalho": "Profesión y rutina laboral",
+        "Ex: trabalho sentado, turnos, esforço físico": "Ej.: trabajo sentado, turnos, esfuerzo físico",
+        "Objetivo principal": "Objetivo principal",
+        "Experiência com exercícios": "Experiencia con ejercicio",
+        "Explique sua meta e o que espera alcançar": "Explica tu meta y lo que esperas alcanzar",
+        "Frequência de treino pretendida": "Frecuencia de entrenamiento prevista",
+        "1 dia por semana": "1 día por semana",
+        "2 dias por semana": "2 días por semana",
+        "3 dias por semana": "3 días por semana",
+        "4 dias por semana": "4 días por semana",
+        "5 dias por semana": "5 días por semana",
+        "6 dias por semana": "6 días por semana",
+        "7 dias por semana": "7 días por semana",
+        "dia por semana": "día por semana",
+        "dias por semana": "días por semana",
+        "Disponibilidade para treinar": "Disponibilidad para entrenar",
+        "Ex: segundas, quartas e sextas à noite": "Ej.: lunes, miércoles y viernes por la noche",
+        "Atividades que gosta ou gostaria de fazer": "Actividades que disfrutas o te gustaría hacer",
+        "Equipamentos e local disponíveis": "Equipamiento y lugar disponibles",
+        "Ex: academia completa, halteres em casa, elásticos": "Ej.: gimnasio completo, mancuernas en casa, bandas",
+        "Saúde e histórico médico": "Salud e historial médico",
+        "Responda com atenção": "Responde con atención",
+        "Algum médico já informou problema cardíaco?": "¿Algún médico te diagnosticó un problema cardíaco?",
+        "Sente dor no peito durante esforço ou em repouso?": "¿Sientes dolor en el pecho durante el esfuerzo o en reposo?",
+        "Explique o problema cardíaco": "Describe el problema cardíaco",
+        "Quando e com que frequência sente dor no peito?": "¿Cuándo y con qué frecuencia sientes dolor en el pecho?",
+        "Possui pressão alta ou baixa?": "¿Tienes presión alta o baja?",
+        "Já teve desmaios, tonturas ou perda de equilíbrio?": "¿Has tenido desmayos, mareos o pérdida de equilibrio?",
+        "Informe o diagnóstico, controle e orientações recebidas": "Describe el diagnóstico, control y recomendaciones recibidas",
+        "Explique quando ocorreu e se houve avaliação médica": "Explica cuándo ocurrió y si hubo evaluación médica",
+        "Possui restrição ou recomendação médica para exercício?": "¿Tienes alguna restricción o recomendación médica para hacer ejercicio?",
+        "Está grávida ou existe possibilidade de gravidez?": "¿Estás embarazada o existe posibilidad de embarazo?",
+        "Descreva a restrição ou recomendação médica": "Describe la restricción o recomendación médica",
+        "Possui doença ou condição médica diagnosticada?": "¿Tienes alguna enfermedad o condición médica diagnosticada?",
+        "Informe doenças, condições médicas ou internações": "Indica enfermedades, condiciones médicas u hospitalizaciones",
+        "Utiliza medicamentos atualmente?": "¿Usas medicamentos actualmente?",
+        "Informe medicamento, dose e motivo": "Indica el medicamento, dosis y motivo",
+        "Já realizou alguma cirurgia?": "¿Te han realizado alguna cirugía?",
+        "Informe cirurgia, data aproximada e recuperação": "Indica la cirugía, fecha aproximada y recuperación",
+        "Lesões e movimento": "Lesiones y movimiento",
+        "Lesões, dores e movimento": "Lesiones, dolores y movimiento",
+        "Histórico físico": "Historial físico",
+        "Possui lesão anterior ou atual?": "¿Tienes una lesión anterior o actual?",
+        "Descreva a lesão, lado do corpo e situação atual": "Describe la lesión, lado del cuerpo y estado actual",
+        "Sente dor ou desconforto atualmente?": "¿Sientes dolor o molestia actualmente?",
+        "Onde sente dor, qual intensidade e em quais movimentos?": "¿Dónde sientes dolor, qué intensidad tiene y con qué movimientos?",
+        "Ex: lombar, joelho direito, ombro": "Ej.: zona lumbar, rodilla derecha, hombro",
+        "Possui limitação de movimento?": "¿Tienes alguna limitación de movimiento?",
+        "Movimentos que não consegue ou deve evitar": "Movimientos que no puedes hacer o debes evitar",
+        "Outras recomendações médicas ou fisioterapêuticas": "Otras recomendaciones médicas o de fisioterapia",
+        "Rotina e recuperação": "Rutina y recuperación",
+        "Hábitos gerais": "Hábitos generales",
+        "Nível de atividade atual": "Nivel de actividad actual",
+        "Qualidade do sono": "Calidad del sueño",
+        "Boa": "Buena",
+        "Regular": "Regular",
+        "Ruim": "Mala",
+        "Média de sono por noite": "Promedio de sueño por noche",
+        "Nível de estresse": "Nivel de estrés",
+        "Tabagismo": "Tabaquismo",
+        "Não fumo": "No fumo",
+        "Fumo regularmente": "Fumo regularmente",
+        "Consumo de álcool": "Consumo de alcohol",
+        "Não consumo": "No consumo",
+        "Ocasional": "Ocasional",
+        "Como é sua rotina profissional e diária?": "¿Cómo es tu rutina laboral y diaria?",
+        "Ex: tempo sentado, deslocamentos, turnos e esforço físico": "Ej.: tiempo sentado, desplazamientos, turnos y esfuerzo físico",
+        "Restrições alimentares, alergias ou informações nutricionais importantes": "Restricciones alimentarias, alergias o información nutricional importante",
+        "Segurança e observações": "Seguridad y observaciones",
+        "Contato de emergência e observações": "Contacto de emergencia y observaciones",
+        "Nome do contato": "Nombre del contacto",
+        "Telefone do contato": "Teléfono del contacto",
+        "Observações adicionais": "Observaciones adicionales",
+        "Inclua qualquer informação que possa ajudar o personal a planejar seu treino": "Incluye cualquier información que pueda ayudar al entrenador a planificar tu entrenamiento",
+        "Revisão e consentimento": "Revisión y consentimiento",
+        "Confira antes de concluir": "Revisa antes de finalizar",
+        "Problemas cardíacos": "Problemas cardíacos",
+        "Pressão alta ou baixa": "Presión alta o baja",
+        "Desmaios ou tonturas": "Desmayos o mareos",
+        "Restrição ou recomendação médica": "Restricción o recomendación médica",
+        "Recomendações médicas": "Recomendaciones médicas",
+        "Doenças ou condições médicas": "Enfermedades o condiciones médicas",
+        "Medicamentos utilizados": "Medicamentos utilizados",
+        "Cirurgias": "Cirugías",
+        "Lesões": "Lesiones",
+        "Dores atuais": "Dolores actuales",
+        "Limitações de movimento": "Limitaciones de movimiento",
+        "Contato de emergência": "Contacto de emergencia",
+        "Confirmo que as informações fornecidas são verdadeiras e autorizo o Monolith a armazená-las e compartilhá-las somente com o meu personal vinculado para planejamento e acompanhamento do treino. Entendo que esta anamnese não substitui avaliação médica.": "Confirmo que la información proporcionada es verdadera y autorizo a Monolith a almacenarla y compartirla únicamente con mi entrenador vinculado para planificar y acompañar el entrenamiento. Entiendo que esta anamnesis no sustituye una evaluación médica.",
+        "Anterior": "Anterior",
+        "Salvar e continuar depois": "Guardar y continuar después",
+        "Próxima etapa": "Siguiente paso",
+        "Concluir anamnese": "Completar anamnesis",
+        "Campo obrigatório.": "Campo obligatorio.",
+        "Aceite o termo de consentimento para concluir.": "Acepta el consentimiento para finalizar.",
+        "Revise os campos obrigatórios antes de continuar.": "Revisa los campos obligatorios antes de continuar.",
+        "Rascunho salvo no Supabase. Você pode continuar depois.": "Borrador guardado en Supabase. Puedes continuar después.",
+        "Rascunho salvo. Você pode continuar depois.": "Borrador guardado. Puedes continuar después.",
+        "Anamnese concluída e compartilhada com seu personal vinculado.": "Anamnesis completada y compartida con tu entrenador vinculado.",
+        "Anamnese concluída.": "Anamnesis completada.",
+        "Não consegui salvar a anamnese no Supabase. Rode a etapa 12 do banco e tente novamente.": "No pude guardar la anamnesis en Supabase. Ejecuta el paso 12 de la base de datos e inténtalo de nuevo."
       }
     };
 
@@ -10986,6 +12346,14 @@
         if (element.closest("[data-no-i18n]")) return;
         if (element.matches("button") && (element.classList.contains("nav-btn") || element.classList.contains("icon-btn") || element.querySelector("svg"))) return;
         if (element.matches("label") && element.querySelector("input")) return;
+        const requiredMark = element.matches("label") ? element.querySelector(".anamnesis-required") : null;
+        if (requiredMark) {
+          const textNode = [...element.childNodes].find(node => node.nodeType === Node.TEXT_NODE && node.textContent.trim());
+          const currentLabel = textNode?.textContent.trim() || "";
+          if (textNode && !element.dataset.i18nKey && (translations.en[currentLabel] || translations.es[currentLabel])) element.dataset.i18nKey = currentLabel;
+          if (textNode && element.dataset.i18nKey) textNode.textContent = `${t(element.dataset.i18nKey, language)}`;
+          return;
+        }
         const current = element.textContent.trim();
         if (!element.dataset.i18nKey && (translations.en[current] || translations.es[current])) {
           element.dataset.i18nKey = current;
@@ -11017,6 +12385,9 @@
       updateNumericSubmitStates();
       renderFactors();
       renderStats();
+      if (document.getElementById("clients")?.classList.contains("active") && renderedClientStudents.length) renderClientCards(renderedClientStudents);
+      if (document.getElementById("trainerMap")?.classList.contains("active")) renderTrainerMap();
+      if (document.getElementById("anamnesis")?.classList.contains("active")) renderAnamnesis();
     }
 
     const workoutModal = document.getElementById("workoutModal");
@@ -11065,6 +12436,7 @@
       diet: ["dietPlanForm", "foodLogForm"],
       workout: ["workoutForm"],
       measures: ["bodyMeasureForm"],
+      anamnesis: ["anamnesisForm"],
       trainerProfile: ["trainerProfileForm"]
     };
     const dirtyScopes = new Map(Object.keys(dirtyScopeForms).map(scope => [scope, { dirty: false, baseline: [] }]));
@@ -11127,6 +12499,7 @@
       const activeScreen = document.querySelector(".screen.active")?.id;
       if (activeScreen === "nutrition" && dirtyScopes.get("diet")?.dirty) return "diet";
       if (activeScreen === "stats" && dirtyScopes.get("measures")?.dirty) return "measures";
+      if (activeScreen === "anamnesis" && dirtyScopes.get("anamnesis")?.dirty) return "anamnesis";
       if (activeScreen === "trainerProfileOnboarding" && dirtyScopes.get("trainerProfile")?.dirty) return "trainerProfile";
       return [...dirtyScopes.entries()].find(([, state]) => state.dirty)?.[0] || "";
     }
@@ -11150,15 +12523,15 @@
       Object.keys(dirtyScopeForms).forEach(setDirtyBaseline);
       document.addEventListener("input", event => {
         const scope = dirtyScopeForForm(event.target.closest("form"));
-        if (scope && !dirtyGuardBypass && !["dietStudent", "dietMonth", "workoutStudent", "statsStudent", "measureStudent"].includes(event.target.id)) markDirty(scope);
+        if (scope && !dirtyGuardBypass && !["dietStudent", "dietMonth", "workoutStudent", "statsStudent", "measureStudent", "anamnesisStudent"].includes(event.target.id)) markDirty(scope);
       }, true);
       document.addEventListener("change", event => {
         const scope = dirtyScopeForForm(event.target.closest("form"));
-        if (scope && !dirtyGuardBypass && !["dietStudent", "dietMonth", "workoutStudent", "statsStudent", "measureStudent"].includes(event.target.id)) markDirty(scope);
+        if (scope && !dirtyGuardBypass && !["dietStudent", "dietMonth", "workoutStudent", "statsStudent", "measureStudent", "anamnesisStudent"].includes(event.target.id)) markDirty(scope);
       }, true);
-      ["dietStudent", "dietMonth", "workoutStudent", "statsStudent", "measureStudent"].forEach(id => {
+      ["dietStudent", "dietMonth", "workoutStudent", "statsStudent", "measureStudent", "anamnesisStudent"].forEach(id => {
         const select = document.getElementById(id);
-        const scope = { dietStudent: "diet", dietMonth: "diet", workoutStudent: "workout", statsStudent: "measures", measureStudent: "measures" }[id];
+        const scope = { dietStudent: "diet", dietMonth: "diet", workoutStudent: "workout", statsStudent: "measures", measureStudent: "measures", anamnesisStudent: "anamnesis" }[id];
         const rememberCommittedValue = () => {
           if (!dirtyScopes.get(scope)?.dirty || !select.dataset.committedValue) select.dataset.committedValue = select.value;
         };
@@ -11166,7 +12539,7 @@
         select?.addEventListener("pointerdown", rememberCommittedValue, true);
       });
       document.addEventListener("change", event => {
-        const scopeById = { dietStudent: "diet", dietMonth: "diet", workoutStudent: "workout", statsStudent: "measures", measureStudent: "measures" };
+        const scopeById = { dietStudent: "diet", dietMonth: "diet", workoutStudent: "workout", statsStudent: "measures", measureStudent: "measures", anamnesisStudent: "anamnesis" };
         const scope = scopeById[event.target.id];
         if (!scope || dirtyGuardBypass) return;
         const nextValue = event.target.value;
@@ -11564,6 +12937,8 @@
 
     function renderStatsSectionSummaries() {
       const overview = document.getElementById("studentStatsOverviewMetrics");
+      const details = document.getElementById("studentStatsOverviewDetails");
+      const nextAction = document.getElementById("studentStatsNextAction");
       const training = document.getElementById("studentTrainingStatsList");
       const reportSummary = document.getElementById("studentStatsReportSummary");
       const user = currentAccount();
@@ -11571,6 +12946,8 @@
       if (user?.role === "personal" && !targetStudentId) {
         const empty = `<div class="report-line">${escapeHTML(t("Selecione um aluno para visualizar a evolução."))}</div>`;
         if (overview) overview.innerHTML = empty;
+        if (details) details.innerHTML = "";
+        if (nextAction) nextAction.innerHTML = "";
         if (training) training.innerHTML = empty;
         if (reportSummary) reportSummary.textContent = t("Selecione um aluno para gerar relatório.");
         return;
@@ -11589,6 +12966,41 @@
           statsMetricHTML("Último peso", latestWeight ? formatWeight(latestWeight) : "--"),
           statsMetricHTML("Dieta ativa do mês", report.activeDietPlan ? dietPlanStatusLabel(report.activeDietPlan) : "--")
         ].join("");
+      }
+      const latestWorkout = [...report.completedWorkouts].sort((a, b) => String(b.completedAt || b.date || "").localeCompare(String(a.completedAt || a.date || "")))[0];
+      const workoutDate = latestWorkout?.completedAt || latestWorkout?.date;
+      const latestWorkoutLabel = latestWorkout
+        ? `${latestWorkout.workoutName || t("Treino")} · ${workoutDate ? (String(workoutDate).includes("T") ? localDateTimeLabel(workoutDate) : localDateLabel(String(workoutDate).slice(0, 10))) : ""}`
+        : t("Nenhum treino concluído");
+      const latestDietLabel = report.activeDietPlan
+        ? `${localizedMonthLabel(report.activeDietPlan.month)} · ${dietPlanStatusLabel(report.activeDietPlan)}`
+        : t("Nenhuma dieta publicada");
+      const orderedWeights = [...report.weights].sort((a, b) => String(a.key || a.date || "").localeCompare(String(b.key || b.date || "")));
+      let weightTrend = t("Sem dados suficientes");
+      if (orderedWeights.length >= 2) {
+        const delta = Number(orderedWeights.at(-1).value) - Number(orderedWeights[0].value);
+        weightTrend = Math.abs(delta) < .05
+          ? t("Estável")
+          : `${delta > 0 ? t("Alta") : t("Queda")} ${formatWeight(Math.abs(delta))}`;
+      }
+      const studentAlert = student ? studentAttentionReason(student) : "";
+      if (details) {
+        const overviewItem = (label, value) => `<div class="student-overview-item"><span>${escapeHTML(t(label))}</span><strong>${escapeHTML(value)}</strong></div>`;
+        details.innerHTML = [
+          overviewItem("Último treino", latestWorkoutLabel),
+          overviewItem("Última dieta publicada", latestDietLabel),
+          overviewItem("Tendência de peso", weightTrend),
+          overviewItem("Check-ins", quantityLabel(report.checkins.length, "check-in", "check-ins")),
+          overviewItem("Alerta", studentAlert ? t(studentAlert) : t("Nenhum alerta ativo"))
+        ].join("");
+      }
+      if (nextAction) {
+        let recommendation = { label: "Acompanhar evolução", action: "Abrir frequência", screen: "stats", section: "evolution" };
+        if (!report.checkins.length) recommendation = { label: "Registrar o primeiro check-in", action: "Registrar check-in", screen: "checkin", section: "" };
+        else if (report.missedDays.length >= 7) recommendation = { label: "Revisar a frequência recente", action: "Abrir frequência", screen: "stats", section: "evolution" };
+        else if (!loadAssignedWorkoutEntries().some(workout => (workout.assignedStudentId || workout.assigned_student_id) === targetStudentId)) recommendation = { label: "Criar o primeiro treino", action: "Criar treino", screen: "workouts", section: "" };
+        else if (!report.activeDietPlan) recommendation = { label: "Publicar a dieta do mês", action: "Criar dieta", screen: "nutrition", section: "" };
+        nextAction.innerHTML = `<div><span class="date">${escapeHTML(t("Próxima ação recomendada"))}</span><strong>${escapeHTML(t(recommendation.label))}</strong></div><button class="ghost" type="button" data-student-screen="${escapeHTML(recommendation.screen)}" data-student-section="${escapeHTML(recommendation.section)}" data-student-id="${escapeHTML(targetStudentId)}">${escapeHTML(t(recommendation.action))}</button>`;
       }
       if (training) {
         training.innerHTML = report.completedWorkouts.slice(0, 8).map(session => `
@@ -12194,9 +13606,10 @@
       const bodyFatBars = reportChartBars(bodyMeasureSeries("bodyFat", report.bodyMeasures), "%");
       const measureRows = report.bodyMeasures.slice(0, 20).map(entry => `<tr><td>${escapeHTML(entry.date)}</td><td>${formatWeight(entry.weight)}</td><td>${formatMeasureValue(entry.bodyFat, "%")}</td><td>${formatMeasureValue(entry.waist, "cm")}</td><td>${formatMeasureValue(entry.chest, "cm")}</td><td>${formatMeasureValue(entry.arm, "cm")}</td><td>${formatMeasureValue(entry.leg, "cm")}</td><td>${formatMeasureValue(entry.hip, "cm")}</td><td>${escapeHTML(entry.notes || "")}</td></tr>`).join("");
       const dietRows = report.activeDietPlan?.meals?.map((meal, index) => `<tr><td>${index + 1}</td><td>${escapeHTML(meal.name || `${rt("Refeição")} ${index + 1}`)}</td><td>${escapeHTML(meal.items || "")}</td><td>${escapeHTML([meal.calories ? `${meal.calories} kcal` : "", meal.protein ? `P ${meal.protein}` : "", meal.carbs ? `C ${meal.carbs}` : "", meal.fat ? `G ${meal.fat}` : ""].filter(Boolean).join(" / "))}</td><td>${escapeHTML(meal.substitutions || "")}</td><td>${escapeHTML(meal.notes || "")}</td></tr>`).join("") || "";
+      const translatedAnamnesisAnswerFields = new Set(["primaryGoal", "experience", "activityLevel", "sleepQuality", "stressLevel", "smoking", "alcohol", ...anamnesisRiskFields]);
       const anamnesisRows = report.anamnesis ? anamnesisReportFields.map(field => {
         const rawValue = report.anamnesis.answers?.[field.key];
-        const value = ["primaryGoal", "experience", "activityLevel", "stressLevel"].includes(field.key) ? anamnesisValueLabel(rawValue, language) : (rawValue || "--");
+        const value = translatedAnamnesisAnswerFields.has(field.key) ? anamnesisValueLabel(rawValue, language) : (rawValue || "--");
         return `<tr><td>${escapeHTML(t(field.label, language))}</td><td>${escapeHTML(String(value))}</td></tr>`;
       }).join("") : "";
       const anamnesisSafety = report.anamnesis?.medicalClearanceRecommended
@@ -12327,7 +13740,7 @@ ${photoSections}
         { label: "Treinos", screen: "workouts", key: "workouts" },
         { label: "Dieta", screen: "nutrition", key: "nutrition" },
         { label: "Check-ins", screen: "checkin", key: "checkin" },
-        { label: "Anamnese", screen: "anamnesis", key: "anamnesis" },
+        { label: "Ver anamnese", screen: "anamnesis", key: "anamnesis" },
         { label: "Evolução", screen: "stats", section: "evolution", key: "evolution" },
         { label: "Medidas", screen: "stats", section: "measures", key: "measures" },
         { label: "Fotos", screen: "stats", section: "photos", key: "photos" }
@@ -12376,6 +13789,7 @@ ${photoSections}
           <span class="pill">${escapeHTML(t("Último check-in"))}: ${escapeHTML(lastCheckin)}</span>
           <span class="pill">${escapeHTML(status)}</span>
         </div>
+        <div class="action-row"><button class="ghost" type="button" data-student-screen="anamnesis" data-student-id="${escapeHTML(student.id)}">${clientActionIcon("anamnesis")}${escapeHTML(t("Ver anamnese"))}</button></div>
         ${studentFileTabsHTML(student.id)}
       `;
     }
@@ -12634,6 +14048,27 @@ ${photoSections}
         window.clearTimeout(window.monolithMapFilterTimer);
         window.monolithMapFilterTimer = window.setTimeout(renderTrainerMap, 250);
       });
+    });
+    ["clientTableSearch", "clientTableStatusFilter", "clientTableSort"].forEach(id => {
+      const element = document.getElementById(id);
+      const eventName = element?.tagName === "INPUT" ? "input" : "change";
+      element?.addEventListener(eventName, () => {
+        clientTablePage = 1;
+        renderClientTable();
+      });
+    });
+    document.getElementById("clientTablePrevious")?.addEventListener("click", () => {
+      clientTablePage = Math.max(1, clientTablePage - 1);
+      renderClientTable();
+    });
+    document.getElementById("clientTableNext")?.addEventListener("click", () => {
+      clientTablePage += 1;
+      renderClientTable();
+    });
+    document.getElementById("closeTrainerMapProfile")?.addEventListener("click", closeTrainerMapProfile);
+    document.getElementById("backToTrainerMap")?.addEventListener("click", closeTrainerMapProfile);
+    document.getElementById("trainerMapProfileModal")?.addEventListener("click", event => {
+      if (event.target === event.currentTarget) closeTrainerMapProfile();
     });
     document.getElementById("dietMonth")?.addEventListener("change", renderNutrition);
     document.getElementById("dietPlanForm")?.addEventListener("submit", async event => {
@@ -13150,6 +14585,8 @@ ${photoSections}
         requestDirtyAction(() => showScreen(id, { ...options, skipDirtyGuard: true }), dirtyScope);
         return false;
       }
+      closeStudentActionMenus();
+      if (id !== "trainerMap") closeTrainerMapProfile();
       if (trainerProfileOnboardingRequired && id !== "trainerProfileOnboarding") id = "trainerProfileOnboarding";
       const requestedId = id;
       let statsSection = options.section || "";
@@ -13204,6 +14641,49 @@ ${photoSections}
 
     window.showScreen = showScreen;
 
+    function closeStudentActionMenus(except = null) {
+      document.querySelectorAll(".student-card-menu.open").forEach(menu => {
+        if (menu === except) return;
+        menu.classList.remove("open", "open-up");
+        const trigger = menu.querySelector(".student-card-menu-trigger");
+        const panel = menu.querySelector(".student-card-menu-panel");
+        trigger?.setAttribute("aria-expanded", "false");
+        if (panel) {
+          panel.hidden = true;
+          panel.classList.remove("positioned");
+          panel.style.left = "";
+          panel.style.top = "";
+        }
+      });
+    }
+
+    function toggleStudentActionMenu(trigger) {
+      const menu = trigger?.closest(".student-card-menu");
+      const panel = menu?.querySelector(".student-card-menu-panel");
+      if (!menu || !panel) return;
+      const willOpen = !menu.classList.contains("open");
+      closeStudentActionMenus(menu);
+      if (!willOpen) {
+        menu.classList.remove("open", "open-up");
+        trigger.setAttribute("aria-expanded", "false");
+        panel.hidden = true;
+        panel.classList.remove("positioned");
+        return;
+      }
+      menu.classList.add("open");
+      trigger.setAttribute("aria-expanded", "true");
+      panel.hidden = false;
+      const triggerRect = trigger.getBoundingClientRect();
+      panel.classList.add("positioned");
+      const width = Math.min(panel.offsetWidth || 230, window.innerWidth - 24);
+      const left = Math.max(12, Math.min(window.innerWidth - width - 12, triggerRect.right - width));
+      const height = panel.offsetHeight;
+      const below = triggerRect.bottom + 8;
+      panel.style.left = `${left}px`;
+      panel.style.top = `${below + height <= window.innerHeight - 12 ? below : Math.max(12, triggerRect.top - height - 8)}px`;
+      panel.querySelector('[role="menuitem"]')?.focus();
+    }
+
     document.querySelectorAll("[data-screen]").forEach(nav => {
       nav.addEventListener("click", event => {
         event.preventDefault();
@@ -13212,7 +14692,21 @@ ${photoSections}
     });
 
     document.addEventListener("keydown", event => {
-      if (event.key === "Escape") closePhotoLightbox();
+      if (event.key === "Escape") {
+        closePhotoLightbox();
+        closeTrainerMapProfile();
+        closeStudentActionMenus();
+      }
+    });
+
+    document.addEventListener("click", event => {
+      const menuTrigger = event.target.closest(".student-card-menu-trigger");
+      if (menuTrigger) {
+        event.preventDefault();
+        toggleStudentActionMenu(menuTrigger);
+        return;
+      }
+      if (!event.target.closest(".student-card-menu")) closeStudentActionMenus();
     });
 
     document.querySelectorAll("[data-screen-jump]").forEach(jump => {
@@ -13262,6 +14756,12 @@ ${photoSections}
         return;
       }
 
+      const trainerProfileButton = event.target.closest("[data-open-trainer-profile]");
+      if (trainerProfileButton) {
+        openTrainerMapProfile(trainerProfileButton.dataset.openTrainerProfile);
+        return;
+      }
+
       const emptyScreenButton = event.target.closest("[data-empty-screen]");
       if (emptyScreenButton) {
         showScreen(emptyScreenButton.dataset.emptyScreen, { historyMode: "push" });
@@ -13292,6 +14792,7 @@ ${photoSections}
 
       const studentReportButton = event.target.closest(".open-student-report");
       if (studentReportButton) {
+        closeStudentActionMenus();
         openStudentReport(studentReportButton.dataset.studentId);
         return;
       }
@@ -13299,7 +14800,7 @@ ${photoSections}
       const studentScreenButton = event.target.closest("[data-student-screen]");
       if (studentScreenButton && !studentScreenButton.disabled) {
         setSelectedStudentForPersonal(studentScreenButton.dataset.studentId);
-        studentScreenButton.closest("details")?.removeAttribute("open");
+        closeStudentActionMenus();
         showScreen(studentScreenButton.dataset.studentScreen, { section: studentScreenButton.dataset.studentSection || "", historyMode: "push" });
         return;
       }
@@ -13451,25 +14952,32 @@ ${photoSections}
       else clearSelectedStudentScope();
       await renderAnamnesis();
     });
+    document.getElementById("anamnesisForm")?.addEventListener("input", event => {
+      if (event.target.matches("select")) syncAnamnesisConditionalFields();
+      updateAnamnesisProgress();
+      if (anamnesisCurrentStep === 5) renderAnamnesisReview();
+    });
+    document.getElementById("anamnesisForm")?.addEventListener("change", event => {
+      syncAnamnesisConditionalFields();
+      updateAnamnesisProgress();
+      if (anamnesisCurrentStep === 5) renderAnamnesisReview();
+    });
+    document.getElementById("anamnesisStepNav")?.addEventListener("click", event => {
+      const button = event.target.closest("[data-anamnesis-go]");
+      if (!button) return;
+      const targetStep = Number(button.dataset.anamnesisGo);
+      if (currentAccount()?.role === "student" && targetStep > anamnesisCurrentStep && !validateAnamnesis()) return;
+      showAnamnesisStep(targetStep, { focus: true });
+    });
+    document.getElementById("anamnesisPrevious")?.addEventListener("click", () => showAnamnesisStep(anamnesisCurrentStep - 1, { focus: true }));
+    document.getElementById("anamnesisNext")?.addEventListener("click", () => {
+      if (currentAccount()?.role === "student" && !validateAnamnesis()) return;
+      showAnamnesisStep(anamnesisCurrentStep + 1, { focus: true });
+    });
+    document.getElementById("saveAnamnesisDraft")?.addEventListener("click", () => persistAnamnesis("draft"));
     document.getElementById("anamnesisForm")?.addEventListener("submit", async event => {
       event.preventDefault();
-      const user = currentAccount();
-      if (!user || user.role !== "student") {
-        showToast(t("Somente o aluno pode preencher ou alterar a anamnese."));
-        return;
-      }
-      const record = readAnamnesisForm();
-      cacheAnamnesis(record);
-      let synced = false;
-      try {
-        synced = await saveRemoteAnamnesis(record);
-      } catch (error) {
-        console.warn("Monolith anamnesis save failed", error);
-        showToast(t("Não consegui salvar a anamnese no Supabase. Rode a etapa 11 do banco e tente novamente."));
-        return;
-      }
-      await renderAnamnesis();
-      showToast(t(synced ? "Anamnese salva no Supabase." : "Anamnese salva."));
+      await persistAnamnesis("submitted");
     });
     document.getElementById("bodyMeasureForm").addEventListener("submit", async event => {
       event.preventDefault();
