@@ -66,7 +66,9 @@ Official docs:
    This adds private, two-hour Monolith Voice sessions and idempotent command receipts. Raw audio is not stored.
 26. Paste and run `monolith-production-step-23-language-preferences.sql`.
    This persists application language, Monolith Voice language, weight unit and voice preference in each user's protected profile.
-27. Confirm these tables exist:
+27. Paste and run `monolith-production-step-24-programs-voice-workout-scope.sql`.
+   This repairs the exact Programs and Monolith Voice tables expected by the app, reloads the PostgREST schema cache and prevents students from changing workout templates or global check-in tasks. Linked trainers retain scoped access under RLS.
+28. Confirm these tables exist:
    - `profiles`
    - `trainer_students`
    - `trainer_invites`
@@ -101,18 +103,35 @@ Official docs:
    - `subscriptions`
    - `influencer_codes`
    - `referral_attributions`
-28. Confirm these functions exist:
+29. Confirm these functions exist:
    - `create_trainer_invite`
    - `create_trainer_invite_idempotent`
    - `accept_trainer_invite`
    - `accept_influencer_code`
    - `correct_daily_checkin`
    - `is_space_member`
-29. Confirm Storage has a private bucket called `progress-photos`.
+30. Confirm Storage has a private bucket called `progress-photos`.
 
 All step files are additive and idempotent. Run them in numerical order. Do not reset the database or delete QA records before running a step.
 
-For an existing Monolith project that already completed step 12, run only steps 13 through 23 in order. Re-running any of those files is safe; they contain no bulk deletion, table reset or QA cleanup.
+For an existing Monolith project that already completed step 12, run only steps 13 through 24 in order. Re-running any of those files is safe; they contain no bulk deletion, table reset or QA cleanup.
+
+### Repair for PGRST205 in Programs or Monolith Voice
+
+If the current project reports `PGRST205` for `workout_programs`, `workout_voice_sessions` or `workout_voice_commands`, run exactly:
+
+`monolith-production-step-24-programs-voice-workout-scope.sql`
+
+This single repair migration contains the same table structure already defined by steps 15 and 22; it does not create a parallel model and does not delete existing rows. It can be run even when one or all three tables already exist. The migration requires the base schema and production step 14, then reloads the PostgREST schema cache automatically.
+
+After it finishes, the result row must show all three readiness columns as `true`. You can also verify them without changing data:
+
+```sql
+select
+  to_regclass('public.workout_programs') is not null as workout_programs_ready,
+  to_regclass('public.workout_voice_sessions') is not null as voice_sessions_ready,
+  to_regclass('public.workout_voice_commands') is not null as voice_commands_ready;
+```
 
 ## Step 2: connect the frontend
 
@@ -165,10 +184,13 @@ Before public launch:
 
 ## Release verification
 
-After steps 13 through 23 are installed, test with fictitious accounts:
+After steps 13 through 24 are installed, test with fictitious accounts:
 
 - A student cannot read another student's workouts, diet, measures, photos, anamnesis, feedback or timeline.
+- A student can execute an assigned workout but cannot insert, update or delete `workout_templates` or `checkin_factors` through the API.
 - A trainer can read only active linked students and cannot assign data without an explicit destination.
+- A linked trainer can read the student's Programs and Voice records; an unlinked trainer cannot.
+- A student with no remote program sees the real empty state and never a failed local draft as synchronized.
 - Two quick clicks create one check-in, workout, diet, measurement, feedback or lead.
 - A student can retry an Instagram lead request without creating a second lead.
 - A trainer can update a lead status and convert it into one idempotent invite.
