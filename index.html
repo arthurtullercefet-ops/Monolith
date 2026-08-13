@@ -14,8 +14,8 @@
   <link rel="manifest" href="manifest.webmanifest" />
   <link rel="icon" href="monolith-icon.svg" />
   <script>
-window.MONOLITH_BUILD = "monolith-v87-language-voice";
-window.MONOLITH_VERSION_LABEL = "Monolith v87 · 13/08/2026";
+window.MONOLITH_BUILD = "monolith-v88-daily-checkin-date";
+window.MONOLITH_VERSION_LABEL = "Monolith v88 · 13/08/2026";
     (function clearOldAppCaches() {
       if ("serviceWorker" in navigator) {
         navigator.serviceWorker.getRegistrations?.()
@@ -1327,7 +1327,7 @@ window.MONOLITH_VERSION_LABEL = "Monolith v87 · 13/08/2026";
     }
 
     .score-ring {
-      --score-angle: 309.6deg;
+      --score-angle: 0deg;
       width: 190px;
       aspect-ratio: 1;
       border-radius: 999px;
@@ -4906,8 +4906,8 @@ window.MONOLITH_VERSION_LABEL = "Monolith v87 · 13/08/2026";
                 <div class="hero-title">Construa o monumento.</div>
                 <div class="quote">Seu objetivo é superar a sessão anterior. Uma carga melhor, uma repetição melhor, uma execução mais limpa.</div>
               </div>
-              <div class="score-ring" aria-label="Pontuação do dia 86%">
-                <div><b id="score">86%</b><span>Seu score pessoal hoje</span></div>
+              <div class="score-ring" aria-label="Check-in de hoje ainda não preenchido">
+                <div><b id="score">--</b><span>Ainda não preenchido</span></div>
               </div>
             </div>
             <div class="grid metrics">
@@ -6292,8 +6292,8 @@ window.MONOLITH_VERSION_LABEL = "Monolith v87 · 13/08/2026";
   <script>
     const MONOLITH_SUPABASE_URL = "https://jhxasnxuvmkhntbwepau.supabase.co";
     const MONOLITH_SUPABASE_KEY = "sb_publishable_lDtAXIOtkMwgwsAZyghBdg_gyLHGwpH";
-const MONOLITH_BUILD = window.MONOLITH_BUILD || "monolith-v87-language-voice";
-const MONOLITH_VERSION_LABEL = window.MONOLITH_VERSION_LABEL || "Monolith v87 · 13/08/2026";
+const MONOLITH_BUILD = window.MONOLITH_BUILD || "monolith-v88-daily-checkin-date";
+const MONOLITH_VERSION_LABEL = window.MONOLITH_VERSION_LABEL || "Monolith v88 · 13/08/2026";
     const monolithSupabase = window.supabase?.createClient?.(MONOLITH_SUPABASE_URL, MONOLITH_SUPABASE_KEY, {
       auth: {
         storage: window.sessionStorage,
@@ -6390,9 +6390,9 @@ const MONOLITH_VERSION_LABEL = window.MONOLITH_VERSION_LABEL || "Monolith v87 ·
         if (id === "space" && typeof window.monolithRenderSpace === "function") window.monolithRenderSpace();
         if (id === "trainerMap" && typeof renderTrainerMap === "function") renderTrainerMap();
         if (id === "checkin" && typeof renderCheckinStudentSelect === "function") {
-          renderCheckinStudentSelect().then(() => {
-            if (typeof loadFactorsForCheckinTarget === "function") return loadFactorsForCheckinTarget();
-            return null;
+          renderCheckinStudentSelect().then(async () => {
+            if (typeof loadFactorsForCheckinTarget === "function") await loadFactorsForCheckinTarget();
+            if (typeof refreshDailyCheckinForTarget === "function") await refreshDailyCheckinForTarget();
           });
         }
         window.scrollTo({ top: 0, behavior: "auto" });
@@ -9536,6 +9536,16 @@ const MONOLITH_VERSION_LABEL = window.MONOLITH_VERSION_LABEL || "Monolith v87 ·
       saveCheckins(replaced.sort((a, b) => String(b.date).localeCompare(String(a.date))).slice(0, 365));
     }
 
+    function cacheRemoteCheckinForDate(entry, studentId, dateKey) {
+      if (!studentId || !dateKey) return;
+      const current = memoryArray("monolith.checkins");
+      const isTarget = item => item.studentId === studentId && item.date === dateKey;
+      const retained = current.filter(item => !isTarget(item));
+      const failed = current.filter(item => isTarget(item) && item.syncStatus === "failed");
+      const authoritative = mergeByKey(entry ? [entry] : [], failed, item => `${item.studentId || "local"}:${item.date}`);
+      saveCheckins([...authoritative, ...retained].sort((a, b) => String(b.date).localeCompare(String(a.date))).slice(0, 365));
+    }
+
     function cacheRemoteBodyMeasures(entries = [], studentId = entries[0]?.studentId || "") {
       if (!studentId) return;
       const replaced = replaceRemoteStudentEntries("monolith.bodyMeasures", studentId, entries, item => item.id || `${item.studentId || "local"}:${item.date}`);
@@ -9681,6 +9691,21 @@ const MONOLITH_VERSION_LABEL = window.MONOLITH_VERSION_LABEL || "Monolith v87 ·
       const entries = (data || []).map(remoteCheckinFromRow);
       cacheRemoteCheckins(entries, studentId);
       return entries;
+    }
+
+    async function loadRemoteCheckinForDate(studentId, dateKey = todayKey()) {
+      if (!monolithSupabase || !studentId || !dateKey || !isRealSupabaseAccount(currentAccount())) return null;
+      if (!canAccessStudentData(studentId)) return null;
+      const { data, error } = await monolithSupabase
+        .from("daily_checkins")
+        .select("*")
+        .eq("student_id", studentId)
+        .eq("checkin_date", dateKey)
+        .maybeSingle();
+      if (error) throw error;
+      const entry = data ? remoteCheckinFromRow(data) : null;
+      cacheRemoteCheckinForDate(entry, studentId, dateKey);
+      return entry;
     }
 
     async function saveRemoteCheckin(entry) {
@@ -12704,6 +12729,9 @@ const MONOLITH_VERSION_LABEL = window.MONOLITH_VERSION_LABEL || "Monolith v87 ·
         "Exportação do aluno selecionado": "Selected student export",
         "Perfil e configurações": "Profile and settings",
         "Seu score pessoal hoje": "Your personal score today",
+        "Ainda não preenchido": "Not filled in yet",
+        "Check-in de hoje ainda não preenchido": "Today's check-in has not been filled in yet",
+        "Responda todas as perguntas antes de salvar o check-in.": "Answer every question before saving the check-in.",
         "sim": "yes",
         "não": "no",
         "Remover {name}": "Remove {name}",
@@ -14012,6 +14040,9 @@ const MONOLITH_VERSION_LABEL = window.MONOLITH_VERSION_LABEL || "Monolith v87 ·
         "Exportação do aluno selecionado": "Exportación del alumno seleccionado",
         "Perfil e configurações": "Perfil y configuración",
         "Seu score pessoal hoje": "Tu puntuación personal de hoy",
+        "Ainda não preenchido": "Aún no completado",
+        "Check-in de hoje ainda não preenchido": "El check-in de hoy aún no está completado",
+        "Responda todas as perguntas antes de salvar o check-in.": "Responde todas las preguntas antes de guardar el check-in.",
         "sim": "sí",
         "não": "no",
         "Remover {name}": "Eliminar {name}",
@@ -15498,6 +15529,23 @@ const MONOLITH_VERSION_LABEL = window.MONOLITH_VERSION_LABEL || "Monolith v87 ·
       renderFactors();
     }
 
+    async function refreshDailyCheckinForTarget(dateKey = todayKey(), studentId = selectedCheckinStudentId()) {
+      if (!studentId || !canAccessStudentData(studentId)) {
+        renderFactors();
+        return null;
+      }
+      if (isRealSupabaseAccount(currentAccount())) {
+        try {
+          await loadRemoteCheckinForDate(studentId, dateKey);
+        } catch (error) {
+          logAppError("checkins", "load-date", error, { studentId, date: dateKey });
+          showToast("Não consegui atualizar o check-in de hoje. Exibindo apenas o registro local desta data.");
+        }
+      }
+      renderFactors();
+      return currentDailyCheckinForTarget(dateKey, studentId);
+    }
+
     async function openWorkoutModal() {
       await renderWorkoutStudentSelect();
       workoutModal.classList.add("active");
@@ -15543,6 +15591,17 @@ const MONOLITH_VERSION_LABEL = window.MONOLITH_VERSION_LABEL || "Monolith v87 ·
 
     function updateDailyScore() {
       const rows = [...document.querySelectorAll("#quickHabits .habit")];
+      const answered = rows.filter(row => row.querySelector(".yes.active, .no.active"));
+      const score = document.getElementById("score");
+      const ring = document.querySelector(".score-ring");
+      const label = ring?.querySelector("span");
+      if (!answered.length) {
+        if (score) score.textContent = "--";
+        ring?.style.setProperty("--score-angle", "0deg");
+        ring?.setAttribute("aria-label", t("Check-in de hoje ainda não preenchido"));
+        if (label) label.textContent = t("Ainda não preenchido");
+        return;
+      }
       const completed = rows.filter(row => {
         const factor = factors.find(item => item.id === row.dataset.factorId);
         const yesActive = row.querySelector(".yes.active");
@@ -15550,12 +15609,10 @@ const MONOLITH_VERSION_LABEL = window.MONOLITH_VERSION_LABEL || "Monolith v87 ·
         return factor?.positive === false ? noActive : yesActive;
       }).length;
       const percentage = rows.length ? Math.round((completed / rows.length) * 100) : 0;
-      const score = document.getElementById("score");
-      const ring = document.querySelector(".score-ring");
-      score.textContent = `${percentage}%`;
-      ring.style.setProperty("--score-angle", `${Math.max(0, Math.min(100, percentage)) * 3.6}deg`);
-      ring.setAttribute("aria-label", `${t("Seu score pessoal hoje")} ${percentage}%`);
-      document.querySelector(".score-ring span").textContent = t("Seu score pessoal hoje");
+      if (score) score.textContent = `${percentage}%`;
+      ring?.style.setProperty("--score-angle", `${Math.max(0, Math.min(100, percentage)) * 3.6}deg`);
+      ring?.setAttribute("aria-label", `${t("Seu score pessoal hoje")} ${percentage}%`);
+      if (label) label.textContent = t("Seu score pessoal hoje");
     }
 
     function todayKey(date = new Date()) {
@@ -15563,6 +15620,14 @@ const MONOLITH_VERSION_LABEL = window.MONOLITH_VERSION_LABEL || "Monolith v87 ·
       const month = String(date.getMonth() + 1).padStart(2, "0");
       const day = String(date.getDate()).padStart(2, "0");
       return `${year}-${month}-${day}`;
+    }
+
+    function currentDailyCheckinForTarget(dateKey = todayKey(), studentId = selectedCheckinStudentId()) {
+      if (!studentId || !dateKey || !canAccessStudentData(studentId)) return null;
+      const entries = loadCheckins(studentId).filter(entry => entry.date === dateKey);
+      const scoped = entries.find(entry => entry.studentId === studentId);
+      if (scoped) return scoped;
+      return isRealSupabaseAccount(currentAccount()) ? null : entries.find(entry => !entry.studentId) || null;
     }
 
     function loadCheckins(studentId = activeDataStudentId()) {
@@ -15596,13 +15661,14 @@ const MONOLITH_VERSION_LABEL = window.MONOLITH_VERSION_LABEL || "Monolith v87 ·
       const targetStudentId = selectedCheckinStudentId();
       const items = rows.map(row => {
         const factor = factors.find(item => item.id === row.dataset.factorId);
+        const answer = row.querySelector(".yes.active") ? "sim" : row.querySelector(".no.active") ? "nao" : "";
         return {
           id: row.dataset.factorId,
           name: factor?.name || row.querySelector("span")?.textContent || "Item",
           group: factor?.group || "Check-in",
           positive: factor?.positive !== false,
-          answer: row.querySelector(".yes.active") ? "sim" : "nao",
-          completed: factorCompleted(row, factor)
+          answer,
+          completed: Boolean(answer) && factorCompleted(row, factor)
         };
       });
       const completed = items.filter(item => item.completed).length;
@@ -16927,17 +16993,20 @@ ${photoSections}
     }
     updateTodayLabel();
 
-    function makeHabit(factor, removable = true) {
+    function makeHabit(factor, removable = true, savedItem = null) {
       const row = document.createElement("div");
       row.className = "habit";
       row.dataset.factorId = factor.id;
       const translatedName = t(factor.name);
       const canRespond = canRespondToCheckin();
       const canRemove = removable && canManageCheckinFactors();
+      const savedAnswer = ["sim", "nao"].includes(savedItem?.answer) ? savedItem.answer : "";
+      const yesActive = savedAnswer === "sim";
+      const noActive = savedAnswer === "nao";
       row.innerHTML = `
         <span>${escapeHTML(translatedName)}</span>
-        <button class="toggle yes ${factor.active ? "active" : ""}" type="button" aria-pressed="${factor.active ? "true" : "false"}" aria-label="${escapeHTML(`${translatedName} ${t("sim")}`)}" ${canRespond ? "" : "disabled"}>✓</button>
-        <button class="toggle no ${factor.active ? "" : "active"}" type="button" aria-pressed="${factor.active ? "false" : "true"}" aria-label="${escapeHTML(`${translatedName} ${t("não")}`)}" ${canRespond ? "" : "disabled"}>×</button>
+        <button class="toggle yes ${yesActive ? "active" : ""}" type="button" aria-pressed="${yesActive ? "true" : "false"}" aria-label="${escapeHTML(`${translatedName} ${t("sim")}`)}" ${canRespond ? "" : "disabled"}>✓</button>
+        <button class="toggle no ${noActive ? "active" : ""}" type="button" aria-pressed="${noActive ? "true" : "false"}" aria-label="${escapeHTML(`${translatedName} ${t("não")}`)}" ${canRespond ? "" : "disabled"}>×</button>
         ${canRemove ? `<button class="remove-factor" type="button" aria-label="${escapeHTML(localizedMessage("Remover {name}", { name: translatedName }))}" title="${escapeHTML(t("Remover"))}">×</button>` : ""}
       `;
       return row;
@@ -16955,8 +17024,6 @@ ${photoSections}
         showToast("Somente o aluno pode responder e salvar o check-in.");
         return;
       }
-      factors = factors.map(factor => factor.id === id ? { ...factor, active } : factor);
-      saveFactorsForActiveTarget(factors);
       document.querySelectorAll(`.habit[data-factor-id="${id}"]`).forEach(row => {
         row.querySelector(".yes").classList.toggle("active", active);
         row.querySelector(".yes").setAttribute("aria-pressed", String(active));
@@ -17006,7 +17073,14 @@ ${photoSections}
       if (factorForm) factorForm.hidden = !manager;
       if (saveButton) saveButton.hidden = !responder;
       if (dailyWeight) dailyWeight.disabled = !responder;
-      factors.forEach(factor => quickHabits.appendChild(makeHabit(factor, true)));
+      const todayCheckin = currentDailyCheckinForTarget();
+      const savedItems = new Map((todayCheckin?.items || []).map(item => [item.id, item]));
+      if (dailyWeight) {
+        dailyWeight.value = todayCheckin?.weight !== "" && todayCheckin?.weight != null
+          ? weightInputValue(todayCheckin.weight)
+          : "";
+      }
+      factors.forEach(factor => quickHabits.appendChild(makeHabit(factor, true, savedItems.get(factor.id))));
       const grouped = factors.reduce((groups, factor) => {
         groups[factor.group] = groups[factor.group] || [];
         groups[factor.group].push(factor);
@@ -17018,7 +17092,7 @@ ${photoSections}
         const list = document.createElement("div");
         list.innerHTML = `<div class="kicker">${escapeHTML(t(group))}</div><div class="habit-list"></div>`;
         const habitList = list.querySelector(".habit-list");
-        items.forEach(item => habitList.appendChild(makeHabit(item, true)));
+        items.forEach(item => habitList.appendChild(makeHabit(item, true, savedItems.get(item.id))));
         panel.appendChild(list);
         checkinGroups.appendChild(panel);
       });
@@ -17523,12 +17597,14 @@ ${photoSections}
       if (!event.target.value) {
         clearSelectedStudentScope();
         await loadFactorsForCheckinTarget();
+        await refreshDailyCheckinForTarget();
         renderStats();
         renderTrainerSummary();
         return;
       }
       setSelectedCheckinStudentForPersonal(event.target.value);
       await loadFactorsForCheckinTarget();
+      await refreshDailyCheckinForTarget();
       renderStats();
       renderTrainerSummary();
     });
@@ -17878,6 +17954,7 @@ ${photoSections}
       });
       if (id === "home" && currentAccount()?.role === "student") {
         renderPrograms().catch(error => logAppError("programs", "student-home", error, { studentId: currentAccount()?.id }));
+        refreshDailyCheckinForTarget().catch(error => logAppError("checkins", "student-home", error, { studentId: currentAccount()?.id, date: todayKey() }));
       }
       if (id === "clients") renderClientList();
       if (id === "profile") renderProfile();
@@ -17910,7 +17987,10 @@ ${photoSections}
         clearScreenHash(id, options.historyMode || "replace");
       }
       if (id === "checkin") {
-        renderCheckinStudentSelect().then(loadFactorsForCheckinTarget);
+        renderCheckinStudentSelect().then(async () => {
+          await loadFactorsForCheckinTarget();
+          await refreshDailyCheckinForTarget();
+        });
       }
       if (id === "trainerMap") renderTrainerMap();
       if (id === "nutrition") renderNutrition();
@@ -18277,6 +18357,10 @@ ${photoSections}
       const entry = readCurrentCheckin();
       if (!entry.studentId || !canAccessStudentData(entry.studentId)) {
         showToast("Escolha um aluno para salvar o check-in.");
+        return;
+      }
+      if (!entry.items.length || entry.items.some(item => !item.answer)) {
+        showToast(t("Responda todas as perguntas antes de salvar o check-in."));
         return;
       }
       const studentName = accountNameForTarget(entry.studentId);

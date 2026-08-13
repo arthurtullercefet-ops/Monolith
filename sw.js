@@ -1,4 +1,4 @@
-const CACHE_NAME = "monolith-v87-language-voice";
+const CACHE_NAME = "monolith-v88-daily-checkin-date";
 
 self.addEventListener("install", event => {
   self.skipWaiting();
