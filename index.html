@@ -14,8 +14,8 @@
   <link rel="manifest" href="manifest.webmanifest" />
   <link rel="icon" href="monolith-icon.svg" />
   <script>
-window.MONOLITH_BUILD = "monolith-v89-safe-remote-log";
-window.MONOLITH_VERSION_LABEL = "Monolith v89 · 13/08/2026";
+window.MONOLITH_BUILD = "monolith-v90-programs-voice-role-scope";
+window.MONOLITH_VERSION_LABEL = "Monolith v90 · 13/08/2026";
     (function clearOldAppCaches() {
       if ("serviceWorker" in navigator) {
         navigator.serviceWorker.getRegistrations?.()
@@ -4979,8 +4979,8 @@ window.MONOLITH_VERSION_LABEL = "Monolith v89 · 13/08/2026";
             </div>
             <div class="measure-note">O peso entra no relatório mensal e ajuda o personal a ver evolução, retenção e queda dia a dia.</div>
           </div>
-          <div class="section-title"><h3>Adicionar tarefa diária</h3><span>O score se ajusta sozinho</span></div>
-          <form class="factor-form" id="factorForm">
+          <div class="section-title" id="factorManagementTitle" data-role-only="personal" hidden><h3>Adicionar tarefa diária</h3><span>O score se ajusta sozinho</span></div>
+          <form class="factor-form" id="factorForm" data-role-only="personal" hidden>
             <div class="form-field">
               <label for="factorName">Tarefa</label>
               <input id="factorName" placeholder="Ex: Medir açúcar?" data-i18n-placeholder="Ex: Medir açúcar?" />
@@ -5190,12 +5190,14 @@ window.MONOLITH_VERSION_LABEL = "Monolith v89 · 13/08/2026";
       <section id="workouts" class="screen">
         <div class="topbar">
           <div>
-            <h2>Treinos</h2>
-            <div class="date">Crie treinos do zero com histórico e progressão automática</div>
+            <h2 data-role-only="personal" hidden>Treinos</h2>
+            <h2 data-role-only="student" hidden>Meus treinos</h2>
+            <div class="date" data-role-only="personal" hidden>Crie treinos do zero com histórico e progressão automática</div>
+            <div class="date" data-role-only="student" hidden>Visualize e execute os treinos atribuídos pelo seu personal.</div>
           </div>
-          <button class="action" id="newWorkoutButton">Novo treino</button>
+          <button class="action" id="newWorkoutButton" data-role-only="personal" hidden>Novo treino</button>
         </div>
-        <div class="panel compact-actions">
+        <div class="panel compact-actions" id="workoutManagementActions" data-role-only="personal" hidden>
           <div>
             <h3>Treinos do personal</h3>
             <div class="date">Crie do zero, duplique modelos ou importe em lote</div>
@@ -5206,7 +5208,7 @@ window.MONOLITH_VERSION_LABEL = "Monolith v89 · 13/08/2026";
             <button class="ghost" type="button" data-open-details="workoutCsvPanel">Importar CSV</button>
           </div>
         </div>
-        <details class="panel advanced-import-panel" id="workoutCsvPanel">
+        <details class="panel advanced-import-panel" id="workoutCsvPanel" data-role-only="personal" hidden>
           <summary><h3>Importação avançada por CSV</h3><span>Modelo, prévia, importação e exportação</span></summary>
           <div class="advanced-import-body">
             <div class="report-line">Baixe o modelo, preencha uma linha por série e importe. O personal pode usar a coluna aluno para enviar vários treinos para vários alunos no mesmo arquivo.</div>
@@ -5258,6 +5260,7 @@ window.MONOLITH_VERSION_LABEL = "Monolith v89 · 13/08/2026";
               <h3>Execução do treino</h3>
               <span class="record" id="sessionRecord">Registre série por série</span>
             </div>
+            <div class="report-line">Séries adicionadas ou removidas aqui valem somente para esta sessão e não alteram o treino-base do personal.</div>
             <div class="session-exercises" id="sessionExercises"></div>
           </div>
           <div class="panel">
@@ -6292,8 +6295,8 @@ window.MONOLITH_VERSION_LABEL = "Monolith v89 · 13/08/2026";
   <script>
     const MONOLITH_SUPABASE_URL = "https://jhxasnxuvmkhntbwepau.supabase.co";
     const MONOLITH_SUPABASE_KEY = "sb_publishable_lDtAXIOtkMwgwsAZyghBdg_gyLHGwpH";
-const MONOLITH_BUILD = window.MONOLITH_BUILD || "monolith-v89-safe-remote-log";
-const MONOLITH_VERSION_LABEL = window.MONOLITH_VERSION_LABEL || "Monolith v89 · 13/08/2026";
+const MONOLITH_BUILD = window.MONOLITH_BUILD || "monolith-v90-programs-voice-role-scope";
+const MONOLITH_VERSION_LABEL = window.MONOLITH_VERSION_LABEL || "Monolith v90 · 13/08/2026";
     const monolithSupabase = window.supabase?.createClient?.(MONOLITH_SUPABASE_URL, MONOLITH_SUPABASE_KEY, {
       auth: {
         storage: window.sessionStorage,
@@ -6527,18 +6530,13 @@ const MONOLITH_VERSION_LABEL = window.MONOLITH_VERSION_LABEL || "Monolith v89 ·
       if (!targetStudentId || targetStudentId === currentAccount()?.id) saveFactors(nextFactors);
     }
 
-    function studentHasActiveTrainer(user = currentAccount()) {
-      return Boolean(user?.role === "student" && user.trainerId);
-    }
-
     function canRespondToCheckin(user = currentAccount(), studentId = selectedCheckinStudentId()) {
       return Boolean(user?.role === "student" && studentId === user.id);
     }
 
     function canManageCheckinFactors(user = currentAccount(), studentId = selectedCheckinStudentId()) {
       if (!user || !studentId) return false;
-      if (user.role === "personal") return isLinkedStudentForPersonal(studentId, user);
-      return user.role === "student" && studentId === user.id && !studentHasActiveTrainer(user);
+      return user.role === "personal" && isLinkedStudentForPersonal(studentId, user);
     }
 
     function loadAccounts() {
@@ -8166,6 +8164,20 @@ const MONOLITH_VERSION_LABEL = window.MONOLITH_VERSION_LABEL || "Monolith v89 ·
       return programs;
     }
 
+    function workoutProgramsTableMissing(error) {
+      const details = `${error?.message || ""} ${error?.details || ""} ${error?.hint || ""}`;
+      return error?.code === "PGRST205" && details.includes("workout_programs");
+    }
+
+    function markCachedWorkoutProgramsUnavailable(studentId) {
+      if (!studentId) return;
+      saveWorkoutPrograms(loadWorkoutPrograms().map(program => (
+        program.studentId === studentId && program.source === "supabase"
+          ? { ...program, syncStatus: "unavailable" }
+          : program
+      )));
+    }
+
     async function saveRemoteWorkoutProgram(program) {
       const user = currentAccount();
       if (!monolithSupabase || !isRealSupabaseAccount(user) || user.role !== "personal" || !isLinkedStudentForPersonal(program.studentId, user)) return null;
@@ -8196,7 +8208,10 @@ const MONOLITH_VERSION_LABEL = window.MONOLITH_VERSION_LABEL || "Monolith v89 ·
 
     function activeWorkoutProgram(studentId) {
       const today = todayKey();
+      const user = currentAccount();
       return loadWorkoutPrograms(studentId)
+        .filter(program => program.syncStatus !== "unavailable")
+        .filter(program => user?.role !== "student" || !isRealSupabaseAccount(user) || (program.source === "supabase" && program.syncStatus === "synced"))
         .filter(program => ["active", "paused"].includes(program.status))
         .filter(program => {
           const start = dateFromKey(program.startDate);
@@ -14504,6 +14519,19 @@ const MONOLITH_VERSION_LABEL = window.MONOLITH_VERSION_LABEL || "Monolith v89 ·
     });
 
     Object.assign(translations.en, {
+      "Meus treinos": "My workouts",
+      "Visualize e execute os treinos atribuídos pelo seu personal.": "View and perform the workouts assigned by your trainer.",
+      "Séries adicionadas ou removidas aqui valem somente para esta sessão e não alteram o treino-base do personal.": "Sets added or removed here apply only to this session and do not change the trainer's workout template.",
+      "Adicionar série nesta sessão": "Add set to this session",
+      "Remover série desta sessão": "Remove set from this session",
+      "Somente o personal pode importar ou exportar treinos.": "Only the trainer can import or export workouts.",
+      "Somente o personal pode excluir prescrições de treino.": "Only the trainer can delete workout prescriptions.",
+      "Nova série adicionada somente nesta sessão": "New set added only to this session",
+      "A série será removida somente desta sessão. O treino-base do personal não será alterado.": "The set will be removed only from this session. The trainer's workout template will not change.",
+      "Série removida somente desta sessão.": "Set removed only from this session.",
+      "Não sincronizado": "Not synced",
+      "Sincronização indisponível": "Sync unavailable",
+      "Programas ainda não estão disponíveis no banco.": "Programs are not available in the database yet.",
       "Aluno do programa": "Program student",
       "Ativo": "Active",
       "Calendário de treino em blocos de 4, 8 ou 12 semanas": "Workout calendar in 4, 8 or 12-week blocks",
@@ -14535,8 +14563,8 @@ const MONOLITH_VERSION_LABEL = window.MONOLITH_VERSION_LABEL || "Monolith v89 ·
       "Anamnese marcada como revisada.": "Health questionnaire marked as reviewed.",
       "Cópia pronta para revisão. Salve quando terminar.": "Copy ready for review. Save it when finished.",
       "Escolha pelo menos um treino na semana do programa.": "Choose at least one workout in the program week.",
-      "Não consegui carregar o programa agora. Verifique se a etapa 15 do banco foi executada.": "The program could not be loaded. Check that database step 15 was run.",
-      "Não consegui publicar o programa. Verifique se a etapa 15 do banco foi executada.": "The program could not be published. Check that database step 15 was run.",
+      "Não consegui carregar o programa agora. Verifique se a etapa 24 do banco foi executada.": "The program could not be loaded. Check that database step 24 was run.",
+      "Não consegui publicar o programa. Verifique se a etapa 24 do banco foi executada.": "The program could not be published. Check that database step 24 was run.",
       "Não consegui registrar a revisão. Execute a etapa 16 do banco e tente novamente.": "The review could not be recorded. Run database step 16 and try again.",
       "Programa salvo e calendário atualizado.": "Program saved and calendar updated.",
       "Próximo da sequência": "Next in sequence",
@@ -14610,6 +14638,19 @@ const MONOLITH_VERSION_LABEL = window.MONOLITH_VERSION_LABEL || "Monolith v89 ·
     });
 
     Object.assign(translations.es, {
+      "Meus treinos": "Mis entrenos",
+      "Visualize e execute os treinos atribuídos pelo seu personal.": "Consulta y realiza los entrenos asignados por tu entrenador.",
+      "Séries adicionadas ou removidas aqui valem somente para esta sessão e não alteram o treino-base do personal.": "Las series añadidas o eliminadas aquí se aplican solo a esta sesión y no cambian el entreno base del entrenador.",
+      "Adicionar série nesta sessão": "Añadir serie a esta sesión",
+      "Remover série desta sessão": "Eliminar serie de esta sesión",
+      "Somente o personal pode importar ou exportar treinos.": "Solo el entrenador puede importar o exportar entrenos.",
+      "Somente o personal pode excluir prescrições de treino.": "Solo el entrenador puede eliminar prescripciones de entrenamiento.",
+      "Nova série adicionada somente nesta sessão": "Nueva serie añadida solo a esta sesión",
+      "A série será removida somente desta sessão. O treino-base do personal não será alterado.": "La serie se eliminará solo de esta sesión. El entreno base del entrenador no cambiará.",
+      "Série removida somente desta sessão.": "Serie eliminada solo de esta sesión.",
+      "Não sincronizado": "No sincronizado",
+      "Sincronização indisponível": "Sincronización no disponible",
+      "Programas ainda não estão disponíveis no banco.": "Los programas aún no están disponibles en la base de datos.",
       "Aluno do programa": "Alumno del programa",
       "Ativo": "Activo",
       "Calendário de treino em blocos de 4, 8 ou 12 semanas": "Calendario de entrenamiento en bloques de 4, 8 o 12 semanas",
@@ -14641,8 +14682,8 @@ const MONOLITH_VERSION_LABEL = window.MONOLITH_VERSION_LABEL || "Monolith v89 ·
       "Anamnese marcada como revisada.": "Anamnesis marcada como revisada.",
       "Cópia pronta para revisão. Salve quando terminar.": "Copia lista para revisión. Guárdala cuando termines.",
       "Escolha pelo menos um treino na semana do programa.": "Elige al menos un entrenamiento en la semana del programa.",
-      "Não consegui carregar o programa agora. Verifique se a etapa 15 do banco foi executada.": "No se pudo cargar el programa. Comprueba que ejecutaste el paso 15 de la base de datos.",
-      "Não consegui publicar o programa. Verifique se a etapa 15 do banco foi executada.": "No se pudo publicar el programa. Comprueba que ejecutaste el paso 15 de la base de datos.",
+      "Não consegui carregar o programa agora. Verifique se a etapa 24 do banco foi executada.": "No se pudo cargar el programa. Comprueba que ejecutaste el paso 24 de la base de datos.",
+      "Não consegui publicar o programa. Verifique se a etapa 24 do banco foi executada.": "No se pudo publicar el programa. Comprueba que ejecutaste el paso 24 de la base de datos.",
       "Não consegui registrar a revisão. Execute a etapa 16 do banco e tente novamente.": "No se pudo registrar la revisión. Ejecuta el paso 16 de la base de datos e inténtalo de nuevo.",
       "Programa salvo e calendário atualizado.": "Programa guardado y calendario actualizado.",
       "Próximo da sequência": "Siguiente de la secuencia",
@@ -16898,8 +16939,9 @@ ${photoSections}
         return;
       }
       const week = workoutProgramWeek(program);
-      status.textContent = `${t(program.status === "paused" ? "Pausado" : "Ativo")} · ${t("Semana")} ${week}/${program.durationWeeks}`;
-      summary.innerHTML = `<h3 data-no-i18n="true">${escapeHTML(program.name)}</h3><div class="pill-row"><span class="pill">${escapeHTML(t("Início"))}: ${escapeHTML(localDateLabel(program.startDate))}</span><span class="pill">${program.durationWeeks} ${escapeHTML(t("semanas"))}</span></div>`;
+      const syncWarning = program.syncStatus === "failed" ? ` · ${t("Não sincronizado")}` : "";
+      status.textContent = `${t(program.status === "paused" ? "Pausado" : "Ativo")} · ${t("Semana")} ${week}/${program.durationWeeks}${syncWarning}`;
+      summary.innerHTML = `<h3 data-no-i18n="true">${escapeHTML(program.name)}</h3><div class="pill-row"><span class="pill">${escapeHTML(t("Início"))}: ${escapeHTML(localDateLabel(program.startDate))}</span><span class="pill">${program.durationWeeks} ${escapeHTML(t("semanas"))}</span>${program.syncStatus === "failed" ? `<span class="pill">${escapeHTML(t("Não sincronizado"))}</span>` : ""}</div>`;
       const workouts = workoutsAvailableForProgram(studentId);
       const todayDay = new Date().getDay();
       calendar.innerHTML = programDayOrder.map(day => {
@@ -16924,15 +16966,28 @@ ${photoSections}
       if (form) form.hidden = user.role !== "personal" || needsSelection;
       if (needsSelection) return;
       await window.monolithRefreshWorkoutView?.();
+      let programsTableAvailable = true;
       if (isRealSupabaseAccount(user)) {
         try {
           await loadRemoteWorkoutPrograms(studentId);
         } catch (error) {
           logAppError("programs", "load", error, { studentId });
-          showToast(t("Não consegui carregar o programa agora. Verifique se a etapa 15 do banco foi executada."));
+          programsTableAvailable = !workoutProgramsTableMissing(error);
+          if (!programsTableAvailable) markCachedWorkoutProgramsUnavailable(studentId);
+          showToast(t("Não consegui carregar o programa agora. Verifique se a etapa 24 do banco foi executada."));
         }
       }
-      const current = activeWorkoutProgram(studentId) || loadWorkoutPrograms(studentId)[0] || null;
+      if (!programsTableAvailable) {
+        renderProgramCalendar(null, studentId);
+        const status = document.getElementById("programCurrentStatus");
+        const summary = document.getElementById("programSummary");
+        if (status) status.textContent = t("Sincronização indisponível");
+        if (summary) summary.innerHTML = `<div class="report-line">${escapeHTML(t("Programas ainda não estão disponíveis no banco."))}</div>`;
+        renderStudentDashboard();
+        return;
+      }
+      const visiblePrograms = loadWorkoutPrograms(studentId).filter(program => user.role !== "student" || !isRealSupabaseAccount(user) || (program.source === "supabase" && program.syncStatus === "synced"));
+      const current = activeWorkoutProgram(studentId) || visiblePrograms[0] || null;
       if (user.role === "personal") fillProgramForm(current, studentId);
       renderProgramCalendar(current, studentId);
       renderStudentDashboard();
@@ -17090,9 +17145,11 @@ ${photoSections}
       const manager = canManageCheckinFactors();
       const responder = canRespondToCheckin();
       const factorForm = document.getElementById("factorForm");
+      const factorManagementTitle = document.getElementById("factorManagementTitle");
       const saveButton = document.getElementById("saveCheckin");
       const dailyWeight = document.getElementById("dailyWeight");
       if (factorForm) factorForm.hidden = !manager;
+      if (factorManagementTitle) factorManagementTitle.hidden = !manager;
       if (saveButton) saveButton.hidden = !responder;
       if (dailyWeight) dailyWeight.disabled = !responder;
       const todayCheckin = currentDailyCheckinForTarget();
@@ -17713,7 +17770,7 @@ ${photoSections}
           program.syncStatus = "failed";
           cacheSavedWorkoutProgram(program);
           logAppError("programs", "save", error, { studentId });
-          showToast(t("Não consegui publicar o programa. Verifique se a etapa 15 do banco foi executada."));
+          showToast(t("Não consegui publicar o programa. Verifique se a etapa 24 do banco foi executada."));
         }
       }, { loadingText: "Salvando programa..." });
     });
@@ -20433,7 +20490,6 @@ ${photoSections}
       const exportWorkoutCsvButton = document.getElementById("exportWorkoutCsv");
       let workoutsV2 = loadWorkoutsV2();
       let activeWorkoutV2 = workoutsV2[0];
-      let currentWorkoutLinkedTrainerIdV2 = "";
       let restTimersV2 = new Map();
       const restoredVoiceDraftKeysV2 = new Set();
       const VoiceRecognitionV2 = window.SpeechRecognition || window.webkitSpeechRecognition || null;
@@ -21871,22 +21927,23 @@ ${photoSections}
 
       async function updateWorkoutCreateAccessV2() {
         const user = currentAccount();
-        currentWorkoutLinkedTrainerIdV2 = "";
-        if (user?.role === "student") {
-          currentWorkoutLinkedTrainerIdV2 = await ensureStudentTrainerId(user);
-        }
         const button = document.getElementById("newWorkoutButton");
-        const studentRestricted = user?.role === "student";
+        const managementActions = document.getElementById("workoutManagementActions");
+        const personalAccess = user?.role === "personal";
         if (button) {
-          button.hidden = studentRestricted;
-          button.disabled = studentRestricted;
+          button.hidden = !personalAccess;
+          button.disabled = !personalAccess;
         }
-        await renderWorkoutCsvControlsV2(studentRestricted);
+        if (managementActions) managementActions.hidden = !personalAccess;
+        await renderWorkoutCsvControlsV2(!personalAccess);
       }
       window.monolithUpdateWorkoutCreateAccess = updateWorkoutCreateAccessV2;
 
       async function saveCustomWorkoutV2(workout) {
         const user = currentAccount();
+        if (user?.role !== "personal") {
+          throw new Error(textV2("Somente o personal pode criar ou alterar prescrições de treino."));
+        }
         const requestedAssignment = workout.assignedStudentId || "";
         const safeAssignment = user?.role === "personal" && requestedAssignment && isLinkedStudentForPersonal(requestedAssignment, user) ? requestedAssignment : "";
         const localWorkout = normalizeWorkoutV2({ ...workout, ownerId: workout.ownerId || user?.id || "", assignedStudentId: safeAssignment });
@@ -22299,6 +22356,10 @@ ${photoSections}
       }
 
       function downloadWorkoutCsvTemplateV2() {
+        if (currentAccount()?.role !== "personal") {
+          toastV2(textV2("Somente o personal pode importar ou exportar treinos."));
+          return;
+        }
         const rows = [
           workoutCsvHeaderV2(),
           ["Thiago", csvLocaleValue("Peito A", "Chest A", "Pecho A"), csvLocaleValue("Hipertrofia e progressao", "Hypertrophy and progression", "Hipertrofia y progresion"), csvLocaleValue("Importado", "Imported", "Importado"), csvLocaleValue("Supino reto", "Bench press", "Press banca"), "1", "12", "40", "90", csvLocaleValue("Aquecimento", "Warm-up", "Calentamiento")],
@@ -22312,6 +22373,10 @@ ${photoSections}
       }
 
       function exportWorkoutCsvV2() {
+        if (currentAccount()?.role !== "personal") {
+          toastV2(textV2("Somente o personal pode importar ou exportar treinos."));
+          return;
+        }
         const visibleWorkouts = workoutsForCurrentUserV2();
         const accounts = loadAccounts();
         const user = currentAccount();
@@ -22348,6 +22413,11 @@ ${photoSections}
 
       async function importWorkoutCsvFileV2(file) {
         if (!file) return;
+        if (currentAccount()?.role !== "personal") {
+          toastV2(textV2("Somente o personal pode importar ou exportar treinos."));
+          if (workoutCsvInput) workoutCsvInput.value = "";
+          return;
+        }
         const importLabel = document.querySelector('label[for="workoutCsvInput"]');
         return runPendingOperation("workout-csv-import", importLabel, async () => {
           try {
@@ -22465,6 +22535,9 @@ ${photoSections}
 
       async function deleteRemoteWorkoutV2(id) {
         const user = currentAccount();
+        if (user?.role !== "personal") {
+          throw new Error(textV2("Somente o personal pode excluir prescrições de treino."));
+        }
         if (!monolithSupabase || !isRealSupabaseAccount(user)) return;
         const { error } = await monolithSupabase.from("workout_templates").delete().eq("id", id);
         if (error) {
@@ -22513,6 +22586,10 @@ ${photoSections}
       }
 
       async function deleteWorkoutV2(id) {
+        if (currentAccount()?.role !== "personal") {
+          toastV2(textV2("Somente o personal pode excluir prescrições de treino."));
+          return;
+        }
         const workout = workoutsV2.find(item => item.id === id);
         if (!workout) return;
         await confirmAction({
@@ -22593,10 +22670,10 @@ ${photoSections}
         workoutListV2.innerHTML = "";
         const visibleWorkouts = workoutsForCurrentUserV2();
         const user = currentAccount();
-        const trainerControlledStudent = user?.role === "student" && Boolean(user.trainerId || currentWorkoutLinkedTrainerIdV2);
+        const studentView = user?.role === "student";
         if (!visibleWorkouts.length) {
-          const emptyTitle = trainerControlledStudent ? "Nenhum treino recebido" : "Nenhum treino criado";
-          const emptyCopy = trainerControlledStudent
+          const emptyTitle = studentView ? "Nenhum treino recebido" : "Nenhum treino criado";
+          const emptyCopy = studentView
             ? "Seu personal ainda não enviou um treino para esta conta."
             : "Crie seu primeiro treino do zero. No celular, use os modelos rápidos dentro do editor.";
           workoutListV2.innerHTML = `<article class="workout"><div><h3>${htmlT(emptyTitle)}</h3><p>${htmlT(emptyCopy)}</p></div></article>`;
@@ -22606,7 +22683,7 @@ ${photoSections}
         visibleWorkouts.forEach(workout => {
           const totalSets = workout.exercises.reduce((total, exercise) => total + exercise.sets.length, 0);
           const assignedStudent = accounts.find(account => account.id === workout.assignedStudentId);
-          const canDelete = !workout.ownerId || workout.ownerId === user?.id || workout.source !== "supabase";
+          const canDelete = user?.role === "personal" && (!workout.ownerId || workout.ownerId === user.id || workout.source !== "supabase");
           const card = document.createElement("article");
           card.className = "workout";
           card.innerHTML = `
@@ -22809,7 +22886,7 @@ ${photoSections}
             <td class="status-cell" data-label="${htmlT("Status")}">
               <div class="status-actions">
                 <button class="ghost set-done-v2 ${set.done ? "done" : ""}" type="button">${htmlT(set.done ? "Concluída" : "Concluir série")}</button>
-                <button class="ghost icon-btn danger remove-session-set-v2" type="button" data-exercise-index="${exerciseIndex}" data-set-index="${setIndex}" aria-label="${htmlT("Remover série")}" title="${htmlT("Remover série")}">
+                <button class="ghost icon-btn danger remove-session-set-v2" type="button" data-exercise-index="${exerciseIndex}" data-set-index="${setIndex}" aria-label="${htmlT("Remover série desta sessão")}" title="${htmlT("Remover série desta sessão")}">
                   <svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                     <path d="M3 6h18"></path>
                     <path d="M8 6V4h8v2"></path>
@@ -22837,15 +22914,16 @@ ${photoSections}
         restTimersV2.forEach(timer => clearInterval(timer));
         restTimersV2.clear();
         if (!workout) {
+          const studentView = currentAccount()?.role === "student";
           activeWorkoutV2 = null;
-          document.getElementById("sessionTitle").textContent = textV2("Nenhum treino criado");
-          document.getElementById("sessionMeta").textContent = textV2("Crie um treino antes de abrir a sessão.");
+          document.getElementById("sessionTitle").textContent = textV2(studentView ? "Nenhum treino recebido" : "Nenhum treino criado");
+          document.getElementById("sessionMeta").textContent = textV2(studentView ? "Seu personal ainda não enviou um treino para esta conta." : "Crie um treino antes de abrir a sessão.");
           document.getElementById("sessionExercises").innerHTML = "";
           updateSessionProgressV2();
           updateVoiceAvailabilityV2();
           return;
         }
-        workout = restoreVoiceDraftV2(workout);
+        workout = restoreVoiceDraftV2(normalizeWorkoutV2(workout));
         activeWorkoutV2 = workout;
         document.getElementById("sessionTitle").textContent = workout.name;
         document.getElementById("sessionMeta").textContent = quantityLabel(workout.exercises.length, "exercício no treino", "exercícios no treino");
@@ -22864,7 +22942,7 @@ ${photoSections}
                 ${exerciseDisplayNameV2(exercise) !== exercise.originalName ? `<button class="link-button exercise-original-toggle-v2" type="button" data-original="${html(exercise.originalName)}">${htmlT("Ver nome original")}</button><span class="exercise-original-name-v2" data-no-i18n="true" hidden>${html(exercise.originalName)}</span>` : ""}
               </div>
               <div class="pill-row">
-                <button class="ghost add-session-set-v2" type="button" data-exercise-index="${exerciseIndex}">${htmlT("Adicionar série")}</button>
+                <button class="ghost add-session-set-v2" type="button" data-exercise-index="${exerciseIndex}">${htmlT("Adicionar série nesta sessão")}</button>
                 <button class="ghost complete-exercise-v2" type="button" data-exercise-index="${exerciseIndex}">${htmlT("Concluir exercício")}</button>
               </div>
             </div>
@@ -22983,7 +23061,7 @@ ${photoSections}
         event.preventDefault();
         event.stopImmediatePropagation();
         if (!activeWorkoutV2) {
-          toastV2(textV2("Crie um treino antes de abrir a sessão."));
+          toastV2(textV2(currentAccount()?.role === "student" ? "Seu personal ainda não enviou um treino para esta conta." : "Crie um treino antes de abrir a sessão."));
           showScreen("workouts");
           return;
         }
@@ -23129,7 +23207,7 @@ ${photoSections}
           const visibleWorkouts = workoutsForCurrentUserV2();
           const workout = visibleWorkouts.find(item => item.id === open.dataset.workoutId) || visibleWorkouts[0];
           if (!workout) {
-            toastV2(textV2("Crie um treino antes de abrir a sessão."));
+            toastV2(textV2(currentAccount()?.role === "student" ? "Seu personal ainda não enviou um treino para esta conta." : "Crie um treino antes de abrir a sessão."));
             showScreen("workouts");
             return;
           }
@@ -23234,7 +23312,7 @@ ${photoSections}
           const previousRest = exercise.sets[exercise.sets.length - 1]?.rest || "90";
           exercise.sets.push({ weight: "", reps: "", type: "working_set", rest: previousRest });
           renderSessionV2(activeWorkoutV2);
-          toastV2(`${textV2("Nova série adicionada em")} ${exercise.name}.`);
+          toastV2(`${textV2("Nova série adicionada somente nesta sessão")}: ${exercise.name}.`);
         }
 
         const removeSessionSet = event.target.closest(".remove-session-set-v2");
@@ -23247,7 +23325,7 @@ ${photoSections}
           const removedSet = { ...exercise.sets[setIndex] };
           if (sessionSetHasUserData(removedSet) && !await confirmAction({
             title: "Remover esta série?",
-            message: "Somente a série selecionada será removida. As demais serão preservadas.",
+            message: "A série será removida somente desta sessão. O treino-base do personal não será alterado.",
             contextLabel: "Série",
             contextValue: `${setIndex + 1} · ${exercise.name}`,
             confirmLabel: "Remover",
@@ -23255,7 +23333,7 @@ ${photoSections}
           })) return;
           exercise.sets.splice(setIndex, 1);
           renderSessionV2(activeWorkoutV2);
-          showUndoToast("Série removida.", () => {
+          showUndoToast("Série removida somente desta sessão.", () => {
             const targetExercise = activeWorkoutV2?.exercises?.[exerciseIndex];
             if (!targetExercise) return;
             targetExercise.sets.splice(Math.min(setIndex, targetExercise.sets.length), 0, removedSet);
@@ -23407,7 +23485,7 @@ ${photoSections}
         if (!event.target.closest(".language-button")) return;
         syncActiveWorkoutFromSessionV2();
         renderWorkoutListV2();
-        renderWorkoutCsvControlsV2(currentAccount()?.role === "student" && Boolean(currentWorkoutLinkedTrainerIdV2));
+        renderWorkoutCsvControlsV2(currentAccount()?.role !== "personal");
         if (activeWorkoutV2) renderSessionV2(activeWorkoutV2);
         resetBuilderV2();
         voiceSettingsToUIV2();
@@ -23416,7 +23494,7 @@ ${photoSections}
       window.addEventListener("monolith-weight-unit-change", () => {
         syncActiveWorkoutFromSessionV2();
         renderWorkoutListV2();
-        renderWorkoutCsvControlsV2(currentAccount()?.role === "student" && Boolean(currentWorkoutLinkedTrainerIdV2));
+        renderWorkoutCsvControlsV2(currentAccount()?.role !== "personal");
         if (activeWorkoutV2) renderSessionV2(activeWorkoutV2);
         updateNumericSubmitStates();
       });

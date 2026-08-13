@@ -1,4 +1,4 @@
-const CACHE_NAME = "monolith-v89-safe-remote-log";
+const CACHE_NAME = "monolith-v90-programs-voice-role-scope";
 
 self.addEventListener("install", event => {
   self.skipWaiting();
