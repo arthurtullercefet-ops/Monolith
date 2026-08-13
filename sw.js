@@ -1,4 +1,4 @@
-const CACHE_NAME = "monolith-v88-daily-checkin-date";
+const CACHE_NAME = "monolith-v89-safe-remote-log";
 
 self.addEventListener("install", event => {
   self.skipWaiting();

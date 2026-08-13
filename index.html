@@ -14,8 +14,8 @@
   <link rel="manifest" href="manifest.webmanifest" />
   <link rel="icon" href="monolith-icon.svg" />
   <script>
-window.MONOLITH_BUILD = "monolith-v88-daily-checkin-date";
-window.MONOLITH_VERSION_LABEL = "Monolith v88 · 13/08/2026";
+window.MONOLITH_BUILD = "monolith-v89-safe-remote-log";
+window.MONOLITH_VERSION_LABEL = "Monolith v89 · 13/08/2026";
     (function clearOldAppCaches() {
       if ("serviceWorker" in navigator) {
         navigator.serviceWorker.getRegistrations?.()
@@ -6292,8 +6292,8 @@ window.MONOLITH_VERSION_LABEL = "Monolith v88 · 13/08/2026";
   <script>
     const MONOLITH_SUPABASE_URL = "https://jhxasnxuvmkhntbwepau.supabase.co";
     const MONOLITH_SUPABASE_KEY = "sb_publishable_lDtAXIOtkMwgwsAZyghBdg_gyLHGwpH";
-const MONOLITH_BUILD = window.MONOLITH_BUILD || "monolith-v88-daily-checkin-date";
-const MONOLITH_VERSION_LABEL = window.MONOLITH_VERSION_LABEL || "Monolith v88 · 13/08/2026";
+const MONOLITH_BUILD = window.MONOLITH_BUILD || "monolith-v89-safe-remote-log";
+const MONOLITH_VERSION_LABEL = window.MONOLITH_VERSION_LABEL || "Monolith v89 · 13/08/2026";
     const monolithSupabase = window.supabase?.createClient?.(MONOLITH_SUPABASE_URL, MONOLITH_SUPABASE_KEY, {
       auth: {
         storage: window.sessionStorage,
@@ -7732,6 +7732,28 @@ const MONOLITH_VERSION_LABEL = window.MONOLITH_VERSION_LABEL || "Monolith v88 ·
       console.warn(`[Monolith:${module}:${operation}] ${JSON.stringify(entry)}`);
       return entry;
     }
+
+    const remoteLogWarnings = new Set();
+
+    function safeRemoteLog(operation, module, error, context = {}) {
+      try {
+        const fingerprint = [module, operation, error?.code || "UNKNOWN", error?.message || "Unexpected error"].join(":");
+        if (remoteLogWarnings.has(fingerprint)) return null;
+        remoteLogWarnings.add(fingerprint);
+        return logAppError(module, operation, error, context);
+      } catch {
+        try {
+          const fallbackFingerprint = `${module}:${operation}:LOGGER_FAILURE`;
+          if (!remoteLogWarnings.has(fallbackFingerprint)) {
+            remoteLogWarnings.add(fallbackFingerprint);
+            console.warn(`[Monolith:${module}:${operation}] Falha remota registrada localmente.`);
+          }
+        } catch {}
+        return null;
+      }
+    }
+
+    window.safeRemoteLog = safeRemoteLog;
 
     async function loadRemoteModule(module, scope, task, { hasCache = false } = {}) {
       setRemoteDataState(module, scope, "loading");
