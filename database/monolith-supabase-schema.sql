@@ -132,8 +132,18 @@ create table public.student_anamneses (
   consent boolean not null default false,
   status text not null default 'submitted' check (status in ('draft', 'submitted', 'reviewed')),
   submitted_at timestamptz,
+  draft_saved_at timestamptz,
+  consent_accepted_at timestamptz,
+  important_updated_at timestamptz,
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now()
+);
+
+create table public.student_anamnesis_reads (
+  anamnesis_id uuid not null references public.student_anamneses(id) on delete cascade,
+  trainer_id uuid not null references public.profiles(id) on delete cascade,
+  viewed_at timestamptz not null default now(),
+  primary key (anamnesis_id, trainer_id)
 );
 
 create or replace function public.touch_updated_at()
@@ -195,6 +205,7 @@ alter table public.diet_plans enable row level security;
 alter table public.food_logs enable row level security;
 alter table public.progress_photos enable row level security;
 alter table public.student_anamneses enable row level security;
+alter table public.student_anamnesis_reads enable row level security;
 
 create policy "profiles_select_self_or_linked"
 on public.profiles for select
@@ -308,7 +319,14 @@ with check (student_id = auth.uid());
 
 create policy "student_anamneses_select_owner_or_trainer"
 on public.student_anamneses for select
-using (student_id = auth.uid() or public.is_trainer_for(student_id));
+using (
+  student_id = auth.uid()
+  or (
+    consent = true
+    and status in ('submitted', 'reviewed')
+    and public.is_trainer_for(student_id)
+  )
+);
 
 create policy "student_anamneses_insert_owner"
 on public.student_anamneses for insert
@@ -318,6 +336,46 @@ create policy "student_anamneses_update_owner"
 on public.student_anamneses for update
 using (student_id = auth.uid())
 with check (student_id = auth.uid());
+
+create policy "student_anamnesis_reads_select_linked_trainer"
+on public.student_anamnesis_reads for select
+using (
+  trainer_id = auth.uid()
+  and exists (
+    select 1 from public.student_anamneses sa
+    where sa.id = student_anamnesis_reads.anamnesis_id
+      and sa.consent = true
+      and sa.status in ('submitted', 'reviewed')
+      and public.is_trainer_for(sa.student_id)
+  )
+);
+
+create policy "student_anamnesis_reads_insert_linked_trainer"
+on public.student_anamnesis_reads for insert
+with check (
+  trainer_id = auth.uid()
+  and exists (
+    select 1 from public.student_anamneses sa
+    where sa.id = student_anamnesis_reads.anamnesis_id
+      and sa.consent = true
+      and sa.status in ('submitted', 'reviewed')
+      and public.is_trainer_for(sa.student_id)
+  )
+);
+
+create policy "student_anamnesis_reads_update_linked_trainer"
+on public.student_anamnesis_reads for update
+using (trainer_id = auth.uid())
+with check (
+  trainer_id = auth.uid()
+  and exists (
+    select 1 from public.student_anamneses sa
+    where sa.id = student_anamnesis_reads.anamnesis_id
+      and sa.consent = true
+      and sa.status in ('submitted', 'reviewed')
+      and public.is_trainer_for(sa.student_id)
+  )
+);
 
 insert into storage.buckets (id, name, public)
 values ('progress-photos', 'progress-photos', false)

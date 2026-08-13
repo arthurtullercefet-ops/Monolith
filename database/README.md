@@ -42,7 +42,9 @@ Official docs:
    This allows a student to unlink their own trainer relationship from the profile screen.
 14. Paste and run `monolith-production-step-11-anamnesis.sql`.
    This adds the student health questionnaire. Students own their answers; linked trainers have read-only access.
-15. Confirm these tables exist:
+15. Paste and run `monolith-production-step-12-anamnesis-workflow.sql`.
+   This adds private drafts, explicit consent timestamps, important-answer updates and linked-trainer read receipts.
+16. Confirm these tables exist:
    - `profiles`
    - `trainer_students`
    - `trainer_invites`
@@ -56,15 +58,16 @@ Official docs:
    - `food_logs`
    - `progress_photos`
    - `student_anamneses`
+   - `student_anamnesis_reads`
    - `app_plans`
    - `subscriptions`
    - `influencer_codes`
    - `referral_attributions`
-16. Confirm these functions exist:
+17. Confirm these functions exist:
    - `create_trainer_invite`
    - `accept_trainer_invite`
    - `accept_influencer_code`
-17. Confirm Storage has a private bucket called `progress-photos`.
+18. Confirm Storage has a private bucket called `progress-photos`.
 
 ## Step 2: connect the frontend
 

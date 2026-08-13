@@ -14,8 +14,8 @@
   <link rel="manifest" href="manifest.webmanifest" />
   <link rel="icon" href="monolith-icon.svg" />
   <script>
-    window.MONOLITH_BUILD = "monolith-v82-student-anamnesis";
-    window.MONOLITH_VERSION_LABEL = "Monolith v82 · 11/08/2026";
+    window.MONOLITH_BUILD = "monolith-v83-safe-save-modals";
+    window.MONOLITH_VERSION_LABEL = "Monolith v83 · 12/08/2026";
     (function clearOldAppCaches() {
       if ("serviceWorker" in navigator) {
         navigator.serviceWorker.getRegistrations?.()
@@ -1062,6 +1062,32 @@
       cursor: not-allowed;
       filter: grayscale(.35);
       opacity: .52;
+    }
+
+    .operation-pending {
+      pointer-events: none;
+    }
+
+    .operation-spinner {
+      width: 15px;
+      height: 15px;
+      display: inline-block;
+      flex: 0 0 15px;
+      border: 2px solid currentColor;
+      border-right-color: transparent;
+      border-radius: 50%;
+      animation: operation-spin .7s linear infinite;
+    }
+
+    .operation-pending .operation-label {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+    }
+
+    @keyframes operation-spin {
+      to { transform: rotate(360deg); }
     }
 
     .action:hover {
@@ -2942,6 +2968,54 @@
       line-height: 1.5;
     }
 
+    .confirmation-modal {
+      width: min(500px, 100%);
+    }
+
+    .confirmation-modal p {
+      margin: 0;
+      color: var(--muted);
+      line-height: 1.55;
+    }
+
+    .confirmation-context {
+      display: grid;
+      gap: 5px;
+      margin-top: 14px;
+      padding: 12px;
+      border: 1px solid var(--line);
+      background: #0d0d0d;
+      border-radius: var(--radius-card);
+    }
+
+    .confirmation-context span {
+      color: var(--muted);
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+
+    .confirmation-context strong {
+      overflow-wrap: anywhere;
+    }
+
+    .confirmation-status {
+      min-height: 20px;
+      margin-top: 10px;
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    .confirmation-status.error {
+      color: var(--red);
+    }
+
+    .confirmation-danger {
+      border-color: rgba(210, 74, 74, .72);
+      background: #9f3030;
+      color: #fff;
+    }
+
     .toast {
       position: fixed;
       right: 18px;
@@ -3309,6 +3383,16 @@
         height: 100dvh;
         border: 0;
         padding: 16px;
+      }
+
+      .confirmation-modal,
+      .unsaved-modal {
+        width: calc(100% - 28px);
+        height: auto;
+        max-height: calc(100dvh - 28px);
+        align-self: center;
+        border: 1px solid var(--line);
+        padding: 18px;
       }
 
       .modal-head {
@@ -3722,7 +3806,7 @@
           </div>
           <button class="auth-link" id="forgotPasswordButton" type="button">Esqueci minha senha</button>
           <div class="auth-warning" id="loginNotice" hidden></div>
-          <button class="action" id="loginButton" type="button">Entrar</button>
+          <button class="action" id="loginButton" type="submit">Entrar</button>
           <div class="auth-tools">
             <button class="auth-secondary" id="clearDeviceSessionButton" type="button">Limpar sessão/cache deste aparelho</button>
             <div class="build-version" id="buildVersionLabel">Versão do app: Monolith v79 · 11/08/2026</div>
@@ -5179,14 +5263,32 @@
     </div>
   </div>
 
+  <div class="modal-backdrop" id="actionConfirmationModal" role="dialog" aria-modal="true" aria-labelledby="actionConfirmationTitle" aria-describedby="actionConfirmationMessage">
+    <div class="modal confirmation-modal" tabindex="-1">
+      <div class="modal-head">
+        <h3 id="actionConfirmationTitle">Confirmar ação</h3>
+      </div>
+      <p id="actionConfirmationMessage">Revise os dados antes de continuar.</p>
+      <div class="confirmation-context" id="actionConfirmationContext" hidden>
+        <span id="actionConfirmationContextLabel">Registro</span>
+        <strong id="actionConfirmationContextValue" data-no-i18n="true"></strong>
+      </div>
+      <div class="confirmation-status" id="actionConfirmationStatus" role="status" aria-live="polite"></div>
+      <div class="modal-actions">
+        <button class="ghost" id="cancelActionConfirmation" type="button">Cancelar</button>
+        <button class="action" id="confirmActionConfirmation" type="button">Confirmar</button>
+      </div>
+    </div>
+  </div>
+
   <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script>
     const MONOLITH_SUPABASE_URL = "https://jhxasnxuvmkhntbwepau.supabase.co";
     const MONOLITH_SUPABASE_KEY = "sb_publishable_lDtAXIOtkMwgwsAZyghBdg_gyLHGwpH";
-    const MONOLITH_BUILD = window.MONOLITH_BUILD || "monolith-v82-student-anamnesis";
-    const MONOLITH_VERSION_LABEL = window.MONOLITH_VERSION_LABEL || "Monolith v82 · 11/08/2026";
+    const MONOLITH_BUILD = window.MONOLITH_BUILD || "monolith-v83-safe-save-modals";
+    const MONOLITH_VERSION_LABEL = window.MONOLITH_VERSION_LABEL || "Monolith v83 · 12/08/2026";
     const monolithSupabase = window.supabase?.createClient?.(MONOLITH_SUPABASE_URL, MONOLITH_SUPABASE_KEY, {
       auth: {
         storage: window.sessionStorage,
@@ -5567,6 +5669,163 @@
     function currentAccount() {
       const id = localStorage.getItem("monolith.sessionUserId");
       return loadAccounts().find(account => account.id === id) || null;
+    }
+
+    const pendingOperations = new Map();
+    let actionConfirmationState = null;
+    let actionConfirmationLastFocus = null;
+
+    function createClientRequestId(scope = "operation") {
+      const random = window.crypto?.randomUUID?.() || `${Date.now()}-${Math.random().toString(16).slice(2)}`;
+      return `${scope}:${random}`;
+    }
+
+    function operationButton(buttonOrSelector) {
+      return typeof buttonOrSelector === "string" ? document.querySelector(buttonOrSelector) : buttonOrSelector;
+    }
+
+    function setOperationButtonPending(buttonOrSelector, pending, loadingText = "Salvando...") {
+      const button = operationButton(buttonOrSelector);
+      if (!button) return;
+      if (pending) {
+        if (!button.dataset.operationOriginalHtml) button.dataset.operationOriginalHtml = button.innerHTML;
+        button.dataset.operationOriginalDisabled = button.disabled ? "true" : "false";
+        button.disabled = true;
+        button.classList.add("operation-pending");
+        button.setAttribute("aria-busy", "true");
+        button.innerHTML = "";
+        const label = document.createElement("span");
+        label.className = "operation-label";
+        const spinner = document.createElement("span");
+        spinner.className = "operation-spinner";
+        spinner.setAttribute("aria-hidden", "true");
+        const text = document.createElement("span");
+        text.textContent = t(loadingText);
+        label.append(spinner, text);
+        button.append(label);
+        return;
+      }
+      if (button.dataset.operationOriginalHtml !== undefined) button.innerHTML = button.dataset.operationOriginalHtml;
+      button.disabled = button.dataset.operationOriginalDisabled === "true";
+      delete button.dataset.operationOriginalHtml;
+      delete button.dataset.operationOriginalDisabled;
+      button.classList.remove("operation-pending");
+      button.removeAttribute("aria-busy");
+    }
+
+    function runPendingOperation(key, buttonOrSelector, task, options = {}) {
+      if (pendingOperations.has(key)) return pendingOperations.get(key);
+      const promise = Promise.resolve().then(async () => {
+        setOperationButtonPending(buttonOrSelector, true, options.loadingText || "Salvando...");
+        return task(options.clientRequestId || createClientRequestId(key));
+      }).finally(() => {
+        setOperationButtonPending(buttonOrSelector, false);
+        pendingOperations.delete(key);
+      });
+      pendingOperations.set(key, promise);
+      return promise;
+    }
+
+    function actionConfirmationElements() {
+      return {
+        modal: document.getElementById("actionConfirmationModal"),
+        panel: document.querySelector("#actionConfirmationModal .confirmation-modal"),
+        title: document.getElementById("actionConfirmationTitle"),
+        message: document.getElementById("actionConfirmationMessage"),
+        context: document.getElementById("actionConfirmationContext"),
+        contextLabel: document.getElementById("actionConfirmationContextLabel"),
+        contextValue: document.getElementById("actionConfirmationContextValue"),
+        status: document.getElementById("actionConfirmationStatus"),
+        cancel: document.getElementById("cancelActionConfirmation"),
+        confirm: document.getElementById("confirmActionConfirmation")
+      };
+    }
+
+    function closeActionConfirmation(result = false) {
+      const elements = actionConfirmationElements();
+      if (!actionConfirmationState || actionConfirmationState.pending) return;
+      const resolve = actionConfirmationState.resolve;
+      actionConfirmationState = null;
+      elements.modal?.classList.remove("active");
+      document.body.classList.remove("confirmation-open");
+      resolve?.(result);
+      actionConfirmationLastFocus?.focus?.();
+      actionConfirmationLastFocus = null;
+    }
+
+    function confirmAction(options = {}) {
+      const elements = actionConfirmationElements();
+      if (!elements.modal) return Promise.resolve(false);
+      if (actionConfirmationState && !actionConfirmationState.pending) closeActionConfirmation(false);
+      actionConfirmationLastFocus = document.activeElement;
+      elements.title.textContent = t(options.title || "Confirmar ação");
+      elements.message.textContent = t(options.message || "Revise os dados antes de continuar.");
+      elements.context.hidden = !options.contextValue;
+      elements.contextLabel.textContent = t(options.contextLabel || "Registro");
+      elements.contextValue.textContent = options.contextValue || "";
+      elements.status.textContent = "";
+      elements.status.classList.remove("error");
+      elements.cancel.textContent = t(options.cancelLabel || "Cancelar");
+      elements.confirm.textContent = t(options.confirmLabel || "Confirmar");
+      elements.confirm.classList.toggle("confirmation-danger", options.danger === true);
+      elements.modal.classList.add("active");
+      document.body.classList.add("confirmation-open");
+      requestAnimationFrame(() => elements.cancel.focus());
+      return new Promise(resolve => {
+        actionConfirmationState = { ...options, resolve, pending: false };
+      });
+    }
+
+    async function submitActionConfirmation() {
+      const state = actionConfirmationState;
+      const elements = actionConfirmationElements();
+      if (!state || state.pending) return;
+      if (typeof state.onConfirm !== "function") {
+        closeActionConfirmation(true);
+        return;
+      }
+      state.pending = true;
+      elements.cancel.disabled = true;
+      elements.status.textContent = t(state.pendingMessage || "Processando...");
+      try {
+        await runPendingOperation(`confirmation:${state.operationKey || createClientRequestId("action")}`, elements.confirm, state.onConfirm, {
+          loadingText: state.loadingText || "Processando..."
+        });
+        elements.status.classList.remove("error");
+        elements.status.textContent = t(state.successMessage || "Ação concluída.");
+        state.pending = false;
+        elements.cancel.disabled = false;
+        window.setTimeout(() => closeActionConfirmation(true), 180);
+      } catch (error) {
+        console.warn("Monolith confirmed action failed", error);
+        state.pending = false;
+        elements.cancel.disabled = false;
+        elements.status.classList.add("error");
+        elements.status.textContent = t(state.errorMessage || "Não consegui concluir esta ação. Tente novamente.");
+        elements.cancel.focus();
+      }
+    }
+
+    function trapActionConfirmationFocus(event) {
+      if (!actionConfirmationState) return;
+      if (event.key === "Escape") {
+        event.preventDefault();
+        closeActionConfirmation(false);
+        return;
+      }
+      if (event.key !== "Tab") return;
+      const elements = actionConfirmationElements();
+      const focusable = [...elements.panel.querySelectorAll("button:not(:disabled), [href], input:not(:disabled), select:not(:disabled), textarea:not(:disabled), [tabindex]:not([tabindex='-1'])")];
+      if (!focusable.length) return;
+      const first = focusable[0];
+      const last = focusable[focusable.length - 1];
+      if (event.shiftKey && document.activeElement === first) {
+        event.preventDefault();
+        last.focus();
+      } else if (!event.shiftKey && document.activeElement === last) {
+        event.preventDefault();
+        first.focus();
+      }
     }
 
     function roleLabel(role) {
@@ -6852,7 +7111,14 @@
         authMessage("Entre como aluno para desvincular um personal.");
         return false;
       }
-      const confirmed = window.confirm(t("Tem certeza que deseja desvincular este personal?"));
+      const confirmed = await confirmAction({
+        title: "Desvincular personal",
+        message: "Tem certeza que deseja desvincular este personal?",
+        contextLabel: "Personal",
+        contextValue: trainerNameFromCache(user.trainerId) || t("Personal vinculado"),
+        confirmLabel: "Desvincular",
+        danger: true
+      });
       if (!confirmed) return false;
       showUnlinkTrainerNotice("");
       const trainerId = user.trainerId || await ensureStudentTrainerId(user);
@@ -8593,28 +8859,25 @@
       }
       if (status === "submitted" && !validateAnamnesis({ all: true })) return false;
       const record = readAnamnesisForm(status);
-      const saveButton = document.getElementById("saveAnamnesis");
-      const draftButton = document.getElementById("saveAnamnesisDraft");
-      if (saveButton) saveButton.disabled = true;
-      if (draftButton) draftButton.disabled = true;
-      let synced = false;
-      try {
-        if (isRealSupabaseAccount(user)) synced = await saveRemoteAnamnesis(record);
-        else cacheAnamnesis(record);
-      } catch (error) {
-        console.warn("Monolith anamnesis save failed", error);
-        showToast(t("Não consegui salvar a anamnese no Supabase. Rode a etapa 12 do banco e tente novamente."));
-        return false;
-      } finally {
-        if (saveButton) saveButton.disabled = false;
-        if (draftButton) draftButton.disabled = false;
-      }
-      if (!isRealSupabaseAccount(user)) cacheAnamnesis(record);
-      clearDirty("anamnesis");
-      await renderAnamnesis();
-      if (status === "draft") showToast(t(synced ? "Rascunho salvo no Supabase. Você pode continuar depois." : "Rascunho salvo. Você pode continuar depois."));
-      else showToast(t(synced ? "Anamnese concluída e compartilhada com seu personal vinculado." : "Anamnese concluída."));
-      return true;
+      const button = status === "draft" ? "#saveAnamnesisDraft" : "#saveAnamnesis";
+      return runPendingOperation(`anamnesis-save:${user.id}`, button, async clientRequestId => {
+        record.clientRequestId = clientRequestId;
+        let synced = false;
+        try {
+          if (isRealSupabaseAccount(user)) synced = await saveRemoteAnamnesis(record);
+          else cacheAnamnesis(record);
+        } catch (error) {
+          console.warn("Monolith anamnesis save failed", error);
+          showToast(t("Não consegui salvar a anamnese no Supabase. Rode a etapa 12 do banco e tente novamente."));
+          return false;
+        }
+        if (!isRealSupabaseAccount(user)) cacheAnamnesis(record);
+        clearDirty("anamnesis");
+        await renderAnamnesis();
+        if (status === "draft") showToast(t(synced ? "Rascunho salvo no Supabase. Você pode continuar depois." : "Rascunho salvo. Você pode continuar depois."));
+        else showToast(t(synced ? "Anamnese concluída e compartilhada com seu personal vinculado." : "Anamnese concluída."));
+        return true;
+      }, { loadingText: status === "draft" ? "Salvando rascunho..." : "Concluindo anamnese..." });
     }
 
     function defaultMeal(index = 0) {
@@ -8723,7 +8986,14 @@
         showToast("Não encontrei dieta no mês anterior.");
         return;
       }
-      if (currentDietFormHasContent() && !window.confirm(t("Copiar o mês anterior vai substituir os campos atuais. Continuar?"))) return;
+      if (currentDietFormHasContent() && !await confirmAction({
+        title: "Substituir campos da dieta?",
+        message: "Copiar o mês anterior vai substituir os campos atuais. Continuar?",
+        contextLabel: "Destino",
+        contextValue: `${accountNameForTarget(studentId)} · ${localizedMonthLabel(month)}`,
+        confirmLabel: "Copiar dieta",
+        danger: true
+      })) return;
       const copiedPlan = {
         ...sourcePlan,
         id: dietPlanKey(studentId, month),
@@ -8754,22 +9024,31 @@
         showToast("Selecione uma dieta salva primeiro.");
         return;
       }
-      if (!window.confirm(t("Excluir esta dieta?"))) return;
-      rememberDietPlanVersion(plan, "delete");
-      const plans = loadDietPlans();
-      delete plans[key];
-      saveDietPlans(plans);
-      let synced = false;
-      try {
-        synced = await deleteRemoteDietPlan(studentId, month);
-      } catch (error) {
-        console.warn("Monolith remote diet delete failed", error);
-      }
-      renderNutrition();
-      showToast(synced ? "Dieta excluída no Supabase." : "Dieta excluída localmente.");
+      await confirmAction({
+        title: "Excluir esta dieta?",
+        message: "Esta ação removerá a dieta salva deste período.",
+        contextLabel: "Dieta",
+        contextValue: `${accountNameForTarget(studentId)} · ${localizedMonthLabel(month)}`,
+        confirmLabel: "Excluir",
+        danger: true,
+        operationKey: `diet-delete:${key}`,
+        loadingText: "Excluindo dieta...",
+        pendingMessage: "Excluindo dieta...",
+        successMessage: "Dieta excluída.",
+        errorMessage: "Não consegui excluir a dieta. Tente novamente.",
+        onConfirm: async () => {
+          const synced = await deleteRemoteDietPlan(studentId, month);
+          rememberDietPlanVersion(plan, "delete");
+          const plans = loadDietPlans();
+          delete plans[key];
+          saveDietPlans(plans);
+          renderNutrition();
+          showToast(synced ? "Dieta excluída no Supabase." : "Dieta excluída localmente.");
+        }
+      });
     }
 
-    function duplicateCurrentDietPlan() {
+    async function duplicateCurrentDietPlan() {
       const { month, plan } = currentDietPlanSelection();
       if (!plan) {
         showToast("Selecione uma dieta salva primeiro.");
@@ -8789,32 +9068,64 @@
         savedAt: new Date().toISOString()
       };
       const plans = loadDietPlans();
-      if (plans[copy.id] && !window.confirm(t("Já existe dieta nesse mês. Substituir?"))) return;
-      if (plans[copy.id]) rememberDietPlanVersion(plans[copy.id], "duplicate_replace");
-      plans[copy.id] = copy;
-      saveDietPlans(plans);
-      updateDietPlanMeta(copy.id, { status: "draft", archived: false });
-      const monthInput = document.getElementById("dietMonth");
-      if (monthInput) monthInput.value = targetMonth;
-      renderNutrition();
-      showToast("Dieta duplicada como rascunho.");
+      if (plans[copy.id] && !await confirmAction({
+        title: "Substituir dieta existente?",
+        message: "Já existe dieta nesse mês. Substituir?",
+        contextLabel: "Destino",
+        contextValue: `${accountNameForTarget(copy.studentId)} · ${localizedMonthLabel(targetMonth)}`,
+        confirmLabel: "Substituir",
+        danger: true
+      })) return;
+      await runPendingOperation(`diet-duplicate:${copy.id}`, "#duplicateDietButton", async clientRequestId => {
+        copy.clientRequestId = clientRequestId;
+        if (plans[copy.id]) rememberDietPlanVersion(plans[copy.id], "duplicate_replace");
+        plans[copy.id] = copy;
+        saveDietPlans(plans);
+        updateDietPlanMeta(copy.id, { status: "draft", archived: false });
+        try {
+          await saveRemoteDietPlan(copy);
+        } catch (error) {
+          console.warn("Monolith remote diet duplicate failed", error);
+          showToast("Dieta duplicada localmente. Não consegui sincronizar agora.");
+        }
+        const monthInput = document.getElementById("dietMonth");
+        if (monthInput) monthInput.value = targetMonth;
+        renderNutrition();
+        showToast("Dieta duplicada como rascunho.");
+      }, { loadingText: "Duplicando dieta..." });
     }
 
-    function restoreCurrentDietVersion() {
+    async function restoreCurrentDietVersion() {
       const { key } = currentDietPlanSelection();
       const version = latestDietPlanVersion(key);
       if (!version?.plan) {
         showToast("Nenhuma versão anterior para restaurar.");
         return;
       }
-      if (!window.confirm(t("Restaurar a versão anterior desta dieta?"))) return;
-      const plans = loadDietPlans();
-      if (plans[key]) rememberDietPlanVersion(plans[key], "before_restore");
-      plans[key] = { ...version.plan, meals: (version.plan.meals || []).map(meal => ({ ...meal })) };
-      saveDietPlans(plans);
-      updateDietPlanMeta(key, { ...(version.meta || {}), archived: version.meta?.archived === true || version.meta?.status === "archived", status: version.meta?.status || "published" });
-      renderNutrition();
-      showToast("Versão da dieta restaurada.");
+      if (!await confirmAction({
+        title: "Restaurar versão anterior?",
+        message: "A versão atual será preservada no histórico antes da restauração.",
+        contextLabel: "Dieta",
+        contextValue: `${accountNameForTarget(version.plan.studentId)} · ${localizedMonthLabel(version.plan.month)}`,
+        confirmLabel: "Restaurar",
+        danger: true
+      })) return;
+      await runPendingOperation(`diet-restore:${key}`, "#restoreDietVersionButton", async clientRequestId => {
+        const plans = loadDietPlans();
+        if (plans[key]) rememberDietPlanVersion(plans[key], "before_restore");
+        const restored = { ...version.plan, clientRequestId, meals: (version.plan.meals || []).map(meal => ({ ...meal })) };
+        plans[key] = restored;
+        saveDietPlans(plans);
+        updateDietPlanMeta(key, { ...(version.meta || {}), archived: version.meta?.archived === true || version.meta?.status === "archived", status: version.meta?.status || "published" });
+        try {
+          await saveRemoteDietPlan(restored);
+        } catch (error) {
+          console.warn("Monolith remote diet restore failed", error);
+          showToast("Versão restaurada localmente. Não consegui sincronizar agora.");
+        }
+        renderNutrition();
+        showToast("Versão da dieta restaurada.");
+      }, { loadingText: "Restaurando dieta..." });
     }
 
     function readDietPlanForm() {
@@ -9117,7 +9428,14 @@
       if (blocked.length) return false;
       const summary = csvPreviewSummary(previewRows) || t("Nenhum destino encontrado.");
       await nextPaint();
-      return window.confirm(`${t("Confirmar importação de")} ${kindLabel}?\n${summary}`);
+      return confirmAction({
+        title: "Confirmar importação",
+        message: `${t("Confirmar importação de")} ${kindLabel}?`,
+        contextLabel: "Resumo",
+        contextValue: summary,
+        confirmLabel: "Importar",
+        danger: false
+      });
     }
 
     function parseDietCsvPlans(text, fallbackStudentId = undefined, linkedStudents = []) {
@@ -9289,50 +9607,53 @@
     async function importDietCsvFile(file) {
       const user = currentAccount();
       if (!file || !user || user.role !== "personal") return;
-      try {
-        setDietCsvStatus("Preparando prévia do CSV...");
-        const text = await file.text();
-        const linkedStudents = await ensureLinkedStudentsForPersonal(user.id);
-        const fallbackStudentId = document.getElementById("dietImportStudent")?.value || undefined;
-        const previewRows = previewDietCsv(text, fallbackStudentId, linkedStudents);
-        renderCsvPreview("dietCsvPreview", previewRows);
-        const blocked = blockedCsvRows(previewRows);
-        if (blocked.length) {
-          setDietCsvStatus(quantityLabel(blocked.length, "linha precisa de correção antes de importar.", "linhas precisam de correção antes de importar."), true);
-          return;
-        }
-        if (!await confirmCsvImport(t("dietas"), previewRows)) {
-          setDietCsvStatus("Importação cancelada.");
-          return;
-        }
-        setDietCsvStatus("Importando CSV...");
-        const plans = parseDietCsvPlans(text, fallbackStudentId, linkedStudents);
-        if (!plans.length) throw new Error(t("Nenhuma dieta válida encontrada no CSV."));
-        let failedSync = 0;
-        for (const plan of plans) {
-          cacheDietPlan(plan);
-          try {
-            const synced = await saveRemoteDietPlan(plan);
-            if (!synced) failedSync += 1;
-          } catch (error) {
-            failedSync += 1;
-            console.warn("Monolith diet CSV remote save failed", error);
+      const importLabel = document.querySelector('label[for="dietCsvInput"]');
+      return runPendingOperation("diet-csv-import", importLabel, async () => {
+        try {
+          setDietCsvStatus("Preparando prévia do CSV...");
+          const text = await file.text();
+          const linkedStudents = await ensureLinkedStudentsForPersonal(user.id);
+          const fallbackStudentId = document.getElementById("dietImportStudent")?.value || undefined;
+          const previewRows = previewDietCsv(text, fallbackStudentId, linkedStudents);
+          renderCsvPreview("dietCsvPreview", previewRows);
+          const blocked = blockedCsvRows(previewRows);
+          if (blocked.length) {
+            setDietCsvStatus(quantityLabel(blocked.length, "linha precisa de correção antes de importar.", "linhas precisam de correção antes de importar."), true);
+            return;
           }
+          if (!await confirmCsvImport(t("dietas"), previewRows)) {
+            setDietCsvStatus("Importação cancelada.");
+            return;
+          }
+          setDietCsvStatus("Importando CSV...");
+          const plans = parseDietCsvPlans(text, fallbackStudentId, linkedStudents);
+          if (!plans.length) throw new Error(t("Nenhuma dieta válida encontrada no CSV."));
+          let failedSync = 0;
+          for (const plan of plans) {
+            cacheDietPlan(plan);
+            try {
+              const synced = await saveRemoteDietPlan(plan);
+              if (!synced) failedSync += 1;
+            } catch (error) {
+              failedSync += 1;
+              console.warn("Monolith diet CSV remote save failed", error);
+            }
+          }
+          await renderNutrition();
+          const message = `${plans.length} ${t(plans.length === 1 ? "dieta importada." : "dietas importadas.")}`;
+          const summary = csvPreviewSummary(previewRows);
+          setDietCsvStatus(failedSync ? `${message} ${t("Revise a sincronização com o Supabase.")} ${summary}` : `${message} ${summary}`, true);
+          showToast(failedSync ? "CSV importado, mas revise a sincronização." : "Dieta importada por CSV.");
+        } catch (error) {
+          console.warn("Monolith diet CSV import failed", error);
+          const message = error?.message || t("Não consegui importar o CSV.");
+          setDietCsvStatus(message, true);
+          showToast(message);
+        } finally {
+          const input = document.getElementById("dietCsvInput");
+          if (input) input.value = "";
         }
-        await renderNutrition();
-        const message = `${plans.length} ${t(plans.length === 1 ? "dieta importada." : "dietas importadas.")}`;
-        const summary = csvPreviewSummary(previewRows);
-        setDietCsvStatus(failedSync ? `${message} ${t("Revise a sincronização com o Supabase.")} ${summary}` : `${message} ${summary}`, true);
-        showToast(failedSync ? "CSV importado, mas revise a sincronização." : "Dieta importada por CSV.");
-      } catch (error) {
-        console.warn("Monolith diet CSV import failed", error);
-        const message = error?.message || t("Não consegui importar o CSV.");
-        setDietCsvStatus(message, true);
-        showToast(message);
-      } finally {
-        const input = document.getElementById("dietCsvInput");
-        if (input) input.value = "";
-      }
+      }, { loadingText: "Importando..." });
     }
 
     function renderFoodLogMeals() {
@@ -12026,6 +12347,188 @@
       }
     };
 
+    Object.assign(translations.en, {
+      "Confirmar ação": "Confirm action",
+      "Revise os dados antes de continuar.": "Review the details before continuing.",
+      "Registro": "Record",
+      "Processando...": "Processing...",
+      "Ação concluída.": "Action completed.",
+      "Não consegui concluir esta ação. Tente novamente.": "I could not complete this action. Try again.",
+      "Desvincular personal": "Unlink trainer",
+      "Tem certeza que deseja desvincular este personal?": "Are you sure you want to unlink this trainer?",
+      "Personal": "Trainer",
+      "Desvincular": "Unlink",
+      "Desvinculando...": "Unlinking...",
+      "Confirmar importação": "Confirm import",
+      "Confirmar importação de": "Confirm import of",
+      "Resumo": "Summary",
+      "Importar": "Import",
+      "Importando...": "Importing...",
+      "Excluir tarefa do check-in?": "Delete check-in task?",
+      "A tarefa será removida do checklist deste aluno.": "The task will be removed from this student's checklist.",
+      "Tarefa": "Task",
+      "Excluir": "Delete",
+      "Substituir campos da dieta?": "Replace diet fields?",
+      "Copiar o mês anterior vai substituir os campos atuais. Continuar?": "Copying the previous month will replace the current fields. Continue?",
+      "Destino": "Destination",
+      "Copiar dieta": "Copy diet",
+      "Carregando dieta...": "Loading diet...",
+      "Excluir esta dieta?": "Delete this diet?",
+      "Esta ação removerá a dieta salva deste período.": "This action will remove the saved diet for this period.",
+      "Dieta": "Diet",
+      "Excluindo dieta...": "Deleting diet...",
+      "Dieta excluída.": "Diet deleted.",
+      "Não consegui excluir a dieta. Tente novamente.": "I could not delete the diet. Try again.",
+      "Substituir dieta existente?": "Replace existing diet?",
+      "Já existe dieta nesse mês. Substituir?": "A diet already exists for this month. Replace it?",
+      "Substituir": "Replace",
+      "Duplicando dieta...": "Duplicating diet...",
+      "Restaurar versão anterior?": "Restore previous version?",
+      "A versão atual será preservada no histórico antes da restauração.": "The current version will be kept in history before restoration.",
+      "Restaurar": "Restore",
+      "Restaurando dieta...": "Restoring diet...",
+      "Remover refeições preenchidas?": "Remove completed meals?",
+      "Reduzir refeições vai remover refeições preenchidas. Continuar?": "Reducing the meal count will remove completed meals. Continue?",
+      "Nova quantidade": "New quantity",
+      "Reduzir": "Reduce",
+      "Usar modelo de dieta?": "Use diet template?",
+      "Usar modelo vai substituir os campos atuais. Continuar?": "Using the template will replace the current fields. Continue?",
+      "Usar modelo": "Use template",
+      "Confirmar dieta": "Confirm diet",
+      "Revise o aluno e o período antes de salvar.": "Review the student and period before saving.",
+      "Salvar dieta": "Save diet",
+      "Salvando dieta...": "Saving diet...",
+      "Salvando diário...": "Saving food log...",
+      "Arquivar dieta?": "Archive diet?",
+      "A dieta deixará de aparecer como ativa para este período.": "The diet will no longer appear as active for this period.",
+      "Arquivar": "Archive",
+      "Confirmar check-in": "Confirm check-in",
+      "Revise o aluno e a data antes de salvar.": "Review the student and date before saving.",
+      "Salvar check-in": "Save check-in",
+      "Salvando check-in...": "Saving check-in...",
+      "Confirmar medidas": "Confirm measurements",
+      "Salvar medidas": "Save measurements",
+      "Salvando medidas...": "Saving measurements...",
+      "Salvando rascunho...": "Saving draft...",
+      "Concluindo anamnese...": "Completing health questionnaire...",
+      "Salvando perfil...": "Saving profile...",
+      "Criando convite...": "Creating invite...",
+      "Copiando...": "Copying...",
+      "Duplicar treino?": "Duplicate workout?",
+      "Uma nova cópia será criada para o destino selecionado.": "A new copy will be created for the selected destination.",
+      "Duplicar": "Duplicate",
+      "Duplicando treino...": "Duplicating workout...",
+      "Excluir treino?": "Delete workout?",
+      "O treino será removido do aluno e da sua lista.": "The workout will be removed from the student and from your list.",
+      "Treino": "Workout",
+      "Excluindo treino...": "Deleting workout...",
+      "Treino excluído.": "Workout deleted.",
+      "Não consegui excluir o treino. Tente novamente.": "I could not delete the workout. Try again.",
+      "Confirmar treino": "Confirm workout",
+      "Revise o destino antes de criar o treino.": "Review the destination before creating the workout.",
+      "Criar treino": "Create workout",
+      "Criando treino...": "Creating workout...",
+      "Salvando treino...": "Saving workout...",
+      "Remover esta série?": "Remove this set?",
+      "Somente a série selecionada será removida. As demais serão preservadas.": "Only the selected set will be removed. The others will be preserved.",
+      "Série": "Set",
+      "Remover": "Remove",
+      "Excluir exercício?": "Delete exercise?",
+      "O exercício e suas séries serão removidos deste treino.": "The exercise and its sets will be removed from this workout.",
+      "Exercício": "Exercise"
+    });
+
+    Object.assign(translations.es, {
+      "Confirmar ação": "Confirmar acción",
+      "Revise os dados antes de continuar.": "Revisa los datos antes de continuar.",
+      "Registro": "Registro",
+      "Processando...": "Procesando...",
+      "Ação concluída.": "Acción completada.",
+      "Não consegui concluir esta ação. Tente novamente.": "No pude completar esta acción. Inténtalo de nuevo.",
+      "Desvincular personal": "Desvincular entrenador",
+      "Tem certeza que deseja desvincular este personal?": "¿Seguro que quieres desvincular a este entrenador?",
+      "Personal": "Entrenador",
+      "Desvincular": "Desvincular",
+      "Desvinculando...": "Desvinculando...",
+      "Confirmar importação": "Confirmar importación",
+      "Confirmar importação de": "Confirmar importación de",
+      "Resumo": "Resumen",
+      "Importar": "Importar",
+      "Importando...": "Importando...",
+      "Excluir tarefa do check-in?": "¿Eliminar tarea del check-in?",
+      "A tarefa será removida do checklist deste aluno.": "La tarea se eliminará de la lista de este alumno.",
+      "Tarefa": "Tarea",
+      "Excluir": "Eliminar",
+      "Substituir campos da dieta?": "¿Reemplazar los campos de la dieta?",
+      "Copiar o mês anterior vai substituir os campos atuais. Continuar?": "Copiar el mes anterior reemplazará los campos actuales. ¿Continuar?",
+      "Destino": "Destino",
+      "Copiar dieta": "Copiar dieta",
+      "Carregando dieta...": "Cargando dieta...",
+      "Excluir esta dieta?": "¿Eliminar esta dieta?",
+      "Esta ação removerá a dieta salva deste período.": "Esta acción eliminará la dieta guardada de este período.",
+      "Dieta": "Dieta",
+      "Excluindo dieta...": "Eliminando dieta...",
+      "Dieta excluída.": "Dieta eliminada.",
+      "Não consegui excluir a dieta. Tente novamente.": "No pude eliminar la dieta. Inténtalo de nuevo.",
+      "Substituir dieta existente?": "¿Reemplazar la dieta existente?",
+      "Já existe dieta nesse mês. Substituir?": "Ya existe una dieta para este mes. ¿Reemplazarla?",
+      "Substituir": "Reemplazar",
+      "Duplicando dieta...": "Duplicando dieta...",
+      "Restaurar versão anterior?": "¿Restaurar la versión anterior?",
+      "A versão atual será preservada no histórico antes da restauração.": "La versión actual se conservará en el historial antes de restaurar.",
+      "Restaurar": "Restaurar",
+      "Restaurando dieta...": "Restaurando dieta...",
+      "Remover refeições preenchidas?": "¿Eliminar comidas completadas?",
+      "Reduzir refeições vai remover refeições preenchidas. Continuar?": "Reducir las comidas eliminará comidas completadas. ¿Continuar?",
+      "Nova quantidade": "Nueva cantidad",
+      "Reduzir": "Reducir",
+      "Usar modelo de dieta?": "¿Usar plantilla de dieta?",
+      "Usar modelo vai substituir os campos atuais. Continuar?": "Usar la plantilla reemplazará los campos actuales. ¿Continuar?",
+      "Usar modelo": "Usar plantilla",
+      "Confirmar dieta": "Confirmar dieta",
+      "Revise o aluno e o período antes de salvar.": "Revisa el alumno y el período antes de guardar.",
+      "Salvar dieta": "Guardar dieta",
+      "Salvando dieta...": "Guardando dieta...",
+      "Salvando diário...": "Guardando diario alimentario...",
+      "Arquivar dieta?": "¿Archivar dieta?",
+      "A dieta deixará de aparecer como ativa para este período.": "La dieta dejará de aparecer como activa para este período.",
+      "Arquivar": "Archivar",
+      "Confirmar check-in": "Confirmar check-in",
+      "Revise o aluno e a data antes de salvar.": "Revisa el alumno y la fecha antes de guardar.",
+      "Salvar check-in": "Guardar check-in",
+      "Salvando check-in...": "Guardando check-in...",
+      "Confirmar medidas": "Confirmar medidas",
+      "Salvar medidas": "Guardar medidas",
+      "Salvando medidas...": "Guardando medidas...",
+      "Salvando rascunho...": "Guardando borrador...",
+      "Concluindo anamnese...": "Completando anamnesis...",
+      "Salvando perfil...": "Guardando perfil...",
+      "Criando convite...": "Creando invitación...",
+      "Copiando...": "Copiando...",
+      "Duplicar treino?": "¿Duplicar entrenamiento?",
+      "Uma nova cópia será criada para o destino selecionado.": "Se creará una nueva copia para el destino seleccionado.",
+      "Duplicar": "Duplicar",
+      "Duplicando treino...": "Duplicando entrenamiento...",
+      "Excluir treino?": "¿Eliminar entrenamiento?",
+      "O treino será removido do aluno e da sua lista.": "El entrenamiento se eliminará del alumno y de tu lista.",
+      "Treino": "Entrenamiento",
+      "Excluindo treino...": "Eliminando entrenamiento...",
+      "Treino excluído.": "Entrenamiento eliminado.",
+      "Não consegui excluir o treino. Tente novamente.": "No pude eliminar el entrenamiento. Inténtalo de nuevo.",
+      "Confirmar treino": "Confirmar entrenamiento",
+      "Revise o destino antes de criar o treino.": "Revisa el destino antes de crear el entrenamiento.",
+      "Criar treino": "Crear entrenamiento",
+      "Criando treino...": "Creando entrenamiento...",
+      "Salvando treino...": "Guardando entrenamiento...",
+      "Remover esta série?": "¿Eliminar esta serie?",
+      "Somente a série selecionada será removida. As demais serão preservadas.": "Solo se eliminará la serie seleccionada. Las demás se conservarán.",
+      "Série": "Serie",
+      "Remover": "Eliminar",
+      "Excluir exercício?": "¿Eliminar ejercicio?",
+      "O exercício e suas séries serão removidos deste treino.": "El ejercicio y sus series se eliminarán de este entrenamiento.",
+      "Exercício": "Ejercicio"
+    });
+
     function t(key, language = localStorage.getItem("monolith.language") || "pt") {
       return language === "pt" ? key : translations[language]?.[key] || key;
     }
@@ -13884,9 +14387,16 @@ ${photoSections}
       updateDailyScore();
     }
 
-    function removeFactor(id) {
+    async function removeFactor(id) {
       const factor = factors.find(item => item.id === id);
-      if (!window.confirm(`${t("Excluir tarefa do check-in?")}\n${t(factor?.name || "Item")}`)) return;
+      if (!await confirmAction({
+        title: "Excluir tarefa do check-in?",
+        message: "A tarefa será removida do checklist deste aluno.",
+        contextLabel: "Tarefa",
+        contextValue: t(factor?.name || "Item"),
+        confirmLabel: "Excluir",
+        danger: true
+      })) return;
       factors = factors.filter(factor => factor.id !== id);
       saveFactorsForActiveTarget(factors);
       deleteRemoteFactor(id).catch(error => {
@@ -13894,15 +14404,12 @@ ${photoSections}
         showToast("Fator removido localmente. Não consegui sincronizar agora.");
       });
       renderFactors();
-      if (factor && window.confirm(`${t("Fator removido. Pontuação recalculada.")}\n${t("Desfazer?")}`)) {
+      if (factor) showUndoToast("Fator removido. Pontuação recalculada.", () => {
         factors.push(factor);
         saveFactorsForActiveTarget(factors);
         saveRemoteFactors(factors).catch(error => console.warn("Monolith remote check-in undo failed", error));
         renderFactors();
-        showToast("Exclusão desfeita.");
-      } else {
-        showToast("Fator removido. Pontuação recalculada.");
-      }
+      });
     }
 
     function renderFactors() {
@@ -13955,6 +14462,12 @@ ${photoSections}
     renderStats();
     renderBodyMeasures();
     renderTrainerSummary();
+    document.getElementById("cancelActionConfirmation")?.addEventListener("click", () => closeActionConfirmation(false));
+    document.getElementById("confirmActionConfirmation")?.addEventListener("click", submitActionConfirmation);
+    document.getElementById("actionConfirmationModal")?.addEventListener("click", event => {
+      if (event.target === event.currentTarget) closeActionConfirmation(false);
+    });
+    document.addEventListener("keydown", trapActionConfirmationFocus);
     const languageSelect = document.getElementById("languageSelect");
     const authLanguageSelect = document.getElementById("authLanguageSelect");
     const weightUnitSelect = document.getElementById("weightUnitSelect");
@@ -13983,7 +14496,7 @@ ${photoSections}
       if (!button) return;
       setWeightUnit(button.dataset.unit);
     });
-    document.getElementById("dietMealCount")?.addEventListener("change", event => {
+    document.getElementById("dietMealCount")?.addEventListener("change", async event => {
       const select = event.target;
       const currentMeals = readDietMealBuilderEntries();
       const nextCount = Number(select.value || 5);
@@ -13991,15 +14504,29 @@ ${photoSections}
       if (nextCount < previousCount) {
         const removedMeals = currentMeals.slice(nextCount);
         const removesFilledMeal = removedMeals.some((meal, index) => mealHasUserContent(meal, nextCount + index));
-        if (removesFilledMeal && !window.confirm(t("Reduzir refeições vai remover refeições preenchidas. Continuar?"))) {
+        if (removesFilledMeal && !await confirmAction({
+          title: "Remover refeições preenchidas?",
+          message: "Reduzir refeições vai remover refeições preenchidas. Continuar?",
+          contextLabel: "Nova quantidade",
+          contextValue: String(nextCount),
+          confirmLabel: "Reduzir",
+          danger: true
+        })) {
           select.value = String(previousCount);
           return;
         }
       }
       renderDietMealBuilder(currentMeals);
     });
-    document.getElementById("useDietTemplateButton")?.addEventListener("click", () => {
-      if (currentDietFormHasContent() && !window.confirm(t("Usar modelo vai substituir os campos atuais. Continuar?"))) return;
+    document.getElementById("useDietTemplateButton")?.addEventListener("click", async () => {
+      if (currentDietFormHasContent() && !await confirmAction({
+        title: "Usar modelo de dieta?",
+        message: "Usar modelo vai substituir os campos atuais. Continuar?",
+        contextLabel: "Destino",
+        contextValue: accountNameForTarget(selectedDietStudentId()),
+        confirmLabel: "Usar modelo",
+        danger: true
+      })) return;
       applyDietPlanToForm({
         meals: Array.from({ length: 5 }, (_, index) => defaultMeal(index)),
         calories: "",
@@ -14010,15 +14537,31 @@ ${photoSections}
       markDirty("diet");
       showToast("Modelo de dieta aplicado.");
     });
-    document.getElementById("copyPreviousDietButton")?.addEventListener("click", copyPreviousDietMonth);
+    document.getElementById("copyPreviousDietButton")?.addEventListener("click", async event => {
+      const studentId = selectedDietStudentId() || "none";
+      const month = document.getElementById("dietMonth")?.value || currentMonthKey();
+      await runPendingOperation(`diet-copy-previous:${studentId}:${month}`, event.currentTarget, () => copyPreviousDietMonth(), {
+        loadingText: "Carregando dieta..."
+      });
+    });
     document.getElementById("publishDietButton")?.addEventListener("click", () => {
       const { plan } = currentDietPlanSelection();
       const meta = plan?.id ? dietPlanMetaForKey(plan.id) : {};
       setCurrentDietStatus(meta.status === "draft" ? "published" : "draft");
     });
-    document.getElementById("archiveDietButton")?.addEventListener("click", () => {
+    document.getElementById("archiveDietButton")?.addEventListener("click", async () => {
       const { plan } = currentDietPlanSelection();
       const meta = plan?.id ? dietPlanMetaForKey(plan.id) : {};
+      if (!meta.archived && meta.status !== "archived") {
+        if (!await confirmAction({
+          title: "Arquivar dieta?",
+          message: "A dieta deixará de aparecer como ativa para este período.",
+          contextLabel: "Dieta",
+          contextValue: `${accountNameForTarget(plan?.studentId)} · ${localizedMonthLabel(plan?.month)}`,
+          confirmLabel: "Arquivar",
+          danger: true
+        })) return;
+      }
       setCurrentDietStatus(meta.archived || meta.status === "archived" ? "published" : "archived");
     });
     document.getElementById("duplicateDietButton")?.addEventListener("click", duplicateCurrentDietPlan);
@@ -14090,23 +14633,33 @@ ${photoSections}
         return;
       }
       const studentName = accountNameForTarget(plan.studentId);
-      if (!window.confirm(localizedMessage("Confirmar dieta para {name} · {month}?", { name: studentName, month: localizedMonthLabel(plan.month) }))) return;
-      const plans = loadDietPlans();
-      if (plans[plan.id]) rememberDietPlanVersion(plans[plan.id], "save");
-      plans[plan.id] = plan;
-      saveDietPlans(plans);
-      const existingMeta = dietPlanMetaForKey(plan.id);
-      updateDietPlanMeta(plan.id, { status: existingMeta.status || "published", archived: false });
-      let synced = false;
-      try {
-        synced = await saveRemoteDietPlan(plan);
-      } catch (error) {
-        console.warn("Monolith remote diet plan save failed", error);
-        showToast("Dieta salva localmente. Não consegui sincronizar agora.");
-      }
-      renderDietPlan("dietPreview", plan);
-      setDirtyBaseline("diet");
-      authMessage(synced ? "Dieta do aluno salva no Supabase." : "Dieta salva localmente. Não consegui sincronizar agora.");
+      if (!await confirmAction({
+        title: "Confirmar dieta",
+        message: "Revise o aluno e o período antes de salvar.",
+        contextLabel: "Destino",
+        contextValue: `${studentName} · ${localizedMonthLabel(plan.month)}`,
+        confirmLabel: "Salvar dieta",
+        danger: false
+      })) return;
+      await runPendingOperation(`diet-save:${plan.id}`, event.submitter || "#saveDietPlanButton", async clientRequestId => {
+        plan.clientRequestId = clientRequestId;
+        const plans = loadDietPlans();
+        if (plans[plan.id]) rememberDietPlanVersion(plans[plan.id], "save");
+        plans[plan.id] = plan;
+        saveDietPlans(plans);
+        const existingMeta = dietPlanMetaForKey(plan.id);
+        updateDietPlanMeta(plan.id, { status: existingMeta.status || "published", archived: false });
+        let synced = false;
+        try {
+          synced = await saveRemoteDietPlan(plan);
+        } catch (error) {
+          console.warn("Monolith remote diet plan save failed", error);
+          showToast("Dieta salva localmente. Não consegui sincronizar agora.");
+        }
+        renderDietPlan("dietPreview", plan);
+        setDirtyBaseline("diet");
+        authMessage(synced ? "Dieta do aluno salva no Supabase." : "Dieta salva localmente. Não consegui sincronizar agora.");
+      }, { loadingText: "Salvando dieta..." });
     });
     document.getElementById("foodMealCount")?.addEventListener("change", renderFoodLogMeals);
     document.getElementById("foodLogForm")?.addEventListener("submit", async event => {
@@ -14118,26 +14671,29 @@ ${photoSections}
         authMessage("Seu personal controla a dieta. Você pode visualizar a prescrição, mas não criar dieta própria.");
         return;
       }
-      const logs = loadFoodLogs();
-      const meals = [...document.querySelectorAll("#foodLogMeals .food-log-row")].map(row => ({
-        name: row.querySelector(".food-name").value.trim(),
-        calories: row.querySelector(".food-calories").value.trim(),
-        protein: row.querySelector(".food-protein").value.trim(),
-        carbs: row.querySelector(".food-carbs").value.trim(),
-        fat: row.querySelector(".food-fat").value.trim()
-      })).filter(meal => meal.name || meal.calories);
-      const entry = { date: document.getElementById("foodLogDate").value || todayKey(), note: document.getElementById("foodLogNote").value.trim(), meals, savedAt: new Date().toISOString() };
-      logs[user.id] = [entry, ...(logs[user.id] || []).filter(item => item.date !== entry.date)].slice(0, 90);
-      saveFoodLogs(logs);
-      try {
-        await saveRemoteFoodLog(entry);
-      } catch (error) {
-        console.warn("Monolith remote food log save failed", error);
-        showToast("Diário alimentar salvo localmente. Não consegui sincronizar agora.");
-      }
-      renderFoodLogSummary();
-      setDirtyBaseline("diet");
-      authMessage("Diário alimentar salvo.");
+      const date = document.getElementById("foodLogDate").value || todayKey();
+      await runPendingOperation(`food-log-save:${user.id}:${date}`, event.submitter, async clientRequestId => {
+        const logs = loadFoodLogs();
+        const meals = [...document.querySelectorAll("#foodLogMeals .food-log-row")].map(row => ({
+          name: row.querySelector(".food-name").value.trim(),
+          calories: row.querySelector(".food-calories").value.trim(),
+          protein: row.querySelector(".food-protein").value.trim(),
+          carbs: row.querySelector(".food-carbs").value.trim(),
+          fat: row.querySelector(".food-fat").value.trim()
+        })).filter(meal => meal.name || meal.calories);
+        const entry = { date, note: document.getElementById("foodLogNote").value.trim(), meals, savedAt: new Date().toISOString(), clientRequestId };
+        logs[user.id] = [entry, ...(logs[user.id] || []).filter(item => item.date !== entry.date)].slice(0, 90);
+        saveFoodLogs(logs);
+        try {
+          await saveRemoteFoodLog(entry);
+        } catch (error) {
+          console.warn("Monolith remote food log save failed", error);
+          showToast("Diário alimentar salvo localmente. Não consegui sincronizar agora.");
+        }
+        renderFoodLogSummary();
+        setDirtyBaseline("diet");
+        authMessage("Diário alimentar salvo.");
+      }, { loadingText: "Salvando diário..." });
     });
     async function submitLogin() {
       showLoginNotice("");
@@ -14177,15 +14733,9 @@ ${photoSections}
     }
 
     refreshBuildVersionLabel();
-    document.getElementById("loginButton")?.addEventListener("click", submitLogin);
     document.getElementById("loginForm")?.addEventListener("submit", async event => {
       event.preventDefault();
       await submitLogin();
-    });
-    document.getElementById("loginPassword")?.addEventListener("keydown", event => {
-      if (event.key !== "Enter") return;
-      event.preventDefault();
-      submitLogin();
     });
     document.getElementById("toggleLoginPassword")?.addEventListener("click", toggleLoginPasswordVisibility);
     document.getElementById("clearDeviceSessionButton")?.addEventListener("click", clearDeviceSessionAndCache);
@@ -14216,7 +14766,10 @@ ${photoSections}
       await openTrainerProfileEditor("profile");
     });
     document.getElementById("unlinkTrainerButton")?.addEventListener("click", async () => {
-      await unlinkStudentTrainer();
+      const user = currentAccount();
+      await runPendingOperation(`trainer-unlink:${user?.id || "student"}`, "#unlinkTrainerButton", () => unlinkStudentTrainer(), {
+        loadingText: "Desvinculando..."
+      });
     });
     document.getElementById("downloadDietCsvTemplate")?.addEventListener("click", downloadDietCsvTemplate);
     document.getElementById("exportDietCsv")?.addEventListener("click", exportDietCsv);
@@ -14411,45 +14964,30 @@ ${photoSections}
         authMessage(validationMessage);
         return;
       }
-      try {
-        await saveTrainerPublicProfile(payload);
-        trainerProfileOnboardingRequired = false;
-        window.monolithTrainerProfileRequired = false;
-        showToast("Perfil profissional salvo.");
-        authMessage("Perfil profissional salvo.");
-        setDirtyBaseline("trainerProfile");
-        applyAuthState();
-        const nextScreen = trainerProfileReturnScreen || "clients";
-        trainerProfileReturnScreen = "clients";
-        showScreen(nextScreen);
-      } catch (error) {
-        console.warn("Monolith trainer profile save failed", error);
-        showToast("Não consegui salvar o perfil profissional agora.");
-        authMessage("Não consegui salvar o perfil profissional agora.");
-      }
+      await runPendingOperation(`trainer-profile-save:${payload.trainer_id}`, event.submitter, async () => {
+        try {
+          await saveTrainerPublicProfile(payload);
+          trainerProfileOnboardingRequired = false;
+          window.monolithTrainerProfileRequired = false;
+          showToast("Perfil profissional salvo.");
+          authMessage("Perfil profissional salvo.");
+          setDirtyBaseline("trainerProfile");
+          applyAuthState();
+          const nextScreen = trainerProfileReturnScreen || "clients";
+          trainerProfileReturnScreen = "clients";
+          showScreen(nextScreen);
+        } catch (error) {
+          console.warn("Monolith trainer profile save failed", error);
+          showToast("Não consegui salvar o perfil profissional agora.");
+          authMessage("Não consegui salvar o perfil profissional agora.");
+        }
+      }, { loadingText: "Salvando perfil..." });
     });
-    document.getElementById("inviteStudentButton")?.addEventListener("click", async () => {
+    document.getElementById("inviteStudentButton")?.addEventListener("click", async event => {
       const personal = currentAccount();
       if (!personal || personal.role !== "personal") return;
-      let inviteCode = "";
-      try {
-        inviteCode = await showInviteCodeForPersonal(personal);
-      } catch (error) {
-        console.warn("Monolith invite creation failed", error);
-        authMessage(`${t("Não consegui criar o convite agora.")} ${error?.message || ""}`.trim());
-        return;
-      }
-      try {
-        if (!await copyText(inviteCode)) throw new Error("clipboard unavailable");
-        authMessage("Código de convite copiado. Envie para o aluno.");
-      } catch {
-        window.prompt(t("Copie este código e envie para o aluno."), inviteCode);
-      }
-    });
-    document.getElementById("copyInviteCodeButton")?.addEventListener("click", async () => {
-      const personal = currentAccount();
-      let inviteCode = document.getElementById("inviteCodeDisplay")?.value.trim() || "";
-      if (!inviteCode) {
+      await runPendingOperation(`invite-create:${personal.id}`, event.currentTarget, async () => {
+        let inviteCode = "";
         try {
           inviteCode = await showInviteCodeForPersonal(personal);
         } catch (error) {
@@ -14457,14 +14995,37 @@ ${photoSections}
           authMessage(`${t("Não consegui criar o convite agora.")} ${error?.message || ""}`.trim());
           return;
         }
-      }
-      if (!inviteCode) return;
-      try {
-        if (!await copyText(inviteCode)) throw new Error("clipboard unavailable");
-        authMessage("Código de convite copiado. Envie para o aluno.");
-      } catch {
-        window.prompt(t("Copie este código e envie para o aluno."), inviteCode);
-      }
+        try {
+          if (!await copyText(inviteCode)) throw new Error("clipboard unavailable");
+          authMessage("Código de convite copiado. Envie para o aluno.");
+        } catch {
+          displayInviteCode(inviteCode);
+          authMessage("Código criado. Selecione e copie o campo abaixo.");
+        }
+      }, { loadingText: "Criando convite..." });
+    });
+    document.getElementById("copyInviteCodeButton")?.addEventListener("click", async event => {
+      const personal = currentAccount();
+      await runPendingOperation(`invite-copy:${personal?.id || "personal"}`, event.currentTarget, async () => {
+        let inviteCode = document.getElementById("inviteCodeDisplay")?.value.trim() || "";
+        if (!inviteCode) {
+          try {
+            inviteCode = await showInviteCodeForPersonal(personal);
+          } catch (error) {
+            console.warn("Monolith invite creation failed", error);
+            authMessage(`${t("Não consegui criar o convite agora.")} ${error?.message || ""}`.trim());
+            return;
+          }
+        }
+        if (!inviteCode) return;
+        try {
+          if (!await copyText(inviteCode)) throw new Error("clipboard unavailable");
+          authMessage("Código de convite copiado. Envie para o aluno.");
+        } catch {
+          displayInviteCode(inviteCode);
+          authMessage("Selecione e copie o código exibido.");
+        }
+      }, { loadingText: "Copiando..." });
     });
     updateWeightUnitUI();
     applyLanguage(currentLanguage);
@@ -14922,7 +15483,7 @@ ${photoSections}
       nameInput.value = "";
       showToast("Fator adicionado. Pontuação recalculada.");
     });
-    document.getElementById("saveCheckin").addEventListener("click", async () => {
+    document.getElementById("saveCheckin").addEventListener("click", async event => {
       const dailyWeightInput = document.getElementById("dailyWeight");
       if (!validateNumericField(dailyWeightInput, { sanitize: true })) {
         showToast("Corrija os campos numéricos antes de salvar.");
@@ -14938,13 +15499,21 @@ ${photoSections}
         showToast("Escolha um aluno para salvar o check-in.");
         return;
       }
-      if (!window.confirm(localizedMessage("Confirmar check-in de {name} · {date}?", {
-        name: accountNameForTarget(entry.studentId),
-        date: localDateLabel(entry.date)
-      }))) return;
-      const synced = await upsertTodayCheckin(entry);
-      document.getElementById("dailyWeight").value = "";
-      showToast(`${t("Check-in salvo")}: ${entry.completed}/${entry.total} ${t("itens concluídos.")} ${synced ? t("Supabase sincronizado.") : t("Salvo localmente.")}`);
+      const studentName = accountNameForTarget(entry.studentId);
+      if (!await confirmAction({
+        title: "Confirmar check-in",
+        message: "Revise o aluno e a data antes de salvar.",
+        contextLabel: "Destino",
+        contextValue: `${studentName} · ${localDateLabel(entry.date)}`,
+        confirmLabel: "Salvar check-in",
+        danger: false
+      })) return;
+      await runPendingOperation(`checkin-save:${entry.studentId}:${entry.date}`, event.currentTarget, async clientRequestId => {
+        entry.clientRequestId = clientRequestId;
+        const synced = await upsertTodayCheckin(entry);
+        document.getElementById("dailyWeight").value = "";
+        showToast(`${t("Check-in salvo")}: ${entry.completed}/${entry.total} ${t("itens concluídos.")} ${synced ? t("Supabase sincronizado.") : t("Salvo localmente.")}`);
+      }, { loadingText: "Salvando check-in..." });
     });
     document.getElementById("anamnesisStudent")?.addEventListener("change", async event => {
       const studentId = event.target.value;
@@ -15012,14 +15581,22 @@ ${photoSections}
         showToast("Destino das medidas inválido.");
         return;
       }
-      if (!window.confirm(localizedMessage("Confirmar medidas de {name} · {date}?", {
-        name: accountNameForTarget(entry.studentId),
-        date: localDateLabel(entry.date)
-      }))) return;
-      const synced = await upsertBodyMeasure(entry);
-      clearBodyMeasureForm();
-      setDirtyBaseline("measures");
-      showToast(synced ? "Medidas corporais salvas no Supabase." : "Medidas corporais salvas.");
+      const studentName = accountNameForTarget(entry.studentId);
+      if (!await confirmAction({
+        title: "Confirmar medidas",
+        message: "Revise o aluno e a data antes de salvar.",
+        contextLabel: "Destino",
+        contextValue: `${studentName} · ${localDateLabel(entry.date)}`,
+        confirmLabel: "Salvar medidas",
+        danger: false
+      })) return;
+      await runPendingOperation(`measure-save:${entry.studentId}:${entry.date}`, event.submitter || "#saveBodyMeasuresButton", async clientRequestId => {
+        entry.clientRequestId = clientRequestId;
+        const synced = await upsertBodyMeasure(entry);
+        clearBodyMeasureForm();
+        setDirtyBaseline("measures");
+        showToast(synced ? "Medidas corporais salvas no Supabase." : "Medidas corporais salvas.");
+      }, { loadingText: "Salvando medidas..." });
     });
     document.getElementById("clearHistoryButton").addEventListener("click", () => {
       localStorage.removeItem("monolith.completedWorkouts");
@@ -15516,6 +16093,7 @@ ${photoSections}
         const requestedAssignment = workout.assignedStudentId || "";
         const safeAssignment = user?.role === "personal" && requestedAssignment && isLinkedStudentForPersonal(requestedAssignment, user) ? requestedAssignment : "";
         const localWorkout = normalizeWorkoutV2({ ...workout, ownerId: workout.ownerId || user?.id || "", assignedStudentId: safeAssignment });
+        localWorkout.clientRequestId = workout.clientRequestId || createClientRequestId("workout");
         const shouldSyncRemote = Boolean(monolithSupabase && isRealSupabaseAccount(user));
         let remoteError = null;
         if (shouldSyncRemote) {
@@ -15583,7 +16161,7 @@ ${photoSections}
         return csvStudentAssignmentV2(raw, "", linkedStudents);
       }
 
-      async function duplicateWorkoutForPersonalV2(id) {
+      async function duplicateWorkoutForPersonalV2(id, sourceButton = null) {
         const user = currentAccount();
         if (user?.role !== "personal") return;
         const workout = workoutsV2.find(item => item.id === id);
@@ -15601,15 +16179,26 @@ ${photoSections}
         }
         const targetStudent = assignedStudentId ? loadAccounts().find(account => account.id === assignedStudentId) : null;
         const draft = duplicateWorkoutDraftV2(workout, assignedStudentId);
-        const saved = await saveCustomWorkoutV2(draft);
-        if (saved.assignedStudentId) setSelectedStudentForPersonal(saved.assignedStudentId);
-        await refreshWorkoutsV2();
         const targetName = targetStudent?.name || textV2("meu próprio treino");
-        if (saved.syncStatus === "failed" && saved.assignedStudentId) {
-          toastV2(textV2("Treino duplicado localmente, mas não chegou ao aluno."));
-        } else {
-          toastV2(`${textV2("Treino duplicado para")} ${targetName}.`);
-        }
+        if (!await confirmAction({
+          title: "Duplicar treino?",
+          message: "Uma nova cópia será criada para o destino selecionado.",
+          contextLabel: "Destino",
+          contextValue: `${workout.name} · ${targetName}`,
+          confirmLabel: "Duplicar",
+          danger: false
+        })) return;
+        await runPendingOperation(`workout-duplicate:${id}:${assignedStudentId || "self"}`, sourceButton, async clientRequestId => {
+          draft.clientRequestId = clientRequestId;
+          const saved = await saveCustomWorkoutV2(draft);
+          if (saved.assignedStudentId) setSelectedStudentForPersonal(saved.assignedStudentId);
+          await refreshWorkoutsV2();
+          if (saved.syncStatus === "failed" && saved.assignedStudentId) {
+            toastV2(textV2("Treino duplicado localmente, mas não chegou ao aluno."));
+          } else {
+            toastV2(`${textV2("Treino duplicado para")} ${targetName}.`);
+          }
+        }, { loadingText: "Duplicando treino..." });
       }
 
       function saveWorkoutsV2(workouts) {
@@ -15948,45 +16537,48 @@ ${photoSections}
 
       async function importWorkoutCsvFileV2(file) {
         if (!file) return;
-        try {
-          setWorkoutCsvStatusV2("Preparando prévia do CSV...");
-          const user = currentAccount();
-          const target = selectedWorkoutImportTargetV2();
-          const content = await file.text();
-          const linkedStudents = user?.role === "personal" ? await ensureLinkedStudentsForPersonal(user.id) : [];
-          const assignedStudentId = user?.role === "personal" && target !== selfWorkoutTarget ? target : target === selfWorkoutTarget ? "" : undefined;
-          const previewRows = previewWorkoutCsvV2(content, assignedStudentId, linkedStudents);
-          renderCsvPreview("workoutCsvPreview", previewRows);
-          const blocked = blockedCsvRows(previewRows);
-          if (blocked.length) {
-            setWorkoutCsvStatusV2(quantityLabel(blocked.length, "linha precisa de correção antes de importar.", "linhas precisam de correção antes de importar."), true);
-            return;
+        const importLabel = document.querySelector('label[for="workoutCsvInput"]');
+        return runPendingOperation("workout-csv-import", importLabel, async () => {
+          try {
+            setWorkoutCsvStatusV2("Preparando prévia do CSV...");
+            const user = currentAccount();
+            const target = selectedWorkoutImportTargetV2();
+            const content = await file.text();
+            const linkedStudents = user?.role === "personal" ? await ensureLinkedStudentsForPersonal(user.id) : [];
+            const assignedStudentId = user?.role === "personal" && target !== selfWorkoutTarget ? target : target === selfWorkoutTarget ? "" : undefined;
+            const previewRows = previewWorkoutCsvV2(content, assignedStudentId, linkedStudents);
+            renderCsvPreview("workoutCsvPreview", previewRows);
+            const blocked = blockedCsvRows(previewRows);
+            if (blocked.length) {
+              setWorkoutCsvStatusV2(quantityLabel(blocked.length, "linha precisa de correção antes de importar.", "linhas precisam de correção antes de importar."), true);
+              return;
+            }
+            if (!await confirmCsvImport(textV2("treinos"), previewRows)) {
+              setWorkoutCsvStatusV2("Importação cancelada.");
+              return;
+            }
+            setWorkoutCsvStatusV2("Importando CSV...");
+            const importedWorkouts = parseWorkoutCsvV2(content, assignedStudentId, linkedStudents);
+            let failedAssignments = 0;
+            for (const workout of importedWorkouts) {
+              const saved = await saveCustomWorkoutV2(workout);
+              if (saved.assignedStudentId && user?.role === "personal") setSelectedStudentForPersonal(saved.assignedStudentId);
+              if (saved.syncStatus === "failed" && saved.assignedStudentId) failedAssignments += 1;
+            }
+            await refreshWorkoutsV2();
+            const message = `${importedWorkouts.length} ${textV2(importedWorkouts.length === 1 ? "treino importado." : "treinos importados.")}`;
+            const summary = csvPreviewSummary(previewRows);
+            setWorkoutCsvStatusV2(failedAssignments ? `${message} ${textV2("Alguns treinos não foram enviados ao aluno.")} ${summary}` : `${message} ${summary}`, true);
+            toastV2(failedAssignments ? textV2("CSV importado, mas revise os envios ao aluno.") : message);
+          } catch (error) {
+            console.warn("Monolith CSV workout import failed", error);
+            const message = error?.message || "Não consegui importar o CSV.";
+            setWorkoutCsvStatusV2(message);
+            toastV2(textV2(message));
+          } finally {
+            if (workoutCsvInput) workoutCsvInput.value = "";
           }
-          if (!await confirmCsvImport(textV2("treinos"), previewRows)) {
-            setWorkoutCsvStatusV2("Importação cancelada.");
-            return;
-          }
-          setWorkoutCsvStatusV2("Importando CSV...");
-          const importedWorkouts = parseWorkoutCsvV2(content, assignedStudentId, linkedStudents);
-          let failedAssignments = 0;
-          for (const workout of importedWorkouts) {
-            const saved = await saveCustomWorkoutV2(workout);
-            if (saved.assignedStudentId && user?.role === "personal") setSelectedStudentForPersonal(saved.assignedStudentId);
-            if (saved.syncStatus === "failed" && saved.assignedStudentId) failedAssignments += 1;
-          }
-          await refreshWorkoutsV2();
-          const message = `${importedWorkouts.length} ${textV2(importedWorkouts.length === 1 ? "treino importado." : "treinos importados.")}`;
-          const summary = csvPreviewSummary(previewRows);
-          setWorkoutCsvStatusV2(failedAssignments ? `${message} ${textV2("Alguns treinos não foram enviados ao aluno.")} ${summary}` : `${message} ${summary}`, true);
-          toastV2(failedAssignments ? textV2("CSV importado, mas revise os envios ao aluno.") : message);
-        } catch (error) {
-          console.warn("Monolith CSV workout import failed", error);
-          const message = error?.message || "Não consegui importar o CSV.";
-          setWorkoutCsvStatusV2(message);
-          toastV2(textV2(message));
-        } finally {
-          if (workoutCsvInput) workoutCsvInput.value = "";
-        }
+        }, { loadingText: "Importando..." });
       }
 
       async function refreshWorkoutsV2() {
@@ -16049,7 +16641,10 @@ ${photoSections}
         const user = currentAccount();
         if (!monolithSupabase || !isRealSupabaseAccount(user)) return;
         const { error } = await monolithSupabase.from("workout_templates").delete().eq("id", id);
-        if (error) console.warn("Monolith Supabase workout delete failed", error);
+        if (error) {
+          console.warn("Monolith Supabase workout delete failed", error);
+          throw error;
+        }
       }
 
       function loadCompletedWorkoutsV2() {
@@ -16087,25 +16682,31 @@ ${photoSections}
       async function deleteWorkoutV2(id) {
         const workout = workoutsV2.find(item => item.id === id);
         if (!workout) return;
-        if (!window.confirm(`${textV2("Excluir treino?")}\n${workout.name}`)) return;
-        const previousWorkouts = [...workoutsV2];
-        workoutsV2 = workoutsV2.filter(item => item.id !== id);
-        if (id.startsWith("library-")) rememberDeletedLibraryWorkoutV2(id);
-        else deleteCustomWorkoutV2(id);
-        renderWorkoutListV2();
-        if (activeWorkoutV2?.id === id) {
-          activeWorkoutV2 = workoutsForCurrentUserV2()[0] || null;
-          renderSessionV2(activeWorkoutV2);
-        }
-        if (window.confirm(`${workout.name} ${textV2("excluído.")}\n${textV2("Desfazer?")}`)) {
-          workoutsV2 = previousWorkouts;
-          saveWorkoutsV2(workoutsV2.filter(item => !item.id.startsWith("library-")));
-          renderWorkoutListV2();
-          toastV2(textV2("Exclusão desfeita."));
-        } else {
-          if (workout.source === "supabase") await deleteRemoteWorkoutV2(id);
-          toastV2(`${workout.name} ${textV2("excluído.")}`);
-        }
+        await confirmAction({
+          title: "Excluir treino?",
+          message: "O treino será removido do aluno e da sua lista.",
+          contextLabel: "Treino",
+          contextValue: workout.name,
+          confirmLabel: "Excluir",
+          danger: true,
+          operationKey: `workout-delete:${id}`,
+          loadingText: "Excluindo treino...",
+          pendingMessage: "Excluindo treino...",
+          successMessage: "Treino excluído.",
+          errorMessage: "Não consegui excluir o treino. Tente novamente.",
+          onConfirm: async () => {
+            if (workout.source === "supabase") await deleteRemoteWorkoutV2(id);
+            workoutsV2 = workoutsV2.filter(item => item.id !== id);
+            if (id.startsWith("library-")) rememberDeletedLibraryWorkoutV2(id);
+            else deleteCustomWorkoutV2(id);
+            renderWorkoutListV2();
+            if (activeWorkoutV2?.id === id) {
+              activeWorkoutV2 = workoutsForCurrentUserV2()[0] || null;
+              renderSessionV2(activeWorkoutV2);
+            }
+            toastV2(`${workout.name} ${textV2("excluído.")}`);
+          }
+        });
       }
 
       function normalizeExerciseNameV2(name = "") {
@@ -16512,12 +17113,15 @@ ${photoSections}
           toastV2(textV2("Corrija os campos numéricos antes de salvar."));
           return;
         }
-        activeWorkoutV2.exercises.forEach((_, index) => completeExerciseV2(index));
-        const session = readCompletedSessionV2();
-        const synced = await saveCompletedWorkoutV2(session);
-        document.getElementById("sessionMeta").textContent = `${textV2("Treino salvo hoje")}: ${session.completedSets}/${session.totalSets} ${textV2("séries")}`;
-        toastV2(textV2(synced ? "Treino do dia salvo no Supabase." : "Treino do dia salvo no histórico local."));
-        showScreen("stats");
+        await runPendingOperation(`workout-finish:${activeWorkoutV2.id}`, event.currentTarget, async clientRequestId => {
+          activeWorkoutV2.exercises.forEach((_, index) => completeExerciseV2(index));
+          const session = readCompletedSessionV2();
+          session.clientRequestId = clientRequestId;
+          const synced = await saveCompletedWorkoutV2(session);
+          document.getElementById("sessionMeta").textContent = `${textV2("Treino salvo hoje")}: ${session.completedSets}/${session.totalSets} ${textV2("séries")}`;
+          toastV2(textV2(synced ? "Treino do dia salvo no Supabase." : "Treino do dia salvo no histórico local."));
+          showScreen("stats");
+        }, { loadingText: "Salvando treino..." });
       }
 
       function finishCurrentExerciseV2(event) {
@@ -16546,29 +17150,39 @@ ${photoSections}
           return;
         }
         const targetName = target === selfWorkoutTarget ? user?.name || "" : accountNameForTarget(target);
-        if (!window.confirm(localizedMessage("Confirmar treino para {name}?", { name: targetName }))) return;
+        if (!await confirmAction({
+          title: "Confirmar treino",
+          message: "Revise o destino antes de criar o treino.",
+          contextLabel: "Destino",
+          contextValue: targetName,
+          confirmLabel: "Criar treino",
+          danger: false
+        })) return;
         const draftWorkout = readWorkoutV2();
-        const workout = await saveCustomWorkoutV2(draftWorkout);
-        if (workout.assignedStudentId && currentAccount()?.role === "personal") {
-          setSelectedStudentForPersonal(workout.assignedStudentId);
-        }
-        await refreshWorkoutsV2();
-        setDirtyBaseline("workout");
-        document.getElementById("workoutModal").classList.remove("active");
-        formV2.reset();
-        resetBuilderV2();
-        const trainerAssignment = currentAccount()?.role === "personal" && workout.assignedStudentId;
-        if (workout.syncStatus === "failed" && trainerAssignment) {
-          toastV2(textV2("Treino ficou só neste aparelho. Não chegou ao aluno."));
-        } else if (workout.syncStatus === "failed") {
-          toastV2(textV2("Treino salvo localmente. Não consegui sincronizar agora."));
-        } else if (workout.syncStatus === "synced" && trainerAssignment) {
-          toastV2(textV2("Treino enviado para o aluno."));
-        } else if (workout.syncStatus === "synced") {
-          toastV2(textV2("Treino salvo no Supabase."));
-        } else {
-          toastV2(textV2("Treino criado com exercícios, séries, peso e técnicas."));
-        }
+        await runPendingOperation(`workout-create:${target}`, event.submitter || "#saveWorkoutButton", async clientRequestId => {
+          draftWorkout.clientRequestId = clientRequestId;
+          const workout = await saveCustomWorkoutV2(draftWorkout);
+          if (workout.assignedStudentId && currentAccount()?.role === "personal") {
+            setSelectedStudentForPersonal(workout.assignedStudentId);
+          }
+          await refreshWorkoutsV2();
+          setDirtyBaseline("workout");
+          document.getElementById("workoutModal").classList.remove("active");
+          formV2.reset();
+          resetBuilderV2();
+          const trainerAssignment = currentAccount()?.role === "personal" && workout.assignedStudentId;
+          if (workout.syncStatus === "failed" && trainerAssignment) {
+            toastV2(textV2("Treino ficou só neste aparelho. Não chegou ao aluno."));
+          } else if (workout.syncStatus === "failed") {
+            toastV2(textV2("Treino salvo localmente. Não consegui sincronizar agora."));
+          } else if (workout.syncStatus === "synced" && trainerAssignment) {
+            toastV2(textV2("Treino enviado para o aluno."));
+          } else if (workout.syncStatus === "synced") {
+            toastV2(textV2("Treino salvo no Supabase."));
+          } else {
+            toastV2(textV2("Treino criado com exercícios, séries, peso e técnicas."));
+          }
+        }, { loadingText: "Criando treino..." });
       }, true);
 
       downloadWorkoutCsvTemplateButton?.addEventListener("click", downloadWorkoutCsvTemplateV2);
@@ -16624,7 +17238,7 @@ ${photoSections}
         if (duplicateWorkout) {
           event.preventDefault();
           event.stopPropagation();
-          await duplicateWorkoutForPersonalV2(duplicateWorkout.dataset.workoutId);
+          await duplicateWorkoutForPersonalV2(duplicateWorkout.dataset.workoutId, duplicateWorkout);
         }
 
         const addSet = event.target.closest(".add-set-v2");
@@ -16659,7 +17273,14 @@ ${photoSections}
           const editor = removeSet.closest(".exercise-editor");
           const row = removeSet.closest(".set-row");
           const hasData = editorSetHasUserData(row);
-          if (hasData && !window.confirm(textV2("Remover esta série?"))) return;
+          if (hasData && !await confirmAction({
+            title: "Remover esta série?",
+            message: "Somente a série selecionada será removida. As demais serão preservadas.",
+            contextLabel: "Série",
+            contextValue: row.querySelector(".set-index")?.textContent?.trim() || textV2("Série"),
+            confirmLabel: "Remover",
+            danger: true
+          })) return;
           const nextRow = row.nextElementSibling;
           const rows = editor.querySelector(".sets-editor");
           row.remove();
@@ -16677,13 +17298,21 @@ ${photoSections}
           const editor = removeExercise.closest(".exercise-editor");
           const exerciseName = editor.querySelector(".exercise-name")?.value.trim() || textV2("exercício");
           const hasData = [...editor.querySelectorAll("input, select")].some(input => String(input.value || "").trim());
-          if (hasData && !window.confirm(`${textV2("Excluir exercício?")}\n${exerciseName}`)) return;
+          if (hasData && !await confirmAction({
+            title: "Excluir exercício?",
+            message: "O exercício e suas séries serão removidos deste treino.",
+            contextLabel: "Exercício",
+            contextValue: exerciseName,
+            confirmLabel: "Excluir",
+            danger: true
+          })) return;
           const previousHTML = editor.outerHTML;
           editor.remove();
           markDirty("workout");
-          if (hasData && window.confirm(`${textV2("Exercício removido.")}\n${textV2("Desfazer?")}`)) {
+          if (hasData) showUndoToast("Exercício removido.", () => {
             builder.insertAdjacentHTML("beforeend", previousHTML);
-          }
+            markDirty("workout");
+          });
         }
 
         const addSessionSet = event.target.closest(".add-session-set-v2");
@@ -16705,7 +17334,14 @@ ${photoSections}
           const exercise = activeWorkoutV2.exercises[exerciseIndex];
           if (!exercise?.sets?.[setIndex]) return;
           const removedSet = { ...exercise.sets[setIndex] };
-          if (sessionSetHasUserData(removedSet) && !window.confirm(textV2("Remover esta série?"))) return;
+          if (sessionSetHasUserData(removedSet) && !await confirmAction({
+            title: "Remover esta série?",
+            message: "Somente a série selecionada será removida. As demais serão preservadas.",
+            contextLabel: "Série",
+            contextValue: `${setIndex + 1} · ${exercise.name}`,
+            confirmLabel: "Remover",
+            danger: true
+          })) return;
           exercise.sets.splice(setIndex, 1);
           renderSessionV2(activeWorkoutV2);
           showUndoToast("Série removida.", () => {

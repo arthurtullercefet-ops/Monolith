@@ -1,4 +1,4 @@
-const CACHE_NAME = "monolith-v82-student-anamnesis";
+const CACHE_NAME = "monolith-v83-safe-save-modals";
 
 self.addEventListener("install", event => {
   self.skipWaiting();
