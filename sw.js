@@ -1,4 +1,4 @@
-const CACHE_NAME = "monolith-v83-safe-save-modals";
+const CACHE_NAME = "monolith-v87-language-voice";
 
 self.addEventListener("install", event => {
   self.skipWaiting();

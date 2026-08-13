@@ -44,7 +44,29 @@ Official docs:
    This adds the student health questionnaire. Students own their answers; linked trainers have read-only access.
 15. Paste and run `monolith-production-step-12-anamnesis-workflow.sql`.
    This adds private drafts, explicit consent timestamps, important-answer updates and linked-trainer read receipts.
-16. Confirm these tables exist:
+16. Paste and run `monolith-production-step-13-idempotency.sql`.
+   This prevents duplicate check-ins, measurements, workouts, diets, photos, anamneses and invite uses when a request is retried.
+17. Paste and run `monolith-production-step-14-validation-audit.sql`.
+   This adds server-side numeric validation, immutable authorship, correction reasons, scoped writes and a private audit trail without deleting legacy QA records.
+18. Paste and run `monolith-production-step-15-programs.sql`.
+   This adds trainer-authored 4, 8 and 12-week programs with a weekly workout/rest calendar.
+19. Paste and run `monolith-production-step-16-anamnesis-history.sql`.
+   This preserves immutable questionnaire versions and adds an auditable linked-trainer review action.
+20. Paste and run `monolith-production-step-17-measurement-history.sql`.
+   This adds reversible measurement archiving and allows a linked trainer to manage the selected student's physical records under RLS.
+21. Paste and run `monolith-production-step-18-pulse.sql`.
+   This stores private review receipts for Monolith Pulse alerts without duplicating student health data.
+22. Paste and run `monolith-production-step-19-feedback-timeline.sql`.
+   This adds contextual feedback without media and the private transformation timeline.
+23. Paste and run `monolith-production-step-20-onboarding-leads-achievements.sql`.
+   This adds configurable onboarding, the Instagram lead funnel and transparent student achievements.
+24. Paste and run `monolith-production-step-21-spaces.sql`.
+   This adds isolated Monolith Spaces, memberships and partner themes while keeping Monolith visible.
+25. Paste and run `monolith-production-step-22-voice.sql`.
+   This adds private, two-hour Monolith Voice sessions and idempotent command receipts. Raw audio is not stored.
+26. Paste and run `monolith-production-step-23-language-preferences.sql`.
+   This persists application language, Monolith Voice language, weight unit and voice preference in each user's protected profile.
+27. Confirm these tables exist:
    - `profiles`
    - `trainer_students`
    - `trainer_invites`
@@ -59,15 +81,38 @@ Official docs:
    - `progress_photos`
    - `student_anamneses`
    - `student_anamnesis_reads`
+   - `student_anamnesis_versions`
+   - `checkin_corrections`
+   - `data_change_audit`
+   - `workout_programs`
+   - `monolith_pulse_reviews`
+   - `contextual_feedback`
+   - `transformation_events`
+   - `onboarding_configs`
+   - `onboarding_progress`
+   - `trainer_leads`
+   - `trainer_lead_events`
+   - `student_achievements`
+   - `monolith_spaces`
+   - `space_memberships`
+   - `workout_voice_sessions`
+   - `workout_voice_commands`
    - `app_plans`
    - `subscriptions`
    - `influencer_codes`
    - `referral_attributions`
-17. Confirm these functions exist:
+28. Confirm these functions exist:
    - `create_trainer_invite`
+   - `create_trainer_invite_idempotent`
    - `accept_trainer_invite`
    - `accept_influencer_code`
-18. Confirm Storage has a private bucket called `progress-photos`.
+   - `correct_daily_checkin`
+   - `is_space_member`
+29. Confirm Storage has a private bucket called `progress-photos`.
+
+All step files are additive and idempotent. Run them in numerical order. Do not reset the database or delete QA records before running a step.
+
+For an existing Monolith project that already completed step 12, run only steps 13 through 23 in order. Re-running any of those files is safe; they contain no bulk deletion, table reset or QA cleanup.
 
 ## Step 2: connect the frontend
 
@@ -77,7 +122,7 @@ For real Supabase users, large datasets are not kept permanently in `localStorag
 
 | Current local key | Database table |
 | --- | --- |
-| `monolith.accounts` | `profiles` plus Supabase Auth |
+| `monolith.accounts` and language/voice preferences | `profiles` plus Supabase Auth |
 | `monolith.factors` | `checkin_factors` |
 | `monolith.studentFactors` | memory cache of `checkin_factors` per student |
 | `monolith.checkins` | `daily_checkins` |
@@ -88,6 +133,16 @@ For real Supabase users, large datasets are not kept permanently in `localStorag
 | `monolith.foodLogs` | `food_logs` |
 | `monolith.progressPhotos` | `progress_photos` plus Storage |
 | `monolith.anamneses` | `student_anamneses` |
+| `monolith.pulseReviews` | `monolith_pulse_reviews` |
+| active Monolith Voice state | `workout_voice_sessions` |
+| Monolith Voice command receipts | `workout_voice_commands` |
+| `monolith.contextualFeedback` | `contextual_feedback` |
+| `monolith.transformationEvents` | `transformation_events` |
+| `monolith.onboardingConfigs` | `onboarding_configs` |
+| `monolith.onboardingProgress` | `onboarding_progress` |
+| `monolith.trainerLeads` | `trainer_leads` plus `trainer_lead_events` |
+| `monolith.achievements` | `student_achievements` |
+| `monolith.spaces` | `monolith_spaces` plus `space_memberships` |
 
 ## Step 3: production rules
 
@@ -98,3 +153,26 @@ Before public launch:
 - Keep Row Level Security enabled on every user table.
 - Use the anon public key in the frontend, never the Supabase service role key.
 - Test one student and one trainer account before adding payments.
+
+## Monolith Voice Beta on the web
+
+- Voice is available only to a student inside an active workout and requires HTTPS (or localhost) for microphone permission.
+- Continuous `Hey Monolith` listening is enabled only when the browser reports on-device speech recognition support.
+- On browsers without confirmed on-device recognition, the two-hour Voice session remains ready but the microphone opens only for the 10-second `Talk now` action, then closes again.
+- The workout page must remain open. Moving to another page or sending the browser to the background pauses Voice.
+- Raw audio is never stored by Monolith. The database receives only normalized command payloads and idempotent command receipts; transcript excerpts remain null by default.
+- The web beta uses a compatible voice installed on the device for spoken replies. A proprietary Monolith voice and reliable locked-screen operation require a later native-app phase.
+
+## Release verification
+
+After steps 13 through 23 are installed, test with fictitious accounts:
+
+- A student cannot read another student's workouts, diet, measures, photos, anamnesis, feedback or timeline.
+- A trainer can read only active linked students and cannot assign data without an explicit destination.
+- Two quick clicks create one check-in, workout, diet, measurement, feedback or lead.
+- A student can retry an Instagram lead request without creating a second lead.
+- A trainer can update a lead status and convert it into one idempotent invite.
+- A Space owner and its members can read only their own Space and memberships.
+- Monolith Voice is hidden for trainers, stops after two hours or workout completion, rejects doubtful values and does not duplicate a repeated command.
+- A browser without on-device recognition releases the microphone between push-to-talk commands.
+- Demo and QA records remain intact and suspicious legacy values remain flagged rather than deleted.

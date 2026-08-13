@@ -1,5 +1,7 @@
 -- Monolith database bootstrap for Supabase
 -- Run this in Supabase SQL Editor after creating the project.
+-- Existing projects must keep their data and run the numbered production steps
+-- in database/README.md instead of rerunning or resetting this bootstrap.
 
 create extension if not exists "pgcrypto";
 
@@ -18,6 +20,8 @@ create table public.profiles (
   role public.monolith_role not null default 'student',
   weight_unit text not null default 'kg' check (weight_unit in ('kg', 'lb')),
   language text not null default 'pt' check (language in ('pt', 'en', 'es')),
+  voice_language text not null default 'auto' check (voice_language in ('auto', 'pt-BR', 'en-US', 'es-419')),
+  voice_gender text not null default 'neutral' check (voice_gender in ('neutral', 'feminine', 'masculine')),
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now()
 );
@@ -40,6 +44,7 @@ create table public.daily_checkins (
   completed integer not null default 0,
   total integer not null default 0,
   items jsonb not null default '[]'::jsonb,
+  client_request_id text unique,
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now(),
   unique (student_id, checkin_date)
@@ -57,6 +62,7 @@ create table public.body_measurements (
   leg_cm numeric(6, 2),
   hip_cm numeric(6, 2),
   notes text,
+  client_request_id text unique,
   created_at timestamptz not null default now()
 );
 
@@ -69,6 +75,7 @@ create table public.workout_templates (
   tag text,
   exercises jsonb not null default '[]'::jsonb,
   is_library boolean not null default false,
+  client_request_id text unique,
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now()
 );
@@ -84,6 +91,7 @@ create table public.completed_workouts (
   completed_sets integer not null default 0,
   total_sets integer not null default 0,
   exercises jsonb not null default '[]'::jsonb,
+  client_request_id text unique,
   created_at timestamptz not null default now()
 );
 
@@ -97,6 +105,7 @@ create table public.diet_plans (
   carbs text,
   fat text,
   meals jsonb not null default '[]'::jsonb,
+  client_request_id text unique,
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now(),
   unique (student_id, month_key)
@@ -108,6 +117,7 @@ create table public.food_logs (
   log_date date not null,
   note text,
   meals jsonb not null default '[]'::jsonb,
+  client_request_id text unique,
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now(),
   unique (student_id, log_date)
@@ -119,6 +129,7 @@ create table public.progress_photos (
   photo_month text not null,
   angle text not null check (angle in ('front', 'side', 'back')),
   storage_path text not null,
+  client_request_id text unique,
   created_at timestamptz not null default now(),
   unique (student_id, photo_month, angle)
 );
@@ -135,6 +146,7 @@ create table public.student_anamneses (
   draft_saved_at timestamptz,
   consent_accepted_at timestamptz,
   important_updated_at timestamptz,
+  client_request_id text unique,
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now()
 );
