@@ -1,4 +1,4 @@
-const CACHE_NAME = "monolith-v90-programs-voice-role-scope";
+const CACHE_NAME = "monolith-v91-timeline-onboarding-hydration";
 
 self.addEventListener("install", event => {
   self.skipWaiting();

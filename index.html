@@ -14,8 +14,8 @@
   <link rel="manifest" href="manifest.webmanifest" />
   <link rel="icon" href="monolith-icon.svg" />
   <script>
-window.MONOLITH_BUILD = "monolith-v90-programs-voice-role-scope";
-window.MONOLITH_VERSION_LABEL = "Monolith v90 · 13/08/2026";
+window.MONOLITH_BUILD = "monolith-v91-timeline-onboarding-hydration";
+window.MONOLITH_VERSION_LABEL = "Monolith v91 · 13/08/2026";
     (function clearOldAppCaches() {
       if ("serviceWorker" in navigator) {
         navigator.serviceWorker.getRegistrations?.()
@@ -4509,7 +4509,7 @@ window.MONOLITH_VERSION_LABEL = "Monolith v90 · 13/08/2026";
           <button class="action" id="loginButton" type="submit">Entrar</button>
           <div class="auth-tools">
             <button class="auth-secondary" id="clearDeviceSessionButton" type="button">Limpar sessão/cache deste aparelho</button>
-            <div class="build-version" id="buildVersionLabel">Versão do app: Monolith v87 · 13/08/2026</div>
+            <div class="build-version" id="buildVersionLabel">Versão do app: Monolith v91 · 13/08/2026</div>
           </div>
         </form>
       </div>
@@ -5791,7 +5791,7 @@ window.MONOLITH_VERSION_LABEL = "Monolith v90 · 13/08/2026";
               <div class="field full"><label for="feedbackComment">Comentário</label><textarea id="feedbackComment" maxlength="1000" rows="4" placeholder="Conte ao personal o que precisa ser ajustado" data-i18n-placeholder="Conte ao personal o que precisa ser ajustado"></textarea></div>
             </div>
             <div class="report-line danger" id="feedbackDiscomfortNotice" hidden>Se houver dor ou desconforto importante, interrompa o exercício e procure avaliação profissional. O Monolith não realiza diagnóstico.</div>
-            <button class="action" id="saveFeedbackButton" type="submit">Enviar feedback</button>
+            <button class="action" id="saveFeedbackButton" type="submit" disabled>Enviar feedback</button>
           </form>
         </div>
         <div class="panel">
@@ -5801,6 +5801,7 @@ window.MONOLITH_VERSION_LABEL = "Monolith v90 · 13/08/2026";
             <button class="ghost" type="button" id="shareSummaryButton">Criar cartão</button>
           </div>
         </div>
+        <div id="timelineStatus" aria-live="polite" hidden></div>
         <div class="panel achievement-list" id="achievementList"></div>
         <div class="panel timeline-list" id="timelineList" aria-live="polite"></div>
         <button class="ghost" id="loadMoreTimelineButton" type="button" hidden>Carregar mais</button>
@@ -5815,9 +5816,10 @@ window.MONOLITH_VERSION_LABEL = "Monolith v90 · 13/08/2026";
           <button class="action" type="submit" id="saveOnboardingConfigButton">Salvar configuração</button>
         </form>
         <div class="panel" id="onboardingStudentPanel">
-          <div class="section-title"><h3 id="onboardingWelcomeTitle">Bem-vindo ao Monolith</h3><span id="onboardingProgressLabelLarge">0 de 0 etapas concluídas</span></div>
+          <div class="section-title"><h3 id="onboardingWelcomeTitle">Bem-vindo ao Monolith</h3><span id="onboardingProgressLabelLarge">Carregando etapas</span></div>
           <p class="report-line" id="onboardingWelcomeText">Construa sua base passo a passo.</p>
-          <div class="onboarding-progress-large"><div class="anamnesis-progress-track" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" id="onboardingProgressTrack"><div class="anamnesis-progress-bar" id="onboardingProgressBar"></div></div></div>
+          <div id="onboardingStatus" aria-live="polite"></div>
+          <div class="onboarding-progress-large"><div class="anamnesis-progress-track" role="progressbar" aria-labelledby="onboardingProgressLabelLarge" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" aria-valuetext="Carregando etapas" id="onboardingProgressTrack"><div class="anamnesis-progress-bar" id="onboardingProgressBar"></div></div></div>
           <div class="onboarding-step-list" id="onboardingStepList"></div>
         </div>
       </section>
@@ -6295,8 +6297,8 @@ window.MONOLITH_VERSION_LABEL = "Monolith v90 · 13/08/2026";
   <script>
     const MONOLITH_SUPABASE_URL = "https://jhxasnxuvmkhntbwepau.supabase.co";
     const MONOLITH_SUPABASE_KEY = "sb_publishable_lDtAXIOtkMwgwsAZyghBdg_gyLHGwpH";
-const MONOLITH_BUILD = window.MONOLITH_BUILD || "monolith-v90-programs-voice-role-scope";
-const MONOLITH_VERSION_LABEL = window.MONOLITH_VERSION_LABEL || "Monolith v90 · 13/08/2026";
+const MONOLITH_BUILD = window.MONOLITH_BUILD || "monolith-v91-timeline-onboarding-hydration";
+const MONOLITH_VERSION_LABEL = window.MONOLITH_VERSION_LABEL || "Monolith v91 · 13/08/2026";
     const monolithSupabase = window.supabase?.createClient?.(MONOLITH_SUPABASE_URL, MONOLITH_SUPABASE_KEY, {
       auth: {
         storage: window.sessionStorage,
@@ -9674,10 +9676,13 @@ const MONOLITH_VERSION_LABEL = window.MONOLITH_VERSION_LABEL || "Monolith v90 ·
         fat: row.fat || "",
         meals: row.meals || [],
         savedAt: row.updated_at || row.created_at,
+        updatedAt: row.updated_at || row.created_at,
         createdBy: row.created_by || "",
         updatedBy: row.updated_by || "",
         isSuspicious: row.is_suspicious === true,
-        suspiciousReason: row.suspicious_reason || ""
+        suspiciousReason: row.suspicious_reason || "",
+        source: "supabase",
+        syncStatus: "synced"
       };
     }
 
@@ -18840,6 +18845,11 @@ ${photoSections}
       "Confira a dieta quando houver prescrição.": "Review the diet when it is prescribed.",
       "Abrir": "Open",
       "{done} de {total} etapas concluídas": "{done} of {total} steps completed",
+      "Carregando etapas": "Loading steps",
+      "Não foi possível carregar as etapas.": "The steps could not be loaded.",
+      "Nenhuma etapa configurada para este acompanhamento.": "No steps are configured for this coaching plan.",
+      "Alguns dados do progresso não puderam ser atualizados.": "Some progress data could not be refreshed.",
+      "Não foi possível atualizar o progresso agora.": "The progress could not be updated right now.",
       "Organize interessados e continue a conversa pelo Instagram": "Organize prospects and continue the conversation on Instagram",
       "Buscar": "Search",
       "Nome, objetivo ou cidade": "Name, goal, or city",
@@ -18889,6 +18899,10 @@ ${photoSections}
       "Escolha uma dificuldade, opção ou escreva um comentário.": "Choose a difficulty, an option, or write a comment.",
       "Selecione um aluno para ver a linha do tempo.": "Select a student to view the timeline.",
       "A linha do tempo aparecerá após os primeiros registros.": "The timeline will appear after the first records.",
+      "Nenhum registro encontrado neste período.": "No records found in this period.",
+      "Carregando linha do tempo...": "Loading timeline...",
+      "Não foi possível carregar a linha do tempo. Tente novamente.": "The timeline could not be loaded. Try again.",
+      "Alguns registros não puderam ser atualizados. Exibindo os dados disponíveis.": "Some records could not be refreshed. Showing the available data.",
       "Resposta do personal": "Trainer response",
       "Responder": "Reply",
       "Score": "Score",
@@ -19005,6 +19019,11 @@ ${photoSections}
       "Confira a dieta quando houver prescrição.": "Revisa la dieta cuando haya una prescripción.",
       "Abrir": "Abrir",
       "{done} de {total} etapas concluídas": "{done} de {total} etapas completadas",
+      "Carregando etapas": "Cargando etapas",
+      "Não foi possível carregar as etapas.": "No se pudieron cargar las etapas.",
+      "Nenhuma etapa configurada para este acompanhamento.": "No hay etapas configuradas para este acompañamiento.",
+      "Alguns dados do progresso não puderam ser atualizados.": "Algunos datos del progreso no pudieron actualizarse.",
+      "Não foi possível atualizar o progresso agora.": "No se pudo actualizar el progreso en este momento.",
       "Organize interessados e continue a conversa pelo Instagram": "Organiza interesados y continúa la conversación por Instagram",
       "Buscar": "Buscar",
       "Nome, objetivo ou cidade": "Nombre, objetivo o ciudad",
@@ -19052,6 +19071,10 @@ ${photoSections}
       "Escolha uma dificuldade, opção ou escreva um comentário.": "Elige una dificultad, opción o escribe un comentario.",
       "Selecione um aluno para ver a linha do tempo.": "Selecciona un alumno para ver la línea de tiempo.",
       "A linha do tempo aparecerá após os primeiros registros.": "La línea de tiempo aparecerá después de los primeros registros.",
+      "Nenhum registro encontrado neste período.": "No se encontraron registros en este período.",
+      "Carregando linha do tempo...": "Cargando línea de tiempo...",
+      "Não foi possível carregar a linha do tempo. Tente novamente.": "No se pudo cargar la línea de tiempo. Inténtalo de nuevo.",
+      "Alguns registros não puderam ser atualizados. Exibindo os dados disponíveis.": "Algunos registros no pudieron actualizarse. Se muestran los datos disponibles.",
       "Resposta do personal": "Respuesta del entrenador",
       "Responder": "Responder",
       "Score": "Puntuación",
@@ -19296,15 +19319,15 @@ ${photoSections}
     }
 
     function loadContextualFeedback() { return readMemoryList("monolith.contextualFeedback"); }
-    function saveContextualFeedback(entries) { writeMemoryList("monolith.contextualFeedback", entries.slice(-1000)); }
+    function saveContextualFeedback(entries) { writeMemoryList("monolith.contextualFeedback", entries.slice(0, 1000)); }
     function loadTransformationEvents() { return readMemoryList("monolith.transformationEvents"); }
-    function saveTransformationEvents(entries) { writeMemoryList("monolith.transformationEvents", entries.slice(-2000)); }
+    function saveTransformationEvents(entries) { writeMemoryList("monolith.transformationEvents", entries.slice(0, 2000)); }
     function loadTrainerLeads() { return readMemoryList("monolith.trainerLeads"); }
     function saveTrainerLeads(entries) { writeMemoryList("monolith.trainerLeads", entries.slice(-1000)); }
     function loadLeadEvents() { return readMemoryList("monolith.leadEvents"); }
     function saveLeadEvents(entries) { writeMemoryList("monolith.leadEvents", entries.slice(-2000)); }
     function loadAchievements() { return readMemoryList("monolith.achievements"); }
-    function saveAchievements(entries) { writeMemoryList("monolith.achievements", entries.slice(-1000)); }
+    function saveAchievements(entries) { writeMemoryList("monolith.achievements", entries.slice(0, 1000)); }
 
     window.loadContextualFeedback = loadContextualFeedback;
     window.loadTrainerLeads = loadTrainerLeads;
@@ -19314,9 +19337,17 @@ ${photoSections}
       return user?.role === "personal" ? document.getElementById("timelineStudent")?.value || selectedStudentForPersonal()?.id || "" : user?.id || "";
     }
 
+    function replaceStudentEntries(entries, studentId, incoming, keyFn = item => item.id) {
+      return [
+        ...uniqueNewestEntries(incoming, keyFn),
+        ...entries.filter(item => item.studentId !== studentId)
+      ];
+    }
+
     async function hydrateEngagementData() {
       const user = currentAccount();
-      if (!monolithSupabase || !isRealSupabaseAccount(user)) return;
+      const errors = [];
+      if (!monolithSupabase || !isRealSupabaseAccount(user)) return { errors };
       const studentId = selectedTimelineStudentId();
       if (studentId) {
         const [feedbackResult, eventResult, achievementResult] = await Promise.all([
@@ -19324,18 +19355,97 @@ ${photoSections}
           monolithSupabase.from("transformation_events").select("*").eq("student_id", studentId).order("occurred_at", { ascending: false }).limit(500),
           monolithSupabase.from("student_achievements").select("*").eq("student_id", studentId).order("earned_at", { ascending: false }).limit(100)
         ]);
-        if (!feedbackResult.error) saveContextualFeedback((feedbackResult.data || []).map(row => ({ id: row.id, studentId: row.student_id, trainerId: row.trainer_id, contextType: row.context_type, contextId: row.context_id, contextLabel: row.context_label, difficulty: row.difficulty, comment: row.comment, flags: row.flags || [], status: row.status, trainerResponse: row.trainer_response, createdAt: row.created_at, updatedAt: row.updated_at, source: "supabase" })));
-        else safeRemoteLog("hydrate", "feedback", feedbackResult.error, { studentId });
-        if (!eventResult.error) saveTransformationEvents((eventResult.data || []).map(row => ({ id: row.id, studentId: row.student_id, trainerId: row.trainer_id, type: row.event_type, sourceId: row.source_id, title: row.title, details: row.details || {}, occurredAt: row.occurred_at, source: "supabase" })));
-        else safeRemoteLog("hydrate", "timeline", eventResult.error, { studentId });
-        if (!achievementResult.error) saveAchievements((achievementResult.data || []).map(row => ({ id: row.id, studentId: row.student_id, trainerId: row.trainer_id, key: row.achievement_key, earnedAt: row.earned_at, details: row.details || {}, source: "supabase" })));
-        else safeRemoteLog("hydrate", "achievements", achievementResult.error, { studentId });
+        if (!feedbackResult.error) {
+          const feedback = (feedbackResult.data || []).map(row => ({ id: row.id, studentId: row.student_id, trainerId: row.trainer_id, contextType: row.context_type, contextId: row.context_id, contextLabel: row.context_label, difficulty: row.difficulty, comment: row.comment, flags: row.flags || [], status: row.status, trainerResponse: row.trainer_response, clientRequestId: row.client_request_id, createdAt: row.created_at, updatedAt: row.updated_at, source: "supabase" }));
+          saveContextualFeedback(replaceStudentEntries(loadContextualFeedback(), studentId, feedback, item => item.clientRequestId || item.id));
+        } else {
+          errors.push(feedbackResult.error);
+          safeRemoteLog("hydrate", "feedback", feedbackResult.error, { studentId });
+        }
+        if (!eventResult.error) {
+          const events = (eventResult.data || []).map(row => ({ id: row.id, studentId: row.student_id, trainerId: row.trainer_id, type: row.event_type, sourceId: row.source_id, title: row.title, details: row.details || {}, occurredAt: row.occurred_at, clientRequestId: row.client_request_id, source: "supabase" }));
+          saveTransformationEvents(replaceStudentEntries(loadTransformationEvents(), studentId, events, item => item.clientRequestId || item.id));
+        } else {
+          errors.push(eventResult.error);
+          safeRemoteLog("hydrate", "timeline", eventResult.error, { studentId });
+        }
+        if (!achievementResult.error) {
+          const achievements = (achievementResult.data || []).map(row => ({ id: row.id, studentId: row.student_id, trainerId: row.trainer_id, key: row.achievement_key, earnedAt: row.earned_at, details: row.details || {}, source: "supabase" }));
+          saveAchievements(replaceStudentEntries(loadAchievements(), studentId, achievements, item => item.key || item.id));
+        } else {
+          errors.push(achievementResult.error);
+          safeRemoteLog("hydrate", "achievements", achievementResult.error, { studentId });
+        }
       }
       if (user.role === "personal") {
         const result = await monolithSupabase.from("trainer_leads").select("*").eq("trainer_id", user.id).order("created_at", { ascending: false }).limit(500);
         if (!result.error) saveTrainerLeads((result.data || []).map(remoteLeadFromRow));
         else safeRemoteLog("hydrate", "leads", result.error, { trainerId: user.id });
       }
+      return { errors };
+    }
+
+    const timelinePhotoSummaries = new Map();
+
+    async function loadRemoteTimelineDietPlans(studentId) {
+      const { data, error } = await monolithSupabase
+        .from("diet_plans")
+        .select("*")
+        .eq("student_id", studentId)
+        .order("month_key", { ascending: false })
+        .limit(240);
+      if (error) throw error;
+      (data || []).map(remoteDietPlanFromRow).forEach(plan => {
+        cacheDietPlan(plan);
+        const meta = dietPlanMetaForKey(plan.id);
+        if (!meta.status) updateDietPlanMeta(plan.id, { status: "published", archived: false });
+      });
+      return data || [];
+    }
+
+    async function loadRemoteTimelinePhotoSummaries(studentId) {
+      const { data, error } = await monolithSupabase
+        .from("progress_photos")
+        .select("id,photo_month,angle,created_at")
+        .eq("student_id", studentId)
+        .order("photo_month", { ascending: false })
+        .limit(500);
+      if (error) throw error;
+      const grouped = new Map();
+      (data || []).forEach(row => {
+        const current = grouped.get(row.photo_month) || { month: row.photo_month, count: 0, occurredAt: row.created_at || `${row.photo_month}-01T12:00:00` };
+        current.count += 1;
+        if (String(row.created_at || "") > String(current.occurredAt || "")) current.occurredAt = row.created_at;
+        grouped.set(row.photo_month, current);
+      });
+      timelinePhotoSummaries.set(studentId, [...grouped.values()]);
+      return data || [];
+    }
+
+    async function hydrateTimelineCoreData(studentId) {
+      const user = currentAccount();
+      if (!monolithSupabase || !studentId || !isRealSupabaseAccount(user)) return { errors: [], loaded: 0 };
+      const modules = [
+        ["timeline-checkins", () => loadRemoteCheckins(studentId)],
+        ["timeline-measures", () => loadRemoteBodyMeasures(studentId)],
+        ["timeline-workouts", () => loadRemoteCompletedWorkouts(studentId)],
+        ["timeline-diets", () => loadRemoteTimelineDietPlans(studentId)],
+        ["timeline-programs", () => loadRemoteWorkoutPrograms(studentId)],
+        ["timeline-photos", () => loadRemoteTimelinePhotoSummaries(studentId)]
+      ];
+      const results = await Promise.all(modules.map(async ([module, task]) => {
+        try {
+          await task();
+          return { ok: true };
+        } catch (error) {
+          safeRemoteLog("hydrate", module, error, { studentId });
+          return { ok: false, error };
+        }
+      }));
+      return {
+        errors: results.filter(result => !result.ok).map(result => result.error),
+        loaded: results.filter(result => result.ok).length
+      };
     }
 
     function remoteLeadFromRow(row) {
@@ -19372,6 +19482,19 @@ ${photoSections}
       saveContextualFeedback(uniqueNewestEntries([saved, ...loadContextualFeedback()], item => item.clientRequestId || item.id));
       await appendTransformationEvent({ studentId: user.id, trainerId: trainerId || null, type: "feedback", sourceId: saved.id, title: "Feedback enviado", details: { contextType: entry.contextType, contextLabel: entry.contextLabel, flags: entry.flags }, clientRequestId: createClientRequestId("timeline-feedback") });
       return saved;
+    }
+
+    function feedbackHasMeaningfulInput() {
+      return Boolean(
+        document.querySelector('input[name="feedbackDifficulty"]:checked')
+        || document.querySelector('input[name="feedbackFlag"]:checked')
+        || document.getElementById("feedbackComment")?.value.trim()
+      );
+    }
+
+    function updateFeedbackSubmitState() {
+      const button = document.getElementById("saveFeedbackButton");
+      if (button && !button.classList.contains("operation-pending")) button.disabled = !feedbackHasMeaningfulInput();
     }
 
     function engagementOperationError(module, operation, error, fallback) {
@@ -19417,13 +19540,24 @@ ${photoSections}
       const metrics = studentMetrics(studentId);
       if (metrics.streak >= 2 && metrics.lastCheckin?.date) events.push({ id: `streak:${studentId}:${metrics.lastCheckin.date}:${metrics.streak}`, studentId, type: "streak", title: "Sequência de check-ins", details: { days: metrics.streak }, occurredAt: `${metrics.lastCheckin.date}T12:01:00` });
       loadBodyMeasures(studentId).forEach(item => events.push({ id: `measure:${item.id || item.date}`, studentId, type: "measurement", title: "Medidas registradas", details: { weight: item.weight, bodyFat: item.bodyFat }, occurredAt: `${item.date}T12:00:00` }));
-      Object.values(loadDietPlans()).filter(item => item.studentId === studentId).forEach(item => events.push({ id: `diet:${item.id || `${studentId}:${item.month}`}`, studentId, type: "diet", title: "Dieta publicada", details: { month: item.month, calories: item.calories }, occurredAt: item.updatedAt || `${item.month}-01T12:00:00` }));
+      Object.values(loadDietPlans())
+        .filter(item => item.studentId === studentId)
+        .filter(item => {
+          const meta = dietPlanMetaForKey(item.id || dietPlanKey(studentId, item.month));
+          return meta.status !== "draft" && meta.status !== "archived" && meta.archived !== true;
+        })
+        .forEach(item => events.push({ id: `diet:${item.id || `${studentId}:${item.month}`}`, studentId, type: "diet", title: "Dieta publicada", details: { month: item.month, calories: item.calories }, occurredAt: item.updatedAt || item.savedAt || `${item.month}-01T12:00:00` }));
       loadWorkoutPrograms(studentId).forEach(item => events.push({ id: `program:${item.id}`, studentId, type: "program", title: item.name || "Programa criado", details: { durationWeeks: item.durationWeeks, status: item.status }, occurredAt: item.createdAt || `${item.startDate}T12:00:00` }));
-      const photos = loadProgressPhotos(studentId);
-      [["current", currentMonthKey()], ["last", lastMonthKey()]].forEach(([period, month]) => {
-        const count = Object.values(photos?.[period] || {}).filter(Boolean).length;
-        if (count) events.push({ id: `photo:${studentId}:${month}`, studentId, type: "photo", title: "Fotos de evolução atualizadas", details: { count, month }, occurredAt: `${month}-01T12:00:00` });
-      });
+      const remotePhotos = timelinePhotoSummaries.get(studentId);
+      if (remotePhotos) {
+        remotePhotos.forEach(item => events.push({ id: `photo:${studentId}:${item.month}`, studentId, type: "photo", title: "Fotos de evolução atualizadas", details: { count: item.count, month: item.month }, occurredAt: item.occurredAt || `${item.month}-01T12:00:00` }));
+      } else {
+        const photos = loadProgressPhotos(studentId);
+        [["current", currentMonthKey()], ["last", lastMonthKey()]].forEach(([period, month]) => {
+          const count = Object.values(photos?.[period] || {}).filter(Boolean).length;
+          if (count) events.push({ id: `photo:${studentId}:${month}`, studentId, type: "photo", title: "Fotos de evolução atualizadas", details: { count, month }, occurredAt: `${month}-01T12:00:00` });
+        });
+      }
       return events;
     }
 
@@ -19469,12 +19603,34 @@ ${photoSections}
       select.innerHTML = `<option value="">${escapeHTML(t("Selecionar aluno"))}</option>` + students.map(student => `<option value="${escapeHTML(student.id)}" ${student.id === selected ? "selected" : ""}>${escapeHTML(student.name)} · ${escapeHTML(student.email || "")}</option>`).join("");
     }
 
+    let timelineRefreshPromise = null;
+    let timelineRefreshStudentId = "";
+    let timelineLoadState = { studentId: "", status: "idle", errors: [] };
+
+    function timelineEventKey(item) {
+      if (item.type === "feedback" && item.sourceId) return `feedback:${item.sourceId}`;
+      if (item.type === "achievement" && item.sourceId) return `achievement:${item.sourceId}`;
+      return item.id || `${item.type}:${item.sourceId || item.occurredAt}`;
+    }
+
+    function renderTimelineLoadStatus(studentId, hasEvents) {
+      const target = document.getElementById("timelineStatus");
+      if (!target) return;
+      const state = timelineLoadState.studentId === studentId ? timelineLoadState : { status: "idle", errors: [] };
+      const showWarning = state.errors.length > 0 && (hasEvents || state.status === "partial");
+      target.hidden = !showWarning;
+      target.innerHTML = showWarning
+        ? remoteStateHTML("error", { errorLabel: "Alguns registros não puderam ser atualizados. Exibindo os dados disponíveis.", retryScreen: "timeline" })
+        : "";
+    }
+
     async function renderTimeline() {
       renderTimelineStudentSelect();
       const studentId = selectedTimelineStudentId();
       if (!studentId) {
         document.getElementById("timelineList").innerHTML = dashboardEmptyHTML("Selecione um aluno para ver a linha do tempo.");
         document.getElementById("achievementList").innerHTML = "";
+        document.getElementById("timelineStatus").hidden = true;
         return;
       }
       await evaluateAchievements(studentId);
@@ -19483,16 +19639,65 @@ ${photoSections}
       const cutoff = period === "all" ? null : new Date(Date.now() - Number(period) * 86400000);
       const stored = loadTransformationEvents().filter(item => item.studentId === studentId);
       const feedback = loadContextualFeedback().filter(item => item.studentId === studentId).map(item => ({ id: `feedback:${item.id}`, studentId, type: "feedback", title: item.contextLabel || "Feedback", details: { difficulty: item.difficulty, comment: item.comment, flags: item.flags, status: item.status, trainerResponse: item.trainerResponse }, occurredAt: item.createdAt }));
-      const events = uniqueNewestEntries([...stored, ...feedback, ...derivedTimelineEvents(studentId)], item => item.id || `${item.type}:${item.occurredAt}`)
+      const achievements = loadAchievements().filter(item => item.studentId === studentId);
+      const achievementEvents = achievements.map(item => ({ id: `achievement:${item.key}`, studentId, type: "achievement", sourceId: item.key, title: item.title || achievementDefinitions.find(([key]) => key === item.key)?.[1] || item.key, details: item.details || {}, occurredAt: item.earnedAt }));
+      const allEvents = uniqueNewestEntries([...feedback, ...achievementEvents, ...stored, ...derivedTimelineEvents(studentId)], timelineEventKey);
+      const events = allEvents
         .filter(item => !type || item.type === type)
-        .filter(item => !cutoff || new Date(item.occurredAt) >= cutoff)
+        .filter(item => !cutoff || (item.occurredAt && new Date(item.occurredAt) >= cutoff))
         .sort((a, b) => String(b.occurredAt).localeCompare(String(a.occurredAt)));
       const visible = events.slice(0, timelineVisibleLimit);
-      document.getElementById("timelineList").innerHTML = visible.map(item => `<article class="timeline-item"><span class="timeline-icon">${timelineIcon(item.type)}</span><div class="timeline-copy"><strong>${escapeHTML(t(item.title))}</strong><time>${escapeHTML(localDateTimeLabel(item.occurredAt))}</time><span>${escapeHTML(timelineDetailText(item))}</span>${item.type === "feedback" && item.details?.trainerResponse ? `<span><strong>${escapeHTML(t("Resposta do personal"))}:</strong> ${escapeHTML(item.details.trainerResponse)}</span>` : ""}</div>${currentAccount()?.role === "personal" && item.type === "feedback" ? `<div class="action-row"><button class="ghost respond-feedback" type="button" data-feedback-id="${escapeHTML(String(item.id).replace(/^feedback:/, ""))}">${escapeHTML(t("Responder"))}</button></div>` : ""}</article>`).join("") || dashboardEmptyHTML("A linha do tempo aparecerá após os primeiros registros.");
+      const loadFailedWithoutData = timelineLoadState.studentId === studentId && timelineLoadState.status === "error" && !allEvents.length;
+      document.getElementById("timelineList").innerHTML = loadFailedWithoutData
+        ? remoteStateHTML("error", { errorLabel: "Não foi possível carregar a linha do tempo. Tente novamente.", retryScreen: "timeline" })
+        : visible.map(item => `<article class="timeline-item"><span class="timeline-icon">${timelineIcon(item.type)}</span><div class="timeline-copy"><strong>${escapeHTML(t(item.title))}</strong><time>${escapeHTML(localDateTimeLabel(item.occurredAt))}</time><span>${escapeHTML(timelineDetailText(item))}</span>${item.type === "feedback" && item.details?.trainerResponse ? `<span><strong>${escapeHTML(t("Resposta do personal"))}:</strong> ${escapeHTML(item.details.trainerResponse)}</span>` : ""}</div>${currentAccount()?.role === "personal" && item.type === "feedback" ? `<div class="action-row"><button class="ghost respond-feedback" type="button" data-feedback-id="${escapeHTML(String(item.id).replace(/^feedback:/, ""))}">${escapeHTML(t("Responder"))}</button></div>` : ""}</article>`).join("") || dashboardEmptyHTML("Nenhum registro encontrado neste período.");
       const more = document.getElementById("loadMoreTimelineButton");
       more.hidden = events.length <= timelineVisibleLimit;
-      const achievements = loadAchievements().filter(item => item.studentId === studentId);
       document.getElementById("achievementList").innerHTML = achievements.slice(0, 6).map(item => `<article class="achievement-card"><span class="achievement-mark">M</span><div class="timeline-copy"><strong>${escapeHTML(t(item.title || achievementDefinitions.find(([key]) => key === item.key)?.[1] || item.key))}</strong><span>${escapeHTML(t(item.criteria || item.details?.criteria || "Critério concluído"))}</span></div><div class="action-row"><button class="ghost share-achievement" type="button" data-achievement-key="${escapeHTML(item.key)}">${escapeHTML(t("Compartilhar"))}</button></div></article>`).join("");
+      renderTimelineLoadStatus(studentId, allEvents.length > 0);
+    }
+
+    async function refreshTimelineData({ showLoading = true } = {}) {
+      const studentId = selectedTimelineStudentId();
+      if (timelineRefreshPromise) {
+        if (timelineRefreshStudentId === studentId) return timelineRefreshPromise;
+        await timelineRefreshPromise;
+        return refreshTimelineData({ showLoading });
+      }
+      if (!studentId) {
+        await renderTimeline();
+        return { status: "empty" };
+      }
+      timelineRefreshStudentId = studentId;
+      if (showLoading) {
+        const list = document.getElementById("timelineList");
+        const status = document.getElementById("timelineStatus");
+        if (list) list.innerHTML = remoteStateHTML("loading", { loadingLabel: "Carregando linha do tempo..." });
+        if (status) { status.hidden = true; status.innerHTML = ""; }
+      }
+      timelineRefreshPromise = (async () => {
+        const [engagement, core] = await Promise.all([
+          hydrateEngagementData(),
+          hydrateTimelineCoreData(studentId)
+        ]);
+        const errors = [...(engagement?.errors || []), ...(core?.errors || [])];
+        timelineLoadState = {
+          studentId,
+          status: errors.length ? (core?.loaded ? "partial" : "error") : "loaded",
+          errors
+        };
+        await renderTimeline();
+        return timelineLoadState;
+      })().catch(async error => {
+        safeRemoteLog("hydrate", "timeline", error, { studentId });
+        timelineLoadState = { studentId, status: "error", errors: [error] };
+        await renderTimeline();
+        return timelineLoadState;
+      }).finally(() => {
+        timelineRefreshPromise = null;
+        timelineRefreshStudentId = "";
+      });
+      return timelineRefreshPromise;
     }
 
     function timelineDetailText(item) {
@@ -19521,25 +19726,41 @@ ${photoSections}
 
     async function hydrateOnboarding() {
       const user = currentAccount();
-      if (!monolithSupabase || !isRealSupabaseAccount(user)) return;
+      if (!user) return { status: "empty", trainerId: "" };
+      if (!monolithSupabase || !isRealSupabaseAccount(user)) return { status: "local", trainerId: user.trainerId || "" };
       try {
         if (user.role === "personal") {
           const { data, error } = await monolithSupabase.from("onboarding_configs").select("*").eq("trainer_id", user.id).maybeSingle();
           if (error) throw error;
-          if (data) saveOnboardingConfigs({ ...loadOnboardingConfigs(), [user.id]: { trainerId: data.trainer_id, requiredSteps: data.required_steps, welcomeMessage: data.welcome_message } });
+          const configs = loadOnboardingConfigs();
+          if (data) configs[user.id] = { trainerId: data.trainer_id, requiredSteps: data.required_steps || [], welcomeMessage: data.welcome_message };
+          else delete configs[user.id];
+          saveOnboardingConfigs(configs);
+          return { status: "loaded", trainerId: user.id, configFound: Boolean(data) };
         } else {
           const trainerId = await ensureStudentTrainerId(user);
           if (trainerId) {
             const { data, error } = await monolithSupabase.from("onboarding_configs").select("*").eq("trainer_id", trainerId).maybeSingle();
             if (error) throw error;
-            if (data) saveOnboardingConfigs({ ...loadOnboardingConfigs(), [trainerId]: { trainerId: data.trainer_id, requiredSteps: data.required_steps, welcomeMessage: data.welcome_message } });
+            const configs = loadOnboardingConfigs();
+            if (data) configs[trainerId] = { trainerId: data.trainer_id, requiredSteps: data.required_steps || [], welcomeMessage: data.welcome_message };
+            else delete configs[trainerId];
+            saveOnboardingConfigs(configs);
           }
-          const { data, error } = await monolithSupabase.from("onboarding_progress").select("*").eq("student_id", user.id).maybeSingle();
+          let progressQuery = monolithSupabase.from("onboarding_progress").select("*").eq("student_id", user.id);
+          progressQuery = trainerId ? progressQuery.eq("trainer_id", trainerId) : progressQuery.is("trainer_id", null);
+          const { data, error } = await progressQuery.maybeSingle();
           if (error) throw error;
-          if (data) saveOnboardingProgress([{ id: data.id, studentId: data.student_id, trainerId: data.trainer_id, completedSteps: data.completed_steps, status: data.status, updatedAt: data.updated_at, source: "supabase" }]);
+          const scopedTrainerId = trainerId || null;
+          const retained = loadOnboardingProgress().filter(item => item.studentId !== user.id || (item.trainerId || null) !== scopedTrainerId);
+          if (data) retained.unshift({ id: data.id, studentId: data.student_id, trainerId: data.trainer_id, completedSteps: data.completed_steps || [], status: data.status, completedAt: data.completed_at, updatedAt: data.updated_at, source: "supabase" });
+          saveOnboardingProgress(retained);
+          const support = await hydrateRemoteReportData(user);
+          return { status: ["error", "offline-cache"].includes(support.status) ? "partial" : "loaded", trainerId, configFound: Boolean(loadOnboardingConfigs()[trainerId]), support };
         }
       } catch (error) {
         safeRemoteLog("hydrate", "onboarding", error, { userId: user.id });
+        throw error;
       }
     }
 
@@ -19550,7 +19771,7 @@ ${photoSections}
       if (currentAccount()?.id === studentId) completed.add("terms");
       if (anamnesis?.status === "completed" || anamnesis?.status === "reviewed") { completed.add("anamnesis"); completed.add("goals"); completed.add("schedule"); }
       if (loadBodyMeasures(studentId).length) completed.add("measurements");
-      if (Object.keys(loadProgressPhotos(studentId) || {}).length) completed.add("photos");
+      if (Object.values(loadProgressPhotos(studentId) || {}).some(group => Object.values(group || {}).some(Boolean))) completed.add("photos");
       if (metrics.checkins.length) completed.add("checkin");
       if (metrics.assignedWorkouts.length || metrics.allCompletedWorkouts.length) completed.add("workout");
       if (metrics.activeDietPlan) completed.add("diet");
@@ -19558,49 +19779,104 @@ ${photoSections}
     }
 
     async function renderOnboarding() {
-      await hydrateOnboarding();
       const user = currentAccount();
       const configForm = document.getElementById("onboardingConfigForm");
       const studentPanel = document.getElementById("onboardingStudentPanel");
+      const statusPanel = document.getElementById("onboardingStatus");
+      const progressLabel = document.getElementById("onboardingProgressLabelLarge");
+      const progressTrack = document.getElementById("onboardingProgressTrack");
+      const progressBar = document.getElementById("onboardingProgressBar");
+      const stepList = document.getElementById("onboardingStepList");
+      if (!user) return;
+      configForm.hidden = user.role !== "personal";
+      studentPanel.hidden = user.role === "personal";
+      if (user.role === "student") {
+        progressLabel.textContent = t("Carregando etapas");
+        progressTrack.hidden = false;
+        progressTrack.setAttribute("aria-valuenow", "0");
+        progressTrack.setAttribute("aria-valuetext", t("Carregando etapas"));
+        progressBar.style.width = "0%";
+        statusPanel.hidden = false;
+        statusPanel.innerHTML = remoteStateHTML("loading", { loadingLabel: "Carregando etapas" });
+        stepList.innerHTML = "";
+      }
+      let hydration;
+      try {
+        hydration = await hydrateOnboarding();
+      } catch (error) {
+        if (user.role === "personal") {
+          showToast("Não foi possível carregar as etapas.");
+          return;
+        }
+        progressLabel.textContent = t("Não foi possível carregar as etapas.");
+        progressTrack.hidden = true;
+        statusPanel.hidden = false;
+        statusPanel.innerHTML = remoteStateHTML("error", { errorLabel: "Não foi possível carregar as etapas.", retryScreen: "onboarding" });
+        stepList.innerHTML = "";
+        return;
+      }
       if (user?.role === "personal") {
-        configForm.hidden = false;
-        studentPanel.hidden = true;
         const config = loadOnboardingConfigs()[user.id] || defaultOnboardingConfig(user.id);
         document.getElementById("onboardingWelcomeMessage").value = config.welcomeMessage || "";
         document.getElementById("onboardingConfigSteps").innerHTML = onboardingStepDefinitions.map(([key, title]) => `<label class="check-option"><input type="checkbox" name="onboardingRequiredStep" value="${key}" ${config.requiredSteps.includes(key) ? "checked" : ""} /> ${escapeHTML(t(title))}</label>`).join("");
         return;
       }
-      configForm.hidden = true;
-      studentPanel.hidden = false;
-      const trainerId = await ensureStudentTrainerId(user);
+      const trainerId = hydration?.trainerId || "";
       const config = loadOnboardingConfigs()[trainerId] || defaultOnboardingConfig(trainerId);
-      const completed = inferredOnboardingSteps(user.id);
-      const total = config.requiredSteps.length;
-      const done = config.requiredSteps.filter(key => completed.has(key)).length;
-      const progress = total ? Math.round(done / total * 100) : 100;
+      const requiredSteps = Array.isArray(config.requiredSteps) ? config.requiredSteps : [];
+      const scopedTrainerId = trainerId || null;
+      const savedProgress = loadOnboardingProgress().find(item => item.studentId === user.id && (item.trainerId || null) === scopedTrainerId);
+      const completed = new Set([...(savedProgress?.completedSteps || []), ...inferredOnboardingSteps(user.id)]);
+      const total = requiredSteps.length;
       document.getElementById("onboardingWelcomeText").textContent = config.welcomeMessage || t("Construa sua base passo a passo.");
-      document.getElementById("onboardingProgressLabelLarge").textContent = localizedMessage("{done} de {total} etapas concluídas", { done, total });
-      document.getElementById("onboardingProgressBar").style.width = `${progress}%`;
-      document.getElementById("onboardingProgressTrack").setAttribute("aria-valuenow", String(progress));
-      document.getElementById("onboardingStepList").innerHTML = config.requiredSteps.map(key => {
+      if (!total) {
+        progressLabel.textContent = t("Nenhuma etapa configurada para este acompanhamento.");
+        progressTrack.hidden = true;
+        statusPanel.hidden = true;
+        statusPanel.innerHTML = "";
+        stepList.innerHTML = dashboardEmptyHTML("Nenhuma etapa configurada para este acompanhamento.");
+        return;
+      }
+      const done = requiredSteps.filter(key => completed.has(key)).length;
+      const progress = Math.round(done / total * 100);
+      const progressText = localizedMessage("{done} de {total} etapas concluídas", { done, total });
+      progressLabel.textContent = progressText;
+      progressBar.style.width = `${progress}%`;
+      progressTrack.hidden = false;
+      progressTrack.setAttribute("aria-valuenow", String(progress));
+      progressTrack.setAttribute("aria-valuetext", progressText);
+      statusPanel.hidden = hydration?.status !== "partial";
+      statusPanel.innerHTML = hydration?.status === "partial"
+        ? remoteStateHTML("error", { errorLabel: "Alguns dados do progresso não puderam ser atualizados.", retryScreen: "onboarding" })
+        : "";
+      stepList.innerHTML = requiredSteps.map(key => {
         const definition = onboardingStepDefinitions.find(([itemKey]) => itemKey === key) || [key, key, "", "home"];
         const isDone = completed.has(key);
         return `<article class="onboarding-step-card"><span class="timeline-icon">${isDone ? "✓" : "·"}</span><div class="timeline-copy"><strong>${escapeHTML(t(definition[1]))}</strong><span>${escapeHTML(t(definition[2]))}</span></div><div class="action-row">${isDone ? `<span class="pill record">${escapeHTML(t("Concluída"))}</span>` : `<button class="ghost" type="button" data-onboarding-screen="${definition[3]}" data-onboarding-key="${key}">${escapeHTML(t("Abrir"))}</button>`}</div></article>`;
       }).join("");
-      const progressEntry = { studentId: user.id, trainerId: trainerId || null, completedSteps: [...completed], status: done === total ? "completed" : "active", updatedAt: new Date().toISOString() };
+      const progressEntry = { id: savedProgress?.id, studentId: user.id, trainerId: scopedTrainerId, completedSteps: [...completed], status: done === total ? "completed" : "active", completedAt: savedProgress?.completedAt || null, updatedAt: new Date().toISOString(), source: savedProgress?.source };
       const localProgress = loadOnboardingProgress();
-      saveOnboardingProgress([progressEntry, ...localProgress.filter(item => item.studentId !== user.id || item.trainerId !== progressEntry.trainerId)]);
+      saveOnboardingProgress([progressEntry, ...localProgress.filter(item => item.studentId !== user.id || (item.trainerId || null) !== scopedTrainerId)]);
       if (monolithSupabase && isRealSupabaseAccount(user)) {
-        let query = monolithSupabase.from("onboarding_progress").select("id,completed_steps,status").eq("student_id", user.id);
-        query = trainerId ? query.eq("trainer_id", trainerId) : query.is("trainer_id", null);
-        const { data: existing, error: loadError } = await query.maybeSingle();
-        if (!loadError) {
-          const payload = { student_id: user.id, trainer_id: trainerId || null, completed_steps: progressEntry.completedSteps, status: progressEntry.status, completed_at: progressEntry.status === "completed" ? new Date().toISOString() : null, updated_at: progressEntry.updatedAt };
-          const result = existing?.id
-            ? await monolithSupabase.from("onboarding_progress").update(payload).eq("id", existing.id)
-            : await monolithSupabase.from("onboarding_progress").insert(payload);
-          if (result.error) safeRemoteLog("save", "onboarding-progress", result.error, { studentId: user.id });
-        } else safeRemoteLog("hydrate", "onboarding-progress", loadError, { studentId: user.id });
+        const remoteSteps = [...new Set(savedProgress?.completedSteps || [])].sort();
+        const nextSteps = [...new Set(progressEntry.completedSteps)].sort();
+        const changed = remoteSteps.join("|") !== nextSteps.join("|") || savedProgress?.status !== progressEntry.status;
+        if (changed || !savedProgress?.id) {
+          const completedAt = progressEntry.status === "completed" ? (savedProgress?.completedAt || new Date().toISOString()) : null;
+          const payload = { student_id: user.id, trainer_id: scopedTrainerId, completed_steps: nextSteps, status: progressEntry.status, completed_at: completedAt, updated_at: progressEntry.updatedAt };
+          const result = savedProgress?.id
+            ? await monolithSupabase.from("onboarding_progress").update(payload).eq("id", savedProgress.id)
+            : await monolithSupabase.from("onboarding_progress").insert(payload).select("id").single();
+          if (result.error) {
+            safeRemoteLog("save", "onboarding-progress", result.error, { studentId: user.id });
+            statusPanel.hidden = false;
+            statusPanel.innerHTML = remoteStateHTML("error", { errorLabel: "Não foi possível atualizar o progresso agora.", retryScreen: "onboarding" });
+          } else if (result.data?.id) {
+            progressEntry.id = result.data.id;
+            progressEntry.source = "supabase";
+            saveOnboardingProgress([progressEntry, ...loadOnboardingProgress().filter(item => item.studentId !== user.id || (item.trainerId || null) !== scopedTrainerId)]);
+          }
+        }
       }
     }
 
@@ -19872,9 +20148,11 @@ ${photoSections}
           await saveFeedbackFromForm(clientRequestId);
           event.currentTarget.reset();
           document.getElementById("feedbackDiscomfortNotice").hidden = true;
+          updateFeedbackSubmitState();
           showToast("Feedback enviado ao personal.");
           await renderTimeline();
         }, { loadingText: "Enviando..." });
+        updateFeedbackSubmitState();
       } catch (error) {
         engagementOperationError("feedback", "save", error, "Não consegui enviar o feedback agora.");
       }
@@ -19887,10 +20165,12 @@ ${photoSections}
     }
     document.getElementById("feedbackCheckinButton")?.addEventListener("click", () => openFeedbackContext("checkin", localDateLabel(todayKey())));
     document.getElementById("feedbackWorkoutButton")?.addEventListener("click", () => openFeedbackContext("workout", document.getElementById("sessionTitle")?.textContent || ""));
+    document.getElementById("feedbackForm")?.addEventListener("input", updateFeedbackSubmitState);
+    document.getElementById("feedbackForm")?.addEventListener("change", updateFeedbackSubmitState);
     document.querySelectorAll('input[name="feedbackFlag"]').forEach(input => input.addEventListener("change", () => { document.getElementById("feedbackDiscomfortNotice").hidden = !document.querySelector('input[name="feedbackFlag"][value="discomfort"]')?.checked; }));
-    document.getElementById("timelineStudent")?.addEventListener("change", event => { if (event.target.value) setSelectedStudentForPersonal(event.target.value); timelineVisibleLimit = 20; renderTimeline(); });
+    document.getElementById("timelineStudent")?.addEventListener("change", event => { if (event.target.value) setSelectedStudentForPersonal(event.target.value); timelineVisibleLimit = 20; refreshTimelineData(); });
     ["timelineTypeFilter", "timelinePeriodFilter"].forEach(id => document.getElementById(id)?.addEventListener("change", () => { timelineVisibleLimit = 20; renderTimeline(); }));
-    document.getElementById("refreshTimelineButton")?.addEventListener("click", async event => runPendingOperation("timeline-refresh", event.currentTarget, async () => { await hydrateEngagementData(); await renderTimeline(); }, { loadingText: "Atualizando..." }));
+    document.getElementById("refreshTimelineButton")?.addEventListener("click", async event => runPendingOperation("timeline-refresh", event.currentTarget, () => refreshTimelineData(), { loadingText: "Atualizando..." }));
     document.getElementById("loadMoreTimelineButton")?.addEventListener("click", () => { timelineVisibleLimit += 20; renderTimeline(); });
     document.getElementById("timelineList")?.addEventListener("click", async event => {
       const button = event.target.closest(".respond-feedback");
@@ -19934,7 +20214,7 @@ ${photoSections}
     document.getElementById("closeShareCardModal")?.addEventListener("click", () => document.getElementById("shareCardModal").classList.remove("active"));
     document.querySelectorAll("[data-share-format]").forEach(button => button.addEventListener("click", () => downloadShareCard(button.dataset.shareFormat)));
 
-    window.monolithRenderTimeline = async function () { await hydrateEngagementData(); await renderTimeline(); };
+    window.monolithRenderTimeline = refreshTimelineData;
     window.monolithRenderOnboarding = renderOnboarding;
     window.monolithRenderLeads = renderLeads;
     window.monolithRenderSpace = renderSpace;
