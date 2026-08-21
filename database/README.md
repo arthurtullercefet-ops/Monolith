@@ -68,7 +68,9 @@ Official docs:
    This persists application language, Monolith Voice language, weight unit and voice preference in each user's protected profile.
 27. Paste and run `monolith-production-step-24-programs-voice-workout-scope.sql`.
    This repairs the exact Programs and Monolith Voice tables expected by the app, reloads the PostgREST schema cache and prevents students from changing workout templates or global check-in tasks. Linked trainers retain scoped access under RLS.
-28. Confirm these tables exist:
+28. Paste and run `monolith-production-step-28-alerts-space-assets.sql`.
+   This renames the product surface from Pulse to Alertas, deprecates Leads access without deleting old records, adds private Space logo/cover Storage paths, creates the `space-assets` bucket policies and exposes safe Space address availability checks.
+29. Confirm these tables exist:
    - `profiles`
    - `trainer_students`
    - `trainer_invites`
@@ -110,7 +112,7 @@ Official docs:
    - `accept_influencer_code`
    - `correct_daily_checkin`
    - `is_space_member`
-30. Confirm Storage has a private bucket called `progress-photos`.
+30. Confirm Storage has private buckets called `progress-photos` and `space-assets`.
 
 All step files are additive and idempotent. Run them in numerical order. Do not reset the database or delete QA records before running a step.
 
@@ -159,9 +161,9 @@ For real Supabase users, large datasets are not kept permanently in `localStorag
 | `monolith.transformationEvents` | `transformation_events` |
 | `monolith.onboardingConfigs` | `onboarding_configs` |
 | `monolith.onboardingProgress` | `onboarding_progress` |
-| `monolith.trainerLeads` | `trainer_leads` plus `trainer_lead_events` |
+| `monolith.trainerLeads` | Deprecated; old `trainer_leads` and `trainer_lead_events` rows are retained but no longer exposed to trainers |
 | `monolith.achievements` | `student_achievements` |
-| `monolith.spaces` | `monolith_spaces` plus `space_memberships` |
+| `monolith.spaces` | `monolith_spaces`, `space_memberships` and private `space-assets` Storage paths |
 
 ## Step 3: production rules
 
@@ -191,10 +193,11 @@ After steps 13 through 24 are installed, test with fictitious accounts:
 - A trainer can read only active linked students and cannot assign data without an explicit destination.
 - A linked trainer can read the student's Programs and Voice records; an unlinked trainer cannot.
 - A student with no remote program sees the real empty state and never a failed local draft as synchronized.
-- Two quick clicks create one check-in, workout, diet, measurement, feedback or lead.
-- A student can retry an Instagram lead request without creating a second lead.
-- A trainer can update a lead status and convert it into one idempotent invite.
+- Two quick clicks create one check-in, workout, diet, measurement or feedback.
+- Opening a trainer map profile or Instagram does not create a lead or identifiable visitor event.
+- A trainer cannot read unknown users, visitor lists, lead events or unlinked prospects.
 - A Space owner and its members can read only their own Space and memberships.
+- A Space owner can upload, replace and remove only their own logo/cover files in `space-assets`; linked students can only read them through signed URLs.
 - Monolith Voice is hidden for trainers, stops after two hours or workout completion, rejects doubtful values and does not duplicate a repeated command.
 - A browser without on-device recognition releases the microphone between push-to-talk commands.
 - Demo and QA records remain intact and suspicious legacy values remain flagged rather than deleted.

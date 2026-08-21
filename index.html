@@ -14,8 +14,8 @@
   <link rel="manifest" href="manifest.webmanifest" />
   <link rel="icon" href="monolith-icon.svg" />
   <script>
-window.MONOLITH_BUILD = "monolith-v95-critical-save-fixes";
-window.MONOLITH_VERSION_LABEL = "Monolith v95 · 21/08/2026";
+window.MONOLITH_BUILD = "monolith-v96-alertas-space-assets";
+window.MONOLITH_VERSION_LABEL = "Monolith v96 · 21/08/2026";
     (function clearOldAppCaches() {
       if ("serviceWorker" in navigator) {
         navigator.serviceWorker.getRegistrations?.()
@@ -170,6 +170,12 @@ window.MONOLITH_VERSION_LABEL = "Monolith v95 · 21/08/2026";
 
     * { box-sizing: border-box; }
 
+    html {
+      width: 100%;
+      max-width: 100%;
+      overflow-x: hidden;
+    }
+
     [hidden] {
       display: none !important;
     }
@@ -177,6 +183,9 @@ window.MONOLITH_VERSION_LABEL = "Monolith v95 · 21/08/2026";
     body {
       margin: 0;
       min-height: 100vh;
+      width: 100%;
+      max-width: 100%;
+      overflow-x: hidden;
       background: var(--black);
       color: var(--text);
       font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
@@ -3938,8 +3947,7 @@ window.MONOLITH_VERSION_LABEL = "Monolith v95 · 21/08/2026";
     }
 
     .pulse-toolbar,
-    .timeline-toolbar,
-    .leads-toolbar {
+    .timeline-toolbar {
       display: grid;
       grid-template-columns: repeat(3, minmax(0, 1fr));
       gap: 12px;
@@ -3957,7 +3965,6 @@ window.MONOLITH_VERSION_LABEL = "Monolith v95 · 21/08/2026";
 
     .timeline-list,
     .achievement-list,
-    .lead-list,
     .onboarding-step-list {
       display: grid;
       gap: 12px;
@@ -3965,7 +3972,6 @@ window.MONOLITH_VERSION_LABEL = "Monolith v95 · 21/08/2026";
 
     .timeline-item,
     .achievement-card,
-    .lead-card,
     .onboarding-step-card {
       display: grid;
       grid-template-columns: 44px minmax(0, 1fr) auto;
@@ -4076,9 +4082,19 @@ window.MONOLITH_VERSION_LABEL = "Monolith v95 · 21/08/2026";
       padding: 24px;
       border: 1px solid var(--line);
       border-radius: 16px;
-      background: #090909;
+      background-color: #090909;
+      background-position: center;
+      background-size: cover;
       position: relative;
       overflow: hidden;
+    }
+
+    .space-preview::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(90deg, rgba(9,9,9,.92), rgba(9,9,9,.58));
+      pointer-events: none;
     }
 
     .space-preview::before {
@@ -4087,12 +4103,77 @@ window.MONOLITH_VERSION_LABEL = "Monolith v95 · 21/08/2026";
       inset: 0 auto 0 0;
       width: 5px;
       background: var(--space-primary, var(--gold));
+      z-index: 1;
     }
 
     .space-brand-lockup {
       display: flex;
       gap: 12px;
       align-items: center;
+      position: relative;
+      z-index: 2;
+    }
+
+    .space-preview p {
+      position: relative;
+      z-index: 2;
+    }
+
+    .space-brand-lockup img {
+      width: 54px;
+      height: 54px;
+      object-fit: contain;
+      border-radius: 10px;
+      background: rgba(0,0,0,.36);
+      border: 1px solid rgba(255,255,255,.12);
+    }
+
+    .space-asset-field {
+      display: grid;
+      gap: 8px;
+      align-content: start;
+    }
+
+    .field-hint {
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.4;
+    }
+
+    .field-hint.error {
+      color: #ff9b8e;
+    }
+
+    .space-asset-preview {
+      min-height: 88px;
+      border: 1px dashed rgba(212,175,55,.36);
+      border-radius: 12px;
+      background: #0b0b0b;
+      display: grid;
+      place-items: center;
+      overflow: hidden;
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    .space-asset-preview.is-cover {
+      min-height: 120px;
+    }
+
+    .space-asset-preview img {
+      width: 100%;
+      height: 100%;
+      display: block;
+    }
+
+    .space-asset-preview.is-logo img {
+      object-fit: contain;
+      padding: 10px;
+    }
+
+    .space-asset-preview.is-cover img {
+      object-fit: cover;
+      padding: 0;
     }
 
     .share-preview {
@@ -4112,11 +4193,9 @@ window.MONOLITH_VERSION_LABEL = "Monolith v95 · 21/08/2026";
       .onboarding-options { grid-template-columns: 1fr; }
       .timeline-item,
       .achievement-card,
-      .lead-card,
       .onboarding-step-card { grid-template-columns: 44px minmax(0, 1fr); }
       .timeline-item > .action-row,
       .achievement-card > .action-row,
-      .lead-card > .action-row,
       .onboarding-step-card > .action-row { grid-column: 2; justify-content: flex-start; }
     }
 
@@ -4164,7 +4243,6 @@ window.MONOLITH_VERSION_LABEL = "Monolith v95 · 21/08/2026";
     @media (max-width: 760px) {
       .pulse-toolbar,
       .timeline-toolbar,
-      .leads-toolbar,
       .pulse-summary {
         grid-template-columns: 1fr;
       }
@@ -4597,7 +4675,7 @@ window.MONOLITH_VERSION_LABEL = "Monolith v95 · 21/08/2026";
           <button class="action" id="loginButton" type="submit">Entrar</button>
           <div class="auth-tools">
             <button class="auth-secondary" id="clearDeviceSessionButton" type="button">Limpar sessão/cache deste aparelho</button>
-            <div class="build-version" id="buildVersionLabel">Versão do app: Monolith v94 · 21/08/2026</div>
+            <div class="build-version" id="buildVersionLabel">Versão do app: Monolith v96 · 21/08/2026</div>
           </div>
         </form>
       </div>
@@ -4874,9 +4952,9 @@ window.MONOLITH_VERSION_LABEL = "Monolith v95 · 21/08/2026";
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
           <span>Alunos</span>
         </button>
-        <button class="nav-btn" data-screen="pulse" data-role-only="personal" title="Monolith Pulse">
+        <button class="nav-btn" data-screen="alerts" data-role-only="personal" title="Alertas">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12h4l2-6 4 12 2-6h6"/></svg>
-          <span>Pulse</span>
+          <span>Alertas</span>
         </button>
         <button class="nav-btn" data-screen="timeline" title="Linha do tempo">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>
@@ -4885,10 +4963,6 @@ window.MONOLITH_VERSION_LABEL = "Monolith v95 · 21/08/2026";
         <button class="nav-btn" data-screen="onboarding" title="Primeiros passos">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m5 12 4 4L19 6"/><path d="M5 6h4M5 18h14"/></svg>
           <span>Primeiros passos</span>
-        </button>
-        <button class="nav-btn" data-screen="leads" data-role-only="personal" title="Leads">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16v4l-6 6v5l-4 2v-7L4 8z"/></svg>
-          <span>Leads</span>
         </button>
         <button class="nav-btn" data-screen="space" data-role-only="personal" title="Monolith Space">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 20V8l8-4 8 4v12"/><path d="M9 20v-6h6v6"/></svg>
@@ -5825,24 +5899,24 @@ window.MONOLITH_VERSION_LABEL = "Monolith v95 · 21/08/2026";
         <div class="grid programs" id="clientList"></div>
       </section>
 
-      <section id="pulse" class="screen" data-role-only="personal">
+      <section id="alerts" class="screen" data-role-only="personal">
         <div class="topbar">
           <div>
-            <h2>Monolith Pulse</h2>
-            <div class="date">Quem precisa de mim hoje?</div>
+            <h2>Central de Alertas</h2>
+            <div class="date">Quem precisa da sua atenção hoje?</div>
           </div>
           <button class="ghost" type="button" id="refreshPulseButton">Atualizar</button>
         </div>
         <div class="grid summary-grid pulse-summary">
-          <div class="metric"><span>Alta prioridade</span><b id="pulseHighCount">0</b></div>
-          <div class="metric"><span>Acompanhamento</span><b id="pulseMediumCount">0</b></div>
-          <div class="metric"><span>Alunos em dia</span><b id="pulseCurrentCount">0</b></div>
+          <div class="metric"><span>Urgentes</span><b id="pulseHighCount">0</b></div>
+          <div class="metric"><span>Para acompanhar</span><b id="pulseMediumCount">0</b></div>
+          <div class="metric"><span>Em dia</span><b id="pulseCurrentCount">0</b></div>
           <div class="metric"><span>Revisados hoje</span><b id="pulseReviewedCount">0</b></div>
         </div>
         <div class="panel">
           <div class="pulse-toolbar">
             <div class="field"><label for="pulsePriorityFilter">Prioridade</label><select id="pulsePriorityFilter"><option value="">Todas</option><option value="high">Alta</option><option value="medium">Acompanhamento</option><option value="low">Em dia</option></select></div>
-            <div class="field"><label for="pulseTypeFilter">Tipo</label><select id="pulseTypeFilter"><option value="">Todos os tipos</option><option value="checkin">Check-in</option><option value="workout">Treino</option><option value="program">Programa</option><option value="diet">Dieta</option><option value="feedback">Feedback</option><option value="lead">Lead</option></select></div>
+            <div class="field"><label for="pulseTypeFilter">Tipo</label><select id="pulseTypeFilter"><option value="">Todos os tipos</option><option value="checkin">Check-in</option><option value="workout">Treino</option><option value="program">Programa</option><option value="diet">Dieta</option><option value="feedback">Feedback</option></select></div>
           <label class="check-option"><input id="pulseShowReviewed" type="checkbox" /><span data-i18n="Mostrar revisados">Mostrar revisados</span></label>
           </div>
         </div>
@@ -5916,16 +5990,6 @@ window.MONOLITH_VERSION_LABEL = "Monolith v95 · 21/08/2026";
         </div>
       </section>
 
-      <section id="leads" class="screen" data-role-only="personal">
-        <div class="topbar"><div><h2>Leads</h2><div class="date">Organize interessados e continue a conversa pelo Instagram</div></div></div>
-        <div class="panel leads-toolbar">
-          <div class="field"><label for="leadStatusFilter">Status</label><select id="leadStatusFilter"><option value="">Todos</option><option value="new">Novo</option><option value="contact_started">Contato iniciado</option><option value="waiting">Aguardando resposta</option><option value="assessment_scheduled">Avaliação marcada</option><option value="converted">Convertido</option><option value="not_converted">Não convertido</option><option value="expired">Expirado</option></select></div>
-          <div class="field"><label for="leadSearch">Buscar</label><input id="leadSearch" placeholder="Nome, objetivo ou cidade" /></div>
-          <button class="ghost" type="button" id="refreshLeadsButton">Atualizar</button>
-        </div>
-        <div class="lead-list" id="leadList" aria-live="polite"></div>
-      </section>
-
       <section id="space" class="screen" data-role-only="personal">
         <div class="topbar"><div><h2>Monolith Space</h2><div class="date">Sua identidade dentro do Monolith</div></div></div>
         <div class="grid stats-layout">
@@ -5933,12 +5997,12 @@ window.MONOLITH_VERSION_LABEL = "Monolith v95 · 21/08/2026";
             <div class="section-title"><h3>Personalizar Space</h3><span>Monolith permanece presente</span></div>
             <div class="form-grid">
               <div class="field"><label for="spaceName">Nome do Space</label><input id="spaceName" maxlength="100" placeholder="Ex: Superman Performance" required /></div>
-              <div class="field"><label for="spaceSlug">Endereço</label><input id="spaceSlug" maxlength="63" placeholder="superman-performance" required /></div>
+              <div class="field"><label for="spaceSlug">Endereço do Space</label><input id="spaceSlug" maxlength="63" placeholder="superman-performance" required /><span class="field-hint" id="spaceSlugStatus" aria-live="polite"></span></div>
               <div class="field full"><label for="spaceWelcome">Boas-vindas</label><textarea id="spaceWelcome" maxlength="500" rows="3"></textarea></div>
               <div class="field"><label for="spacePrimaryColor">Cor principal</label><input id="spacePrimaryColor" type="color" value="#d4af37" /></div>
               <div class="field"><label for="spaceAccentColor">Cor de apoio</label><input id="spaceAccentColor" type="color" value="#f5f5f5" /></div>
-              <div class="field"><label for="spaceLogoUrl">Logo (URL)</label><input id="spaceLogoUrl" type="url" /></div>
-              <div class="field"><label for="spaceCoverUrl">Capa (URL)</label><input id="spaceCoverUrl" type="url" /></div>
+              <div class="field space-asset-field"><label for="spaceLogoFile">Enviar logo</label><input id="spaceLogoFile" type="file" accept="image/png,image/jpeg,image/webp" aria-describedby="spaceLogoStatus" /><span class="field-hint" id="spaceLogoStatus" aria-live="polite">PNG, JPG ou WebP até 2 MB.</span><div class="space-asset-preview is-logo" id="spaceLogoPreview" aria-label="Prévia da logo"></div><button class="ghost" type="button" id="removeSpaceLogoButton">Remover logo</button></div>
+              <div class="field space-asset-field"><label for="spaceCoverFile">Enviar imagem de capa</label><input id="spaceCoverFile" type="file" accept="image/png,image/jpeg,image/webp" aria-describedby="spaceCoverStatus" /><span class="field-hint" id="spaceCoverStatus" aria-live="polite">PNG, JPG ou WebP até 5 MB. Sugestão: 1600×500.</span><div class="space-asset-preview is-cover" id="spaceCoverPreview" aria-label="Prévia da capa"></div><button class="ghost" type="button" id="removeSpaceCoverButton">Remover capa</button></div>
               <div class="field full"><label for="spaceInstagram">Instagram</label><input id="spaceInstagram" /></div>
             </div>
             <button class="action" id="saveSpaceButton" type="submit">Salvar Space</button>
@@ -6278,24 +6342,6 @@ window.MONOLITH_VERSION_LABEL = "Monolith v95 · 21/08/2026";
     </div>
   </div>
 
-  <div class="modal-backdrop" id="leadRequestModal" role="dialog" aria-modal="true" aria-labelledby="leadRequestTitle">
-    <form class="modal" id="leadRequestForm">
-      <div class="modal-head"><h3 id="leadRequestTitle">Solicitar avaliação</h3><button class="icon-btn" type="button" id="closeLeadRequestModal" aria-label="Fechar">×</button></div>
-      <p class="report-line">O Monolith registra seu interesse. A conversa continua no Instagram.</p>
-      <input id="leadTrainerId" type="hidden" />
-      <div class="form-grid">
-        <div class="field"><label for="leadName">Nome</label><input id="leadName" maxlength="120" required /></div>
-        <div class="field"><label for="leadGoal">Objetivo</label><input id="leadGoal" maxlength="240" required /></div>
-        <div class="field"><label for="leadModality">Modalidade</label><select id="leadModality" required><option value="">Selecione</option><option value="online">Online</option><option value="in_person">Presencial</option><option value="hybrid">Híbrido</option></select></div>
-        <div class="field"><label for="leadCity">Cidade</label><input id="leadCity" maxlength="120" /></div>
-        <div class="field"><label for="leadAvailability">Disponibilidade</label><input id="leadAvailability" maxlength="240" /></div>
-        <div class="field"><label for="leadInstagram">Seu Instagram</label><input id="leadInstagram" maxlength="160" /></div>
-        <div class="field full"><label for="leadNotes">Observação opcional</label><textarea id="leadNotes" maxlength="500" rows="3"></textarea></div>
-      </div>
-      <div class="modal-actions"><button class="ghost" type="button" id="cancelLeadRequest">Cancelar</button><button class="action" type="submit" id="saveLeadRequestButton">Enviar solicitação</button></div>
-    </form>
-  </div>
-
   <div class="modal-backdrop" id="shareCardModal" role="dialog" aria-modal="true" aria-labelledby="shareCardTitle">
     <div class="modal">
       <div class="modal-head"><h3 id="shareCardTitle">Cartão compartilhável</h3><button class="icon-btn" type="button" id="closeShareCardModal" aria-label="Fechar">×</button></div>
@@ -6389,8 +6435,10 @@ window.MONOLITH_VERSION_LABEL = "Monolith v95 · 21/08/2026";
   <script>
     const MONOLITH_SUPABASE_URL = "https://jhxasnxuvmkhntbwepau.supabase.co";
     const MONOLITH_SUPABASE_KEY = "sb_publishable_lDtAXIOtkMwgwsAZyghBdg_gyLHGwpH";
-const MONOLITH_BUILD = window.MONOLITH_BUILD || "monolith-v95-critical-save-fixes";
-const MONOLITH_VERSION_LABEL = window.MONOLITH_VERSION_LABEL || "Monolith v94 · 21/08/2026";
+const MONOLITH_BUILD = window.MONOLITH_BUILD || "monolith-v96-alertas-space-assets";
+const MONOLITH_VERSION_LABEL = window.MONOLITH_VERSION_LABEL || "Monolith v96 · 21/08/2026";
+if (location.hash.toLowerCase() === "#pulse") history.replaceState(null, "", `${location.href.split("#")[0]}#alertas`);
+if (location.hash.toLowerCase() === "#leads") history.replaceState(null, "", `${location.href.split("#")[0]}#inicio`);
     const monolithSupabase = window.supabase?.createClient?.(MONOLITH_SUPABASE_URL, MONOLITH_SUPABASE_KEY, {
       auth: {
         storage: window.sessionStorage,
@@ -6451,6 +6499,8 @@ const MONOLITH_VERSION_LABEL = window.MONOLITH_VERSION_LABEL || "Monolith v94 ·
       }
 
       function fallbackShowScreen(id) {
+        if (id === "pulse") id = "alerts";
+        if (id === "leads") id = "home";
         if (window.monolithTrainerProfileRequired && id !== "trainerProfileOnboarding") id = "trainerProfileOnboarding";
         if (id === "backup") id = "stats";
         if (id === "measures") id = "stats";
@@ -6480,10 +6530,9 @@ const MONOLITH_VERSION_LABEL = window.MONOLITH_VERSION_LABEL || "Monolith v94 ·
         if (id === "clients" && typeof renderTrainerSummary === "function") renderTrainerSummary();
         if (id === "workouts" && typeof window.monolithRefreshWorkoutView === "function") window.monolithRefreshWorkoutView();
         if (id === "programs" && typeof window.monolithRenderPrograms === "function") window.monolithRenderPrograms();
-        if (id === "pulse" && typeof window.monolithRenderPulse === "function") window.monolithRenderPulse();
+        if ((id === "alerts" || id === "pulse") && typeof window.monolithRenderPulse === "function") window.monolithRenderPulse();
         if (id === "timeline" && typeof window.monolithRenderTimeline === "function") window.monolithRenderTimeline();
         if (id === "onboarding" && typeof window.monolithRenderOnboarding === "function") window.monolithRenderOnboarding();
-        if (id === "leads" && typeof window.monolithRenderLeads === "function") window.monolithRenderLeads();
         if (id === "space" && typeof window.monolithRenderSpace === "function") window.monolithRenderSpace();
         if (id === "trainerMap" && typeof renderTrainerMap === "function") renderTrainerMap();
         if (id === "checkin" && typeof renderCheckinStudentSelect === "function") {
@@ -7635,7 +7684,7 @@ const MONOLITH_VERSION_LABEL = window.MONOLITH_VERSION_LABEL || "Monolith v94 ·
       const languages = trainerOptionLabels("languages", profile.languages).join(" · ");
       const name = trainerMapProfileName(profile);
       const socialUrl = safeSocialUrl(profile.social_url);
-      const social = socialUrl ? `<a class="action map-profile-link" href="${escapeHTML(socialUrl)}" target="_blank" rel="noreferrer" data-direct-instagram="${escapeHTML(profile.trainer_id)}">Instagram</a>` : "";
+      const social = socialUrl ? `<a class="action map-profile-link" href="${escapeHTML(socialUrl)}" target="_blank" rel="noreferrer">Instagram</a>` : "";
       return `
         <article class="trainer-map-card">
           <div class="trainer-map-card-head">
@@ -7694,12 +7743,10 @@ const MONOLITH_VERSION_LABEL = window.MONOLITH_VERSION_LABEL || "Monolith v94 ·
           ${profile.package_discounts ? `<span class="pill">${escapeHTML(t("Pacotes com desconto"))}</span>` : ""}
         </div>
         <div class="trainer-map-actions">
-          <button class="action map-profile-link" type="button" data-request-assessment="${escapeHTML(profile.trainer_id)}">${escapeHTML(t("Solicitar avaliação"))}</button>
-          ${safeSocialUrl(profile.social_url) ? `<a class="ghost map-profile-link" href="${escapeHTML(safeSocialUrl(profile.social_url))}" target="_blank" rel="noreferrer">${escapeHTML(t("Ver Instagram"))}</a>` : `<button class="ghost map-profile-link" type="button" disabled>${escapeHTML(t("Instagram indisponível"))}</button>`}
+          ${safeSocialUrl(profile.social_url) ? `<a class="action map-profile-link" href="${escapeHTML(safeSocialUrl(profile.social_url))}" target="_blank" rel="noreferrer">${escapeHTML(t("Ver Instagram"))}</a>` : `<button class="ghost map-profile-link" type="button" disabled>${escapeHTML(t("Instagram indisponível"))}</button>`}
         </div>
       `;
       modal.classList.add("active");
-      saveLeadEvent({ trainerId, eventType: "profile_view" });
     }
 
     function closeTrainerMapProfile() {
@@ -15654,10 +15701,9 @@ const MONOLITH_VERSION_LABEL = window.MONOLITH_VERSION_LABEL || "Monolith v94 ·
       if (document.getElementById("clients")?.classList.contains("active") && renderedClientStudents.length) renderClientCards(renderedClientStudents);
       if (document.getElementById("trainerMap")?.classList.contains("active")) renderTrainerMap();
       if (document.getElementById("anamnesis")?.classList.contains("active")) renderAnamnesis();
-      if (document.getElementById("pulse")?.classList.contains("active")) window.monolithRenderPulse?.();
+      if (document.getElementById("alerts")?.classList.contains("active")) window.monolithRenderPulse?.();
       if (document.getElementById("timeline")?.classList.contains("active")) window.monolithRenderTimeline?.();
       if (document.getElementById("onboarding")?.classList.contains("active")) window.monolithRenderOnboarding?.();
-      if (document.getElementById("leads")?.classList.contains("active")) window.monolithRenderLeads?.();
       if (document.getElementById("space")?.classList.contains("active")) window.monolithRenderSpace?.();
     }
 
@@ -18572,8 +18618,8 @@ ${photoSections}
         programs: "#programas",
         trainerMap: "#personais",
         profile: "#perfil",
-        pulse: "#pulse",
-        leads: "#leads",
+        alerts: "#alertas",
+        pulse: "#alertas",
         space: "#space",
         onboarding: "#primeiros-passos",
         session: "#sessao"
@@ -18593,8 +18639,9 @@ ${photoSections}
         "#programas": "programs",
         "#personais": "trainerMap",
         "#perfil": "profile",
-        "#pulse": "pulse",
-        "#leads": "leads",
+        "#alertas": "alerts",
+        "#pulse": "alerts",
+        "#leads": "home",
         "#space": "space",
         "#primeiros-passos": "onboarding",
         "#sessao": "session"
@@ -18660,6 +18707,15 @@ ${photoSections}
     }
 
     function showScreen(id, options = {}) {
+      if (id === "pulse") id = "alerts";
+      if (id === "leads") {
+        showToast("Leads foi removido da área do Personal.");
+        id = "home";
+      }
+      if (id === "trainerMap" && currentAccount()?.role !== "student") {
+        showToast("A busca por personais é iniciada pelo aluno.");
+        id = "home";
+      }
       const activeScreen = document.querySelector(".screen.active")?.id;
       const dirtyScope = activeDirtyScope();
       if (!options.skipDirtyGuard && dirtyScope && (id !== activeScreen || dirtyScope === "workout")) {
@@ -18731,14 +18787,22 @@ ${photoSections}
           await refreshDailyCheckinForTarget();
         });
       }
-      if (id === "trainerMap") renderTrainerMap();
+      if (id === "trainerMap") {
+        const student = currentAccount();
+        if (student?.trainerId) {
+          showToast("Você já possui um personal vinculado.");
+          renderLinkedTrainerProfile(student.trainerId);
+          showScreen("home", { historyMode: options.historyMode || "replace" });
+          return true;
+        }
+        renderTrainerMap();
+      }
       if (id === "nutrition") renderNutrition();
       if (id === "anamnesis") renderAnamnesis();
       if (id === "programs") renderPrograms();
-      if (id === "pulse") window.monolithRenderPulse?.();
+      if (id === "alerts") window.monolithRenderPulse?.();
       if (id === "timeline") window.monolithRenderTimeline?.();
       if (id === "onboarding") window.monolithRenderOnboarding?.();
-      if (id === "leads") window.monolithRenderLeads?.();
       if (id === "space") window.monolithRenderSpace?.();
       if (id === "backup") {
         renderTrainerSummary();
@@ -18870,17 +18934,6 @@ ${photoSections}
       if (trainerProfileButton) {
         openTrainerMapProfile(trainerProfileButton.dataset.openTrainerProfile);
         return;
-      }
-
-      const assessmentButton = event.target.closest("[data-request-assessment]");
-      if (assessmentButton) {
-        openLeadRequest(assessmentButton.dataset.requestAssessment);
-        return;
-      }
-
-      const directInstagram = event.target.closest("[data-direct-instagram]");
-      if (directInstagram) {
-        saveLeadEvent({ trainerId: directInstagram.dataset.directInstagram, eventType: "instagram_opened" });
       }
 
       const emptyScreenButton = event.target.closest("[data-empty-screen]");
@@ -19345,8 +19398,13 @@ ${photoSections}
       if (event.target === workoutModal) closeWorkoutModal();
     });
     Object.assign(translations.en, {
+      "Alertas": "Alerts",
+      "Central de Alertas": "Alerts Center",
+      "Quem precisa da sua atenção hoje?": "Who needs your attention today?",
       "Quem precisa de mim hoje?": "Who needs me today?",
       "Atualizar": "Refresh",
+      "Urgentes": "Urgent",
+      "Para acompanhar": "To follow up",
       "Alta prioridade": "High priority",
       "Acompanhamento": "Follow-up",
       "Alunos em dia": "Students on track",
@@ -19362,7 +19420,6 @@ ${photoSections}
       "Programa": "Program",
       "Dieta": "Diet",
       "Feedback": "Feedback",
-      "Lead": "Lead",
       "Mostrar revisados": "Show reviewed",
       "Check-in pendente": "Pending check-in",
       "O aluno ainda não enviou o primeiro check-in.": "The student has not sent the first check-in yet.",
@@ -19384,19 +19441,63 @@ ${photoSections}
       "Feedback com desconforto": "Feedback reporting discomfort",
       "Feedback aguardando resposta": "Feedback awaiting response",
       "O aluno enviou um novo feedback.": "The student sent new feedback.",
-      "Novo lead": "New lead",
-      "Interesse em acompanhamento": "Interested in coaching",
-      "Abrir lead": "Open lead",
+      "Abrir aluno": "Open student",
       "Ver aluno": "View student",
       "Revisado": "Reviewed",
       "Marcar como revisado": "Mark as reviewed",
       "Item marcado como revisado.": "Item marked as reviewed.",
       "Nenhuma prioridade com estes filtros.": "No priorities match these filters.",
-      "Atualizando...": "Refreshing..."
+      "Atualizando...": "Refreshing...",
+      "Leads foi removido da área do Personal.": "Leads has been removed from the trainer area.",
+      "A busca por personais é iniciada pelo aluno.": "Students start the trainer search.",
+      "Você já possui um personal vinculado.": "You already have a linked trainer.",
+      "Monolith Space": "Monolith Space",
+      "Sua identidade dentro do Monolith": "Your identity inside Monolith",
+      "Personalizar Space": "Customize Space",
+      "Monolith permanece presente": "Monolith stays present",
+      "Nome do Space": "Space name",
+      "Endereço do Space": "Space address",
+      "Boas-vindas": "Welcome message",
+      "Cor principal": "Primary color",
+      "Cor de apoio": "Accent color",
+      "Enviar logo": "Upload logo",
+      "Remover logo": "Remove logo",
+      "Enviar imagem de capa": "Upload cover image",
+      "Remover capa": "Remove cover",
+      "Prévia da logo": "Logo preview",
+      "Prévia da capa": "Cover preview",
+      "Sem logo": "No logo",
+      "Sem capa": "No cover",
+      "Prévia": "Preview",
+      "Tema com fallback Monolith": "Theme with Monolith fallback",
+      "PNG, JPG ou WebP até 2 MB.": "PNG, JPG or WebP up to 2 MB.",
+      "PNG, JPG ou WebP até 5 MB. Sugestão: 1600×500.": "PNG, JPG or WebP up to 5 MB. Suggested: 1600×500.",
+      "Formato não permitido": "Format not allowed",
+      "Arquivo muito grande": "File too large",
+      "Prévia da logo pronta.": "Logo preview ready.",
+      "Prévia da capa pronta.": "Cover preview ready.",
+      "Remover logo?": "Remove logo?",
+      "Remover capa?": "Remove cover?",
+      "Logo removida. Salve o Space para confirmar.": "Logo removed. Save the Space to confirm.",
+      "Capa removida. Salve o Space para confirmar.": "Cover removed. Save the Space to confirm.",
+      "Endereço disponível": "Address available",
+      "Este endereço já está sendo utilizado.": "This address is already in use.",
+      "Este endereço é reservado.": "This address is reserved.",
+      "Disponibilidade será confirmada ao salvar.": "Availability will be confirmed on save.",
+      "Informe nome e endereço válido para o Space.": "Enter a valid Space name and address.",
+      "Space salvo.": "Space saved.",
+      "Não consegui salvar o Space agora.": "Could not save the Space right now.",
+      "O Monolith não cria leads. Converse pelo Instagram do personal.": "Monolith does not create leads. Continue through the trainer's Instagram.",
+      "Instagram indisponível.": "Instagram unavailable."
     });
     Object.assign(translations.es, {
+      "Alertas": "Alertas",
+      "Central de Alertas": "Central de Alertas",
+      "Quem precisa da sua atenção hoje?": "¿Quién necesita tu atención hoy?",
       "Quem precisa de mim hoje?": "¿Quién me necesita hoy?",
       "Atualizar": "Actualizar",
+      "Urgentes": "Urgentes",
+      "Para acompanhar": "Para acompañar",
       "Alta prioridade": "Alta prioridad",
       "Acompanhamento": "Seguimiento",
       "Alunos em dia": "Alumnos al día",
@@ -19412,7 +19513,6 @@ ${photoSections}
       "Programa": "Programa",
       "Dieta": "Dieta",
       "Feedback": "Feedback",
-      "Lead": "Lead",
       "Mostrar revisados": "Mostrar revisados",
       "Check-in pendente": "Check-in pendiente",
       "O aluno ainda não enviou o primeiro check-in.": "El alumno todavía no envió el primer check-in.",
@@ -19434,15 +19534,54 @@ ${photoSections}
       "Feedback com desconforto": "Feedback con molestia",
       "Feedback aguardando resposta": "Feedback pendiente de respuesta",
       "O aluno enviou um novo feedback.": "El alumno envió un nuevo feedback.",
-      "Novo lead": "Nuevo lead",
-      "Interesse em acompanhamento": "Interés en acompañamiento",
-      "Abrir lead": "Abrir lead",
+      "Abrir aluno": "Abrir alumno",
       "Ver aluno": "Ver alumno",
       "Revisado": "Revisado",
       "Marcar como revisado": "Marcar como revisado",
       "Item marcado como revisado.": "Elemento marcado como revisado.",
       "Nenhuma prioridade com estes filtros.": "No hay prioridades con estos filtros.",
-      "Atualizando...": "Actualizando..."
+      "Atualizando...": "Actualizando...",
+      "Leads foi removido da área do Personal.": "Leads fue eliminado del área del entrenador.",
+      "A busca por personais é iniciada pelo aluno.": "La búsqueda de entrenadores la inicia el alumno.",
+      "Você já possui um personal vinculado.": "Ya tienes un entrenador vinculado.",
+      "Monolith Space": "Monolith Space",
+      "Sua identidade dentro do Monolith": "Tu identidad dentro de Monolith",
+      "Personalizar Space": "Personalizar Space",
+      "Monolith permanece presente": "Monolith permanece presente",
+      "Nome do Space": "Nombre del Space",
+      "Endereço do Space": "Dirección del Space",
+      "Boas-vindas": "Bienvenida",
+      "Cor principal": "Color principal",
+      "Cor de apoio": "Color de apoyo",
+      "Enviar logo": "Subir logo",
+      "Remover logo": "Eliminar logo",
+      "Enviar imagem de capa": "Subir imagen de portada",
+      "Remover capa": "Eliminar portada",
+      "Prévia da logo": "Vista previa del logo",
+      "Prévia da capa": "Vista previa de portada",
+      "Sem logo": "Sin logo",
+      "Sem capa": "Sin portada",
+      "Prévia": "Vista previa",
+      "Tema com fallback Monolith": "Tema con fallback Monolith",
+      "PNG, JPG ou WebP até 2 MB.": "PNG, JPG o WebP hasta 2 MB.",
+      "PNG, JPG ou WebP até 5 MB. Sugestão: 1600×500.": "PNG, JPG o WebP hasta 5 MB. Sugerencia: 1600×500.",
+      "Formato não permitido": "Formato no permitido",
+      "Arquivo muito grande": "Archivo demasiado grande",
+      "Prévia da logo pronta.": "Vista previa del logo lista.",
+      "Prévia da capa pronta.": "Vista previa de portada lista.",
+      "Remover logo?": "¿Eliminar logo?",
+      "Remover capa?": "¿Eliminar portada?",
+      "Logo removida. Salve o Space para confirmar.": "Logo eliminado. Guarda el Space para confirmar.",
+      "Capa removida. Salve o Space para confirmar.": "Portada eliminada. Guarda el Space para confirmar.",
+      "Endereço disponível": "Dirección disponible",
+      "Este endereço já está sendo utilizado.": "Esta dirección ya está en uso.",
+      "Este endereço é reservado.": "Esta dirección está reservada.",
+      "Disponibilidade será confirmada ao salvar.": "La disponibilidad se confirmará al guardar.",
+      "Informe nome e endereço válido para o Space.": "Ingresa un nombre y una dirección válidos para el Space.",
+      "Space salvo.": "Space guardado.",
+      "Não consegui salvar o Space agora.": "No se pudo guardar el Space ahora.",
+      "O Monolith não cria leads. Converse pelo Instagram do personal.": "Monolith no crea leads. Continúa por el Instagram del entrenador.",
+      "Instagram indisponível.": "Instagram no disponible."
     });
     Object.assign(translations.en, {
       "Linha do tempo": "Timeline",
@@ -19878,15 +20017,13 @@ ${photoSections}
         if (!student || !isLinkedStudentForPersonal(student.id, user)) return;
         items.push({ student, type: "feedback", priority: item.flags?.includes("discomfort") ? "high" : "medium", title: item.flags?.includes("discomfort") ? "Feedback com desconforto" : "Feedback aguardando resposta", description: item.comment || "O aluno enviou um novo feedback.", actionScreen: "timeline", sourceDate: entryDateKey(item.createdAt), fingerprint: pulseFingerprint(student.id, "feedback", item.id) });
       });
-      const leads = typeof loadTrainerLeads === "function" ? loadTrainerLeads() : [];
-      leads.filter(item => item.trainerId === user.id && item.status === "new").forEach(item => items.push({ student: { id: `lead:${item.id}`, name: item.name }, type: "lead", priority: "medium", title: "Novo lead", description: `${item.goal || "Interesse em acompanhamento"}${item.city ? ` · ${item.city}` : ""}`, actionScreen: "leads", sourceDate: entryDateKey(item.createdAt), fingerprint: `lead:${item.id}` }));
       const priorityRank = { high: 0, medium: 1, low: 2 };
       return items.sort((a, b) => (priorityRank[a.priority] - priorityRank[b.priority]) || a.student.name.localeCompare(b.student.name));
     }
 
     async function markPulseReviewed(item) {
       const user = currentAccount();
-      if (!user || !item || item.student.id.startsWith("lead:")) return;
+      if (!user || !item || !isLinkedStudentForPersonal(item.student.id, user)) return;
       const entry = { trainerId: user.id, studentId: item.student.id, alertKey: item.type, fingerprint: item.fingerprint, reviewedAt: new Date().toISOString() };
       savePulseReviews([...loadPulseReviews().filter(current => current.fingerprint !== entry.fingerprint), entry]);
       if (monolithSupabase && isRealSupabaseAccount(user)) {
@@ -19918,8 +20055,8 @@ ${photoSections}
           <span class="pulse-priority" aria-hidden="true"></span>
           <div class="pulse-copy"><strong>${escapeHTML(item.student.name)} · ${escapeHTML(t(item.title))}</strong><span>${escapeHTML(t(item.description))}</span></div>
           <div class="pulse-actions">
-            <button class="ghost pulse-open" type="button" data-pulse-index="${index}">${escapeHTML(t(item.type === "lead" ? "Abrir lead" : "Ver aluno"))}</button>
-            ${item.type !== "lead" ? `<button class="ghost pulse-review" type="button" data-pulse-index="${index}" ${reviews.has(item.fingerprint) ? "disabled" : ""}>${escapeHTML(t(reviews.has(item.fingerprint) ? "Revisado" : "Marcar como revisado"))}</button>` : ""}
+            <button class="ghost pulse-open" type="button" data-pulse-index="${index}">${escapeHTML(t("Abrir aluno"))}</button>
+            <button class="ghost pulse-review" type="button" data-pulse-index="${index}" ${reviews.has(item.fingerprint) ? "disabled" : ""}>${escapeHTML(t(reviews.has(item.fingerprint) ? "Revisado" : "Marcar como revisado"))}</button>
           </div>
         </article>`).join("") || dashboardEmptyHTML("Nenhuma prioridade com estes filtros.");
       list._pulseItems = filtered;
@@ -19944,7 +20081,7 @@ ${photoSections}
       if (!item) return;
       if (event.target.closest(".pulse-review")) markPulseReviewed(item);
       if (event.target.closest(".pulse-open")) {
-        if (!item.student.id.startsWith("lead:")) setSelectedStudentForPersonal(item.student.id);
+        setSelectedStudentForPersonal(item.student.id);
         showScreen(item.actionScreen || "clients", { historyMode: "push" });
       }
     });
@@ -19975,10 +20112,10 @@ ${photoSections}
     function saveContextualFeedback(entries) { writeMemoryList("monolith.contextualFeedback", entries.slice(0, 1000)); }
     function loadTransformationEvents() { return readMemoryList("monolith.transformationEvents"); }
     function saveTransformationEvents(entries) { writeMemoryList("monolith.transformationEvents", entries.slice(0, 2000)); }
-    function loadTrainerLeads() { return readMemoryList("monolith.trainerLeads"); }
-    function saveTrainerLeads(entries) { writeMemoryList("monolith.trainerLeads", entries.slice(-1000)); }
-    function loadLeadEvents() { return readMemoryList("monolith.leadEvents"); }
-    function saveLeadEvents(entries) { writeMemoryList("monolith.leadEvents", entries.slice(-2000)); }
+    function loadTrainerLeads() { return []; }
+    function saveTrainerLeads() {}
+    function loadLeadEvents() { return []; }
+    function saveLeadEvents() {}
     function loadAchievements() { return readMemoryList("monolith.achievements"); }
     function saveAchievements(entries) { writeMemoryList("monolith.achievements", entries.slice(0, 1000)); }
 
@@ -20029,11 +20166,6 @@ ${photoSections}
           errors.push(achievementResult.error);
           safeRemoteLog("hydrate", "achievements", achievementResult.error, { studentId });
         }
-      }
-      if (user.role === "personal") {
-        const result = await monolithSupabase.from("trainer_leads").select("*").eq("trainer_id", user.id).order("created_at", { ascending: false }).limit(500);
-        if (!result.error) saveTrainerLeads((result.data || []).map(remoteLeadFromRow));
-        else safeRemoteLog("hydrate", "leads", result.error, { trainerId: user.id });
       }
       return { errors };
     }
@@ -20566,28 +20698,18 @@ ${photoSections}
     }
 
     async function saveLeadEvent(event) {
-      const normalized = { id: `lead-event-${Date.now()}`, createdAt: new Date().toISOString(), actorId: currentAccount()?.id || null, ...event };
-      saveLeadEvents([normalized, ...loadLeadEvents()]);
-      if (monolithSupabase && isRealSupabaseAccount(currentAccount())) {
-        const { error } = await monolithSupabase.from("trainer_lead_events").insert({ trainer_id: normalized.trainerId, lead_id: normalized.leadId || null, actor_id: normalized.actorId, event_type: normalized.eventType, created_at: normalized.createdAt });
-        if (error) safeRemoteLog("save", "lead-event", error, { trainerId: normalized.trainerId, eventType: normalized.eventType });
-      }
+      return null;
     }
 
     function openLeadRequest(trainerId) {
       const profile = trainerMapVisibleProfiles.find(item => item.trainer_id === trainerId);
       if (!profile) return;
-      closeTrainerMapProfile();
-      document.getElementById("leadRequestForm").reset();
-      document.getElementById("leadTrainerId").value = trainerId;
-      document.getElementById("leadName").value = currentAccount()?.name || "";
-      document.getElementById("leadRequestTitle").textContent = `${t("Solicitar avaliação")} · ${trainerMapProfileName(profile)}`;
-      document.getElementById("leadRequestModal").classList.add("active");
-      document.getElementById("leadName").focus();
-      saveLeadEvent({ trainerId, eventType: "request_click" });
+      const social = safeSocialUrl(profile.social_url);
+      if (social) window.open(social, "_blank", "noopener,noreferrer");
+      else showToast("Instagram indisponível.");
     }
 
-    function closeLeadRequest() { document.getElementById("leadRequestModal")?.classList.remove("active"); }
+    function closeLeadRequest() {}
 
     const leadStatusLabels = {
       new: "Novo",
@@ -20605,87 +20727,210 @@ ${photoSections}
 
     async function submitLeadRequest(event) {
       event.preventDefault();
-      const user = currentAccount();
-      if (!user) { showToast("Entre na sua conta para solicitar uma avaliação."); return; }
-      const trainerId = document.getElementById("leadTrainerId").value;
-      const profile = trainerMapVisibleProfiles.find(item => item.trainer_id === trainerId);
-      const social = safeSocialUrl(profile?.social_url);
-      try {
-        await runPendingOperation(`lead-create:${trainerId}`, event.submitter, async clientRequestId => {
-        const lead = { id: `lead-${Date.now()}`, trainerId, interestedUserId: user.id, name: document.getElementById("leadName").value.trim(), goal: document.getElementById("leadGoal").value.trim(), modality: document.getElementById("leadModality").value, city: document.getElementById("leadCity").value.trim(), availability: document.getElementById("leadAvailability").value.trim(), instagram: document.getElementById("leadInstagram").value.trim(), notes: document.getElementById("leadNotes").value.trim(), privateNotes: "", status: "new", clientRequestId, createdAt: new Date().toISOString() };
-        if (!lead.name || !lead.goal || !lead.modality) throw new Error(t("Preencha nome, objetivo e modalidade."));
-        if (monolithSupabase && isRealSupabaseAccount(user)) {
-          const { data, error } = await monolithSupabase.from("trainer_leads").upsert({ trainer_id: trainerId, interested_user_id: user.id, name: lead.name, goal: lead.goal, modality: lead.modality, city: lead.city || null, availability: lead.availability || null, instagram: lead.instagram || null, notes: lead.notes || null, status: "new", client_request_id: clientRequestId }, { onConflict: "client_request_id" }).select("*").single();
-          if (error) throw error;
-          Object.assign(lead, remoteLeadFromRow(data));
-        }
-        saveTrainerLeads(uniqueNewestEntries([lead, ...loadTrainerLeads()], item => item.clientRequestId || item.id));
-        await saveLeadEvent({ trainerId, leadId: lead.id, eventType: "form_completed" });
-        closeLeadRequest();
-        if (social && await confirmAction({ title: "Solicitação registrada", message: "Seu interesse foi enviado. Deseja continuar a conversa no Instagram?", contextLabel: "Personal", contextValue: trainerMapProfileName(profile), confirmLabel: "Continuar pelo Instagram", danger: false })) {
-          await saveLeadEvent({ trainerId, leadId: lead.id, eventType: "instagram_opened" });
-          window.open(social, "_blank", "noopener,noreferrer");
-        } else showToast("Solicitação registrada.");
-        }, { loadingText: "Enviando..." });
-      } catch (error) {
-        engagementOperationError("leads", "create", error, "Não consegui registrar a solicitação agora.");
-      }
+      showToast("O Monolith não cria leads. Converse pelo Instagram do personal.");
     }
 
     async function renderLeads() {
-      const user = currentAccount();
-      if (user?.role !== "personal") return;
-      await hydrateEngagementData();
-      const status = document.getElementById("leadStatusFilter")?.value || "";
-      const search = document.getElementById("leadSearch")?.value.trim().toLowerCase() || "";
-      const leads = loadTrainerLeads().filter(item => item.trainerId === user.id).filter(item => !status || item.status === status).filter(item => !search || [item.name, item.goal, item.city].some(value => String(value || "").toLowerCase().includes(search)));
-      document.getElementById("leadList").innerHTML = leads.map(item => `<article class="lead-card"><span class="timeline-icon">L</span><div class="timeline-copy"><strong>${escapeHTML(item.name)}</strong><span>${escapeHTML(item.goal)} · ${escapeHTML(t(item.modality))}${item.city ? ` · ${escapeHTML(item.city)}` : ""}</span><time>${escapeHTML(localDateTimeLabel(item.createdAt))}</time><span class="pill">${escapeHTML(leadStatusLabel(item.status))}</span>${item.convertedInviteCode ? `<span>${escapeHTML(t("Convite"))}: ${escapeHTML(item.convertedInviteCode)}</span>` : ""}</div><div class="action-row">${item.instagram ? `<a class="ghost" href="${escapeHTML(safeSocialUrl(item.instagram))}" target="_blank" rel="noreferrer" data-lead-instagram="${escapeHTML(item.id)}">Instagram</a>` : ""}<select class="lead-status-select" data-lead-id="${escapeHTML(item.id)}"><option value="new" ${item.status === "new" ? "selected" : ""}>${escapeHTML(t("Novo"))}</option><option value="contact_started" ${item.status === "contact_started" ? "selected" : ""}>${escapeHTML(t("Contato iniciado"))}</option><option value="waiting" ${item.status === "waiting" ? "selected" : ""}>${escapeHTML(t("Aguardando resposta"))}</option><option value="assessment_scheduled" ${item.status === "assessment_scheduled" ? "selected" : ""}>${escapeHTML(t("Avaliação marcada"))}</option><option value="converted" ${item.status === "converted" ? "selected" : ""}>${escapeHTML(t("Convertido"))}</option><option value="not_converted" ${item.status === "not_converted" ? "selected" : ""}>${escapeHTML(t("Não convertido"))}</option><option value="expired" ${item.status === "expired" ? "selected" : ""}>${escapeHTML(t("Expirado"))}</option></select><button class="action convert-lead" type="button" data-lead-id="${escapeHTML(item.id)}" ${item.status === "converted" ? "disabled" : ""}>${escapeHTML(t("Converter em aluno"))}</button></div></article>`).join("") || dashboardEmptyHTML("Nenhum lead com estes filtros.");
+      showScreen("home", { historyMode: "replace" });
     }
 
     async function updateLeadStatus(leadId, status) {
-      const user = currentAccount();
-      const lead = loadTrainerLeads().find(item => item.id === leadId && item.trainerId === user?.id);
-      if (!lead) return;
-      lead.status = status;
-      lead.updatedAt = new Date().toISOString();
-      if (monolithSupabase && isRealSupabaseAccount(user) && /^[0-9a-f-]{36}$/i.test(lead.id)) {
-        const { error } = await monolithSupabase.from("trainer_leads").update({ status, updated_at: lead.updatedAt }).eq("id", lead.id).eq("trainer_id", user.id);
-        if (error) throw error;
-      }
-      saveTrainerLeads(loadTrainerLeads().map(item => item.id === lead.id ? lead : item));
-      await saveLeadEvent({ trainerId: user.id, leadId: lead.id, eventType: "status_changed" });
-      renderLeads();
+      return null;
     }
 
     async function convertLead(leadId, button) {
-      const user = currentAccount();
-      const lead = loadTrainerLeads().find(item => item.id === leadId && item.trainerId === user?.id);
-      if (!lead) return;
-      if (!await confirmAction({ title: "Converter lead em aluno?", message: "O Monolith vai gerar um convite para este interessado.", contextLabel: "Lead", contextValue: lead.name, confirmLabel: "Gerar convite", danger: false })) return;
-      await runPendingOperation(`lead-convert:${lead.id}`, button, async clientRequestId => {
-        const code = await createTrainerInviteCode(user, clientRequestId);
-        lead.status = "converted";
-        lead.convertedInviteCode = code;
-        lead.updatedAt = new Date().toISOString();
-        if (monolithSupabase && isRealSupabaseAccount(user) && /^[0-9a-f-]{36}$/i.test(lead.id)) {
-          const { error } = await monolithSupabase.from("trainer_leads").update({ status: "converted", converted_invite_code: code, updated_at: lead.updatedAt }).eq("id", lead.id).eq("trainer_id", user.id);
-          if (error) throw error;
-        }
-        saveTrainerLeads(loadTrainerLeads().map(item => item.id === lead.id ? lead : item));
-        await saveLeadEvent({ trainerId: user.id, leadId: lead.id, eventType: "converted" });
-        showToast("Convite criado para o lead.");
-        renderLeads();
-      }, { loadingText: "Convertendo..." });
+      return null;
     }
 
     function loadSpaces() { return readMemoryList("monolith.spaces"); }
     function saveSpaces(entries) { writeMemoryList("monolith.spaces", entries); }
 
+    const spaceReservedSlugs = new Set(["admin", "login", "signup", "monolith", "support", "api", "space", "profile"]);
+    const spaceAssetDrafts = {
+      logo: { file: null, previewUrl: "", remove: false, currentPath: "", currentUrl: "" },
+      cover: { file: null, previewUrl: "", remove: false, currentPath: "", currentUrl: "" }
+    };
+
+    function normalizeSpaceSlug(value = "") {
+      return String(value || "")
+        .normalize("NFD")
+        .replace(/[\u0300-\u036f]/g, "")
+        .toLowerCase()
+        .replace(/[^a-z0-9]+/g, "-")
+        .replace(/^-+|-+$/g, "")
+        .replace(/-{2,}/g, "-")
+        .slice(0, 63);
+    }
+
+    function spacePublicUrl(slug = "") {
+      const clean = normalizeSpaceSlug(slug);
+      const basePath = window.location.pathname.endsWith("/") ? window.location.pathname : window.location.pathname.replace(/\/[^/]*$/, "/");
+      return clean ? `${window.location.origin}${basePath}space/${clean}` : "";
+    }
+
+    function spaceAssetConfig(type) {
+      return type === "cover"
+        ? { label: "capa", folder: "cover", maxBytes: 5 * 1024 * 1024, previewId: "spaceCoverPreview", statusId: "spaceCoverStatus", inputId: "spaceCoverFile", fit: "cover" }
+        : { label: "logo", folder: "logo", maxBytes: 2 * 1024 * 1024, previewId: "spaceLogoPreview", statusId: "spaceLogoStatus", inputId: "spaceLogoFile", fit: "contain" };
+    }
+
+    function setSpaceAssetStatus(type, message, error = false) {
+      const status = document.getElementById(spaceAssetConfig(type).statusId);
+      if (!status) return;
+      status.textContent = t(message);
+      status.classList.toggle("error", Boolean(error));
+    }
+
+    function setSpaceAssetPreview(type, url = "") {
+      const config = spaceAssetConfig(type);
+      const preview = document.getElementById(config.previewId);
+      if (!preview) return;
+      preview.innerHTML = url
+        ? `<img src="${escapeHTML(url)}" alt="${escapeHTML(t(type === "cover" ? "Prévia da capa" : "Prévia da logo"))}" />`
+        : `<span>${escapeHTML(t(type === "cover" ? "Sem capa" : "Sem logo"))}</span>`;
+    }
+
+    function syncSpaceAssetPreviews() {
+      ["logo", "cover"].forEach(type => {
+        const draft = spaceAssetDrafts[type];
+        setSpaceAssetPreview(type, draft.remove ? "" : (draft.previewUrl || draft.currentUrl || ""));
+      });
+    }
+
+    function validateSpaceAssetFile(file, type) {
+      const config = spaceAssetConfig(type);
+      const allowed = ["image/png", "image/jpeg", "image/webp"];
+      if (!file) return "";
+      if (!allowed.includes(file.type)) return "Formato não permitido";
+      if (file.size > config.maxBytes) return "Arquivo muito grande";
+      return "";
+    }
+
+    async function readSpaceAssetInput(type, file) {
+      const config = spaceAssetConfig(type);
+      const input = document.getElementById(config.inputId);
+      const error = validateSpaceAssetFile(file, type);
+      if (error) {
+        if (input) input.value = "";
+        setSpaceAssetStatus(type, error, true);
+        return;
+      }
+      if (spaceAssetDrafts[type].previewUrl?.startsWith("blob:")) URL.revokeObjectURL(spaceAssetDrafts[type].previewUrl);
+      spaceAssetDrafts[type].file = file;
+      spaceAssetDrafts[type].previewUrl = URL.createObjectURL(file);
+      spaceAssetDrafts[type].remove = false;
+      setSpaceAssetStatus(type, type === "cover" ? "Prévia da capa pronta." : "Prévia da logo pronta.");
+      syncSpaceAssetPreviews();
+      renderSpacePreview();
+    }
+
+    async function signedSpaceAssetUrl(path = "") {
+      if (!path || !monolithSupabase) return "";
+      const { data, error } = await monolithSupabase.storage.from("space-assets").createSignedUrl(path, 60 * 60);
+      if (error) throw error;
+      return data?.signedUrl || "";
+    }
+
+    async function resolveSpaceAssetUrls(space) {
+      if (!space) return space;
+      const next = { ...space };
+      try {
+        if (next.logoStoragePath) next.logoUrl = await signedSpaceAssetUrl(next.logoStoragePath);
+        if (next.coverStoragePath) next.coverUrl = await signedSpaceAssetUrl(next.coverStoragePath);
+      } catch (error) {
+        safeRemoteLog("hydrate", "space-assets", error, { ownerId: next.ownerId });
+      }
+      return next;
+    }
+
+    function spaceFromRemoteRow(data) {
+      return {
+        id: data.id,
+        ownerId: data.owner_id,
+        name: data.name,
+        slug: data.slug,
+        welcomeMessage: data.welcome_message,
+        logoUrl: data.logo_url,
+        coverUrl: data.cover_url,
+        logoStoragePath: data.logo_storage_path || "",
+        coverStoragePath: data.cover_storage_path || "",
+        primaryColor: data.primary_color,
+        accentColor: data.accent_color,
+        socialLinks: data.social_links || {},
+        source: "supabase"
+      };
+    }
+
+    function resetSpaceAssetDrafts(space = null) {
+      ["logo", "cover"].forEach(type => {
+        if (spaceAssetDrafts[type].previewUrl?.startsWith("blob:")) URL.revokeObjectURL(spaceAssetDrafts[type].previewUrl);
+        spaceAssetDrafts[type].file = null;
+        spaceAssetDrafts[type].previewUrl = "";
+        spaceAssetDrafts[type].remove = false;
+        spaceAssetDrafts[type].currentPath = type === "cover" ? space?.coverStoragePath || "" : space?.logoStoragePath || "";
+        spaceAssetDrafts[type].currentUrl = type === "cover" ? space?.coverUrl || "" : space?.logoUrl || "";
+        const input = document.getElementById(spaceAssetConfig(type).inputId);
+        if (input) input.value = "";
+        setSpaceAssetStatus(type, type === "cover" ? "PNG, JPG ou WebP até 5 MB. Sugestão: 1600×500." : "PNG, JPG ou WebP até 2 MB.");
+      });
+      syncSpaceAssetPreviews();
+    }
+
+    function removeSpaceAsset(type) {
+      const label = type === "cover" ? "capa" : "logo";
+      if (!confirm(t(`Remover ${label}?`))) return;
+      if (spaceAssetDrafts[type].previewUrl?.startsWith("blob:")) URL.revokeObjectURL(spaceAssetDrafts[type].previewUrl);
+      spaceAssetDrafts[type].file = null;
+      spaceAssetDrafts[type].previewUrl = "";
+      spaceAssetDrafts[type].remove = true;
+      const input = document.getElementById(spaceAssetConfig(type).inputId);
+      if (input) input.value = "";
+      setSpaceAssetStatus(type, type === "cover" ? "Capa removida. Salve o Space para confirmar." : "Logo removida. Salve o Space para confirmar.");
+      syncSpaceAssetPreviews();
+      renderSpacePreview();
+    }
+
+    async function uploadSpaceAsset(type, file, userId, requestToken) {
+      if (!file) return "";
+      const config = spaceAssetConfig(type);
+      const extension = file.name?.split(".").pop()?.toLowerCase().replace(/[^a-z0-9]/g, "") || (file.type === "image/webp" ? "webp" : "jpg");
+      const safeToken = requestToken.replace(/[^a-z0-9_-]/gi, "-");
+      const path = `${userId}/${config.folder}/${safeToken}.${extension}`;
+      const { error } = await monolithSupabase.storage.from("space-assets").upload(path, file, { cacheControl: "3600", upsert: true, contentType: file.type });
+      if (error) throw error;
+      return path;
+    }
+
+    async function checkSpaceSlugAvailability(slug, ownerId) {
+      if (!slug) return { ok: false, message: "Informe nome e endereço válido para o Space." };
+      if (spaceReservedSlugs.has(slug)) return { ok: false, message: "Este endereço é reservado." };
+      if (!monolithSupabase || !isRealSupabaseAccount(currentAccount())) return { ok: true, message: "Endereço disponível" };
+      const { data, error } = await monolithSupabase.rpc("monolith_space_slug_available", { p_slug: slug, p_owner_id: ownerId });
+      if (error) {
+        safeRemoteLog("space", "slug-availability", error, { slug });
+        return { ok: true, message: "Disponibilidade será confirmada ao salvar." };
+      }
+      return data ? { ok: true, message: "Endereço disponível" } : { ok: false, message: "Este endereço já está sendo utilizado." };
+    }
+
+    async function updateSpaceSlugStatus() {
+      const input = document.getElementById("spaceSlug");
+      const status = document.getElementById("spaceSlugStatus");
+      if (!input || !status) return;
+      const slug = normalizeSpaceSlug(input.value);
+      input.value = slug;
+      const url = spacePublicUrl(slug);
+      const availability = await checkSpaceSlugAvailability(slug, currentAccount()?.id || "");
+      status.textContent = url ? `${t(availability.message)} · ${url}` : "";
+      status.classList.toggle("error", !availability.ok);
+    }
+
     function renderSpacePreview(space = null) {
       const preview = document.getElementById("spacePreview");
       if (!preview) return;
-      const data = space || { name: document.getElementById("spaceName")?.value.trim() || "Seu Space", welcomeMessage: document.getElementById("spaceWelcome")?.value.trim() || "Built One Day At A Time.", primaryColor: document.getElementById("spacePrimaryColor")?.value || "#d4af37", accentColor: document.getElementById("spaceAccentColor")?.value || "#f5f5f5", logoUrl: document.getElementById("spaceLogoUrl")?.value.trim() || "" };
+      const data = space || { name: document.getElementById("spaceName")?.value.trim() || "Seu Space", welcomeMessage: document.getElementById("spaceWelcome")?.value.trim() || "Built One Day At A Time.", primaryColor: document.getElementById("spacePrimaryColor")?.value || "#d4af37", accentColor: document.getElementById("spaceAccentColor")?.value || "#f5f5f5", logoUrl: spaceAssetDrafts.logo.remove ? "" : (spaceAssetDrafts.logo.previewUrl || spaceAssetDrafts.logo.currentUrl || ""), coverUrl: spaceAssetDrafts.cover.remove ? "" : (spaceAssetDrafts.cover.previewUrl || spaceAssetDrafts.cover.currentUrl || "") };
       preview.style.setProperty("--space-primary", data.primaryColor);
+      preview.style.backgroundImage = data.coverUrl ? `url("${data.coverUrl.replace(/"/g, "%22")}")` : "";
       preview.innerHTML = `<div class="space-brand-lockup">${data.logoUrl ? `<img src="${escapeHTML(data.logoUrl)}" alt="" width="54" height="54" />` : `<span class="mark">M</span>`}<div><div class="kicker">MONOLITH ×</div><h3 data-no-i18n="true">${escapeHTML(data.name)}</h3></div></div><p>${escapeHTML(data.welcomeMessage || "")}</p>`;
     }
 
@@ -20708,7 +20953,7 @@ ${photoSections}
         const { data: memberships, error: membershipError } = await monolithSupabase.from("space_memberships").select("space_id,role").eq("user_id", user.id).limit(1);
         if (!membershipError && memberships?.[0]?.space_id) {
           const { data, error } = await monolithSupabase.from("monolith_spaces").select("*").eq("id", memberships[0].space_id).eq("active", true).maybeSingle();
-          if (!error && data) space = { id: data.id, ownerId: data.owner_id, name: data.name, slug: data.slug, welcomeMessage: data.welcome_message, logoUrl: data.logo_url, coverUrl: data.cover_url, primaryColor: data.primary_color, accentColor: data.accent_color, socialLinks: data.social_links || {}, source: "supabase" };
+          if (!error && data) space = await resolveSpaceAssetUrls(spaceFromRemoteRow(data));
           else if (error) safeRemoteLog("hydrate", "space", error, { userId: user.id });
         } else if (membershipError) safeRemoteLog("hydrate", "space-membership", membershipError, { userId: user.id });
       }
@@ -20726,7 +20971,7 @@ ${photoSections}
       if (monolithSupabase && isRealSupabaseAccount(user)) {
         const { data, error } = await monolithSupabase.from("monolith_spaces").select("*").eq("owner_id", user.id).maybeSingle();
         if (!error && data) {
-          space = { id: data.id, ownerId: data.owner_id, name: data.name, slug: data.slug, welcomeMessage: data.welcome_message, logoUrl: data.logo_url, coverUrl: data.cover_url, primaryColor: data.primary_color, accentColor: data.accent_color, socialLinks: data.social_links || {}, source: "supabase" };
+          space = await resolveSpaceAssetUrls(spaceFromRemoteRow(data));
           saveSpaces([space]);
         }
       }
@@ -20735,10 +20980,10 @@ ${photoSections}
       document.getElementById("spaceWelcome").value = space?.welcomeMessage || "";
       document.getElementById("spacePrimaryColor").value = space?.primaryColor || "#d4af37";
       document.getElementById("spaceAccentColor").value = space?.accentColor || "#f5f5f5";
-      document.getElementById("spaceLogoUrl").value = space?.logoUrl || "";
-      document.getElementById("spaceCoverUrl").value = space?.coverUrl || "";
       document.getElementById("spaceInstagram").value = space?.socialLinks?.instagram || "";
+      resetSpaceAssetDrafts(space);
       renderSpacePreview(space);
+      updateSpaceSlugStatus();
     }
 
     async function saveSpace(event) {
@@ -20746,20 +20991,34 @@ ${photoSections}
       const user = currentAccount();
       if (user?.role !== "personal") return;
       const memberIds = [user.id, ...studentsForPersonal(user.id).map(student => student.id)];
-      const space = { ownerId: user.id, memberIds, name: document.getElementById("spaceName").value.trim(), slug: document.getElementById("spaceSlug").value.trim().toLowerCase().replace(/[^a-z0-9-]+/g, "-").replace(/^-|-$/g, ""), welcomeMessage: document.getElementById("spaceWelcome").value.trim(), logoUrl: document.getElementById("spaceLogoUrl").value.trim(), coverUrl: document.getElementById("spaceCoverUrl").value.trim(), primaryColor: document.getElementById("spacePrimaryColor").value, accentColor: document.getElementById("spaceAccentColor").value, socialLinks: { instagram: document.getElementById("spaceInstagram").value.trim() } };
+      const slug = normalizeSpaceSlug(document.getElementById("spaceSlug").value);
+      const space = { ownerId: user.id, memberIds, name: document.getElementById("spaceName").value.trim(), slug, welcomeMessage: document.getElementById("spaceWelcome").value.trim(), logoUrl: spaceAssetDrafts.logo.currentUrl, coverUrl: spaceAssetDrafts.cover.currentUrl, logoStoragePath: spaceAssetDrafts.logo.currentPath, coverStoragePath: spaceAssetDrafts.cover.currentPath, primaryColor: document.getElementById("spacePrimaryColor").value, accentColor: document.getElementById("spaceAccentColor").value, socialLinks: { instagram: document.getElementById("spaceInstagram").value.trim() } };
       if (!space.name || space.slug.length < 2) { showToast("Informe nome e endereço válido para o Space."); return; }
+      const availability = await checkSpaceSlugAvailability(space.slug, user.id);
+      if (!availability.ok) { showToast(availability.message); updateSpaceSlugStatus(); return; }
       try {
         await runPendingOperation("space-save", event.submitter, async () => {
         if (monolithSupabase && isRealSupabaseAccount(user)) {
-          const { data, error } = await monolithSupabase.from("monolith_spaces").upsert({ owner_id: user.id, name: space.name, slug: space.slug, welcome_message: space.welcomeMessage || null, logo_url: space.logoUrl || null, cover_url: space.coverUrl || null, primary_color: space.primaryColor, accent_color: space.accentColor, social_links: space.socialLinks, active: true }, { onConflict: "owner_id" }).select("*").single();
+          const token = createClientRequestId("space-asset");
+          const nextLogoPath = spaceAssetDrafts.logo.file ? await uploadSpaceAsset("logo", spaceAssetDrafts.logo.file, user.id, token) : (spaceAssetDrafts.logo.remove ? "" : spaceAssetDrafts.logo.currentPath);
+          const nextCoverPath = spaceAssetDrafts.cover.file ? await uploadSpaceAsset("cover", spaceAssetDrafts.cover.file, user.id, token) : (spaceAssetDrafts.cover.remove ? "" : spaceAssetDrafts.cover.currentPath);
+          const previousLogoPath = spaceAssetDrafts.logo.currentPath;
+          const previousCoverPath = spaceAssetDrafts.cover.currentPath;
+          const { data, error } = await monolithSupabase.from("monolith_spaces").upsert({ owner_id: user.id, name: space.name, slug: space.slug, welcome_message: space.welcomeMessage || null, logo_url: null, cover_url: null, logo_storage_path: nextLogoPath || null, cover_storage_path: nextCoverPath || null, primary_color: space.primaryColor, accent_color: space.accentColor, social_links: space.socialLinks, active: true }, { onConflict: "owner_id" }).select("*").single();
           if (error) throw error;
-          space.id = data.id;
+          Object.assign(space, await resolveSpaceAssetUrls(spaceFromRemoteRow(data)));
           const memberships = memberIds.map(userId => ({ space_id: data.id, user_id: userId, role: userId === user.id ? "owner" : "member" }));
           const memberResult = await monolithSupabase.from("space_memberships").upsert(memberships, { onConflict: "space_id,user_id" });
           if (memberResult.error) throw memberResult.error;
+          const removePaths = [previousLogoPath && previousLogoPath !== nextLogoPath ? previousLogoPath : "", previousCoverPath && previousCoverPath !== nextCoverPath ? previousCoverPath : ""].filter(Boolean);
+          if (removePaths.length) {
+            const { error: cleanupError } = await monolithSupabase.storage.from("space-assets").remove(removePaths);
+            if (cleanupError) safeRemoteLog("space", "asset-cleanup", cleanupError, { removePaths });
+          }
         }
         saveSpaces([space]);
         applySpaceTheme(space);
+        resetSpaceAssetDrafts(space);
         renderSpacePreview(space);
         showToast("Space salvo.");
         }, { loadingText: "Salvando..." });
@@ -20854,26 +21113,23 @@ ${photoSections}
     });
     document.getElementById("onboardingConfigForm")?.addEventListener("submit", saveOnboardingConfig);
     document.getElementById("onboardingStepList")?.addEventListener("click", event => { const button = event.target.closest("[data-onboarding-screen]"); if (button) showScreen(button.dataset.onboardingScreen, { section: button.dataset.onboardingKey === "measurements" || button.dataset.onboardingKey === "photos" ? (button.dataset.onboardingKey === "photos" ? "photos" : "measures") : "", historyMode: "push" }); });
-    document.getElementById("leadRequestForm")?.addEventListener("submit", submitLeadRequest);
-    ["closeLeadRequestModal", "cancelLeadRequest"].forEach(id => document.getElementById(id)?.addEventListener("click", closeLeadRequest));
-    ["leadStatusFilter"].forEach(id => document.getElementById(id)?.addEventListener("change", renderLeads));
-    document.getElementById("leadSearch")?.addEventListener("input", renderLeads);
-    document.getElementById("refreshLeadsButton")?.addEventListener("click", renderLeads);
-    document.getElementById("leadList")?.addEventListener("change", event => {
-      const select = event.target.closest(".lead-status-select");
-      if (select) updateLeadStatus(select.dataset.leadId, select.value).catch(error => engagementOperationError("leads", "update-status", error, "Não consegui atualizar o lead agora."));
-    });
-    document.getElementById("leadList")?.addEventListener("click", event => {
-      const button = event.target.closest(".convert-lead");
-      if (button) convertLead(button.dataset.leadId, button).catch(error => engagementOperationError("leads", "convert", error, "Não consegui converter o lead agora."));
-      const instagram = event.target.closest("[data-lead-instagram]");
-      if (instagram) {
-        const lead = loadTrainerLeads().find(item => item.id === instagram.dataset.leadInstagram);
-        if (lead) saveLeadEvent({ trainerId: lead.trainerId, leadId: lead.id, eventType: "instagram_opened" });
-      }
-    });
     document.getElementById("spaceForm")?.addEventListener("submit", saveSpace);
     document.getElementById("spaceForm")?.addEventListener("input", () => renderSpacePreview());
+    document.getElementById("spaceName")?.addEventListener("input", event => {
+      const slugInput = document.getElementById("spaceSlug");
+      if (slugInput && !slugInput.dataset.userEdited && !slugInput.value.trim()) slugInput.value = normalizeSpaceSlug(event.target.value);
+      updateSpaceSlugStatus();
+    });
+    document.getElementById("spaceSlug")?.addEventListener("input", event => {
+      event.target.dataset.userEdited = "true";
+      event.target.value = normalizeSpaceSlug(event.target.value);
+      window.clearTimeout(window.monolithSpaceSlugTimer);
+      window.monolithSpaceSlugTimer = window.setTimeout(updateSpaceSlugStatus, 300);
+    });
+    document.getElementById("spaceLogoFile")?.addEventListener("change", event => readSpaceAssetInput("logo", event.target.files?.[0]));
+    document.getElementById("spaceCoverFile")?.addEventListener("change", event => readSpaceAssetInput("cover", event.target.files?.[0]));
+    document.getElementById("removeSpaceLogoButton")?.addEventListener("click", () => removeSpaceAsset("logo"));
+    document.getElementById("removeSpaceCoverButton")?.addEventListener("click", () => removeSpaceAsset("cover"));
     document.getElementById("shareSummaryButton")?.addEventListener("click", () => openShareCard());
     document.getElementById("achievementList")?.addEventListener("click", event => { const button = event.target.closest(".share-achievement"); if (button) openShareCard(button.dataset.achievementKey); });
     document.getElementById("closeShareCardModal")?.addEventListener("click", () => document.getElementById("shareCardModal").classList.remove("active"));

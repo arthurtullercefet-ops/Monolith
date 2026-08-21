@@ -1,4 +1,4 @@
-const CACHE_NAME = "monolith-v95-critical-save-fixes";
+const CACHE_NAME = "monolith-v96-alertas-space-assets";
 
 self.addEventListener("install", event => {
   self.skipWaiting();
