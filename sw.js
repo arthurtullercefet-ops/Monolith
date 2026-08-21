@@ -1,4 +1,4 @@
-const CACHE_NAME = "monolith-v91-timeline-onboarding-hydration";
+const CACHE_NAME = "monolith-v92-safety-dedupe-navigation";
 
 self.addEventListener("install", event => {
   self.skipWaiting();

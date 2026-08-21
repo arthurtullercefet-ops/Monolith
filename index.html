@@ -14,8 +14,8 @@
   <link rel="manifest" href="manifest.webmanifest" />
   <link rel="icon" href="monolith-icon.svg" />
   <script>
-window.MONOLITH_BUILD = "monolith-v91-timeline-onboarding-hydration";
-window.MONOLITH_VERSION_LABEL = "Monolith v91 · 13/08/2026";
+window.MONOLITH_BUILD = "monolith-v92-safety-dedupe-navigation";
+window.MONOLITH_VERSION_LABEL = "Monolith v92 · 21/08/2026";
     (function clearOldAppCaches() {
       if ("serviceWorker" in navigator) {
         navigator.serviceWorker.getRegistrations?.()
@@ -185,6 +185,26 @@ window.MONOLITH_VERSION_LABEL = "Monolith v91 · 13/08/2026";
 
     body:not(.authenticated) .app {
       display: none;
+    }
+
+    .skip-link {
+      position: fixed;
+      left: 16px;
+      top: 16px;
+      z-index: 10000;
+      transform: translateY(-140%);
+      border: 1px solid var(--gold);
+      background: var(--black);
+      color: var(--text);
+      padding: 10px 14px;
+      border-radius: var(--radius-button);
+      font-weight: 800;
+    }
+
+    .skip-link:focus {
+      transform: translateY(0);
+      outline: 2px solid var(--gold);
+      outline-offset: 2px;
     }
 
     button, input, textarea {
@@ -703,6 +723,18 @@ window.MONOLITH_VERSION_LABEL = "Monolith v91 · 13/08/2026";
     .nav-btn.active svg {
       color: var(--gold);
     }
+
+    body.auth-role-student .nav-btn[data-screen="home"] { order: 1; }
+    body.auth-role-student .nav-btn[data-screen="workouts"] { order: 2; }
+    body.auth-role-student .nav-btn[data-screen="nutrition"] { order: 3; }
+    body.auth-role-student .nav-btn[data-screen="checkin"] { order: 4; }
+    body.auth-role-student .nav-btn[data-screen="stats"] { order: 5; }
+    body.auth-role-student .nav-btn[data-screen="timeline"] { order: 6; }
+    body.auth-role-student .nav-btn[data-screen="anamnesis"] { order: 7; }
+    body.auth-role-student .nav-btn[data-screen="programs"] { order: 8; }
+    body.auth-role-student .nav-btn[data-screen="trainerMap"] { order: 9; }
+    body.auth-role-student .nav-btn[data-screen="profile"] { order: 10; }
+    body.auth-role-student .nav-btn[data-screen="onboarding"] { display: none !important; }
 
     .offline {
       margin-top: auto;
@@ -4153,6 +4185,13 @@ window.MONOLITH_VERSION_LABEL = "Monolith v91 · 13/08/2026";
       color: var(--green);
     }
 
+    .anamnesis-step-button.locked,
+    .anamnesis-step-button[aria-disabled="true"] {
+      opacity: .45;
+      cursor: not-allowed;
+      border-style: dashed;
+    }
+
     .anamnesis-conditional {
       grid-column: 1 / -1;
       border-left: 2px solid var(--gold);
@@ -4458,6 +4497,7 @@ window.MONOLITH_VERSION_LABEL = "Monolith v91 · 13/08/2026";
   </style>
 </head>
 <body>
+  <a class="skip-link" href="#mainContent">Pular para o conteúdo principal</a>
   <section class="auth-screen" id="authScreen">
     <div class="auth-hero">
       <div class="auth-top">
@@ -4509,7 +4549,7 @@ window.MONOLITH_VERSION_LABEL = "Monolith v91 · 13/08/2026";
           <button class="action" id="loginButton" type="submit">Entrar</button>
           <div class="auth-tools">
             <button class="auth-secondary" id="clearDeviceSessionButton" type="button">Limpar sessão/cache deste aparelho</button>
-            <div class="build-version" id="buildVersionLabel">Versão do app: Monolith v91 · 13/08/2026</div>
+            <div class="build-version" id="buildVersionLabel">Versão do app: Monolith v92 · 21/08/2026</div>
           </div>
         </form>
       </div>
@@ -4576,7 +4616,7 @@ window.MONOLITH_VERSION_LABEL = "Monolith v91 · 13/08/2026";
             <label for="signupPasswordConfirm">Confirmar senha</label>
             <input id="signupPasswordConfirm" type="password" autocomplete="new-password" required minlength="6" placeholder="Repita a senha" data-i18n-placeholder="Repita a senha" />
           </div>
-          <div>
+          <div id="signupPersonalCodeField">
             <label for="signupPersonalCode">Código do personal</label>
             <input id="signupPersonalCode" placeholder="Opcional para aluno" data-i18n-placeholder="Opcional para aluno" />
           </div>
@@ -4850,7 +4890,7 @@ window.MONOLITH_VERSION_LABEL = "Monolith v91 · 13/08/2026";
       </div>
     </aside>
 
-    <main>
+    <main id="mainContent" tabindex="-1">
       <section id="home" class="screen active">
         <div class="topbar">
           <div>
@@ -6297,8 +6337,8 @@ window.MONOLITH_VERSION_LABEL = "Monolith v91 · 13/08/2026";
   <script>
     const MONOLITH_SUPABASE_URL = "https://jhxasnxuvmkhntbwepau.supabase.co";
     const MONOLITH_SUPABASE_KEY = "sb_publishable_lDtAXIOtkMwgwsAZyghBdg_gyLHGwpH";
-const MONOLITH_BUILD = window.MONOLITH_BUILD || "monolith-v91-timeline-onboarding-hydration";
-const MONOLITH_VERSION_LABEL = window.MONOLITH_VERSION_LABEL || "Monolith v91 · 13/08/2026";
+const MONOLITH_BUILD = window.MONOLITH_BUILD || "monolith-v92-safety-dedupe-navigation";
+const MONOLITH_VERSION_LABEL = window.MONOLITH_VERSION_LABEL || "Monolith v92 · 21/08/2026";
     const monolithSupabase = window.supabase?.createClient?.(MONOLITH_SUPABASE_URL, MONOLITH_SUPABASE_KEY, {
       auth: {
         storage: window.sessionStorage,
@@ -6729,8 +6769,11 @@ const MONOLITH_VERSION_LABEL = window.MONOLITH_VERSION_LABEL || "Monolith v91 ·
     let actionConfirmationLastFocus = null;
 
     function createClientRequestId(scope = "operation") {
-      const random = window.crypto?.randomUUID?.() || `${Date.now()}-${Math.random().toString(16).slice(2)}`;
-      return `${scope}:${random}`;
+      if (window.crypto?.randomUUID) return window.crypto.randomUUID();
+      const template = "10000000-1000-4000-8000-100000000000";
+      return template.replace(/[018]/g, char =>
+        (Number(char) ^ Math.random() * 16 >> Number(char) / 4).toString(16)
+      );
     }
 
     function clientRequestSchemaUnavailable(error) {
@@ -8286,7 +8329,7 @@ const MONOLITH_VERSION_LABEL = window.MONOLITH_VERSION_LABEL || "Monolith v91 ·
     }
 
     function completedWorkoutVolume(session) {
-      return (session.exercises || []).reduce((sessionTotal, exercise) => sessionTotal + (exercise.sets || []).reduce((exerciseTotal, set) => {
+      return (session.exercises || []).reduce((sessionTotal, exercise) => sessionTotal + reportUsableWorkoutSets(exercise.sets || []).reduce((exerciseTotal, set) => {
         const weight = Number(String(set.weight ?? "").replace(",", "."));
         const reps = Number(String(set.reps ?? "").replace(",", "."));
         return exerciseTotal + (Number.isFinite(weight) && Number.isFinite(reps) ? weight * reps : 0);
@@ -8325,7 +8368,7 @@ const MONOLITH_VERSION_LABEL = window.MONOLITH_VERSION_LABEL || "Monolith v91 ·
       const lastDate = dateFromKey(lastCheckin?.date);
       const daysSinceCheckin = lastDate && today ? Math.max(0, Math.floor((today - lastDate) / 86400000)) : null;
       const lastWorkout = [...allCompleted].sort((a, b) => String(b.completedAt || b.date || "").localeCompare(String(a.completedAt || a.date || "")))[0] || null;
-      const bodyEntries = loadBodyMeasures(studentId);
+      const bodyEntries = reportUsableBodyMeasures(loadBodyMeasures(studentId));
       const weightCandidates = [
         ...bodyEntries.filter(entry => Number.isFinite(Number(entry.weight))).map(entry => ({ date: entry.date, value: Number(entry.weight) })),
         ...loadCheckins(studentId).filter(entry => Number.isFinite(Number(entry.weight))).map(entry => ({ date: entry.date, value: Number(entry.weight) }))
@@ -8601,6 +8644,8 @@ const MONOLITH_VERSION_LABEL = window.MONOLITH_VERSION_LABEL || "Monolith v91 ·
     async function renderTrainerLinkPanel() {
       const panel = document.getElementById("trainerLinkPanel");
       const status = document.getElementById("trainerLinkStatus");
+      const form = document.getElementById("trainerLinkForm");
+      const helper = panel?.querySelector(".report-line");
       if (!panel || !status) return;
       const user = currentAccount();
       panel.hidden = !user || user.role !== "student";
@@ -8609,13 +8654,19 @@ const MONOLITH_VERSION_LABEL = window.MONOLITH_VERSION_LABEL || "Monolith v91 ·
         if (!user.trainerId) status.textContent = t("Verificando vínculo com personal...");
         const trainerId = user.trainerId || await ensureStudentTrainerId(user);
         if (!trainerId) {
+          if (form) form.hidden = false;
+          if (helper) helper.hidden = false;
           status.textContent = t("Sem personal vinculado.");
           return;
         }
         const trainer = loadAccounts().find(account => account.id === trainerId);
+        if (form) form.hidden = true;
+        if (helper) helper.hidden = true;
         status.textContent = trainer ? `${t("Vinculado a")} ${trainer.name}.` : t("Aluno vinculado a um personal.");
         return;
       }
+      if (form) form.hidden = false;
+      if (helper) helper.hidden = false;
       status.textContent = t("Sem personal vinculado.");
     }
 
@@ -10579,6 +10630,16 @@ const MONOLITH_VERSION_LABEL = window.MONOLITH_VERSION_LABEL || "Monolith v91 ·
       return [...(section?.querySelectorAll("input[name], select[name], textarea[name]") || [])].some(control => String(control.value || "").trim());
     }
 
+    function reachableAnamnesisStep() {
+      const sections = [...document.querySelectorAll("[data-anamnesis-step]")];
+      let reachable = 0;
+      for (let step = 0; step < sections.length - 1; step += 1) {
+        if (!anamnesisStepComplete(step)) break;
+        reachable = step + 1;
+      }
+      return Math.min(sections.length - 1, reachable);
+    }
+
     function updateAnamnesisProgress() {
       const required = anamnesisRequiredControls();
       const answered = required.filter(control => String(control.value || "").trim()).length;
@@ -10591,9 +10652,14 @@ const MONOLITH_VERSION_LABEL = window.MONOLITH_VERSION_LABEL || "Monolith v91 ·
       if (bar) bar.style.width = `${percent}%`;
       if (track) track.setAttribute("aria-valuenow", String(percent));
       if (label) label.textContent = `${percent}% ${t("concluído")}`;
+      const maxReachable = reachableAnamnesisStep();
       document.querySelectorAll(".anamnesis-step-button").forEach(button => {
         const step = Number(button.dataset.anamnesisGo);
+        const locked = currentAccount()?.role === "student" && step > maxReachable;
         button.classList.toggle("complete", step < 5 ? anamnesisStepComplete(step) : percent === 100);
+        button.classList.toggle("locked", locked);
+        button.setAttribute("aria-disabled", String(locked));
+        button.title = locked ? t("Conclua a etapa atual para avançar.") : "";
       });
     }
 
@@ -11121,12 +11187,12 @@ const MONOLITH_VERSION_LABEL = window.MONOLITH_VERSION_LABEL || "Monolith v91 ·
       }
       const statusLabel = dietPlanStatusLabel(plan);
       container.innerHTML = `
-        <div class="metric"><span>${escapeHTML(t("Meta mensal"))}</span><b>${escapeHTML(plan.calories || "--")} kcal</b></div>
+        <div class="metric"><span>${escapeHTML(t("Meta diária"))}</span><b>${escapeHTML(plan.calories || "--")} kcal</b></div>
         <div class="pill-row">
           <span class="pill">${escapeHTML(t(statusLabel))}</span>
-          <span class="pill">${escapeHTML(t("Proteína"))}: ${escapeHTML(plan.protein || "--")}</span>
-          <span class="pill">${escapeHTML(t("Carbo"))}: ${escapeHTML(plan.carbs || "--")}</span>
-          <span class="pill">${escapeHTML(t("Gordura"))}: ${escapeHTML(plan.fat || "--")}</span>
+          <span class="pill">${escapeHTML(t("Proteína"))}: ${escapeHTML(plan.protein || "--")} g</span>
+          <span class="pill">${escapeHTML(t("Carboidratos"))}: ${escapeHTML(plan.carbs || "--")} g</span>
+          <span class="pill">${escapeHTML(t("Gorduras"))}: ${escapeHTML(plan.fat || "--")} g</span>
           <span class="pill">${escapeHTML(quantityLabel(plan.meals?.length || 0, "refeição", "refeições"))}</span>
         </div>
         ${(plan.meals || []).map((meal, index) => `
@@ -12094,6 +12160,9 @@ const MONOLITH_VERSION_LABEL = window.MONOLITH_VERSION_LABEL || "Monolith v91 ·
         "Orientação específica para o aluno": "Specific guidance for the student",
         "Nenhuma dieta prescrita para este mês.": "No diet prescribed for this month.",
         "Meta mensal": "Monthly target",
+        "Meta diária": "Daily target",
+        "Carboidratos": "Carbohydrates",
+        "Gorduras": "Fats",
         "refeição": "meal",
         "refeições": "meals",
         "Sem alimentos cadastrados.": "No foods registered.",
@@ -12279,6 +12348,7 @@ const MONOLITH_VERSION_LABEL = window.MONOLITH_VERSION_LABEL || "Monolith v91 ·
         "Não consegui salvar a anamnese no Supabase. Rode a etapa 11 do banco e tente novamente.": "Could not save the questionnaire to Supabase. Run database step 11 and try again.",
         "Anamnese salva no Supabase.": "Questionnaire saved to Supabase.",
         "Anamnese salva.": "Questionnaire saved.",
+        "Conclua a etapa atual para avançar.": "Complete the current step to continue.",
         "Detalhes da meta": "Goal details",
         "Condições de saúde": "Health conditions",
         "Medicamentos": "Medications",
@@ -13404,6 +13474,9 @@ const MONOLITH_VERSION_LABEL = window.MONOLITH_VERSION_LABEL || "Monolith v91 ·
         "Orientação específica para o aluno": "Orientación específica para el alumno",
         "Nenhuma dieta prescrita para este mês.": "No hay dieta prescrita para este mes.",
         "Meta mensal": "Meta mensual",
+        "Meta diária": "Meta diaria",
+        "Carboidratos": "Carbohidratos",
+        "Gorduras": "Grasas",
         "refeição": "comida",
         "refeições": "comidas",
         "Sem alimentos cadastrados.": "Sin alimentos registrados.",
@@ -13590,6 +13663,7 @@ const MONOLITH_VERSION_LABEL = window.MONOLITH_VERSION_LABEL || "Monolith v91 ·
         "Não consegui salvar a anamnese no Supabase. Rode a etapa 11 do banco e tente novamente.": "No pude guardar la anamnesis en Supabase. Ejecuta el paso 11 de la base de datos e inténtalo de nuevo.",
         "Anamnese salva no Supabase.": "Anamnesis guardada en Supabase.",
         "Anamnese salva.": "Anamnesis guardada.",
+        "Conclua a etapa atual para avançar.": "Completa la etapa actual para avanzar.",
         "Detalhes da meta": "Detalles de la meta",
         "Condições de saúde": "Condiciones de salud",
         "Medicamentos": "Medicamentos",
@@ -15954,16 +16028,15 @@ const MONOLITH_VERSION_LABEL = window.MONOLITH_VERSION_LABEL || "Monolith v91 ·
       const includeArchived = document.getElementById("measureHistoryIncludeArchived")?.checked === true;
       const cutoff = periodValue === "all" ? null : new Date();
       if (cutoff) cutoff.setDate(cutoff.getDate() - Number(periodValue));
-      return entries.filter(entry => {
-        if (!includeArchived && entry.archivedAt) return false;
-        if (!includeSuspicious && entry.isSuspicious) return false;
+      return reportUsableBodyMeasures(entries, { includeSuspicious, includeArchived }).filter(entry => {
         if (cutoff && new Date(`${entry.date}T12:00:00`) < cutoff) return false;
         return true;
       });
     }
 
-    function bodyMeasureSeries(key, entries = loadBodyMeasures()) {
-      return entries
+    function bodyMeasureSeries(key, entries = loadBodyMeasures(), options = {}) {
+      const includeSuspicious = options.includeSuspicious === true;
+      return reportUsableBodyMeasures(entries, { includeSuspicious })
         .filter(entry => !entry.archivedAt && Number.isFinite(Number(entry[key])))
         .map(entry => ({ date: entry.date, value: Number(entry[key]) }))
         .sort((a, b) => a.date.localeCompare(b.date));
@@ -16003,6 +16076,7 @@ const MONOLITH_VERSION_LABEL = window.MONOLITH_VERSION_LABEL || "Monolith v91 ·
       const measureTargetId = selectedMeasureTargetId();
       const allEntries = canMeasureSelf && measureTargetId ? loadBodyMeasures(measureTargetId, { includeArchived: true }) : [];
       const entries = filteredBodyMeasureEntries(allEntries);
+      const includeSuspicious = document.getElementById("measureChartIncludeSuspicious")?.checked === true;
       const latest = entries.find(entry => !entry.archivedAt);
       const setText = (id, value) => {
         const target = document.getElementById(id);
@@ -16012,15 +16086,15 @@ const MONOLITH_VERSION_LABEL = window.MONOLITH_VERSION_LABEL || "Monolith v91 ·
       setText("latestBodyFat", latest?.bodyFat ? `${latest.bodyFat}%` : "--");
       setText("latestWaist", latest?.waist ? `${latest.waist} cm` : "--");
       setText("measureCount", String(entries.filter(entry => !entry.archivedAt).length));
-      renderMiniChart("measureWeightChart", displayWeightSeries(bodyMeasureSeries("weight", entries)), weightUnitLabel(), "Sem pesos salvos nas medidas.");
-      renderMiniChart("bodyFatChart", bodyMeasureSeries("bodyFat", entries), "%", "Sem percentual de gordura salvo.");
+      renderMiniChart("measureWeightChart", displayWeightSeries(bodyMeasureSeries("weight", entries, { includeSuspicious })), weightUnitLabel(), "Sem pesos salvos nas medidas.");
+      renderMiniChart("bodyFatChart", bodyMeasureSeries("bodyFat", entries, { includeSuspicious }), "%", "Sem percentual de gordura salvo.");
       const measureBars = document.getElementById("bodyMeasureBars");
       if (measureBars) {
         if (!latest) {
           measureBars.innerHTML = `<div class="report-line">${t("Salve um registro físico para começar os gráficos.")}</div>`;
         } else {
           measureBars.innerHTML = bodyMeasureFields.map(field => {
-            const series = bodyMeasureSeries(field.key, entries);
+            const series = bodyMeasureSeries(field.key, entries, { includeSuspicious });
             const first = series[0]?.value;
             const current = latest[field.key];
             const delta = current !== null && current !== undefined && first !== undefined ? current - first : 0;
@@ -16303,6 +16377,27 @@ const MONOLITH_VERSION_LABEL = window.MONOLITH_VERSION_LABEL || "Monolith v91 ·
       return Number.isFinite(parsed) ? parsed : 0;
     }
 
+    function reportMetricInRange(value, min = 0, max = Number.MAX_SAFE_INTEGER) {
+      const parsed = reportNumber(value);
+      return Number.isFinite(parsed) && parsed >= min && parsed <= max;
+    }
+
+    function reportUsableWorkoutSet(set = {}) {
+      return reportMetricInRange(set.weight, 0, 600) && reportMetricInRange(set.reps, 1, 100);
+    }
+
+    function reportUsableWorkoutSets(sets = []) {
+      return (sets || []).filter(reportUsableWorkoutSet);
+    }
+
+    function reportUsableBodyMeasures(entries = [], { includeSuspicious = false, includeArchived = false } = {}) {
+      return (entries || []).filter(entry => {
+        if (!includeArchived && entry.archivedAt) return false;
+        if (!includeSuspicious && entry.isSuspicious) return false;
+        return true;
+      });
+    }
+
     function setVolume(set) {
       return reportNumber(set.weight) * reportNumber(set.reps);
     }
@@ -16314,7 +16409,7 @@ const MONOLITH_VERSION_LABEL = window.MONOLITH_VERSION_LABEL || "Monolith v91 ·
     }
 
     function sessionExerciseScore(exercise) {
-      const sets = exercise.sets || [];
+      const sets = reportUsableWorkoutSets(exercise.sets || []);
       const volume = sets.reduce((total, set) => total + setVolume(set), 0);
       const bestE1rm = Math.max(0, ...sets.map(estimatedOneRepMax));
       const bestSet = sets.reduce((best, set) => {
@@ -17549,6 +17644,18 @@ ${photoSections}
     });
     document.getElementById("forgotBackToLoginButton")?.addEventListener("click", () => showLoginPanel());
     document.getElementById("backToLoginButton")?.addEventListener("click", () => showLoginPanel());
+    function syncSignupRoleFields() {
+      const role = document.getElementById("signupRole")?.value || "student";
+      const personalCodeField = document.getElementById("signupPersonalCodeField");
+      const personalCode = document.getElementById("signupPersonalCode");
+      if (personalCodeField) personalCodeField.hidden = role === "personal";
+      if (personalCode) {
+        personalCode.disabled = role === "personal";
+        if (role === "personal") personalCode.value = "";
+      }
+    }
+    document.getElementById("signupRole")?.addEventListener("change", syncSignupRoleFields);
+    syncSignupRoleFields();
     ["loginEmail", "loginPassword"].forEach(id => {
       document.getElementById(id)?.addEventListener("input", () => showLoginNotice(""));
     });
@@ -17890,7 +17997,8 @@ ${photoSections}
       if (restored && user) hydrateRemoteFactors(user);
       if (user && !await maybeRequireTrainerProfile(user)) {
         const sectionFromUrl = statsSectionFromHash();
-        showScreen(sectionFromUrl ? "stats" : (user.role === "personal" ? "clients" : "home"), {
+        const screenFromUrl = appScreenFromHash();
+        showScreen(sectionFromUrl ? "stats" : (screenFromUrl || (user.role === "personal" ? "clients" : "home")), {
           section: sectionFromUrl || "",
           historyMode: "replace"
         });
@@ -17931,7 +18039,7 @@ ${photoSections}
         overview: "#ficha",
         evolution: "#evolucao",
         measures: "#medidas",
-        training: "#treinos",
+        training: "#evolucao-treinos",
         photos: "#fotos",
         reports: "#relatorios"
       };
@@ -17943,16 +18051,59 @@ ${photoSections}
         "#ficha": "overview",
         "#evolucao": "evolution",
         "#medidas": "measures",
-        "#treinos": "training",
+        "#evolucao-treinos": "training",
         "#fotos": "photos",
         "#relatorios": "reports"
       };
       return sections[String(hash || "").toLowerCase()] || "";
     }
 
+    function appScreenHash(screen = "home") {
+      const hashes = {
+        home: "#inicio",
+        clients: "#alunos",
+        workouts: "#treinos",
+        nutrition: "#dietas",
+        checkin: "#checkins",
+        stats: "#evolucao",
+        timeline: "#linha-do-tempo",
+        anamnesis: "#anamnese",
+        programs: "#programas",
+        trainerMap: "#personais",
+        profile: "#perfil",
+        pulse: "#pulse",
+        leads: "#leads",
+        space: "#space",
+        onboarding: "#primeiros-passos",
+        session: "#sessao"
+      };
+      return hashes[screen] || "";
+    }
+
+    function appScreenFromHash(hash = location.hash) {
+      const screens = {
+        "#inicio": "home",
+        "#alunos": "clients",
+        "#treinos": "workouts",
+        "#dietas": "nutrition",
+        "#checkins": "checkin",
+        "#linha-do-tempo": "timeline",
+        "#anamnese": "anamnesis",
+        "#programas": "programs",
+        "#personais": "trainerMap",
+        "#perfil": "profile",
+        "#pulse": "pulse",
+        "#leads": "leads",
+        "#space": "space",
+        "#primeiros-passos": "onboarding",
+        "#sessao": "session"
+      };
+      return screens[String(hash || "").toLowerCase()] || "";
+    }
+
     function writeAppLocation(screen, section = "", mode = "replace") {
       if (mode === "none" || !history?.replaceState) return;
-      const hash = screen === "stats" ? statsSectionHash(section || "overview") : "";
+      const hash = screen === "stats" ? statsSectionHash(section || "overview") : appScreenHash(screen);
       const url = `${location.href.split("#")[0]}${hash}`;
       const state = { monolithScreen: screen, monolithSection: screen === "stats" ? normalizedStudentSection(section) : "" };
       const method = mode === "push" && url !== location.href ? "pushState" : "replaceState";
@@ -18174,7 +18325,7 @@ ${photoSections}
     window.addEventListener("popstate", event => {
       if (!currentAccount()) return;
       const section = statsSectionFromHash();
-      const screen = section ? "stats" : (event.state?.monolithScreen || "home");
+      const screen = section ? "stats" : (appScreenFromHash() || event.state?.monolithScreen || "home");
       showScreen(screen, {
         section: section || event.state?.monolithSection || "",
         historyMode: "replace"
@@ -18483,6 +18634,10 @@ ${photoSections}
       const button = event.target.closest("[data-anamnesis-go]");
       if (!button) return;
       const targetStep = Number(button.dataset.anamnesisGo);
+      if (button.getAttribute("aria-disabled") === "true") {
+        showToast(t("Conclua a etapa atual para avançar."));
+        return;
+      }
       if (currentAccount()?.role === "student" && targetStep > anamnesisCurrentStep && !validateAnamnesis()) return;
       showAnamnesisStep(targetStep, { focus: true });
     });
@@ -18677,14 +18832,6 @@ ${photoSections}
         if (status && !status.classList.contains("error")) status.textContent = t("Foto enviada com segurança.");
         showToast("Foto salva protegida por blur.");
       }, { loadingText: "Enviando foto..." });
-    });
-    document.getElementById("finishExercise").addEventListener("click", () => {
-      document.querySelectorAll(".set-done").forEach(button => {
-        button.classList.add("done");
-        button.textContent = "Concluída";
-      });
-      showToast("Exercício concluído e progressão atualizada.");
-      showScreen("workouts");
     });
     document.getElementById("closeWorkoutModal").addEventListener("click", closeWorkoutModal);
     document.getElementById("cancelWorkout").addEventListener("click", closeWorkoutModal);
@@ -19452,14 +19599,26 @@ ${photoSections}
       return { id: row.id, trainerId: row.trainer_id, interestedUserId: row.interested_user_id, name: row.name, goal: row.goal, modality: row.modality, city: row.city, availability: row.availability, instagram: row.instagram, notes: row.notes, privateNotes: row.private_notes, status: row.status, convertedInviteCode: row.converted_invite_code, clientRequestId: row.client_request_id, createdAt: row.created_at, updatedAt: row.updated_at, source: "supabase" };
     }
 
+    function transformationEventDedupeKey(event = {}) {
+      const studentId = event.studentId || "student";
+      if (event.eventKey) return String(event.eventKey);
+      if (event.type === "achievement" && event.sourceId) return `achievement-${event.sourceId}:${studentId}`;
+      return [event.type || "event", event.sourceId || event.clientRequestId || event.id || createClientRequestId("timeline")].join(":");
+    }
+
     async function appendTransformationEvent(event) {
       const normalized = { id: event.id || `event-${Date.now()}-${Math.random().toString(36).slice(2)}`, clientRequestId: event.clientRequestId || createClientRequestId("timeline"), occurredAt: event.occurredAt || new Date().toISOString(), ...event };
-      saveTransformationEvents(uniqueNewestEntries([normalized, ...loadTransformationEvents()], item => item.clientRequestId || item.id));
+      normalized.eventKey = transformationEventDedupeKey(normalized);
+      saveTransformationEvents(uniqueNewestEntries([normalized, ...loadTransformationEvents()], item => item.eventKey || item.clientRequestId || item.id));
       if (monolithSupabase && isRealSupabaseAccount(currentAccount())) {
-        const payload = { student_id: normalized.studentId, trainer_id: normalized.trainerId || null, event_type: normalized.type, source_id: normalized.sourceId || null, title: normalized.title, details: normalized.details || {}, occurred_at: normalized.occurredAt, client_request_id: normalized.clientRequestId };
-        const { data, error } = await monolithSupabase.from("transformation_events").upsert(payload, { onConflict: "client_request_id" }).select("*").single();
-        if (error) safeRemoteLog("save", "timeline", error, { studentId: normalized.studentId, type: normalized.type });
-        else if (data) normalized.id = data.id;
+        const payload = { student_id: normalized.studentId, trainer_id: normalized.trainerId || null, event_type: normalized.type, source_id: normalized.sourceId || null, event_key: normalized.eventKey, title: normalized.title, details: normalized.details || {}, occurred_at: normalized.occurredAt, client_request_id: normalized.clientRequestId };
+        let result = await monolithSupabase.from("transformation_events").upsert(payload, { onConflict: "student_id,event_key" }).select("*").single();
+        if (result.error && /event_key|schema cache|PGRST204|42P10|constraint/i.test(supabaseErrorText(result.error))) {
+          const { event_key, ...legacyPayload } = payload;
+          result = await monolithSupabase.from("transformation_events").upsert(legacyPayload, { onConflict: "client_request_id" }).select("*").single();
+        }
+        if (result.error) safeRemoteLog("save", "timeline", result.error, { studentId: normalized.studentId, type: normalized.type, eventKey: normalized.eventKey });
+        else if (result.data) normalized.id = result.data.id;
       }
       return normalized;
     }
@@ -19582,7 +19741,7 @@ ${photoSections}
           const { error } = await monolithSupabase.from("student_achievements").upsert({ student_id: studentId, trainer_id: achievement.trainerId, achievement_key: achievement.key, earned_at: achievement.earnedAt, details: achievement.details }, { onConflict: "student_id,achievement_key" });
           if (error) safeRemoteLog("save", "achievement", error, { studentId, key: achievement.key });
         }
-        await appendTransformationEvent({ studentId, trainerId: achievement.trainerId, type: "achievement", sourceId: achievement.key, title: achievement.title, details: achievement.details, clientRequestId: createClientRequestId(`achievement-${achievement.key}`) });
+        await appendTransformationEvent({ studentId, trainerId: achievement.trainerId, type: "achievement", sourceId: achievement.key, eventKey: `achievement-${achievement.key}:${studentId}`, title: achievement.title, details: achievement.details, clientRequestId: createClientRequestId(`achievement-${achievement.key}`) });
       }
       return [...newlyEarned, ...current];
     }
@@ -21097,7 +21256,7 @@ ${photoSections}
         }
         target.innerHTML = voiceStateV2.history.slice(0, 10).map(item => `
           <div class="voice-history-item">
-            <span class="voice-history-mark" aria-hidden="true">${item.status === "rejected" ? "!" : item.status === "undone" ? "↶" : "✓"}</span>
+            <span class="voice-history-mark" aria-hidden="true">${item.status === "rejected" ? "!" : item.status === "undone" ? "↶" : item.status === "interpreted" ? "i" : "✓"}</span>
             <div><strong>${htmlT(item.label)}</strong><span data-no-i18n="true">${html(item.detail || "")}</span></div>
             <time>${html(new Date(item.createdAt).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }))}</time>
           </div>
@@ -21523,6 +21682,10 @@ ${photoSections}
         if (/^(confirmar|confirmo|sim|yes|confirm|confirmar|si)$/.test(normalized.replace(/^(hey )?monolith[ ,]*/, ""))) return { ...result, intent: "confirm", confidence: baseConfidence };
         if (/\b(desfazer|desfaz|undo|deshacer)\b/.test(normalized)) return { ...result, intent: "undo", confidence: baseConfidence };
         if (/\b(repetir|repita|repeat|repite|repetir)\b.*\b(ultima|last|anterior)\b.*\b(serie|set)\b/.test(normalized)) return { ...result, intent: "repeat_set", confidence: baseConfidence };
+        if (/\b(repita|repetir|repeat|repite)\b.*\b(ultima instrucao|ultima orientacao|last instruction|ultima instruccion)\b/.test(normalized)) return { ...result, intent: "repeat_instruction", confidence: baseConfidence };
+        if (/\b(qual e|qual|what is|cual es)\b.*\b(exercicio atual|exercicio agora|current exercise|ejercicio actual)\b/.test(normalized)) return { ...result, intent: "query_current_exercise", confidence: baseConfidence };
+        if (/\b(qual e|qual|what is|cual es)\b.*\b(proxima serie|proximo set|next set|siguiente serie)\b/.test(normalized)) return { ...result, intent: "query_next_set", confidence: baseConfidence };
+        if (/\b(quantas series faltam|quantos sets faltam|how many sets left|cuantas series faltan)\b/.test(normalized)) return { ...result, intent: "query_remaining_sets", confidence: baseConfidence };
         if (/\b(proximo exercicio|proxima exercicio|next exercise|siguiente ejercicio)\b/.test(normalized)) return { ...result, intent: "next_exercise", confidence: baseConfidence };
         if (/\b(quantas series|quantos sets|how many sets|cuantas series)\b/.test(normalized)) return { ...result, intent: "query_sets", confidence: baseConfidence };
         if (/\b(qual foi|quanto foi|what was|cual fue)\b.*\b(ultimo peso|ultima carga|last weight|ultimo peso)\b/.test(normalized)) return { ...result, intent: "query_weight", confidence: baseConfidence };
@@ -21631,6 +21794,10 @@ ${photoSections}
             rest_started: value => `Descanso iniciado. ${value.seconds} segundos.`,
             next_exercise: value => `Próximo exercício: ${value.exercise}.`,
             last_exercise: () => "Este é o último exercício do treino.",
+            current_exercise: value => `Exercício atual: ${value.exercise}.`,
+            next_set: value => `Próxima série: ${value.index} de ${value.total}.`,
+            remaining_sets: value => `Faltam ${value.remaining} séries neste exercício.`,
+            last_instruction: value => value.text || "Ainda não há instrução anterior nesta sessão.",
             sets_summary: value => `Você concluiu ${value.done} de ${value.total} séries neste exercício.`,
             last_weight: value => `Seu último peso foi ${value.weight}.`,
             no_weight: () => "Ainda não há peso registrado neste exercício.",
@@ -21651,7 +21818,7 @@ ${photoSections}
             exercise_selected: value => `${value.exercise} selected.`, exercise_missing: () => "I could not find that exercise. Please repeat the name.",
             set_recorded: value => `Set recorded: ${value.weight}, ${value.reps} reps.`, weight_recorded: value => `Weight recorded: ${value.weight}.`, reps_recorded: value => `Reps recorded: ${value.reps}.`,
             set_repeated: () => "Last set repeated.", set_corrected: () => "Last set corrected.", rest_started: value => `Rest started. ${value.seconds} seconds.`, next_exercise: value => `Next exercise: ${value.exercise}.`,
-            last_exercise: () => "This is the final exercise.", sets_summary: value => `You completed ${value.done} of ${value.total} sets in this exercise.`, last_weight: value => `Your last weight was ${value.weight}.`,
+            last_exercise: () => "This is the final exercise.", current_exercise: value => `Current exercise: ${value.exercise}.`, next_set: value => `Next set: ${value.index} of ${value.total}.`, remaining_sets: value => `${value.remaining} sets left in this exercise.`, last_instruction: value => value.text || "There is no previous instruction in this session.", sets_summary: value => `You completed ${value.done} of ${value.total} sets in this exercise.`, last_weight: value => `Your last weight was ${value.weight}.`,
             no_weight: () => "There is no recorded weight for this exercise yet.", all_sets_done: () => "All sets for this exercise are already complete.", no_previous_set: () => "There is no previous set to repeat or correct yet.",
             undone: () => "Last entry undone.", no_undo: () => "There is no voice entry to undo.", finish_summary: value => `You completed ${value.exercises} exercises and ${value.sets} sets. Finish the workout?`,
             canceled: () => "Action canceled.", confirmed: () => "Action confirmed.", misunderstood: () => "I did not understand the command. Please repeat it.", ambiguous: () => "The value was unclear. Please repeat the weight and reps.", duplicate: () => "That command was already recorded.", confirm_set: value => `Confirm ${value.weight} and ${value.reps} reps?`
@@ -21661,7 +21828,7 @@ ${photoSections}
             exercise_selected: value => `${value.exercise} seleccionado.`, exercise_missing: () => "No encontré ese ejercicio. Repite el nombre.",
             set_recorded: value => `Serie registrada: ${value.weight}, ${value.reps} repeticiones.`, weight_recorded: value => `Peso registrado: ${value.weight}.`, reps_recorded: value => `Repeticiones registradas: ${value.reps}.`,
             set_repeated: () => "Última serie repetida.", set_corrected: () => "Última serie corregida.", rest_started: value => `Descanso iniciado. ${value.seconds} segundos.`, next_exercise: value => `Siguiente ejercicio: ${value.exercise}.`,
-            last_exercise: () => "Este es el último ejercicio.", sets_summary: value => `Completaste ${value.done} de ${value.total} series en este ejercicio.`, last_weight: value => `Tu último peso fue ${value.weight}.`,
+            last_exercise: () => "Este es el último ejercicio.", current_exercise: value => `Ejercicio actual: ${value.exercise}.`, next_set: value => `Siguiente serie: ${value.index} de ${value.total}.`, remaining_sets: value => `Faltan ${value.remaining} series en este ejercicio.`, last_instruction: value => value.text || "Todavía no hay una instrucción anterior en esta sesión.", sets_summary: value => `Completaste ${value.done} de ${value.total} series en este ejercicio.`, last_weight: value => `Tu último peso fue ${value.weight}.`,
             no_weight: () => "Todavía no hay peso registrado para este ejercicio.", all_sets_done: () => "Todas las series de este ejercicio ya están completadas.", no_previous_set: () => "Todavía no hay una serie anterior para repetir o corregir.",
             undone: () => "Último registro deshecho.", no_undo: () => "No hay un registro de voz para deshacer.", finish_summary: value => `Realizaste ${value.exercises} ejercicios y ${value.sets} series. ¿Finalizar el entrenamiento?`,
             canceled: () => "Acción cancelada.", confirmed: () => "Acción confirmada.", misunderstood: () => "No entendí el comando. Repítelo.", ambiguous: () => "El valor no quedó claro. Repite el peso y las repeticiones.", duplicate: () => "Ese comando ya fue registrado.", confirm_set: value => `¿Confirmas ${value.weight} y ${value.reps} repeticiones?`
@@ -21802,6 +21969,10 @@ ${photoSections}
         return ["record_set", "repeat_set", "correct_set", "undo", "start_rest", "start_workout", "select_exercise", "next_exercise", "finish_workout"].includes(intent);
       }
 
+      function voiceIsReadOnlyQueryV2(intent) {
+        return ["query_sets", "query_weight", "query_current_exercise", "query_next_set", "query_remaining_sets", "repeat_instruction"].includes(intent);
+      }
+
       function voiceNeedsConfidenceConfirmationV2(intent) {
         return ["record_set", "repeat_set", "correct_set"].includes(intent);
       }
@@ -21878,11 +22049,44 @@ ${photoSections}
           voiceVibrateV2(35);
           return true;
         }
+        if (intent === "query_current_exercise") {
+          const exercise = activeWorkoutV2?.exercises?.[voiceStateV2.currentExerciseIndex] || null;
+          if (!exercise) { speakVoiceV2(voiceReplyV2("exercise_missing")); return false; }
+          const language = voiceLanguageV2().slice(0, 2);
+          const name = exerciseDisplayNameV2(exercise, language === "en" ? "en" : language === "es" ? "es" : "pt");
+          speakVoiceV2(voiceReplyV2("current_exercise", { exercise: name }));
+          addVoiceHistoryV2("Consulta interpretada", name, "interpreted", commandId);
+          return true;
+        }
+        if (intent === "query_next_set") {
+          const rows = voiceRowsV2();
+          const next = voiceNextSetRowV2();
+          if (!rows.length || !next) { speakVoiceV2(voiceReplyV2("all_sets_done")); return false; }
+          const index = rows.indexOf(next) + 1;
+          speakVoiceV2(voiceReplyV2("next_set", { index, total: rows.length }));
+          addVoiceHistoryV2("Consulta interpretada", `${index}/${rows.length}`, "interpreted", commandId);
+          return true;
+        }
+        if (intent === "query_remaining_sets") {
+          const rows = voiceRowsV2();
+          const done = rows.filter(row => row.querySelector(".set-done-v2")?.classList.contains("done")).length;
+          const remaining = Math.max(0, rows.length - done);
+          speakVoiceV2(voiceReplyV2("remaining_sets", { remaining, total: rows.length }));
+          addVoiceHistoryV2("Consulta interpretada", `${remaining}/${rows.length}`, "interpreted", commandId);
+          return true;
+        }
+        if (intent === "repeat_instruction") {
+          const last = voiceStateV2.history.find(item => item.status !== "rejected" && item.label !== "Consulta interpretada");
+          const text = [last?.label, last?.detail].filter(Boolean).join(": ");
+          speakVoiceV2(voiceReplyV2("last_instruction", { text }));
+          addVoiceHistoryV2("Consulta interpretada", text || "Sem instrução anterior", "interpreted", commandId);
+          return true;
+        }
         if (intent === "query_sets") {
           const rows = voiceRowsV2();
           const done = rows.filter(row => row.querySelector(".set-done-v2")?.classList.contains("done")).length;
           speakVoiceV2(voiceReplyV2("sets_summary", { done, total: rows.length }));
-          addVoiceHistoryV2("Resumo consultado", `${done}/${rows.length}`, "applied", commandId);
+          addVoiceHistoryV2("Consulta interpretada", `${done}/${rows.length}`, "interpreted", commandId);
           return true;
         }
         if (intent === "query_weight") {
@@ -21896,7 +22100,7 @@ ${photoSections}
           if (kg === null) { speakVoiceV2(voiceReplyV2("no_weight")); return false; }
           const formatted = formatWeight(kg);
           speakVoiceV2(voiceReplyV2("last_weight", { weight: formatted }));
-          addVoiceHistoryV2("Carga consultada", formatted, "applied", commandId);
+          addVoiceHistoryV2("Consulta interpretada", formatted, "interpreted", commandId);
           return true;
         }
         if (intent === "record_set") {
@@ -22037,9 +22241,10 @@ ${photoSections}
           setVoiceVisualStateV2("error", "Não consegui aplicar o comando", "O treino não foi alterado. Tente novamente.", 3200);
           applied = false;
         }
-        const finalStatus = applied ? "applied" : "rejected";
+        const finalStatus = applied ? (voiceIsReadOnlyQueryV2(command.intent) ? "interpreted" : "applied") : "rejected";
         syncVoiceCommandRemoteV2({ ...initialReceipt, status: finalStatus }).catch(error => logAppError("voice", "sync-command-final", error, { commandId: command.commandId }));
-        if (applied && command.intent !== "finish_workout") setVoiceVisualStateV2("saved", "Comando salvo", "Registro aplicado ao treino atual.", 2600);
+        if (applied && voiceIsReadOnlyQueryV2(command.intent)) setVoiceVisualStateV2("saved", "Consulta interpretada", "O treino não foi alterado.", 2600);
+        else if (applied && command.intent !== "finish_workout") setVoiceVisualStateV2("saved", "Comando salvo", "Registro aplicado ao treino atual.", 2600);
         else if (!applied && !["cancel", "unknown"].includes(command.intent)) setVoiceVisualStateV2("misunderstood", "Comando não aplicado", "Revise o exercício atual e tente novamente.", 2600);
         scheduleVoiceSessionSyncV2();
         return applied;
