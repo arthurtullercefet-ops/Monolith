@@ -14,8 +14,8 @@
   <link rel="manifest" href="manifest.webmanifest" />
   <link rel="icon" href="monolith-icon.svg" />
   <script>
-window.MONOLITH_BUILD = "monolith-v93-supplement-plan";
-window.MONOLITH_VERSION_LABEL = "Monolith v93 · 21/08/2026";
+window.MONOLITH_BUILD = "monolith-v94-voice-discovery";
+window.MONOLITH_VERSION_LABEL = "Monolith v94 · 21/08/2026";
     (function clearOldAppCaches() {
       if ("serviceWorker" in navigator) {
         navigator.serviceWorker.getRegistrations?.()
@@ -4368,6 +4368,19 @@ window.MONOLITH_VERSION_LABEL = "Monolith v93 · 21/08/2026";
       text-align: left;
     }
 
+    .session-voice-button {
+      min-width: 176px;
+      justify-content: center;
+    }
+
+    .session-voice-status {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      color: var(--muted);
+      font-size: 12px;
+    }
+
     .sr-only {
       position: absolute !important;
       width: 1px !important;
@@ -4443,6 +4456,7 @@ window.MONOLITH_VERSION_LABEL = "Monolith v93 · 21/08/2026";
     }
 
     .voice-panel.open { opacity: 1; visibility: visible; transform: translateY(0); }
+    .voice-panel:focus { outline: none; }
     .voice-panel-head, .voice-status-row, .voice-command-actions, .voice-history-head {
       display: flex;
       align-items: center;
@@ -4484,8 +4498,25 @@ window.MONOLITH_VERSION_LABEL = "Monolith v93 · 21/08/2026";
     .session-exercise.voice-current .session-exercise-head .kicker::after { content: " · VOICE"; color: var(--gold); }
 
     @media (max-width: 760px) {
-      .voice-fab { right: 16px; bottom: 16px; width: calc(100vw - 32px); }
-      .voice-panel { right: 16px; bottom: 92px; width: calc(100vw - 32px); max-height: calc(100vh - 116px); }
+      .voice-fab {
+        right: max(12px, env(safe-area-inset-right));
+        bottom: max(16px, env(safe-area-inset-bottom));
+        width: min(280px, calc(100vw - 24px));
+        min-height: 52px;
+        grid-template-columns: 40px minmax(0, 1fr);
+      }
+      .voice-fab .voice-mic-icon { width: 40px; height: 40px; }
+      .voice-fab .voice-countdown { display: none; }
+      .voice-fab-copy strong::before { content: "Abrir Voice"; }
+      .voice-fab.open .voice-fab-copy strong::before { content: "Fechar Voice"; }
+      .voice-fab-copy strong { font-size: 0; }
+      .voice-fab-copy strong::before { font-size: 13px; }
+      .voice-panel {
+        right: max(12px, env(safe-area-inset-right));
+        bottom: calc(76px + env(safe-area-inset-bottom));
+        width: calc(100vw - 24px);
+        max-height: calc(100vh - 104px - env(safe-area-inset-bottom));
+      }
       .voice-settings-grid { grid-template-columns: 1fr; }
       .voice-settings-grid .field.full { grid-column: auto; }
     }
@@ -4549,7 +4580,7 @@ window.MONOLITH_VERSION_LABEL = "Monolith v93 · 21/08/2026";
           <button class="action" id="loginButton" type="submit">Entrar</button>
           <div class="auth-tools">
             <button class="auth-secondary" id="clearDeviceSessionButton" type="button">Limpar sessão/cache deste aparelho</button>
-            <div class="build-version" id="buildVersionLabel">Versão do app: Monolith v93 · 21/08/2026</div>
+            <div class="build-version" id="buildVersionLabel">Versão do app: Monolith v94 · 21/08/2026</div>
           </div>
         </form>
       </div>
@@ -5296,7 +5327,7 @@ window.MONOLITH_VERSION_LABEL = "Monolith v93 · 21/08/2026";
             <h2 id="sessionTitle">Costas + Panturrilha</h2>
             <div class="date" id="sessionMeta">Conclua exercício por exercício</div>
           </div>
-          <div class="action-row"><button class="ghost" id="feedbackWorkoutButton" type="button" data-role-only="student">Enviar feedback</button><button class="action" id="finishExercise">Concluir treino</button></div>
+          <div class="action-row"><button class="ghost" id="feedbackWorkoutButton" type="button" data-role-only="student">Enviar feedback</button><button class="ghost session-voice-button" id="sessionVoiceButton" type="button" data-role-only="student" aria-controls="monolithVoicePanel" aria-expanded="false" aria-label="Abrir Monolith Voice">Monolith Voice · <span id="sessionVoiceStatus">Desligado</span></button><button class="action" id="finishExercise">Concluir treino</button></div>
         </div>
         <div class="grid stats-layout">
           <div class="panel">
@@ -5317,7 +5348,7 @@ window.MONOLITH_VERSION_LABEL = "Monolith v93 · 21/08/2026";
           </div>
         </div>
 
-        <button class="voice-fab" id="monolithVoiceFab" type="button" data-state="off" aria-controls="monolithVoicePanel" aria-expanded="false" hidden>
+        <button class="voice-fab" id="monolithVoiceFab" type="button" data-state="off" aria-controls="monolithVoicePanel" aria-expanded="false" aria-label="Abrir Monolith Voice" hidden>
           <span class="voice-mic-icon" aria-hidden="true">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="2" width="6" height="12" rx="3"></rect><path d="M5 10a7 7 0 0 0 14 0"></path><path d="M12 17v5"></path><path d="M8 22h8"></path></svg>
           </span>
@@ -5325,7 +5356,7 @@ window.MONOLITH_VERSION_LABEL = "Monolith v93 · 21/08/2026";
           <time class="voice-countdown" id="voiceCountdown" datetime="PT2H">02:00:00</time>
         </button>
 
-        <aside class="voice-panel" id="monolithVoicePanel" data-state="off" aria-label="Monolith Voice" aria-hidden="true">
+        <aside class="voice-panel" id="monolithVoicePanel" data-state="off" aria-label="Monolith Voice" aria-hidden="true" tabindex="-1">
           <div class="voice-panel-head">
             <div><span class="voice-beta">Beta</span><h3>Monolith Voice</h3></div>
             <button class="icon-btn" id="closeVoicePanel" type="button" aria-label="Fechar" title="Fechar">×</button>
@@ -5337,7 +5368,7 @@ window.MONOLITH_VERSION_LABEL = "Monolith v93 · 21/08/2026";
             </div>
             <span id="voiceStatusMessage">Toque no microfone para ativar.</span>
           </div>
-          <div class="voice-transcript" id="voiceTranscript" aria-live="polite">“Hey Monolith” ou toque em Falar agora.</div>
+          <div class="voice-transcript" id="voiceTranscript" aria-live="polite" aria-label="Respostas do Monolith Voice">“Hey Monolith” ou toque em Falar agora.</div>
           <form class="voice-command-form" id="voiceManualCommandForm">
             <label class="sr-only" for="voiceManualCommand">Comando de voz em texto</label>
             <input id="voiceManualCommand" autocomplete="off" maxlength="240" placeholder="Ex: 80 quilos, 10 repetições" data-i18n-placeholder="Ex: 80 quilos, 10 repetições" />
@@ -5352,14 +5383,14 @@ window.MONOLITH_VERSION_LABEL = "Monolith v93 · 21/08/2026";
           <details class="voice-settings" id="voiceSettingsDetails">
             <summary data-i18n="Configurações de voz">Configurações de voz</summary>
             <div class="voice-settings-grid">
-              <label class="voice-setting-toggle"><input id="voiceResponsesEnabled" type="checkbox" checked /><span>Respostas faladas</span></label>
-              <label class="voice-setting-toggle"><input id="voiceVibrationEnabled" type="checkbox" checked /><span>Vibração</span></label>
-              <div class="field"><label for="voiceResponseDetail">Respostas</label><select id="voiceResponseDetail"><option value="short">Curtas</option><option value="detailed">Detalhadas</option></select></div>
+              <label class="voice-setting-toggle"><input id="voiceResponsesEnabled" type="checkbox" checked aria-label="Ativar respostas por voz" /><span>Respostas faladas</span></label>
+              <label class="voice-setting-toggle"><input id="voiceVibrationEnabled" type="checkbox" checked aria-label="Ativar vibração" /><span>Vibração</span></label>
+              <div class="field"><label for="voiceResponseDetail">Nível de detalhe</label><select id="voiceResponseDetail" aria-label="Nível de detalhe das respostas"><option value="short">Curtas</option><option value="detailed">Detalhadas</option></select></div>
               <div class="field"><label for="voiceLanguage">Idioma</label><select id="voiceLanguage"><option value="auto">Automático</option><option value="pt-BR">Português</option><option value="en-US">English</option><option value="es-419">Español</option></select></div>
-              <div class="field"><label for="voiceGender">Voz</label><select id="voiceGender"><option value="neutral">Neutra</option><option value="feminine">Feminina</option><option value="masculine">Masculina</option></select></div>
-              <div class="field"><label for="voiceWakeWord">Ativação</label><select id="voiceWakeWord"><option value="hey_monolith">Hey Monolith</option><option value="monolith">Monolith</option></select></div>
+              <div class="field"><label for="voiceGender">Estilo da voz</label><select id="voiceGender" aria-label="Estilo da voz"><option value="neutral">Neutra</option><option value="feminine">Feminina</option><option value="masculine">Masculina</option></select></div>
+              <div class="field"><label for="voiceWakeWord">Palavra de ativação</label><select id="voiceWakeWord" aria-label="Palavra de ativação"><option value="hey_monolith">Hey Monolith</option><option value="monolith">Monolith</option></select></div>
               <div class="field"><label for="voiceUnit">Unidade</label><select id="voiceUnit"><option value="kg">kg</option><option value="lb">lb</option></select></div>
-              <div class="field full"><label for="voiceVolume">Volume</label><input id="voiceVolume" type="range" min="0" max="1" step="0.1" value="0.8" /></div>
+              <div class="field full"><label for="voiceVolume">Volume</label><input id="voiceVolume" type="range" min="0" max="1" step="0.1" value="0.8" aria-label="Volume das respostas por voz" /></div>
             </div>
           </details>
           <div class="voice-history">
@@ -6341,8 +6372,8 @@ window.MONOLITH_VERSION_LABEL = "Monolith v93 · 21/08/2026";
   <script>
     const MONOLITH_SUPABASE_URL = "https://jhxasnxuvmkhntbwepau.supabase.co";
     const MONOLITH_SUPABASE_KEY = "sb_publishable_lDtAXIOtkMwgwsAZyghBdg_gyLHGwpH";
-const MONOLITH_BUILD = window.MONOLITH_BUILD || "monolith-v93-supplement-plan";
-const MONOLITH_VERSION_LABEL = window.MONOLITH_VERSION_LABEL || "Monolith v93 · 21/08/2026";
+const MONOLITH_BUILD = window.MONOLITH_BUILD || "monolith-v94-voice-discovery";
+const MONOLITH_VERSION_LABEL = window.MONOLITH_VERSION_LABEL || "Monolith v94 · 21/08/2026";
     const monolithSupabase = window.supabase?.createClient?.(MONOLITH_SUPABASE_URL, MONOLITH_SUPABASE_KEY, {
       auth: {
         storage: window.sessionStorage,
@@ -12636,6 +12667,19 @@ const MONOLITH_VERSION_LABEL = window.MONOLITH_VERSION_LABEL || "Monolith v93 ·
         "Concluir exercício": "Finish exercise",
         "Adicionar série": "Add set",
         "Abrir sessão": "Open session",
+        "Iniciar com Voice": "Start with Voice",
+        "Abrir Monolith Voice": "Open Monolith Voice",
+        "Fechar Monolith Voice": "Close Monolith Voice",
+        "Escutando": "Listening",
+        "Interpretando": "Interpreting",
+        "Aplicado": "Applied",
+        "Não compreendido": "Not understood",
+        "Microfone indisponível": "Microphone unavailable",
+        "Nível de detalhe": "Detail level",
+        "Ativar respostas por voz": "Enable spoken responses",
+        "Ativar vibração": "Enable vibration",
+        "Estilo da voz": "Voice style",
+        "Palavra de ativação": "Wake word",
         "Excluir": "Delete",
         "Selecionar": "Select",
         "Selecionado": "Selected",
@@ -13988,6 +14032,19 @@ const MONOLITH_VERSION_LABEL = window.MONOLITH_VERSION_LABEL || "Monolith v93 ·
         "Concluir exercício": "Finalizar ejercicio",
         "Adicionar série": "Agregar serie",
         "Abrir sessão": "Abrir sesión",
+        "Iniciar com Voice": "Iniciar con Voice",
+        "Abrir Monolith Voice": "Abrir Monolith Voice",
+        "Fechar Monolith Voice": "Cerrar Monolith Voice",
+        "Escutando": "Escuchando",
+        "Interpretando": "Interpretando",
+        "Aplicado": "Aplicado",
+        "Não compreendido": "No comprendido",
+        "Microfone indisponível": "Micrófono no disponible",
+        "Nível de detalhe": "Nivel de detalle",
+        "Ativar respostas por voz": "Activar respuestas por voz",
+        "Ativar vibração": "Activar vibración",
+        "Estilo da voz": "Estilo de voz",
+        "Palavra de ativação": "Palabra de activación",
         "Excluir": "Eliminar",
         "Selecionar": "Seleccionar",
         "Selecionado": "Seleccionado",
@@ -21576,6 +21633,24 @@ ${photoSections}
         completed: ["Treino concluído", "O microfone foi desligado automaticamente."]
       };
 
+      function voiceButtonStateLabelV2(status = voiceStateV2.status) {
+        const labels = {
+          off: "Desligado",
+          requesting: "Escutando",
+          active: "Escutando",
+          ready: "Desligado",
+          detected: "Escutando",
+          processing: "Interpretando",
+          saved: "Aplicado",
+          misunderstood: "Não compreendido",
+          error: "Microfone indisponível",
+          unsupported: "Microfone indisponível",
+          paused: "Desligado",
+          completed: "Aplicado"
+        };
+        return labels[status] || "Desligado";
+      }
+
       function setVoiceVisualStateV2(status, title = "", message = "", transientMs = 0) {
         clearTimeout(voiceStateV2.transientTimer);
         voiceStateV2.status = status;
@@ -21590,10 +21665,18 @@ ${photoSections}
         const statusMessage = document.getElementById("voiceStatusMessage");
         const fabStatus = document.getElementById("voiceFabStatus");
         const pauseButton = document.getElementById("voicePauseButton");
+        const sessionButton = document.getElementById("sessionVoiceButton");
+        const sessionStatus = document.getElementById("sessionVoiceStatus");
+        const buttonLabel = voiceButtonStateLabelV2(status);
         if (statusTitle) statusTitle.textContent = textV2(safeTitle);
         if (statusMessage) statusMessage.textContent = textV2(safeMessage);
         if (fabStatus) fabStatus.textContent = textV2(status === "active" ? "Microfone ativo — toque para pausar" : status === "ready" ? "Sessão pronta — microfone desligado" : safeTitle);
         if (pauseButton) pauseButton.textContent = textV2(voiceStateV2.active && voiceStateV2.paused ? "Retomar" : "Pausar");
+        if (sessionStatus) sessionStatus.textContent = textV2(buttonLabel);
+        if (sessionButton) {
+          sessionButton.dataset.state = status;
+          sessionButton.setAttribute("aria-label", `${textV2(voiceStateV2.panelOpen ? "Fechar Monolith Voice" : "Abrir Monolith Voice")}: ${textV2(buttonLabel)}`);
+        }
         if (transientMs > 0) {
           voiceStateV2.transientTimer = setTimeout(() => {
             if (voiceStateV2.active) setVoiceVisualStateV2(voiceStateV2.visualOnly ? "unsupported" : voiceStateV2.paused ? "paused" : voiceStateV2.localWakeEnabled ? "active" : "ready");
@@ -21602,12 +21685,23 @@ ${photoSections}
       }
 
       function setVoicePanelOpenV2(open) {
+        const previousOpen = voiceStateV2.panelOpen;
         voiceStateV2.panelOpen = Boolean(open);
         const panel = document.getElementById("monolithVoicePanel");
         const fab = document.getElementById("monolithVoiceFab");
+        const sessionButton = document.getElementById("sessionVoiceButton");
+        if (open && !previousOpen) voiceStateV2.lastPanelTrigger = document.activeElement instanceof HTMLElement ? document.activeElement : sessionButton || fab || null;
         panel?.classList.toggle("open", voiceStateV2.panelOpen);
         panel?.setAttribute("aria-hidden", String(!voiceStateV2.panelOpen));
         fab?.setAttribute("aria-expanded", String(voiceStateV2.panelOpen));
+        fab?.classList.toggle("open", voiceStateV2.panelOpen);
+        sessionButton?.setAttribute("aria-expanded", String(voiceStateV2.panelOpen));
+        sessionButton?.setAttribute("aria-label", `${textV2(voiceStateV2.panelOpen ? "Fechar Monolith Voice" : "Abrir Monolith Voice")}: ${textV2(voiceButtonStateLabelV2())}`);
+        if (voiceStateV2.panelOpen) {
+          setTimeout(() => panel?.focus(), 0);
+        } else if (previousOpen) {
+          voiceStateV2.lastPanelTrigger?.focus?.();
+        }
       }
 
       function renderVoiceCountdownV2() {
@@ -21772,7 +21866,7 @@ ${photoSections}
         if (!voiceStateV2.active) await beginVoiceSessionV2();
         if (!VoiceRecognitionV2 || voiceStateV2.visualOnly) {
           setVoicePanelOpenV2(true);
-          setVoiceVisualStateV2("unsupported");
+          setVoiceVisualStateV2("error", "Microfone indisponível", "Use o comando em texto ou tente novamente manualmente.");
           document.getElementById("voiceManualCommand")?.focus();
           return false;
         }
@@ -21793,7 +21887,9 @@ ${photoSections}
         } catch (error) {
           logAppError("voice", "single-capture", error);
           finishVoiceCaptureOnceV2();
-          setVoiceVisualStateV2("error");
+          voiceStateV2.visualOnly = true;
+          voiceStateV2.paused = true;
+          setVoiceVisualStateV2("error", "Microfone indisponível", "Use o comando em texto ou tente novamente manualmente.");
           return false;
         }
       }
@@ -21827,14 +21923,14 @@ ${photoSections}
         markVoiceCurrentExerciseV2(voiceStateV2.currentExerciseIndex, false);
         saveVoiceDraftV2();
         if (visualOnly) {
-          setVoiceVisualStateV2("unsupported");
+          setVoiceVisualStateV2("error", "Microfone indisponível", "Use o comando em texto ou toque em Falar agora para tentar o microfone.");
           scheduleVoiceSessionSyncV2();
           return true;
         }
         if (!VoiceRecognitionV2) {
           voiceStateV2.paused = true;
           voiceStateV2.visualOnly = true;
-          setVoiceVisualStateV2("unsupported");
+          setVoiceVisualStateV2("error", "Microfone indisponível", "Este navegador não oferece reconhecimento de voz. O comando por texto continua funcionando.");
           scheduleVoiceSessionSyncV2();
           return true;
         }
@@ -21886,7 +21982,11 @@ ${photoSections}
         if (!voiceStateV2.active) return beginVoiceSessionV2();
         if (!VoiceRecognitionV2) {
           voiceStateV2.visualOnly = true;
-          setVoiceVisualStateV2("unsupported");
+          setVoiceVisualStateV2("error", "Microfone indisponível", "Este navegador não oferece reconhecimento de voz. O comando por texto continua funcionando.");
+          setVoicePanelOpenV2(true);
+          return false;
+        }
+        if (voiceStateV2.visualOnly && voiceStateV2.status === "error") {
           setVoicePanelOpenV2(true);
           return false;
         }
@@ -21917,7 +22017,7 @@ ${photoSections}
           logAppError("voice", "microphone-resume", error);
           voiceStateV2.paused = true;
           voiceStateV2.visualOnly = true;
-          setVoiceVisualStateV2("error");
+          setVoiceVisualStateV2("error", "Microfone indisponível", "Use o comando em texto ou tente novamente manualmente.");
           return false;
         }
       }
@@ -23557,6 +23657,7 @@ ${photoSections}
             </div>
             <div class="pill-row">
               <button class="ghost open-workout-session-v2" type="button" data-workout-id="${workout.id}">${htmlT("Abrir sessão")}</button>
+              ${studentView ? `<button class="action start-workout-voice-v2" type="button" data-workout-id="${workout.id}">${htmlT("Iniciar com Voice")}</button>` : ""}
               ${user?.role === "personal" ? `<button class="ghost duplicate-workout-v2" type="button" data-workout-id="${workout.id}">${htmlT("Duplicar")}</button>` : ""}
               ${canDelete ? `<button class="ghost delete-workout-v2" type="button" data-workout-id="${workout.id}">${htmlT("Excluir")}</button>` : ""}
             </div>
@@ -24073,6 +24174,25 @@ ${photoSections}
           showScreen("session");
         }
 
+        const voiceStart = event.target.closest(".start-workout-voice-v2");
+        if (voiceStart) {
+          event.preventDefault();
+          event.stopPropagation();
+          const visibleWorkouts = workoutsForCurrentUserV2();
+          const workout = visibleWorkouts.find(item => item.id === voiceStart.dataset.workoutId) || visibleWorkouts[0];
+          if (!workout) return;
+          await runPendingOperation(`voice-open-workout:${workout.id}`, voiceStart, async () => {
+            await refreshCompletedWorkoutHistoryV2(workout.assignedStudentId || currentAccount()?.id || "");
+            renderSessionV2(workout);
+            showScreen("session", { skipDirtyGuard: true });
+            updateVoiceAvailabilityV2();
+            setVoicePanelOpenV2(true);
+            if (!voiceStateV2.active) await beginVoiceSessionV2({ visualOnly: true });
+            else setVoiceVisualStateV2(voiceStateV2.status || "ready");
+            document.getElementById("voiceManualCommand")?.focus();
+          }, { loadingText: "Abrindo Voice..." });
+        }
+
         const deleteWorkout = event.target.closest(".delete-workout-v2");
         if (deleteWorkout) {
           event.preventDefault();
@@ -24234,10 +24354,25 @@ ${photoSections}
       });
 
       document.getElementById("monolithVoiceFab")?.addEventListener("click", async () => {
+        if (voiceStateV2.panelOpen) {
+          setVoicePanelOpenV2(false);
+          return;
+        }
         if (!voiceStateV2.active) await beginVoiceSessionV2();
         else if (voiceStateV2.paused) await resumeVoiceSessionV2();
         else if (voiceStateV2.status === "ready") await startVoiceCaptureOnceV2();
-        else await pauseVoiceSessionV2("manual");
+        else setVoicePanelOpenV2(true);
+      });
+      document.getElementById("sessionVoiceButton")?.addEventListener("click", async event => {
+        if (voiceStateV2.panelOpen) {
+          setVoicePanelOpenV2(false);
+          return;
+        }
+        await runPendingOperation(`voice-open-session:${activeWorkoutV2?.id || "current"}`, event.currentTarget, async () => {
+          if (!voiceStateV2.active) await beginVoiceSessionV2({ visualOnly: true });
+          else setVoicePanelOpenV2(true);
+          document.getElementById("voiceManualCommand")?.focus();
+        }, { loadingText: "Abrindo Voice..." });
       });
       document.getElementById("closeVoicePanel")?.addEventListener("click", () => setVoicePanelOpenV2(false));
       document.getElementById("voiceTalkNow")?.addEventListener("click", async () => {
@@ -24293,6 +24428,27 @@ ${photoSections}
         voiceStateV2.history = [];
         renderVoiceHistoryV2();
         saveVoiceDraftV2();
+      });
+      document.getElementById("monolithVoicePanel")?.addEventListener("keydown", event => {
+        if (event.key === "Escape") {
+          event.preventDefault();
+          setVoicePanelOpenV2(false);
+          return;
+        }
+        if (event.key !== "Tab") return;
+        const panel = event.currentTarget;
+        const focusable = [...panel.querySelectorAll('button, [href], input, select, textarea, summary, [tabindex]:not([tabindex="-1"])')]
+          .filter(element => !element.disabled && !element.hidden && element.offsetParent !== null);
+        if (!focusable.length) return;
+        const first = focusable[0];
+        const last = focusable.at(-1);
+        if (event.shiftKey && document.activeElement === first) {
+          event.preventDefault();
+          last.focus();
+        } else if (!event.shiftKey && document.activeElement === last) {
+          event.preventDefault();
+          first.focus();
+        }
       });
       document.getElementById("sessionExercises")?.addEventListener("change", event => {
         if (!voiceStateV2.active || !event.target.matches(".session-weight, .session-reps, .session-type, .session-rest")) return;
