@@ -14,8 +14,8 @@
   <link rel="manifest" href="manifest.webmanifest" />
   <link rel="icon" href="monolith-icon.svg" />
   <script>
-window.MONOLITH_BUILD = "monolith-v92-safety-dedupe-navigation";
-window.MONOLITH_VERSION_LABEL = "Monolith v92 · 21/08/2026";
+window.MONOLITH_BUILD = "monolith-v93-supplement-plan";
+window.MONOLITH_VERSION_LABEL = "Monolith v93 · 21/08/2026";
     (function clearOldAppCaches() {
       if ("serviceWorker" in navigator) {
         navigator.serviceWorker.getRegistrations?.()
@@ -4549,7 +4549,7 @@ window.MONOLITH_VERSION_LABEL = "Monolith v92 · 21/08/2026";
           <button class="action" id="loginButton" type="submit">Entrar</button>
           <div class="auth-tools">
             <button class="auth-secondary" id="clearDeviceSessionButton" type="button">Limpar sessão/cache deste aparelho</button>
-            <div class="build-version" id="buildVersionLabel">Versão do app: Monolith v92 · 21/08/2026</div>
+            <div class="build-version" id="buildVersionLabel">Versão do app: Monolith v93 · 21/08/2026</div>
           </div>
         </form>
       </div>
@@ -5145,6 +5145,10 @@ window.MONOLITH_VERSION_LABEL = "Monolith v92 · 21/08/2026";
                 <div class="field"><label for="dietFat">Gordura</label><input id="dietFat" inputmode="decimal" placeholder="70" /></div>
               </div>
               <div class="meal-stack" id="dietMealBuilder"></div>
+              <div class="section-title"><h3>Plano de suplementação</h3><span>Orientações separadas das refeições</span></div>
+              <div class="report-line">Confirme nome, dose e frequência. O Monolith não gera doses automaticamente.</div>
+              <div class="meal-stack" id="dietSupplementBuilder"></div>
+              <button class="ghost" id="addDietSupplement" type="button">Adicionar suplemento</button>
               <button class="action" id="saveDietPlanButton" type="submit">Salvar dieta do aluno</button>
               <div class="save-target" id="dietSaveTarget" aria-live="polite"></div>
             </form>
@@ -6337,8 +6341,8 @@ window.MONOLITH_VERSION_LABEL = "Monolith v92 · 21/08/2026";
   <script>
     const MONOLITH_SUPABASE_URL = "https://jhxasnxuvmkhntbwepau.supabase.co";
     const MONOLITH_SUPABASE_KEY = "sb_publishable_lDtAXIOtkMwgwsAZyghBdg_gyLHGwpH";
-const MONOLITH_BUILD = window.MONOLITH_BUILD || "monolith-v92-safety-dedupe-navigation";
-const MONOLITH_VERSION_LABEL = window.MONOLITH_VERSION_LABEL || "Monolith v92 · 21/08/2026";
+const MONOLITH_BUILD = window.MONOLITH_BUILD || "monolith-v93-supplement-plan";
+const MONOLITH_VERSION_LABEL = window.MONOLITH_VERSION_LABEL || "Monolith v93 · 21/08/2026";
     const monolithSupabase = window.supabase?.createClient?.(MONOLITH_SUPABASE_URL, MONOLITH_SUPABASE_KEY, {
       auth: {
         storage: window.sessionStorage,
@@ -6779,6 +6783,7 @@ const MONOLITH_VERSION_LABEL = window.MONOLITH_VERSION_LABEL || "Monolith v92 ·
     function clientRequestSchemaUnavailable(error) {
       const detail = supabaseErrorText(error).toLowerCase();
       return detail.includes("client_request_id")
+        || detail.includes("supplements")
         || detail.includes("no unique or exclusion constraint")
         || detail.includes("42p10")
         || detail.includes("pgrst204");
@@ -9355,7 +9360,7 @@ const MONOLITH_VERSION_LABEL = window.MONOLITH_VERSION_LABEL || "Monolith v92 ·
       if (!plan?.id) return;
       const history = loadDietPlanHistory();
       history[plan.id] = [
-        { plan: { ...plan, meals: (plan.meals || []).map(meal => ({ ...meal })) }, meta: dietPlanMetaForKey(plan.id), reason, savedAt: new Date().toISOString() },
+        { plan: { ...plan, meals: (plan.meals || []).map(meal => ({ ...meal })), supplements: (plan.supplements || []).map((item, index) => cloneDietSupplement(item, index)) }, meta: dietPlanMetaForKey(plan.id), reason, savedAt: new Date().toISOString() },
         ...(history[plan.id] || [])
       ].slice(0, 8);
       saveDietPlanHistory(history);
@@ -9380,7 +9385,10 @@ const MONOLITH_VERSION_LABEL = window.MONOLITH_VERSION_LABEL || "Monolith v92 ·
     function cacheDietPlan(plan) {
       if (!plan?.studentId || !plan?.month) return;
       const plans = loadDietPlans();
-      plans[dietPlanKey(plan.studentId, plan.month)] = plan;
+      plans[dietPlanKey(plan.studentId, plan.month)] = {
+        ...plan,
+        supplements: (plan.supplements || []).map((item, index) => cloneDietSupplement({ ...item, saved: true }, index))
+      };
       saveDietPlans(plans);
     }
 
@@ -9726,6 +9734,7 @@ const MONOLITH_VERSION_LABEL = window.MONOLITH_VERSION_LABEL || "Monolith v92 ·
         carbs: row.carbs || "",
         fat: row.fat || "",
         meals: row.meals || [],
+        supplements: (row.supplements || []).map((item, index) => cloneDietSupplement(item, index, { freshId: false })),
         savedAt: row.updated_at || row.created_at,
         updatedAt: row.updated_at || row.created_at,
         createdBy: row.created_by || "",
@@ -10127,6 +10136,7 @@ const MONOLITH_VERSION_LABEL = window.MONOLITH_VERSION_LABEL || "Monolith v92 ·
         carbs: plan.carbs || null,
         fat: plan.fat || null,
         meals: plan.meals || [],
+        supplements: (plan.supplements || []).map((item, index) => cloneDietSupplement(item, index)),
         client_request_id: plan.clientRequestId || createClientRequestId("diet")
       };
       let { data, error } = await monolithSupabase
@@ -10135,9 +10145,11 @@ const MONOLITH_VERSION_LABEL = window.MONOLITH_VERSION_LABEL || "Monolith v92 ·
         .select("*")
         .single();
       if (error && clientRequestSchemaUnavailable(error)) {
+        const legacyPayload = withoutClientRequestId(payload);
+        delete legacyPayload.supplements;
         ({ data, error } = await monolithSupabase
           .from("diet_plans")
-          .upsert(withoutClientRequestId(payload), { onConflict: "student_id,month_key" })
+          .upsert(legacyPayload, { onConflict: "student_id,month_key" })
           .select("*")
           .single());
       }
@@ -10866,6 +10878,142 @@ const MONOLITH_VERSION_LABEL = window.MONOLITH_VERSION_LABEL || "Monolith v92 ·
       return { name: t(names[index] || "Refeição"), items: "", substitutions: "", notes: "", calories: "", protein: "", carbs: "", fat: "", micros: "" };
     }
 
+    function cloneDietSupplement(item = {}, index = 0, { freshId = false } = {}) {
+      return {
+        id: freshId || !item.id ? `supplement-${Date.now()}-${index}-${Math.random().toString(36).slice(2, 8)}` : item.id,
+        name: String(item.name || "").slice(0, 120),
+        brand: String(item.brand || "").slice(0, 120),
+        dosage: String(item.dosage || "").slice(0, 120),
+        frequency: String(item.frequency || "").slice(0, 120),
+        timing: String(item.timing || "").slice(0, 120),
+        instructions: String(item.instructions || "").slice(0, 600),
+        startDate: item.startDate || item.start_date || "",
+        endDate: item.endDate || item.end_date || "",
+        productUrl: item.productUrl || item.product_url || "",
+        sourceType: item.sourceType || item.source_type || "manual",
+        partnerName: String(item.partnerName || item.partner_name || "").slice(0, 120),
+        isSponsored: item.isSponsored === true || item.is_sponsored === true,
+        sortOrder: Number.isFinite(Number(item.sortOrder ?? item.sort_order)) ? Number(item.sortOrder ?? item.sort_order) : index,
+        saved: item.saved === true
+      };
+    }
+
+    function productUrlInfo(value = "") {
+      const raw = String(value || "").trim();
+      if (!raw) return { ok: true, url: "", domain: "" };
+      if (raw.length > 500) return { ok: false, reason: "URL inválida." };
+      try {
+        const parsed = new URL(raw);
+        if (!["http:", "https:"].includes(parsed.protocol)) return { ok: false, reason: "URL inválida." };
+        return { ok: true, url: parsed.href, domain: parsed.hostname.replace(/^www\./, "") };
+      } catch {
+        return { ok: false, reason: "URL inválida." };
+      }
+    }
+
+    function supplementFromBuilderCard(card, index = 0) {
+      const urlInfo = productUrlInfo(card.querySelector(".supplement-url")?.value || "");
+      return cloneDietSupplement({
+        id: card.dataset.supplementId || "",
+        name: card.querySelector(".supplement-name")?.value.trim() || "",
+        brand: card.querySelector(".supplement-brand")?.value.trim() || "",
+        dosage: card.querySelector(".supplement-dosage")?.value.trim() || "",
+        frequency: card.querySelector(".supplement-frequency")?.value.trim() || "",
+        timing: card.querySelector(".supplement-timing")?.value.trim() || "",
+        instructions: card.querySelector(".supplement-instructions")?.value.trim() || "",
+        startDate: card.querySelector(".supplement-start")?.value || "",
+        endDate: card.querySelector(".supplement-end")?.value || "",
+        productUrl: urlInfo.ok ? urlInfo.url : card.querySelector(".supplement-url")?.value.trim() || "",
+        sourceType: "manual",
+        partnerName: card.querySelector(".supplement-partner")?.value.trim() || "",
+        isSponsored: card.querySelector(".supplement-sponsored")?.checked === true,
+        saved: card.dataset.saved === "true",
+        sortOrder: index
+      }, index);
+    }
+
+    function readDietSupplementBuilderEntries() {
+      return [...document.querySelectorAll("#dietSupplementBuilder .supplement-card")].map(supplementFromBuilderCard);
+    }
+
+    function supplementHasUserContent(item = {}) {
+      return Boolean(item.name || item.brand || item.dosage || item.frequency || item.timing || item.instructions || item.startDate || item.endDate || item.productUrl || item.partnerName || item.isSponsored);
+    }
+
+    function validateDietSupplements(supplements = readDietSupplementBuilderEntries()) {
+      let firstInvalid = null;
+      document.querySelectorAll("#dietSupplementBuilder input, #dietSupplementBuilder textarea").forEach(control => setFieldError(control, ""));
+      document.querySelectorAll("#dietSupplementBuilder .supplement-card").forEach((card, index) => {
+        const supplement = supplements[index] || {};
+        const required = [
+          [".supplement-name", !supplement.name],
+          [".supplement-dosage", !supplement.dosage],
+          [".supplement-frequency", !supplement.frequency],
+          [".supplement-partner", supplement.isSponsored && !supplement.partnerName]
+        ];
+        required.forEach(([selector, invalid]) => {
+          if (!invalid) return;
+          const control = card.querySelector(selector);
+          setFieldError(control, t("Campo obrigatório."));
+          firstInvalid ||= control;
+        });
+        const urlInput = card.querySelector(".supplement-url");
+        const urlInfo = productUrlInfo(supplement.productUrl);
+        if (supplement.productUrl && !urlInfo.ok) {
+          setFieldError(urlInput, t("URL inválida."));
+          firstInvalid ||= urlInput;
+        }
+        const endInput = card.querySelector(".supplement-end");
+        if (supplement.startDate && supplement.endDate && supplement.endDate < supplement.startDate) {
+          setFieldError(endInput, t("Data de término não pode ser anterior à data de início."));
+          firstInvalid ||= endInput;
+        }
+      });
+      if (firstInvalid) {
+        firstInvalid.focus();
+        showToast(t("Revise os campos obrigatórios antes de continuar."));
+        return false;
+      }
+      return true;
+    }
+
+    function renderDietSupplementBuilder(supplements = []) {
+      const container = document.getElementById("dietSupplementBuilder");
+      if (!container) return;
+      const source = (supplements || []).map((item, index) => cloneDietSupplement(item, index));
+      const undo = window.monolithLastRemovedSupplement;
+      const undoHTML = undo ? `<div class="report-line"><button class="ghost undo-supplement-removal" type="button">${escapeHTML(t("Desfazer remoção"))}</button> ${escapeHTML(t("Suplemento removido antes de salvar."))}</div>` : "";
+      if (!source.length) {
+        container.innerHTML = `${undoHTML}<div class="report-line">${escapeHTML(t("Nenhum suplemento adicionado a este plano."))}</div>`;
+        return;
+      }
+      container.innerHTML = undoHTML + source.map((item, index) => `
+        <article class="meal-card supplement-card" data-supplement-id="${escapeHTML(item.id)}" data-saved="${item.saved ? "true" : "false"}">
+          <header><h4>${escapeHTML(t("Suplemento"))} ${index + 1}</h4><span>${escapeHTML(t(item.isSponsored ? "Produto parceiro" : "Manual"))}</span></header>
+          <div class="macro-grid">
+            <div class="field"><label>${escapeHTML(t("Nome"))}</label><input class="supplement-name" maxlength="120" value="${escapeHTML(item.name)}" required /></div>
+            <div class="field"><label>${escapeHTML(t("Marca"))}</label><input class="supplement-brand" maxlength="120" value="${escapeHTML(item.brand)}" /></div>
+            <div class="field"><label>${escapeHTML(t("Dose"))}</label><input class="supplement-dosage" maxlength="120" value="${escapeHTML(item.dosage)}" required /></div>
+            <div class="field"><label>${escapeHTML(t("Frequência"))}</label><input class="supplement-frequency" maxlength="120" value="${escapeHTML(item.frequency)}" required /></div>
+            <div class="field"><label>${escapeHTML(t("Momento de uso"))}</label><input class="supplement-timing" maxlength="120" value="${escapeHTML(item.timing)}" /></div>
+            <div class="field"><label>${escapeHTML(t("URL do produto"))}</label><input class="supplement-url" type="url" maxlength="500" value="${escapeHTML(item.productUrl)}" placeholder="https://..." /></div>
+            <div class="field"><label>${escapeHTML(t("Data de início"))}</label><input class="supplement-start" type="date" value="${escapeHTML(item.startDate)}" /></div>
+            <div class="field"><label>${escapeHTML(t("Data de término"))}</label><input class="supplement-end" type="date" value="${escapeHTML(item.endDate)}" /></div>
+          </div>
+          <div class="field"><label>${escapeHTML(t("Instruções"))}</label><textarea class="supplement-instructions" maxlength="600" rows="3">${escapeHTML(item.instructions)}</textarea></div>
+          <label class="voice-setting-toggle"><input class="supplement-sponsored" type="checkbox" ${item.isSponsored ? "checked" : ""} />${escapeHTML(t("Produto parceiro"))}</label>
+          <div class="field"><label>${escapeHTML(t("Parceiro"))}</label><input class="supplement-partner" maxlength="120" value="${escapeHTML(item.partnerName)}" /></div>
+          <div class="action-row">
+            <button class="ghost move-supplement-up" type="button" aria-label="${escapeHTML(t("Mover suplemento para cima"))}">↑</button>
+            <button class="ghost move-supplement-down" type="button" aria-label="${escapeHTML(t("Mover suplemento para baixo"))}">↓</button>
+            <button class="ghost duplicate-supplement" type="button">${escapeHTML(t("Duplicar"))}</button>
+            <button class="ghost remove-supplement" type="button" aria-label="${escapeHTML(t("Remover suplemento"))} ${escapeHTML(item.name || index + 1)}">${escapeHTML(t("Remover suplemento"))}</button>
+          </div>
+        </article>
+      `).join("");
+      updateNumericSubmitStates();
+    }
+
     function mealFromBuilderCard(card) {
       return {
         name: card.querySelector(".meal-name")?.value.trim() || "",
@@ -10933,7 +11081,8 @@ const MONOLITH_VERSION_LABEL = window.MONOLITH_VERSION_LABEL || "Monolith v92 ·
         plan.protein ||
         plan.carbs ||
         plan.fat ||
-        plan.meals.some((meal, index) => mealHasUserContent(meal, index))
+        plan.meals.some((meal, index) => mealHasUserContent(meal, index)) ||
+        plan.supplements.some(supplementHasUserContent)
       );
     }
 
@@ -10946,6 +11095,7 @@ const MONOLITH_VERSION_LABEL = window.MONOLITH_VERSION_LABEL || "Monolith v92 ·
         if (input) input.value = plan?.[key] || "";
       });
       renderDietMealBuilder(plan?.meals || Array.from({ length: Number(mealCount?.value || 5) }, (_, index) => defaultMeal(index)));
+      renderDietSupplementBuilder(plan?.supplements || []);
       renderDietPlan("dietPreview", plan || null);
     }
 
@@ -10980,7 +11130,8 @@ const MONOLITH_VERSION_LABEL = window.MONOLITH_VERSION_LABEL || "Monolith v92 ·
         id: dietPlanKey(studentId, month),
         studentId,
         month,
-        meals: (sourcePlan.meals || []).map(meal => ({ ...meal }))
+        meals: (sourcePlan.meals || []).map(meal => ({ ...meal })),
+        supplements: (sourcePlan.supplements || []).map((item, index) => cloneDietSupplement(item, index, { freshId: true }))
       };
       applyDietPlanToForm(copiedPlan);
       markDirty("diet");
@@ -11055,6 +11206,7 @@ const MONOLITH_VERSION_LABEL = window.MONOLITH_VERSION_LABEL || "Monolith v92 ·
         id: dietPlanKey(plan.studentId, targetMonth),
         month: targetMonth,
         meals: (plan.meals || []).map(meal => ({ ...meal })),
+        supplements: (plan.supplements || []).map((item, index) => cloneDietSupplement(item, index, { freshId: true })),
         savedAt: new Date().toISOString()
       };
       const plans = loadDietPlans();
@@ -11103,7 +11255,7 @@ const MONOLITH_VERSION_LABEL = window.MONOLITH_VERSION_LABEL || "Monolith v92 ·
       await runPendingOperation(`diet-restore:${key}`, "#restoreDietVersionButton", async clientRequestId => {
         const plans = loadDietPlans();
         if (plans[key]) rememberDietPlanVersion(plans[key], "before_restore");
-        const restored = { ...version.plan, clientRequestId, meals: (version.plan.meals || []).map(meal => ({ ...meal })) };
+        const restored = { ...version.plan, clientRequestId, meals: (version.plan.meals || []).map(meal => ({ ...meal })), supplements: (version.plan.supplements || []).map((item, index) => cloneDietSupplement(item, index)) };
         plans[key] = restored;
         saveDietPlans(plans);
         updateDietPlanMeta(key, { ...(version.meta || {}), archived: version.meta?.archived === true || version.meta?.status === "archived", status: version.meta?.status || "published" });
@@ -11122,6 +11274,7 @@ const MONOLITH_VERSION_LABEL = window.MONOLITH_VERSION_LABEL || "Monolith v92 ·
       const studentId = selectedDietStudentId();
       const month = document.getElementById("dietMonth")?.value || currentMonthKey();
       const meals = readDietMealBuilderEntries();
+      const supplements = readDietSupplementBuilderEntries().filter(supplementHasUserContent).map((item, index) => cloneDietSupplement(item, index));
       return {
         id: dietPlanKey(studentId, month),
         studentId,
@@ -11131,7 +11284,8 @@ const MONOLITH_VERSION_LABEL = window.MONOLITH_VERSION_LABEL || "Monolith v92 ·
         protein: document.getElementById("dietProtein").value.trim(),
         carbs: document.getElementById("dietCarbs").value.trim(),
         fat: document.getElementById("dietFat").value.trim(),
-        meals
+        meals,
+        supplements
       };
     }
 
@@ -11177,6 +11331,42 @@ const MONOLITH_VERSION_LABEL = window.MONOLITH_VERSION_LABEL || "Monolith v92 ·
       if (restoreButton) restoreButton.disabled = !canRestore;
     }
 
+    function supplementPeriodLabel(item = {}) {
+      if (item.startDate && item.endDate) return `${localDateLabel(item.startDate)} - ${localDateLabel(item.endDate)}`;
+      if (item.startDate) return `${t("A partir de")} ${localDateLabel(item.startDate)}`;
+      if (item.endDate) return `${t("Até")} ${localDateLabel(item.endDate)}`;
+      return "";
+    }
+
+    function renderSupplementPlanHTML(plan = null, { readonly = true } = {}) {
+      const supplements = (plan?.supplements || []).map((item, index) => cloneDietSupplement(item, index)).sort((a, b) => a.sortOrder - b.sortOrder);
+      const empty = readonly ? "Nenhuma orientação de suplementação foi adicionada ao seu plano." : "Nenhum suplemento adicionado a este plano.";
+      const notice = readonly ? `<div class="report-line">${escapeHTML(t("Siga as orientações do profissional responsável. Em caso de condição clínica, alergia, gestação ou uso de medicamentos, procure orientação médica ou nutricional qualificada."))}</div>` : "";
+      return `
+        <section class="supplement-plan-view">
+          <div class="section-title"><h3>${escapeHTML(t("Plano de suplementação"))}</h3><span>${escapeHTML(t("Orientações de suplementação"))}</span></div>
+          ${notice}
+          ${supplements.length ? supplements.map(item => {
+            const urlInfo = productUrlInfo(item.productUrl);
+            const period = supplementPeriodLabel(item);
+            const commercialLabel = item.isSponsored ? (item.partnerName ? "Produto parceiro" : "Link patrocinado") : "";
+            return `<article class="meal-card supplement-view-card">
+              <header><h4 data-no-i18n="true">${escapeHTML(item.name)}</h4><span>${escapeHTML(item.brand || "")}</span></header>
+              <div class="pill-row">
+                <span class="pill">${escapeHTML(t("Dose"))}: ${escapeHTML(item.dosage)}</span>
+                <span class="pill">${escapeHTML(t("Frequência"))}: ${escapeHTML(item.frequency)}</span>
+                ${item.timing ? `<span class="pill">${escapeHTML(t("Momento de uso"))}: ${escapeHTML(item.timing)}</span>` : ""}
+                ${commercialLabel ? `<span class="pill">${escapeHTML(t(commercialLabel))}${item.partnerName ? ` · ${escapeHTML(item.partnerName)}` : ""}</span>` : ""}
+              </div>
+              ${item.instructions ? `<p data-no-i18n="true">${escapeHTML(item.instructions)}</p>` : ""}
+              ${period ? `<p><strong>${escapeHTML(t("Período"))}:</strong> ${escapeHTML(period)}</p>` : ""}
+              ${urlInfo.ok && urlInfo.url ? `<a class="ghost" href="${escapeHTML(urlInfo.url)}" target="_blank" rel="noopener noreferrer${item.isSponsored ? " sponsored" : ""}">${escapeHTML(t("Ver produto"))}${urlInfo.domain ? ` · ${escapeHTML(urlInfo.domain)}` : ""}</a>` : ""}
+            </article>`;
+          }).join("") : `<div class="report-line">${escapeHTML(t(empty))}</div>`}
+        </section>
+      `;
+    }
+
     function renderDietPlan(containerId, plan, emptyText = "Nenhuma dieta prescrita para este mês.") {
       const container = document.getElementById(containerId);
       if (!container) return;
@@ -11209,6 +11399,7 @@ const MONOLITH_VERSION_LABEL = window.MONOLITH_VERSION_LABEL || "Monolith v92 ·
             ${meal.notes ? `<p data-no-i18n="true"><strong>${escapeHTML(t("Personal"))}:</strong> ${escapeHTML(meal.notes)}</p>` : ""}
           </article>
         `).join("")}
+        ${renderSupplementPlanHTML(plan, { readonly: containerId !== "dietPreview" })}
       `;
       if (containerId === "dietPreview") updateDietManagementActions(plan);
     }
@@ -11721,6 +11912,7 @@ const MONOLITH_VERSION_LABEL = window.MONOLITH_VERSION_LABEL || "Monolith v92 ·
           if (input) input.value = plan?.[key] || "";
         });
         renderDietMealBuilder(plan?.meals || null);
+        renderDietSupplementBuilder(plan?.supplements || []);
         renderDietPlan("dietPreview", plan);
       } else {
         const linkedTrainerId = await ensureStudentTrainerId(user);
@@ -12163,6 +12355,43 @@ const MONOLITH_VERSION_LABEL = window.MONOLITH_VERSION_LABEL || "Monolith v92 ·
         "Meta diária": "Daily target",
         "Carboidratos": "Carbohydrates",
         "Gorduras": "Fats",
+        "Plano de suplementação": "Supplement plan",
+        "Orientações de suplementação": "Supplement guidance",
+        "Adicionar suplemento": "Add supplement",
+        "Suplemento": "Supplement",
+        "Nome": "Name",
+        "Marca": "Brand",
+        "Dose": "Dose",
+        "Frequência": "Frequency",
+        "Momento de uso": "Timing",
+        "Instruções": "Instructions",
+        "Data de início": "Start date",
+        "Data de término": "End date",
+        "URL do produto": "Product URL",
+        "Ver produto": "View product",
+        "Produto parceiro": "Partner product",
+        "Link patrocinado": "Sponsored link",
+        "Nenhum suplemento adicionado a este plano.": "No supplement added to this plan.",
+        "Nenhuma orientação de suplementação foi adicionada ao seu plano.": "No supplement guidance was added to your plan.",
+        "URL inválida.": "Invalid URL.",
+        "Remover suplemento": "Remove supplement",
+        "Confirmar remoção": "Confirm removal",
+        "Data de término não pode ser anterior à data de início.": "End date cannot be before start date.",
+        "Siga as orientações do profissional responsável. Em caso de condição clínica, alergia, gestação ou uso de medicamentos, procure orientação médica ou nutricional qualificada.": "Follow the responsible professional's guidance. In case of a clinical condition, allergy, pregnancy, or medication use, seek qualified medical or nutrition guidance.",
+        "Responsabilidade profissional": "Professional responsibility",
+        "Confirmo que sou responsável por atuar dentro da minha habilitação profissional e das regras aplicáveis na minha região.": "I confirm I am responsible for acting within my professional qualification and the rules applicable in my region.",
+        "Desfazer remoção": "Undo removal",
+        "Suplemento removido antes de salvar.": "Supplement removed before saving.",
+        "Produto": "Product",
+        "Manual": "Manual",
+        "Parceiro": "Partner",
+        "Suplemento removido.": "Supplement removed.",
+        "Desfazer": "Undo",
+        "Mover suplemento para cima": "Move supplement up",
+        "Mover suplemento para baixo": "Move supplement down",
+        "Período": "Period",
+        "A partir de": "From",
+        "Até": "Until",
         "refeição": "meal",
         "refeições": "meals",
         "Sem alimentos cadastrados.": "No foods registered.",
@@ -13477,6 +13706,43 @@ const MONOLITH_VERSION_LABEL = window.MONOLITH_VERSION_LABEL || "Monolith v92 ·
         "Meta diária": "Meta diaria",
         "Carboidratos": "Carbohidratos",
         "Gorduras": "Grasas",
+        "Plano de suplementação": "Plan de suplementación",
+        "Orientações de suplementação": "Orientaciones de suplementación",
+        "Adicionar suplemento": "Añadir suplemento",
+        "Suplemento": "Suplemento",
+        "Nome": "Nombre",
+        "Marca": "Marca",
+        "Dose": "Dosis",
+        "Frequência": "Frecuencia",
+        "Momento de uso": "Momento de uso",
+        "Instruções": "Instrucciones",
+        "Data de início": "Fecha de inicio",
+        "Data de término": "Fecha de finalización",
+        "URL do produto": "URL del producto",
+        "Ver produto": "Ver producto",
+        "Produto parceiro": "Producto asociado",
+        "Link patrocinado": "Enlace patrocinado",
+        "Nenhum suplemento adicionado a este plano.": "No se agregó ningún suplemento a este plan.",
+        "Nenhuma orientação de suplementação foi adicionada ao seu plano.": "No se agregó ninguna orientación de suplementación a tu plan.",
+        "URL inválida.": "URL inválida.",
+        "Remover suplemento": "Eliminar suplemento",
+        "Confirmar remoção": "Confirmar eliminación",
+        "Data de término não pode ser anterior à data de início.": "La fecha de finalización no puede ser anterior a la fecha de inicio.",
+        "Siga as orientações do profissional responsável. Em caso de condição clínica, alergia, gestação ou uso de medicamentos, procure orientação médica ou nutricional qualificada.": "Sigue las orientaciones del profesional responsable. En caso de condición clínica, alergia, embarazo o uso de medicamentos, busca orientación médica o nutricional calificada.",
+        "Responsabilidade profissional": "Responsabilidad profesional",
+        "Confirmo que sou responsável por atuar dentro da minha habilitação profissional e das regras aplicáveis na minha região.": "Confirmo que soy responsable de actuar dentro de mi habilitación profesional y de las reglas aplicables en mi región.",
+        "Desfazer remoção": "Deshacer eliminación",
+        "Suplemento removido antes de salvar.": "Suplemento eliminado antes de guardar.",
+        "Produto": "Producto",
+        "Manual": "Manual",
+        "Parceiro": "Socio",
+        "Suplemento removido.": "Suplemento eliminado.",
+        "Desfazer": "Deshacer",
+        "Mover suplemento para cima": "Mover suplemento hacia arriba",
+        "Mover suplemento para baixo": "Mover suplemento hacia abajo",
+        "Período": "Período",
+        "A partir de": "Desde",
+        "Até": "Hasta",
         "refeição": "comida",
         "refeições": "comidas",
         "Sem alimentos cadastrados.": "Sin alimentos registrados.",
@@ -16551,6 +16817,19 @@ const MONOLITH_VERSION_LABEL = window.MONOLITH_VERSION_LABEL || "Monolith v92 ·
         "Sem medidas corporais salvas.": "No body measurements saved.",
         "Dieta ativa do mês": "Active Monthly Diet",
         "Meta": "Target",
+        "Plano de suplementação": "Supplement plan",
+        "Nome": "Name",
+        "Marca": "Brand",
+        "Dose": "Dose",
+        "Frequência": "Frequency",
+        "Momento de uso": "Timing",
+        "Instruções": "Instructions",
+        "Período": "Period",
+        "Produto": "Product",
+        "Ver produto": "View product",
+        "Produto parceiro": "Partner product",
+        "Link patrocinado": "Sponsored link",
+        "Nenhuma orientação de suplementação foi adicionada ao seu plano.": "No supplement guidance was added to this plan.",
         "Refeição": "Meal",
         "Alimentos": "Foods",
         "Substituições": "Substitutions",
@@ -16625,6 +16904,19 @@ const MONOLITH_VERSION_LABEL = window.MONOLITH_VERSION_LABEL || "Monolith v92 ·
         "Sem medidas corporais salvas.": "Sin medidas corporales guardadas.",
         "Dieta ativa do mês": "Dieta activa del mes",
         "Meta": "Meta",
+        "Plano de suplementação": "Plan de suplementación",
+        "Nome": "Nombre",
+        "Marca": "Marca",
+        "Dose": "Dosis",
+        "Frequência": "Frecuencia",
+        "Momento de uso": "Momento de uso",
+        "Instruções": "Instrucciones",
+        "Período": "Período",
+        "Produto": "Producto",
+        "Ver produto": "Ver producto",
+        "Produto parceiro": "Producto asociado",
+        "Link patrocinado": "Enlace patrocinado",
+        "Nenhuma orientação de suplementação foi adicionada ao seu plano.": "No se agregó ninguna orientación de suplementación a este plan.",
         "Refeição": "Comida",
         "Alimentos": "Alimentos",
         "Substituições": "Sustituciones",
@@ -16731,6 +17023,11 @@ const MONOLITH_VERSION_LABEL = window.MONOLITH_VERSION_LABEL || "Monolith v92 ·
       const bodyFatBars = reportChartBars(bodyMeasureSeries("bodyFat", report.bodyMeasures), "%");
       const measureRows = report.bodyMeasures.slice(0, 20).map(entry => `<tr><td>${escapeHTML(entry.date)}</td><td>${formatWeight(entry.weight)}</td><td>${formatMeasureValue(entry.bodyFat, "%")}</td><td>${formatMeasureValue(entry.waist, "cm")}</td><td>${formatMeasureValue(entry.chest, "cm")}</td><td>${formatMeasureValue(entry.arm, "cm")}</td><td>${formatMeasureValue(entry.leg, "cm")}</td><td>${formatMeasureValue(entry.hip, "cm")}</td><td>${escapeHTML(entry.notes || "")}</td></tr>`).join("");
       const dietRows = report.activeDietPlan?.meals?.map((meal, index) => `<tr><td>${index + 1}</td><td>${escapeHTML(meal.name || `${rt("Refeição")} ${index + 1}`)}</td><td>${escapeHTML(meal.items || "")}</td><td>${escapeHTML([meal.calories ? `${meal.calories} kcal` : "", meal.protein ? `P ${meal.protein}` : "", meal.carbs ? `C ${meal.carbs}` : "", meal.fat ? `G ${meal.fat}` : ""].filter(Boolean).join(" / "))}</td><td>${escapeHTML(meal.substitutions || "")}</td><td>${escapeHTML(meal.notes || "")}</td></tr>`).join("") || "";
+      const supplementRows = (report.activeDietPlan?.supplements || []).map((item, index) => cloneDietSupplement(item, index)).sort((a, b) => a.sortOrder - b.sortOrder).map(item => {
+        const urlInfo = productUrlInfo(item.productUrl);
+        const commercial = item.isSponsored ? `${rt(item.partnerName ? "Produto parceiro" : "Link patrocinado")}${item.partnerName ? ` · ${item.partnerName}` : ""}` : "";
+        return `<tr><td data-no-i18n="true">${escapeHTML(item.name)}</td><td data-no-i18n="true">${escapeHTML(item.brand || "")}</td><td>${escapeHTML(item.dosage)}</td><td>${escapeHTML(item.frequency)}</td><td>${escapeHTML(item.timing || "")}</td><td data-no-i18n="true">${escapeHTML(item.instructions || "")}</td><td>${escapeHTML(supplementPeriodLabel(item))}</td><td>${escapeHTML([commercial, urlInfo.domain ? `${rt("Ver produto")}: ${urlInfo.domain}` : ""].filter(Boolean).join(" / "))}</td></tr>`;
+      }).join("");
       const translatedAnamnesisAnswerFields = new Set(["primaryGoal", "experience", "activityLevel", "sleepQuality", "stressLevel", "smoking", "alcohol", ...anamnesisRiskFields]);
       const anamnesisRows = report.anamnesis ? anamnesisReportFields.map(field => {
         const rawValue = report.anamnesis.answers?.[field.key];
@@ -16809,6 +17106,8 @@ ${bodyFatBars ? `<div class="chart">${bodyFatBars}</div>` : `<p class="muted">${
 <h2>${rt("Dieta ativa no período")}</h2>
 <p class="muted">${rt("Meta")}: ${escapeHTML(report.activeDietPlan?.calories || "--")} kcal / P ${escapeHTML(report.activeDietPlan?.protein || "--")} / C ${escapeHTML(report.activeDietPlan?.carbs || "--")} / G ${escapeHTML(report.activeDietPlan?.fat || "--")}</p>
 <table><thead><tr><th>#</th><th>${rt("Refeição")}</th><th>${rt("Alimentos")}</th><th>${rt("Macros")}</th><th>${rt("Substituições")}</th><th>${rt("Observação")}</th></tr></thead><tbody>${dietRows || `<tr><td colspan="6">${rt("Nenhuma dieta ativa cadastrada para este mês.")}</td></tr>`}</tbody></table>
+<h2>${rt("Plano de suplementação")}</h2>
+<table><thead><tr><th>${rt("Nome")}</th><th>${rt("Marca")}</th><th>${rt("Dose")}</th><th>${rt("Frequência")}</th><th>${rt("Momento de uso")}</th><th>${rt("Instruções")}</th><th>${rt("Período")}</th><th>${rt("Produto")}</th></tr></thead><tbody>${supplementRows || `<tr><td colspan="8">${rt("Nenhuma orientação de suplementação foi adicionada ao seu plano.")}</td></tr>`}</tbody></table>
 <h2>${rt("Fotos de evolução")}</h2>
 ${photoSections}
 <h2>${rt("Top 5 maiores evoluções")}</h2>
@@ -17465,6 +17764,74 @@ ${photoSections}
       if (event.target === event.currentTarget) closeTrainerMapProfile();
     });
     document.getElementById("dietMonth")?.addEventListener("change", renderNutrition);
+    async function ensureSupplementResponsibilityAccepted() {
+      if (localStorage.getItem("monolith.supplementResponsibilityAccepted") === "true") return true;
+      const accepted = await confirmAction({
+        title: "Responsabilidade profissional",
+        message: "Confirmo que sou responsável por atuar dentro da minha habilitação profissional e das regras aplicáveis na minha região.",
+        contextLabel: "Área",
+        contextValue: "Plano de suplementação",
+        confirmLabel: "Confirmo",
+        danger: false
+      });
+      if (accepted) localStorage.setItem("monolith.supplementResponsibilityAccepted", "true");
+      return accepted;
+    }
+    document.getElementById("addDietSupplement")?.addEventListener("click", async () => {
+      if (!await ensureSupplementResponsibilityAccepted()) return;
+      const supplements = readDietSupplementBuilderEntries().filter(supplementHasUserContent);
+      supplements.push(cloneDietSupplement({}, supplements.length, { freshId: true }));
+      renderDietSupplementBuilder(supplements);
+      markDirty("diet");
+    });
+    document.getElementById("dietSupplementBuilder")?.addEventListener("click", async event => {
+      const button = event.target.closest("button");
+      if (!button) return;
+      if (button.classList.contains("undo-supplement-removal")) {
+        const removed = window.monolithLastRemovedSupplement;
+        if (!removed?.item) return;
+        const supplements = readDietSupplementBuilderEntries().filter(supplementHasUserContent);
+        supplements.splice(Math.max(0, Math.min(removed.index || 0, supplements.length)), 0, removed.item);
+        window.monolithLastRemovedSupplement = null;
+        renderDietSupplementBuilder(supplements);
+        markDirty("diet");
+        return;
+      }
+      const card = event.target.closest(".supplement-card");
+      if (!card) return;
+      const supplements = readDietSupplementBuilderEntries().filter(supplementHasUserContent);
+      const index = [...document.querySelectorAll("#dietSupplementBuilder .supplement-card")].indexOf(card);
+      if (button.classList.contains("move-supplement-up") && index > 0) {
+        [supplements[index - 1], supplements[index]] = [supplements[index], supplements[index - 1]];
+      } else if (button.classList.contains("move-supplement-down") && index < supplements.length - 1) {
+        [supplements[index + 1], supplements[index]] = [supplements[index], supplements[index + 1]];
+      } else if (button.classList.contains("duplicate-supplement")) {
+        supplements.splice(index + 1, 0, cloneDietSupplement(supplements[index], index + 1, { freshId: true }));
+      } else if (button.classList.contains("remove-supplement")) {
+        const removed = supplements[index];
+        if (card.dataset.saved === "true" && !await confirmAction({
+          title: "Confirmar remoção",
+          message: "Este suplemento já estava salvo neste plano. Remover mesmo assim?",
+          contextLabel: "Suplemento",
+          contextValue: removed?.name || "Suplemento",
+          confirmLabel: "Remover suplemento",
+          danger: true
+        })) return;
+        supplements.splice(index, 1);
+        showToast(`${t("Suplemento removido.")} ${t("Desfazer")}`);
+        window.monolithLastRemovedSupplement = { item: removed, index };
+      } else {
+        return;
+      }
+      renderDietSupplementBuilder(supplements.map((item, itemIndex) => ({ ...item, sortOrder: itemIndex })));
+      markDirty("diet");
+    });
+    document.getElementById("dietSupplementBuilder")?.addEventListener("input", event => {
+      if (event.target.matches("input, textarea")) {
+        setFieldError(event.target, "");
+        markDirty("diet");
+      }
+    });
     document.getElementById("dietPlanForm")?.addEventListener("submit", async event => {
       event.preventDefault();
       if (currentAccount()?.role !== "personal") {
@@ -17478,6 +17845,8 @@ ${photoSections}
         return;
       }
       const plan = readDietPlanForm();
+      if (!validateDietSupplements(plan.supplements)) return;
+      if (plan.supplements.length && !await ensureSupplementResponsibilityAccepted()) return;
       if (!plan.studentId || !canAccessStudentData(plan.studentId)) {
         authMessage("Selecione um aluno vinculado para salvar a dieta.");
         renderNutrition();
@@ -17510,9 +17879,12 @@ ${photoSections}
           logAppError("diet", "save", error, { studentId: plan.studentId, month: plan.month });
           showToast("Dieta salva localmente. Não consegui sincronizar agora.");
         }
+        plan.supplements = (plan.supplements || []).map((item, index) => cloneDietSupplement({ ...item, saved: true }, index));
+        window.monolithLastRemovedSupplement = null;
         const refreshedPlans = loadDietPlans();
         refreshedPlans[plan.id] = plan;
         saveDietPlans(refreshedPlans);
+        renderDietSupplementBuilder(plan.supplements || []);
         renderDietPlan("dietPreview", plan);
         setDirtyBaseline("diet");
         authMessage(synced ? "Dieta do aluno salva no Supabase." : "Dieta salva localmente. Não consegui sincronizar agora.");
