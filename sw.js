@@ -1,4 +1,4 @@
-const CACHE_NAME = "monolith-v97-space-identity-polish";
+const CACHE_NAME = "monolith-v98-plus-space-entitlement";
 
 self.addEventListener("install", event => {
   self.skipWaiting();

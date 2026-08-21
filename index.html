@@ -14,8 +14,8 @@
   <link rel="manifest" href="manifest.webmanifest" />
   <link rel="icon" href="monolith-icon.svg" />
   <script>
-window.MONOLITH_BUILD = "monolith-v97-space-identity-polish";
-window.MONOLITH_VERSION_LABEL = "Monolith v97 · 21/08/2026";
+window.MONOLITH_BUILD = "monolith-v98-plus-space-entitlement";
+window.MONOLITH_VERSION_LABEL = "Monolith v98 · 21/08/2026";
     (function clearOldAppCaches() {
       if ("serviceWorker" in navigator) {
         navigator.serviceWorker.getRegistrations?.()
@@ -159,7 +159,10 @@ window.MONOLITH_VERSION_LABEL = "Monolith v97 · 21/08/2026";
       --monolith-brand: #c9a227;
       --space-primary: var(--monolith-brand);
       --space-primary-rgb: 201, 162, 39;
+      --space-primary-soft: rgba(var(--space-primary-rgb), .1);
+      --space-primary-hover: rgba(var(--space-primary-rgb), .16);
       --space-support: #f5f5f5;
+      --space-on-primary: #070707;
       --gold: var(--space-primary);
       --green: #58c77a;
       --orange: #e8a23a;
@@ -663,9 +666,8 @@ window.MONOLITH_VERSION_LABEL = "Monolith v97 · 21/08/2026";
     }
 
     .space-brand-identity {
-      display: flex;
-      align-items: center;
-      gap: 10px;
+      display: grid;
+      gap: 6px;
       margin-top: 10px;
       max-width: 100%;
     }
@@ -675,23 +677,23 @@ window.MONOLITH_VERSION_LABEL = "Monolith v97 · 21/08/2026";
     }
 
     .space-brand-mark {
-      min-width: 42px;
-      max-width: 88px;
-      height: 42px;
+      width: min(100%, 156px);
+      min-height: 38px;
+      max-height: 56px;
       display: grid;
       place-items: center;
-      border: 1px solid var(--space-primary);
+      border: 0;
       color: var(--space-primary);
       overflow: hidden;
-      font-weight: 800;
+      font-weight: 900;
+      text-align: left;
     }
 
     .space-brand-mark img {
-      width: 100%;
-      height: 100%;
+      max-width: 156px;
+      max-height: 56px;
       object-fit: contain;
       display: block;
-      padding: 4px;
     }
 
     .space-brand-copy {
@@ -710,8 +712,9 @@ window.MONOLITH_VERSION_LABEL = "Monolith v97 · 21/08/2026";
       max-width: 150px;
       overflow: hidden;
       text-overflow: ellipsis;
-      white-space: nowrap;
+      white-space: normal;
       font-size: 12px;
+      line-height: 1.25;
     }
 
     nav {
@@ -778,6 +781,24 @@ window.MONOLITH_VERSION_LABEL = "Monolith v97 · 21/08/2026";
       display: none !important;
     }
 
+    body.auth-role-personal .nav-btn[data-screen="home"] { order: 1; }
+    body.auth-role-personal .nav-btn[data-screen="alerts"] { order: 2; }
+    body.auth-role-personal .nav-btn[data-screen="clients"] { order: 3; }
+    body.auth-role-personal .nav-btn[data-screen="workouts"] { order: 4; }
+    body.auth-role-personal .nav-btn[data-screen="nutrition"] { order: 5; }
+    body.auth-role-personal .nav-btn[data-screen="checkin"] { order: 6; }
+    body.auth-role-personal .nav-btn[data-screen="stats"] { order: 7; }
+    body.auth-role-personal .nav-btn[data-screen="timeline"] { order: 8; }
+    body.auth-role-personal .nav-btn[data-screen="programs"] { order: 9; }
+    body.auth-role-personal .nav-btn[data-screen="anamnesis"] { order: 10; }
+    body.auth-role-personal .nav-btn[data-screen="space"] { order: 11; }
+    body.auth-role-personal .nav-btn[data-screen="profile"] { order: 12; }
+    body.auth-role-personal .nav-btn[data-screen="onboarding"] { display: none !important; }
+    body:not(.auth-space-enabled) .nav-btn[data-screen="space"],
+    body:not(.auth-space-enabled) #space {
+      display: none !important;
+    }
+
     .nav-btn.active,
     .nav-btn:hover {
       border-color: var(--line);
@@ -786,8 +807,20 @@ window.MONOLITH_VERSION_LABEL = "Monolith v97 · 21/08/2026";
     }
 
     .nav-btn.active {
-      border-color: var(--gold);
-      background: rgba(var(--space-primary-rgb), .12);
+      position: relative;
+      border-color: rgba(var(--space-primary-rgb), .18);
+      background: var(--space-primary-soft);
+    }
+
+    .nav-btn.active::before {
+      content: "";
+      position: absolute;
+      left: 0;
+      top: 10px;
+      bottom: 10px;
+      width: 3px;
+      border-radius: 999px;
+      background: var(--gold);
     }
 
     .nav-btn:focus-visible {
@@ -1033,9 +1066,52 @@ window.MONOLITH_VERSION_LABEL = "Monolith v97 · 21/08/2026";
     }
 
     .language-button .language-flag {
-      font-size: 16px;
-      line-height: 1;
-      color: inherit;
+      position: relative;
+      width: 18px;
+      height: 12px;
+      border-radius: 2px;
+      overflow: hidden;
+      flex: 0 0 auto;
+      box-shadow: 0 0 0 1px rgba(255,255,255,.22);
+    }
+
+    .language-flag.flag-br { background: #149447; }
+    .language-flag.flag-br::before {
+      content: "";
+      position: absolute;
+      left: 4px;
+      top: 1px;
+      width: 10px;
+      height: 10px;
+      background: #f6d64a;
+      transform: rotate(45deg);
+    }
+    .language-flag.flag-br::after {
+      content: "";
+      position: absolute;
+      left: 6px;
+      top: 3px;
+      width: 6px;
+      height: 6px;
+      border-radius: 999px;
+      background: #2446a8;
+    }
+
+    .language-flag.flag-us {
+      background: repeating-linear-gradient(to bottom, #b22234 0 1.7px, #fff 1.7px 3.4px);
+    }
+    .language-flag.flag-us::before {
+      content: "";
+      position: absolute;
+      left: 0;
+      top: 0;
+      width: 8px;
+      height: 7px;
+      background: #3c3b6e;
+    }
+
+    .language-flag.flag-es {
+      background: linear-gradient(to bottom, #aa151b 0 25%, #f1bf00 25% 75%, #aa151b 75%);
     }
 
     .checkin-measure {
@@ -1177,7 +1253,7 @@ window.MONOLITH_VERSION_LABEL = "Monolith v97 · 21/08/2026";
     .action {
       border: 1px solid var(--gold);
       background: var(--gold);
-      color: #070707;
+      color: var(--space-on-primary);
       min-height: 40px;
       padding: 0 14px;
       font-weight: 750;
@@ -4872,9 +4948,9 @@ window.MONOLITH_VERSION_LABEL = "Monolith v97 · 21/08/2026";
         <div class="auth-language">
           <label data-i18n="Idioma">Idioma</label>
           <div class="language-buttons" id="authLanguageSelect" aria-label="Idioma">
-            <button class="language-button" type="button" data-lang="pt" title="Português" aria-label="Português"><span class="language-flag" aria-hidden="true">🇧🇷</span><span>PT</span></button>
-            <button class="language-button" type="button" data-lang="en" title="English" aria-label="English"><span class="language-flag" aria-hidden="true">🇺🇸</span><span>EN</span></button>
-            <button class="language-button" type="button" data-lang="es" title="Español" aria-label="Español"><span class="language-flag" aria-hidden="true">🇪🇸</span><span>ES</span></button>
+            <button class="language-button" type="button" data-lang="pt" title="Português" aria-label="Português"><span class="language-flag flag-br" aria-hidden="true"></span><span>PT</span></button>
+            <button class="language-button" type="button" data-lang="en" title="English" aria-label="English"><span class="language-flag flag-us" aria-hidden="true"></span><span>EN</span></button>
+            <button class="language-button" type="button" data-lang="es" title="Español" aria-label="Español"><span class="language-flag flag-es" aria-hidden="true"></span><span>ES</span></button>
           </div>
         </div>
       </div>
@@ -4910,7 +4986,7 @@ window.MONOLITH_VERSION_LABEL = "Monolith v97 · 21/08/2026";
           <button class="action" id="loginButton" type="submit">Entrar</button>
           <div class="auth-tools">
             <button class="auth-secondary" id="clearDeviceSessionButton" type="button">Limpar sessão/cache deste aparelho</button>
-            <div class="build-version" id="buildVersionLabel">Versão do app: Monolith v97 · 21/08/2026</div>
+            <div class="build-version" id="buildVersionLabel">Versão do app: Monolith v98 · 21/08/2026</div>
           </div>
         </form>
       </div>
@@ -5094,7 +5170,7 @@ window.MONOLITH_VERSION_LABEL = "Monolith v97 · 21/08/2026";
         Array.prototype.forEach.call(document.querySelectorAll("[data-role-only]"), function (element) {
           element.hidden = element.getAttribute("data-role-only") !== account.role;
         });
-        showFallbackScreen(account.role === "personal" ? "clients" : "home", account.role);
+        showFallbackScreen("home", account.role);
         if (typeof authMessage === "function") authMessage("Bem-vindo, {name}.", { name: account.name });
         return true;
       }
@@ -5160,9 +5236,9 @@ window.MONOLITH_VERSION_LABEL = "Monolith v97 · 21/08/2026";
       <div class="language-select">
         <label data-i18n="Idioma">Idioma</label>
         <div class="language-buttons" id="languageSelect" aria-label="Idioma">
-          <button class="language-button" type="button" data-lang="pt" title="Português" aria-label="Português"><span class="language-flag" aria-hidden="true">🇧🇷</span><span>PT</span></button>
-          <button class="language-button" type="button" data-lang="en" title="English" aria-label="English"><span class="language-flag" aria-hidden="true">🇺🇸</span><span>EN</span></button>
-          <button class="language-button" type="button" data-lang="es" title="Español" aria-label="Español"><span class="language-flag" aria-hidden="true">🇪🇸</span><span>ES</span></button>
+          <button class="language-button" type="button" data-lang="pt" title="Português" aria-label="Português"><span class="language-flag flag-br" aria-hidden="true"></span><span>PT</span></button>
+          <button class="language-button" type="button" data-lang="en" title="English" aria-label="English"><span class="language-flag flag-us" aria-hidden="true"></span><span>EN</span></button>
+          <button class="language-button" type="button" data-lang="es" title="Español" aria-label="Español"><span class="language-flag flag-es" aria-hidden="true"></span><span>ES</span></button>
         </div>
       </div>
 
@@ -5205,9 +5281,9 @@ window.MONOLITH_VERSION_LABEL = "Monolith v97 · 21/08/2026";
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m5 12 4 4L19 6"/><path d="M5 6h4M5 18h14"/></svg>
           <span>Primeiros passos</span>
         </button>
-        <button class="nav-btn" data-screen="space" data-role-only="personal" title="Monolith Space">
+        <button class="nav-btn" data-screen="space" data-role-only="personal" title="Meu Space">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 20V8l8-4 8 4v12"/><path d="M9 20v-6h6v6"/></svg>
-          <span>Space</span>
+          <span>Meu Space</span>
         </button>
         <button class="nav-btn" data-screen="workouts" title="Treinos">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 7v10"/><path d="M18 7v10"/><path d="M3 9v6"/><path d="M21 9v6"/><path d="M6 12h12"/></svg>
@@ -5263,6 +5339,15 @@ window.MONOLITH_VERSION_LABEL = "Monolith v97 · 21/08/2026";
         </div>
 
         <div class="space-home-hero" id="spaceHomeHero" data-no-i18n="true" hidden></div>
+        <div class="panel compact-actions" id="homeOnboardingCard" hidden>
+          <div>
+            <h3>Primeiros passos</h3>
+            <div class="date" id="homeOnboardingText">Complete a configuração inicial.</div>
+          </div>
+          <div class="action-row">
+            <button class="ghost" type="button" id="homeOnboardingButton">Continuar</button>
+          </div>
+        </div>
 
         <div class="trainer-home" id="personalHomeDashboard" data-role-only="personal" hidden>
           <div class="panel compact-actions">
@@ -6064,6 +6149,16 @@ window.MONOLITH_VERSION_LABEL = "Monolith v97 · 21/08/2026";
             </div>
           </div>
 
+          <div class="panel" id="profileSpaceUpgradePanel" data-role-only="personal" hidden>
+            <div class="section-title"><h3>Conhecer o Plus Space</h3><span>Adicional comercial</span></div>
+            <p>Personalize a experiência com logo, capa, cores e identidade do seu Space sem perder a presença do Monolith.</p>
+            <div class="settings-actions">
+              <button class="action" type="button" id="spaceUpgradeRequestButton">Solicitar ativação</button>
+              <button class="ghost" type="button" id="spaceUpgradeContactButton">Falar com o Monolith</button>
+            </div>
+            <div class="auth-warning" id="spaceUpgradeNotice" hidden></div>
+          </div>
+
           <div class="panel" id="profileStudentTrainerPanel" data-role-only="student" hidden>
             <div class="section-title"><h3>Personal vinculado</h3><span>Aluno</span></div>
             <p id="profileTrainerStatus">Verificando vínculo com personal...</p>
@@ -6685,8 +6780,8 @@ window.MONOLITH_VERSION_LABEL = "Monolith v97 · 21/08/2026";
   <script>
     const MONOLITH_SUPABASE_URL = "https://jhxasnxuvmkhntbwepau.supabase.co";
     const MONOLITH_SUPABASE_KEY = "sb_publishable_lDtAXIOtkMwgwsAZyghBdg_gyLHGwpH";
-const MONOLITH_BUILD = window.MONOLITH_BUILD || "monolith-v97-space-identity-polish";
-const MONOLITH_VERSION_LABEL = window.MONOLITH_VERSION_LABEL || "Monolith v97 · 21/08/2026";
+const MONOLITH_BUILD = window.MONOLITH_BUILD || "monolith-v98-plus-space-entitlement";
+const MONOLITH_VERSION_LABEL = window.MONOLITH_VERSION_LABEL || "Monolith v98 · 21/08/2026";
 if (location.hash.toLowerCase() === "#pulse") history.replaceState(null, "", `${location.href.split("#")[0]}#alertas`);
 if (location.hash.toLowerCase() === "#leads") history.replaceState(null, "", `${location.href.split("#")[0]}#inicio`);
     const monolithSupabase = window.supabase?.createClient?.(MONOLITH_SUPABASE_URL, MONOLITH_SUPABASE_KEY, {
@@ -6814,11 +6909,11 @@ if (location.hash.toLowerCase() === "#leads") history.replaceState(null, "", `${
         }
         if (typeof showScreen === "function") {
           try {
-            showScreen(account.role === "personal" ? "clients" : "home");
+            showScreen("home");
             return true;
           } catch {}
         }
-        fallbackShowScreen(account.role === "personal" ? "clients" : "home");
+        fallbackShowScreen("home");
         return true;
       }
 
@@ -6959,6 +7054,10 @@ if (location.hash.toLowerCase() === "#leads") history.replaceState(null, "", `${
       return "Aluno";
     }
 
+    function hasSpaceEntitlement(account = currentAccount()) {
+      return Boolean(account?.spaceEnabled);
+    }
+
     function cacheRemoteAccount(profile, authUser = null) {
       if (!profile?.id) return null;
       const savedVoiceSettings = (() => {
@@ -6975,6 +7074,7 @@ if (location.hash.toLowerCase() === "#leads") history.replaceState(null, "", `${
         name: profile.full_name || authUser?.email?.split("@")[0] || "Monolith User",
         email: profile.email || authUser?.email || "",
         plan: planFromDbRole(profile.role),
+        spaceEnabled: profile.space_enabled === true,
         language,
         weightUnit,
         voiceLanguage,
@@ -7002,7 +7102,8 @@ if (location.hash.toLowerCase() === "#leads") history.replaceState(null, "", `${
         id: authUser?.id,
         email: authUser?.email || fallback.email || "",
         full_name: metadata.full_name || fallback.name || authUser?.email?.split("@")[0] || "Monolith User",
-        role: metadata.role || fallback.dbRole || dbRoleFromApp(fallback.role || "student")
+        role: metadata.role || fallback.dbRole || dbRoleFromApp(fallback.role || "student"),
+        space_enabled: fallback.spaceEnabled === true
       };
     }
 
@@ -7328,6 +7429,10 @@ if (location.hash.toLowerCase() === "#leads") history.replaceState(null, "", `${
 
     function accountRolePlanLabel(account) {
       if (!account) return "--";
+      if (account.role === "personal") {
+        const plan = hasSpaceEntitlement(account) ? "Plus Space" : (account.dbRole === "trainer_basic" || /basic/i.test(account.plan || "") ? "Basic" : "Plus");
+        return `${t("Personal Trainer")} · ${t(plan)}`;
+      }
       const role = t(roleLabel(account.role));
       const plan = String(account.plan || "Supabase").trim();
       return role.toLowerCase() === t(plan).toLowerCase() ? role : `${role} · ${t(plan)}`;
@@ -8268,7 +8373,7 @@ if (location.hash.toLowerCase() === "#leads") history.replaceState(null, "", `${
       if (!ids.length) return [];
       const { data: profiles, error: profileError } = await monolithSupabase
         .from("profiles")
-        .select("id,email,full_name,role")
+        .select("id,email,full_name,role,space_enabled")
         .in("id", ids);
       if (profileError) throw profileError;
       const linkByStudent = new Map((links || []).map(link => [link.student_id, link]));
@@ -8799,6 +8904,7 @@ if (location.hash.toLowerCase() === "#leads") history.replaceState(null, "", `${
     function renderPersonalHome() {
       const user = currentAccount();
       if (user?.role !== "personal") return;
+      renderOnboardingHomeCard();
       const students = studentsForPersonal(user.id);
       const today = todayKey();
       const summaries = students.map(student => ({ student, metrics: studentMetrics(student) }));
@@ -8879,6 +8985,19 @@ if (location.hash.toLowerCase() === "#leads") history.replaceState(null, "", `${
       });
     }
 
+    function updateSpaceEntitlementUI(user = currentAccount()) {
+      const enabled = user?.role === "personal" && hasSpaceEntitlement(user);
+      document.body.classList.toggle("auth-space-enabled", Boolean(enabled));
+      const spaceNav = document.querySelector('.nav-btn[data-screen="space"]');
+      if (spaceNav) spaceNav.hidden = !enabled;
+      const profileUpgradePanel = document.getElementById("profileSpaceUpgradePanel");
+      if (profileUpgradePanel) profileUpgradePanel.hidden = !(user?.role === "personal" && !enabled);
+      if (!enabled && document.getElementById("space")?.classList.contains("active")) {
+        window.monolithApplySpaceTheme?.(null);
+        showScreen("profile", { historyMode: "replace", skipDirtyGuard: true });
+      }
+    }
+
     async function refreshPersonalHome() {
       const user = currentAccount();
       if (user?.role !== "personal") return;
@@ -8924,6 +9043,7 @@ if (location.hash.toLowerCase() === "#leads") history.replaceState(null, "", `${
       document.querySelectorAll("[data-role-only]").forEach(element => {
         element.hidden = !user || element.dataset.roleOnly !== user.role;
       });
+      updateSpaceEntitlementUI(user);
       const invitePanel = document.getElementById("inviteCodePanel");
       if (invitePanel && (!user || user.role !== "personal")) invitePanel.hidden = true;
       if (user) {
@@ -8950,6 +9070,7 @@ if (location.hash.toLowerCase() === "#leads") history.replaceState(null, "", `${
         name: trainer.full_name || trainer.email || "Personal",
         email: trainer.email || "",
         plan: planFromDbRole(trainer.role),
+        spaceEnabled: trainer.space_enabled === true,
         source: "supabase"
       } : null;
       const trainerLinkedAt = linkedAt || user.trainerLinkedAt || new Date().toISOString();
@@ -8980,7 +9101,7 @@ if (location.hash.toLowerCase() === "#leads") history.replaceState(null, "", `${
         if (!trainerId) return "";
         const { data: trainer } = await monolithSupabase
           .from("profiles")
-          .select("id,email,full_name,role")
+          .select("id,email,full_name,role,space_enabled")
           .eq("id", trainerId)
           .maybeSingle();
         saveStudentTrainerLink(user, trainerId, trainer, links?.[0]?.created_at || "");
@@ -9348,6 +9469,7 @@ if (location.hash.toLowerCase() === "#leads") history.replaceState(null, "", `${
       showStudentPreferencesNotice("");
       const trainerPanel = document.getElementById("profileTrainerPanel");
       if (trainerPanel) trainerPanel.hidden = user?.role !== "personal";
+      updateSpaceEntitlementUI(user);
       const preferencesPanel = document.getElementById("profileStudentPreferencesPanel");
       if (preferencesPanel) preferencesPanel.hidden = user?.role !== "student";
       if (user?.role === "student") {
@@ -9545,7 +9667,7 @@ if (location.hash.toLowerCase() === "#leads") history.replaceState(null, "", `${
           await consumePendingAccountCodes(account);
           applyAuthState();
           hydrateRemoteFactors(account);
-          if (!await maybeRequireTrainerProfile(account)) showScreen(account.role === "personal" ? "clients" : "home");
+          if (!await maybeRequireTrainerProfile(account)) showScreen("home");
           authMessage("Bem-vindo, {name}.", { name: account.name });
           return true;
         } catch (profileError) {
@@ -9558,7 +9680,7 @@ if (location.hash.toLowerCase() === "#leads") history.replaceState(null, "", `${
           await consumePendingAccountCodes(account);
           applyAuthState();
           hydrateRemoteFactors(account);
-          if (!await maybeRequireTrainerProfile(account)) showScreen(account.role === "personal" ? "clients" : "home");
+          if (!await maybeRequireTrainerProfile(account)) showScreen("home");
           authMessage("Login feito. Perfil remoto pendente de sincronização.");
           return true;
         }
@@ -9577,7 +9699,7 @@ if (location.hash.toLowerCase() === "#leads") history.replaceState(null, "", `${
       localStorage.setItem("monolith.sessionUserId", account.id);
       applyAuthState();
       hydrateRemoteFactors(account);
-      if (!await maybeRequireTrainerProfile(account)) showScreen(account.role === "personal" ? "clients" : "home");
+      if (!await maybeRequireTrainerProfile(account)) showScreen("home");
       authMessage("Bem-vindo, {name}.", { name: account.name });
       return true;
     }
@@ -17666,6 +17788,7 @@ ${photoSections}
     function renderStudentDashboard() {
       const user = currentAccount();
       if (user?.role !== "student") return;
+      renderOnboardingHomeCard();
       const metrics = studentMetrics(user);
       const assignment = metrics.programAssignment;
       const workout = metrics.nextWorkout;
@@ -18525,7 +18648,7 @@ ${photoSections}
           await consumePendingAccountCodes(account);
           event.target.reset();
           applyAuthState();
-          if (!await maybeRequireTrainerProfile(account)) showScreen(account.role === "personal" ? "clients" : "home");
+          if (!await maybeRequireTrainerProfile(account)) showScreen("home");
           showSignupNotice("Enviamos um e-mail de confirmação. Acesse sua caixa de entrada e confirme o cadastro para entrar.");
           authMessage("Enviamos um e-mail de confirmação. Acesse sua caixa de entrada e confirme o cadastro para entrar.");
           return;
@@ -18550,7 +18673,7 @@ ${photoSections}
       localStorage.setItem("monolith.sessionUserId", account.id);
       event.target.reset();
       applyAuthState();
-      if (!await maybeRequireTrainerProfile(account)) showScreen(role === "personal" ? "clients" : "home");
+      if (!await maybeRequireTrainerProfile(account)) showScreen("home");
       authMessage("Conta criada.");
     });
     document.getElementById("logoutButton")?.addEventListener("click", async () => {
@@ -18795,7 +18918,7 @@ ${photoSections}
       if (user && !await maybeRequireTrainerProfile(user)) {
         const sectionFromUrl = statsSectionFromHash();
         const screenFromUrl = appScreenFromHash();
-        showScreen(sectionFromUrl ? "stats" : (screenFromUrl || (user.role === "personal" ? "clients" : "home")), {
+        showScreen(sectionFromUrl ? "stats" : (screenFromUrl || "home"), {
           section: sectionFromUrl || "",
           historyMode: "replace"
         });
@@ -18965,6 +19088,10 @@ ${photoSections}
       if (id === "trainerMap" && currentAccount()?.role !== "student") {
         showToast("A busca por personais é iniciada pelo aluno.");
         id = "home";
+      }
+      if (id === "space" && !hasSpaceEntitlement(currentAccount())) {
+        showToast("Plus Space não está ativo nesta conta.");
+        id = currentAccount()?.role === "personal" ? "profile" : "home";
       }
       const activeScreen = document.querySelector(".screen.active")?.id;
       const dirtyScope = activeDirtyScope();
@@ -19752,7 +19879,18 @@ ${photoSections}
       "Falha ao carregar imagem": "Image failed to load",
       "Personalização ativada": "Customization activated",
       "Visual padrão ativado": "Default visual activated",
-      "Logo do Space": "Space logo"
+      "Logo do Space": "Space logo",
+      "Meu Space": "My Space",
+      "Personal Trainer": "Personal Trainer",
+      "Plus Space": "Plus Space",
+      "Conhecer o Plus Space": "Explore Plus Space",
+      "Adicional comercial": "Commercial add-on",
+      "Personalize a experiência com logo, capa, cores e identidade do seu Space sem perder a presença do Monolith.": "Customize the experience with your Space logo, cover, colors and identity while keeping Monolith present.",
+      "Solicitar ativação": "Request activation",
+      "Falar com o Monolith": "Talk to Monolith",
+      "A ativação do Plus Space será liberada pelo Monolith quando o pagamento estiver conectado.": "Plus Space activation will be released by Monolith when payment is connected.",
+      "Plus Space não está ativo nesta conta.": "Plus Space is not active on this account.",
+      "{count} etapa(s) faltando para concluir a configuração inicial.": "{count} step(s) left to finish initial setup."
     });
     Object.assign(translations.es, {
       "Alertas": "Alertas",
@@ -19859,7 +19997,18 @@ ${photoSections}
       "Falha ao carregar imagem": "Error al cargar imagen",
       "Personalização ativada": "Personalización activada",
       "Visual padrão ativado": "Visual estándar activado",
-      "Logo do Space": "Logo del Space"
+      "Logo do Space": "Logo del Space",
+      "Meu Space": "Mi Space",
+      "Personal Trainer": "Entrenador personal",
+      "Plus Space": "Plus Space",
+      "Conhecer o Plus Space": "Conocer Plus Space",
+      "Adicional comercial": "Adicional comercial",
+      "Personalize a experiência com logo, capa, cores e identidade do seu Space sem perder a presença do Monolith.": "Personaliza la experiencia con logo, portada, colores e identidad de tu Space sin perder la presencia de Monolith.",
+      "Solicitar ativação": "Solicitar activación",
+      "Falar com o Monolith": "Hablar con Monolith",
+      "A ativação do Plus Space será liberada pelo Monolith quando o pagamento estiver conectado.": "La activación de Plus Space será liberada por Monolith cuando el pago esté conectado.",
+      "Plus Space não está ativo nesta conta.": "Plus Space no está activo en esta cuenta.",
+      "{count} etapa(s) faltando para concluir a configuração inicial.": "Faltan {count} etapa(s) para concluir la configuración inicial."
     });
     Object.assign(translations.en, {
       "Linha do tempo": "Timeline",
@@ -20853,6 +21002,43 @@ ${photoSections}
       return completed;
     }
 
+    function onboardingHomeSummary(user = currentAccount()) {
+      if (!user) return null;
+      if (user.role === "personal") {
+        const config = loadOnboardingConfigs()[user.id] || null;
+        const total = Array.isArray(config?.requiredSteps) ? config.requiredSteps.length : 0;
+        return total ? { total, done: total, nextScreen: "onboarding", nextKey: "", complete: true } : null;
+      }
+      const trainerId = user.trainerId || "";
+      const config = loadOnboardingConfigs()[trainerId] || defaultOnboardingConfig(trainerId);
+      const requiredSteps = Array.isArray(config.requiredSteps) ? config.requiredSteps : [];
+      const total = requiredSteps.length;
+      if (!total) return null;
+      const scopedTrainerId = trainerId || null;
+      const savedProgress = loadOnboardingProgress().find(item => item.studentId === user.id && (item.trainerId || null) === scopedTrainerId);
+      const completed = new Set([...(savedProgress?.completedSteps || []), ...inferredOnboardingSteps(user.id)]);
+      const done = requiredSteps.filter(key => completed.has(key)).length;
+      const nextKey = requiredSteps.find(key => !completed.has(key)) || "";
+      const definition = onboardingStepDefinitions.find(([key]) => key === nextKey);
+      return { total, done, nextKey, nextScreen: definition?.[3] || "onboarding", complete: done >= total };
+    }
+
+    function renderOnboardingHomeCard() {
+      const user = currentAccount();
+      const card = document.getElementById("homeOnboardingCard");
+      const text = document.getElementById("homeOnboardingText");
+      const button = document.getElementById("homeOnboardingButton");
+      if (!card || !text || !button || !user) return;
+      const summary = onboardingHomeSummary(user);
+      const show = Boolean(summary && !summary.complete && summary.total > 0);
+      card.hidden = !show;
+      if (!show) return;
+      const remaining = Math.max(0, summary.total - summary.done);
+      text.textContent = localizedMessage("{count} etapa(s) faltando para concluir a configuração inicial.", { count: remaining });
+      button.dataset.onboardingScreen = summary.nextScreen || "onboarding";
+      button.dataset.onboardingKey = summary.nextKey || "";
+    }
+
     async function renderOnboarding() {
       const user = currentAccount();
       const configForm = document.getElementById("onboardingConfigForm");
@@ -21219,6 +21405,12 @@ ${photoSections}
       return `${parseInt(normalized.slice(0, 2), 16)}, ${parseInt(normalized.slice(2, 4), 16)}, ${parseInt(normalized.slice(4, 6), 16)}`;
     }
 
+    function colorTextForBackground(value = "#c9a227") {
+      const [r, g, b] = colorToRgb(value).split(",").map(part => Number(part.trim()));
+      const luminance = (0.2126 * r + 0.7152 * g + 0.0722 * b) / 255;
+      return luminance > 0.56 ? "#070707" : "#ffffff";
+    }
+
     function currentSpaceDraftData(space = null) {
       const mode = spaceIdentityMode(space);
       const active = mode === "space";
@@ -21301,15 +21493,22 @@ ${photoSections}
       root.style.setProperty("--space-primary", primary);
       root.style.setProperty("--space-primary-rgb", colorToRgb(primary));
       root.style.setProperty("--space-support", support);
+      root.style.setProperty("--space-on-primary", colorTextForBackground(primary));
       root.style.setProperty("--gold", primary);
       const brand = document.getElementById("activeSpaceBrand");
       const brandName = document.getElementById("activeSpaceBrandName");
       const logoMark = document.getElementById("activeSpaceLogoMark");
       if (brand) {
         brand.hidden = !active;
-        if (brandName) brandName.textContent = active ? space.name : "";
+        const hasLogo = Boolean(active && space.logoUrl);
+        brand.dataset.hasLogo = hasLogo ? "true" : "false";
+        brand.title = active ? space.name : "";
+        if (brandName) {
+          brandName.hidden = hasLogo;
+          brandName.textContent = active && !hasLogo ? space.name : "";
+        }
         if (logoMark) {
-          logoMark.innerHTML = active && space.logoUrl ? spaceLogoImageHTML(space.logoUrl, "Logo do Space") : fallbackSpaceLogoHTML("M");
+          logoMark.innerHTML = hasLogo ? spaceLogoImageHTML(space.logoUrl, "Logo do Space") : fallbackSpaceLogoHTML((space?.name || "M").trim().charAt(0).toUpperCase() || "M");
           logoMark.setAttribute("aria-label", active ? t("Logo do Space") : "Monolith");
         }
       }
@@ -21322,7 +21521,13 @@ ${photoSections}
     async function loadActiveSpace() {
       const user = currentAccount();
       if (!user) { applySpaceTheme(null); return null; }
-      let space = loadSpaces().find(item => item.ownerId === user.id || (item.memberIds || []).includes(user.id)) || null;
+      if (user.role === "personal" && !hasSpaceEntitlement(user)) { applySpaceTheme(null); return null; }
+      let space = loadSpaces().find(item => {
+        if (item.ownerId === user.id) return hasSpaceEntitlement(user);
+        if (!(item.memberIds || []).includes(user.id)) return false;
+        const owner = loadAccounts().find(account => account.id === item.ownerId);
+        return isRealSupabaseAccount(user) || hasSpaceEntitlement(owner);
+      }) || null;
       if (monolithSupabase && isRealSupabaseAccount(user)) {
         const { data: memberships, error: membershipError } = await monolithSupabase.from("space_memberships").select("space_id,role").eq("user_id", user.id).limit(1);
         if (!membershipError && memberships?.[0]?.space_id) {
@@ -21346,6 +21551,11 @@ ${photoSections}
     async function renderSpace() {
       const user = currentAccount();
       if (user?.role !== "personal") return;
+      if (!hasSpaceEntitlement(user)) {
+        showToast("Plus Space não está ativo nesta conta.");
+        showScreen("profile", { historyMode: "replace", skipDirtyGuard: true });
+        return;
+      }
       let space = loadSpaces().find(item => item.ownerId === user.id) || null;
       if (monolithSupabase && isRealSupabaseAccount(user)) {
         const { data, error } = await monolithSupabase.from("monolith_spaces").select("*").eq("owner_id", user.id).maybeSingle();
@@ -21370,6 +21580,7 @@ ${photoSections}
       event.preventDefault();
       const user = currentAccount();
       if (user?.role !== "personal") return;
+      if (!hasSpaceEntitlement(user)) { showToast("Plus Space não está ativo nesta conta."); return; }
       const memberIds = [user.id, ...studentsForPersonal(user.id).map(student => student.id)];
       const slug = normalizeSpaceSlug(document.getElementById("spaceSlug").value);
       const space = { ownerId: user.id, memberIds, name: document.getElementById("spaceName").value.trim(), slug, welcomeMessage: document.getElementById("spaceWelcome").value.trim(), logoUrl: spaceAssetDrafts.logo.currentUrl, coverUrl: spaceAssetDrafts.cover.currentUrl, logoStoragePath: spaceAssetDrafts.logo.currentPath, coverStoragePath: spaceAssetDrafts.cover.currentPath, primaryColor: document.getElementById("spacePrimaryColor").value, accentColor: document.getElementById("spaceAccentColor").value, themeMode: document.getElementById("spaceThemeMode")?.value === "monolith" ? "monolith" : "space", socialLinks: { instagram: document.getElementById("spaceInstagram").value.trim() } };
@@ -21529,6 +21740,22 @@ ${photoSections}
     });
     document.getElementById("onboardingConfigForm")?.addEventListener("submit", saveOnboardingConfig);
     document.getElementById("onboardingStepList")?.addEventListener("click", event => { const button = event.target.closest("[data-onboarding-screen]"); if (button) showScreen(button.dataset.onboardingScreen, { section: button.dataset.onboardingKey === "measurements" || button.dataset.onboardingKey === "photos" ? (button.dataset.onboardingKey === "photos" ? "photos" : "measures") : "", historyMode: "push" }); });
+    document.getElementById("homeOnboardingButton")?.addEventListener("click", event => {
+      const button = event.currentTarget;
+      showScreen(button.dataset.onboardingScreen || "onboarding", {
+        section: button.dataset.onboardingKey === "measurements" || button.dataset.onboardingKey === "photos" ? (button.dataset.onboardingKey === "photos" ? "photos" : "measures") : "",
+        historyMode: "push"
+      });
+    });
+    ["spaceUpgradeRequestButton", "spaceUpgradeContactButton"].forEach(id => {
+      document.getElementById(id)?.addEventListener("click", () => {
+        const notice = document.getElementById("spaceUpgradeNotice");
+        if (notice) {
+          notice.hidden = false;
+          notice.textContent = t("A ativação do Plus Space será liberada pelo Monolith quando o pagamento estiver conectado.");
+        }
+      });
+    });
     document.getElementById("spaceForm")?.addEventListener("submit", saveSpace);
     document.getElementById("spaceForm")?.addEventListener("input", () => renderSpacePreview());
     document.getElementById("spaceName")?.addEventListener("input", event => {

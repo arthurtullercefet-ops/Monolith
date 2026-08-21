@@ -72,7 +72,9 @@ Official docs:
    This renames the product surface from Pulse to Alertas, deprecates Leads access without deleting old records, adds private Space logo/cover Storage paths, creates the `space-assets` bucket policies and exposes safe Space address availability checks.
 29. Paste and run `monolith-production-step-29-space-identity-mode.sql`.
    This adds the non-destructive Space identity mode toggle: custom Space identity or default Monolith visual. Logo, cover, colors and text remain saved when the default visual is active.
-30. Confirm these tables exist:
+30. Paste and run `monolith-production-step-30-space-entitlement.sql`.
+   This adds `profiles.space_enabled` as the single Plus Space entitlement, backfills existing Space owners, gates Space reads/writes/uploads under RLS and preserves saved Spaces/files during downgrade.
+31. Confirm these tables exist:
    - `profiles`
    - `trainer_students`
    - `trainer_invites`
@@ -107,14 +109,15 @@ Official docs:
    - `subscriptions`
    - `influencer_codes`
    - `referral_attributions`
-29. Confirm these functions exist:
+32. Confirm these functions exist:
    - `create_trainer_invite`
    - `create_trainer_invite_idempotent`
    - `accept_trainer_invite`
    - `accept_influencer_code`
    - `correct_daily_checkin`
    - `is_space_member`
-31. Confirm Storage has private buckets called `progress-photos` and `space-assets`.
+   - `monolith_space_enabled`
+33. Confirm Storage has private buckets called `progress-photos` and `space-assets`.
 
 All step files are additive and idempotent. Run them in numerical order. Do not reset the database or delete QA records before running a step.
 
@@ -165,7 +168,7 @@ For real Supabase users, large datasets are not kept permanently in `localStorag
 | `monolith.onboardingProgress` | `onboarding_progress` |
 | `monolith.trainerLeads` | Deprecated; old `trainer_leads` and `trainer_lead_events` rows are retained but no longer exposed to trainers |
 | `monolith.achievements` | `student_achievements` |
-| `monolith.spaces` | `monolith_spaces`, `space_memberships`, `theme_mode` and private `space-assets` Storage paths |
+| `monolith.spaces` | `monolith_spaces`, `space_memberships`, `profiles.space_enabled`, `theme_mode` and private `space-assets` Storage paths |
 
 ## Step 3: production rules
 
@@ -199,6 +202,8 @@ After steps 13 through 24 are installed, test with fictitious accounts:
 - Opening a trainer map profile or Instagram does not create a lead or identifiable visitor event.
 - A trainer cannot read unknown users, visitor lists, lead events or unlinked prospects.
 - A Space owner and its members can read only their own Space and memberships.
+- A Personal Trainer Plus without `space_enabled` cannot see the Space menu, open the Space route, edit Space settings or upload Space assets.
+- Existing Space owners keep access through the Step 30 compatibility backfill.
 - A Space owner can upload, replace and remove only their own logo/cover files in `space-assets`; linked students can only read them through signed URLs.
 - Switching a Space to default Monolith visual does not delete logo, cover, colors, address, copy or Instagram; reactivation restores the saved identity.
 - Monolith Voice is hidden for trainers, stops after two hours or workout completion, rejects doubtful values and does not duplicate a repeated command.
