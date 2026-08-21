@@ -14,8 +14,8 @@
   <link rel="manifest" href="manifest.webmanifest" />
   <link rel="icon" href="monolith-icon.svg" />
   <script>
-window.MONOLITH_BUILD = "monolith-v94-voice-discovery";
-window.MONOLITH_VERSION_LABEL = "Monolith v94 · 21/08/2026";
+window.MONOLITH_BUILD = "monolith-v95-critical-save-fixes";
+window.MONOLITH_VERSION_LABEL = "Monolith v95 · 21/08/2026";
     (function clearOldAppCaches() {
       if ("serviceWorker" in navigator) {
         navigator.serviceWorker.getRegistrations?.()
@@ -251,7 +251,7 @@ window.MONOLITH_VERSION_LABEL = "Monolith v94 · 21/08/2026";
       font-size: 28px;
     }
 
-    .auth-hero .brand h1 {
+    .auth-hero .brand-title {
       margin: 0;
       font-size: 30px;
       line-height: .95;
@@ -631,7 +631,7 @@ window.MONOLITH_VERSION_LABEL = "Monolith v94 · 21/08/2026";
       letter-spacing: 0;
     }
 
-    .brand h1 {
+    .brand-title {
       margin: 0;
       font-size: 21px;
       line-height: 1;
@@ -778,7 +778,7 @@ window.MONOLITH_VERSION_LABEL = "Monolith v94 · 21/08/2026";
     }
 
     .session-card button {
-      min-height: 34px;
+      min-height: 44px;
     }
 
     .session-actions {
@@ -856,6 +856,18 @@ window.MONOLITH_VERSION_LABEL = "Monolith v94 · 21/08/2026";
       border-color: rgba(224, 80, 80, .72);
       background: rgba(224, 80, 80, .1);
       color: #ffaaa5;
+    }
+
+    .language-button,
+    .unit-button,
+    #logoutButton,
+    .action,
+    .ghost,
+    .auth-link,
+    .rest-chip,
+    .set-done-v2,
+    .remove-session-set-v2 {
+      min-height: 44px;
     }
 
     #archiveDietButton:hover {
@@ -1328,12 +1340,16 @@ window.MONOLITH_VERSION_LABEL = "Monolith v94 · 21/08/2026";
     .hero {
       min-height: 304px;
       display: grid;
-      grid-template-columns: minmax(0, 1fr) 220px;
-      gap: 20px;
-      align-items: end;
+      grid-template-columns: minmax(0, 1fr) minmax(160px, 190px);
+      gap: clamp(14px, 3vw, 28px);
+      align-items: center;
       background:
         linear-gradient(135deg, rgba(201, 162, 39, .15), rgba(10, 10, 10, 0) 45%),
         var(--panel);
+    }
+
+    .hero > div:first-child {
+      min-width: 0;
     }
 
     .kicker {
@@ -1346,9 +1362,10 @@ window.MONOLITH_VERSION_LABEL = "Monolith v94 · 21/08/2026";
 
     .hero-title {
       margin: 10px 0 12px;
-      font-size: clamp(36px, 7vw, 78px);
-      line-height: .9;
+      font-size: clamp(34px, 5vw, 64px);
+      line-height: 1;
       letter-spacing: 0;
+      overflow-wrap: anywhere;
     }
 
     .quote {
@@ -1360,7 +1377,7 @@ window.MONOLITH_VERSION_LABEL = "Monolith v94 · 21/08/2026";
 
     .score-ring {
       --score-angle: 0deg;
-      width: 190px;
+      width: clamp(150px, 14vw, 190px);
       aspect-ratio: 1;
       border-radius: 999px;
       display: grid;
@@ -1384,7 +1401,7 @@ window.MONOLITH_VERSION_LABEL = "Monolith v94 · 21/08/2026";
     }
 
     .score-ring b {
-      font-size: 46px;
+      font-size: clamp(34px, 4vw, 46px);
       letter-spacing: 0;
     }
 
@@ -3478,7 +3495,7 @@ window.MONOLITH_VERSION_LABEL = "Monolith v94 · 21/08/2026";
         height: 66px;
       }
 
-      .auth-hero .brand h1 {
+      .auth-hero .brand-title {
         font-size: 28px;
         letter-spacing: 3px;
         white-space: nowrap;
@@ -3576,7 +3593,7 @@ window.MONOLITH_VERSION_LABEL = "Monolith v94 · 21/08/2026";
         border-width: 2px;
       }
 
-      .brand h1 {
+      .brand-title {
         font-size: 25px;
         line-height: .95;
         letter-spacing: 3px;
@@ -4528,14 +4545,14 @@ window.MONOLITH_VERSION_LABEL = "Monolith v94 · 21/08/2026";
   </style>
 </head>
 <body>
-  <a class="skip-link" href="#mainContent">Pular para o conteúdo principal</a>
+  <a class="skip-link" href="#mainContent" data-i18n="Pular para o conteúdo principal">Pular para o conteúdo principal</a>
   <section class="auth-screen" id="authScreen">
     <div class="auth-hero">
       <div class="auth-top">
         <div class="brand">
           <div class="mark">M</div>
           <div>
-            <h1>MONOLITH</h1>
+            <div class="brand-title">MONOLITH</div>
             <p>Built One Day At A Time.</p>
           </div>
         </div>
@@ -4815,7 +4832,7 @@ window.MONOLITH_VERSION_LABEL = "Monolith v94 · 21/08/2026";
       <div class="brand">
         <div class="mark">M</div>
         <div>
-          <h1>MONOLITH</h1>
+          <div class="brand-title">MONOLITH</div>
           <p>Built One Day At A Time.</p>
           <span class="kicker" id="activeSpaceBrand" data-no-i18n="true" hidden></span>
         </div>
@@ -6372,7 +6389,7 @@ window.MONOLITH_VERSION_LABEL = "Monolith v94 · 21/08/2026";
   <script>
     const MONOLITH_SUPABASE_URL = "https://jhxasnxuvmkhntbwepau.supabase.co";
     const MONOLITH_SUPABASE_KEY = "sb_publishable_lDtAXIOtkMwgwsAZyghBdg_gyLHGwpH";
-const MONOLITH_BUILD = window.MONOLITH_BUILD || "monolith-v94-voice-discovery";
+const MONOLITH_BUILD = window.MONOLITH_BUILD || "monolith-v95-critical-save-fixes";
 const MONOLITH_VERSION_LABEL = window.MONOLITH_VERSION_LABEL || "Monolith v94 · 21/08/2026";
     const monolithSupabase = window.supabase?.createClient?.(MONOLITH_SUPABASE_URL, MONOLITH_SUPABASE_KEY, {
       auth: {
@@ -10410,6 +10427,9 @@ const MONOLITH_VERSION_LABEL = window.MONOLITH_VERSION_LABEL || "Monolith v94 ·
     }
 
     function anamnesisValueLabel(value, language = reportLanguage()) {
+      if (value === true) return t("Sim", language);
+      if (value === false) return t("Não", language);
+      if (value === null || value === undefined || value === "") return t("Não informado", language);
       const labels = {
         weight_loss: "Emagrecimento", muscle_gain: "Ganho de massa muscular", strength: "Força", conditioning: "Condicionamento",
         health: "Saúde e qualidade de vida", performance: "Performance esportiva", rehabilitation: "Retorno após lesão",
@@ -10418,7 +10438,14 @@ const MONOLITH_VERSION_LABEL = window.MONOLITH_VERSION_LABEL || "Monolith v94 ·
         low: "Baixo", good: "Boa", regular: "Regular", poor: "Ruim", occasionally: "Ocasionalmente", frequent: "Frequente",
         yes: "Sim", no: "Não", not_applicable: "Não se aplica"
       };
-      return t(labels[value] || value || "--", language);
+      return t(labels[value] || value, language);
+    }
+
+    function anamnesisDisplayValue(value, language = reportLanguage()) {
+      if (value === true) return t("Sim", language);
+      if (value === false) return t("Não", language);
+      if (value === null || value === undefined || value === "") return t("Não informado", language);
+      return String(value);
     }
 
     function importantAnamnesisSignature(answers = {}) {
@@ -10577,6 +10604,7 @@ const MONOLITH_VERSION_LABEL = window.MONOLITH_VERSION_LABEL || "Monolith v94 ·
       const form = document.getElementById("anamnesisForm");
       if (record?.answers) {
         Object.entries(record.answers).forEach(([name, value]) => {
+          if (name.startsWith("__")) return;
           const control = form?.elements?.namedItem(name);
           if (!control) return;
           if (control.type === "checkbox") control.checked = value === true;
@@ -10772,7 +10800,8 @@ const MONOLITH_VERSION_LABEL = window.MONOLITH_VERSION_LABEL || "Monolith v94 ·
     }
 
     function anamnesisReviewValue(key, value) {
-      if (!value) return t("Não informado");
+      if (value === true || value === false) return anamnesisValueLabel(value);
+      if (value === null || value === undefined || value === "") return t("Não informado");
       if (["primaryGoal", "experience", "activityLevel", "sleepQuality", "stressLevel", "smoking", "alcohol", ...anamnesisRiskFields].includes(key)) return anamnesisValueLabel(value);
       if (key === "weeklyFrequency") return `${value} ${t(Number(value) === 1 ? "dia por semana" : "dias por semana")}`;
       return String(value);
@@ -10847,6 +10876,10 @@ const MONOLITH_VERSION_LABEL = window.MONOLITH_VERSION_LABEL || "Monolith v94 ·
         markAnamnesisRead(record.id).catch(() => false);
       }
       if (user.role === "personal" && record) anamnesisCurrentStep = 5;
+      else if (user.role === "student" && record?.status === "draft") {
+        const restoredStep = Math.max(0, Math.min(5, Number(record.answers?.__lastStep) || 0));
+        anamnesisCurrentStep = Math.min(restoredStep, reachableAnamnesisStep());
+      }
       showAnamnesisStep(anamnesisCurrentStep);
       requestAnimationFrame(() => setDirtyBaseline("anamnesis"));
     }
@@ -10854,6 +10887,7 @@ const MONOLITH_VERSION_LABEL = window.MONOLITH_VERSION_LABEL || "Monolith v94 ·
     function readAnamnesisForm(status = "submitted") {
       const user = currentAccount();
       const answers = readAnamnesisAnswers();
+      answers.__lastStep = Math.max(0, Math.min(5, anamnesisCurrentStep));
       const existing = storedAnamnesis(user?.id);
       const now = new Date().toISOString();
       const riskFlags = anamnesisRiskFields.filter(field => answers[field] === "yes");
@@ -12032,6 +12066,13 @@ const MONOLITH_VERSION_LABEL = window.MONOLITH_VERSION_LABEL || "Monolith v94 ·
         "Crie do zero, duplique modelos ou importe em lote": "Create from scratch, duplicate templates or import in bulk",
         "Apenas o aluno pode enviar fotos próprias.": "Only the student can upload their own photos.",
         "Apenas o personal pode prescrever dieta para aluno.": "Only the trainer can prescribe a student's diet.",
+        "Pular para o conteúdo principal": "Skip to main content",
+        "Carregando treino...": "Loading workout...",
+        "Não consegui salvar o check-in no Supabase. Tente novamente.": "Could not save the check-in to Supabase. Try again.",
+        "Não consegui salvar as medidas no Supabase. Tente novamente.": "Could not save measurements to Supabase. Try again.",
+        "Não consegui salvar o treino no Supabase. Tente novamente.": "Could not save the workout to Supabase. Try again.",
+        "Salvo neste aparelho.": "Saved on this device.",
+        "Treino salvo neste aparelho. Não consegui sincronizar agora.": "Workout saved on this device. Could not sync right now.",
         "Check-in salvo localmente. Não consegui sincronizar agora.": "Check-in saved locally. Sync is unavailable right now.",
         "Confirmar importação de": "Confirm import of",
         "Conteúdo": "Content",
@@ -13389,6 +13430,13 @@ const MONOLITH_VERSION_LABEL = window.MONOLITH_VERSION_LABEL || "Monolith v94 ·
         "Abrir perfil": "Abrir perfil",
         "Apenas o aluno pode enviar fotos próprias.": "Solo el alumno puede subir sus propias fotos.",
         "Apenas o personal pode prescrever dieta para aluno.": "Solo el entrenador puede prescribir la dieta del alumno.",
+        "Pular para o conteúdo principal": "Saltar al contenido principal",
+        "Carregando treino...": "Cargando entrenamiento...",
+        "Não consegui salvar o check-in no Supabase. Tente novamente.": "No se pudo guardar el check-in en Supabase. Inténtalo de nuevo.",
+        "Não consegui salvar as medidas no Supabase. Tente novamente.": "No se pudieron guardar las medidas en Supabase. Inténtalo de nuevo.",
+        "Não consegui salvar o treino no Supabase. Tente novamente.": "No se pudo guardar el entrenamiento en Supabase. Inténtalo de nuevo.",
+        "Salvo neste aparelho.": "Guardado en este dispositivo.",
+        "Treino salvo neste aparelho. Não consegui sincronizar agora.": "Entrenamiento guardado en este dispositivo. No se pudo sincronizar ahora.",
         "Check-in salvo localmente. Não consegui sincronizar agora.": "Check-in guardado localmente. No se pudo sincronizar ahora.",
         "Confirmar importação de": "Confirmar importación de",
         "Conteúdo": "Contenido",
@@ -16156,7 +16204,8 @@ const MONOLITH_VERSION_LABEL = window.MONOLITH_VERSION_LABEL || "Monolith v94 ·
         authMessage("Você não tem acesso a este aluno.");
         return false;
       }
-      entry.syncStatus = isRealSupabaseAccount(currentAccount()) ? "pending" : "local";
+      const requiresRemoteCommit = isRealSupabaseAccount(currentAccount());
+      entry.syncStatus = requiresRemoteCommit ? "pending" : "local";
       const checkins = loadCheckins().filter(item => item.date !== entry.date);
       checkins.unshift(entry);
       const allCheckins = loadCheckins(null).filter(item => `${item.studentId || ""}:${item.date}` !== `${entry.studentId || ""}:${entry.date}`);
@@ -16168,7 +16217,15 @@ const MONOLITH_VERSION_LABEL = window.MONOLITH_VERSION_LABEL || "Monolith v94 ·
       } catch (error) {
         entry.syncStatus = "failed";
         logAppError("checkins", "save", error, { studentId: entry.studentId, date: entry.date });
-        showToast("Check-in salvo localmente. Não consegui sincronizar agora.");
+        if (requiresRemoteCommit) {
+          const rolledBack = loadCheckins(null).filter(item => `${item.studentId || ""}:${item.date}` !== `${entry.studentId || ""}:${entry.date}`);
+          saveCheckins(rolledBack.slice(0, 365));
+          renderStats();
+          renderTrainerSummary();
+          showToast("Não consegui salvar o check-in no Supabase. Tente novamente.");
+          return false;
+        }
+        showToast("Check-in salvo neste aparelho. Não consegui sincronizar agora.");
       }
       const refreshed = loadCheckins(null).filter(item => `${item.studentId || ""}:${item.date}` !== `${entry.studentId || ""}:${entry.date}`);
       saveCheckins([entry, ...refreshed].slice(0, 365));
@@ -16527,7 +16584,8 @@ const MONOLITH_VERSION_LABEL = window.MONOLITH_VERSION_LABEL || "Monolith v94 ·
     }
 
     async function upsertBodyMeasure(entry) {
-      entry.syncStatus = isRealSupabaseAccount(currentAccount()) ? "pending" : "local";
+      const requiresRemoteCommit = isRealSupabaseAccount(currentAccount());
+      entry.syncStatus = requiresRemoteCommit ? "pending" : "local";
       const allEntries = loadAllBodyMeasuresRaw().filter(item => item.id !== entry.id && `${item.studentId || ""}:${item.date}` !== `${entry.studentId || ""}:${entry.originalDate || entry.date}`);
       const entries = [entry, ...allEntries].sort((a, b) => String(b.date).localeCompare(String(a.date)));
       saveBodyMeasures(entries);
@@ -16538,7 +16596,15 @@ const MONOLITH_VERSION_LABEL = window.MONOLITH_VERSION_LABEL || "Monolith v94 ·
       } catch (error) {
         entry.syncStatus = "failed";
         logAppError("measures", "save", error, { studentId: entry.studentId, date: entry.date });
-        showToast("Medidas salvas localmente. Não consegui sincronizar agora.");
+        if (requiresRemoteCommit) {
+          const rolledBack = loadAllBodyMeasuresRaw().filter(item => item.id !== entry.id && `${item.studentId || ""}:${item.date}` !== `${entry.studentId || ""}:${entry.date}`);
+          saveBodyMeasures(rolledBack);
+          renderBodyMeasures();
+          renderTrainerSummary();
+          showToast("Não consegui salvar as medidas no Supabase. Tente novamente.");
+          return false;
+        }
+        showToast("Medidas salvas neste aparelho. Não consegui sincronizar agora.");
       }
       const refreshed = loadAllBodyMeasuresRaw().filter(item => item.id !== entry.id && `${item.studentId || ""}:${item.date}` !== `${entry.studentId || ""}:${entry.originalDate || entry.date}`);
       saveBodyMeasures([entry, ...refreshed].sort((a, b) => String(b.date).localeCompare(String(a.date))));
@@ -17088,7 +17154,7 @@ const MONOLITH_VERSION_LABEL = window.MONOLITH_VERSION_LABEL || "Monolith v94 ·
       const translatedAnamnesisAnswerFields = new Set(["primaryGoal", "experience", "activityLevel", "sleepQuality", "stressLevel", "smoking", "alcohol", ...anamnesisRiskFields]);
       const anamnesisRows = report.anamnesis ? anamnesisReportFields.map(field => {
         const rawValue = report.anamnesis.answers?.[field.key];
-        const value = translatedAnamnesisAnswerFields.has(field.key) ? anamnesisValueLabel(rawValue, language) : (rawValue || "--");
+        const value = translatedAnamnesisAnswerFields.has(field.key) ? anamnesisValueLabel(rawValue, language) : anamnesisDisplayValue(rawValue, language);
         return `<tr><td>${escapeHTML(t(field.label, language))}</td><td>${escapeHTML(String(value))}</td></tr>`;
       }).join("") : "";
       const anamnesisSafety = report.anamnesis?.medicalClearanceRecommended
@@ -17307,18 +17373,24 @@ ${photoSections}
       const metrics = studentMetrics(user);
       const assignment = metrics.programAssignment;
       const workout = metrics.nextWorkout;
+      const workoutRemoteState = getRemoteDataState("workouts", user.id).status;
+      const workoutsStillLoading = isRealSupabaseAccount(user) && !workout && ["idle", "loading"].includes(workoutRemoteState);
       const nextLabel = assignment?.isToday ? t("Hoje") : assignment?.date ? localDateLabel(assignment.date) : "";
       const setText = (id, value) => {
         const node = document.getElementById(id);
         if (node) node.textContent = value;
       };
-      setText("studentNextWorkout", workout?.name || (programScheduleForDate(metrics.activeProgram)?.kind === "rest" ? t("Descanso") : t("Sem treino")));
+      setText("studentNextWorkout", workoutsStillLoading ? t("Carregando treino...") : workout?.name || (programScheduleForDate(metrics.activeProgram)?.kind === "rest" ? t("Descanso") : t("Sem treino")));
       setText("studentStreak", `${metrics.streak} ${t(metrics.streak === 1 ? "dia" : "dias")}`);
       setText("studentProgramWeek", metrics.activeProgram ? `${workoutProgramWeek(metrics.activeProgram)} / ${metrics.activeProgram.durationWeeks}` : "--");
       setText("studentWeeklyVolume", `${Math.round(metrics.weeklyVolume)} kg`);
       const panel = document.getElementById("studentNextWorkoutPanel");
       if (!panel) return;
       panel.hidden = false;
+      if (workoutsStillLoading) {
+        panel.innerHTML = remoteStateHTML("loading", { loadingLabel: "Carregando treino..." });
+        return;
+      }
       if (!workout) {
         panel.innerHTML = `<div class="section-title"><h3>${escapeHTML(t("Próximo treino"))}</h3><span>${escapeHTML(t("Sem treino programado"))}</span></div><div class="report-line">${escapeHTML(t("Seu personal ainda não publicou um treino para este ciclo."))}</div>`;
         return;
@@ -18617,6 +18689,9 @@ ${photoSections}
         logAppError("trainer-dashboard", "refresh", error, { trainerId: currentAccount()?.id, screen: "home" });
       });
       if (id === "home" && currentAccount()?.role === "student") {
+        if (isRealSupabaseAccount(currentAccount())) setRemoteDataState("workouts", currentAccount().id, "loading");
+        renderStudentDashboard();
+        if (typeof refreshWorkoutsV2 === "function") refreshWorkoutsV2().catch(error => logAppError("workouts", "student-home", error, { studentId: currentAccount()?.id }));
         renderPrograms().catch(error => logAppError("programs", "student-home", error, { studentId: currentAccount()?.id }));
         refreshDailyCheckinForTarget().catch(error => logAppError("checkins", "student-home", error, { studentId: currentAccount()?.id, date: todayKey() }));
       }
@@ -19039,8 +19114,9 @@ ${photoSections}
       await runPendingOperation(`checkin-save:${entry.studentId}:${entry.date}`, event.currentTarget, async clientRequestId => {
         entry.clientRequestId = clientRequestId;
         const synced = await upsertTodayCheckin(entry);
+        if (!synced && isRealSupabaseAccount(currentAccount())) return;
         document.getElementById("dailyWeight").value = "";
-        showToast(`${t("Check-in salvo")}: ${entry.completed}/${entry.total} ${t("itens concluídos.")} ${synced ? t("Supabase sincronizado.") : t("Salvo localmente.")}`);
+        showToast(`${t("Check-in salvo")}: ${entry.completed}/${entry.total} ${t("itens concluídos.")} ${synced ? t("Supabase sincronizado.") : t("Salvo neste aparelho.")}`);
       }, { loadingText: "Salvando check-in..." });
     });
     document.getElementById("anamnesisStudent")?.addEventListener("change", async event => {
@@ -19177,9 +19253,10 @@ ${photoSections}
       await runPendingOperation(`measure-save:${entry.studentId}:${entry.date}`, event.submitter || "#saveBodyMeasuresButton", async clientRequestId => {
         entry.clientRequestId = clientRequestId;
         const synced = await upsertBodyMeasure(entry);
+        if (!synced && isRealSupabaseAccount(currentAccount())) return;
         clearBodyMeasureForm();
         setDirtyBaseline("measures");
-        showToast(synced ? "Medidas corporais salvas no Supabase." : "Medidas corporais salvas.");
+        showToast(synced ? "Medidas corporais salvas no Supabase." : "Medidas corporais salvas neste aparelho.");
       }, { loadingText: "Salvando medidas..." });
     });
     document.getElementById("clearHistoryButton").addEventListener("click", () => {
@@ -21413,6 +21490,22 @@ ${photoSections}
 
       let voiceSettingsV2 = loadVoiceSettingsV2();
 
+      const monolithVoiceIntentsV2 = Object.freeze([
+        "start_workout", "select_exercise", "record_set", "repeat_set", "correct_set",
+        "undo", "start_rest", "next_exercise", "query_sets", "query_weight",
+        "query_current_exercise", "query_next_set", "query_remaining_sets", "repeat_instruction",
+        "finish_workout", "confirm", "cancel", "unknown"
+      ]);
+      const monolithVoiceStatusesV2 = Object.freeze(["received", "confirmed", "interpreted", "applied", "rejected", "undone", "duplicate"]);
+
+      function safeVoiceIntentV2(intent = "unknown") {
+        return monolithVoiceIntentsV2.includes(intent) ? intent : "unknown";
+      }
+
+      function safeVoiceStatusV2(status = "received") {
+        return monolithVoiceStatusesV2.includes(status) ? status : "rejected";
+      }
+
       function saveVoiceSettingsV2() {
         localStorage.setItem("monolith.voiceSettings", JSON.stringify(voiceSettingsV2));
       }
@@ -21556,8 +21649,8 @@ ${photoSections}
             voice_session_id: voiceStateV2.remoteSessionId || null,
             student_id: user.id,
             command_id: commandId,
-            intent: command.intent || "unknown",
-            status: command.status,
+            intent: safeVoiceIntentV2(command.intent),
+            status: safeVoiceStatusV2(command.status),
             confidence: Number.isFinite(command.confidence) ? Math.max(0, Math.min(1, command.confidence)) : null,
             normalized_payload: command.payload || {},
             transcript_excerpt: null
@@ -23518,7 +23611,8 @@ ${photoSections}
         try {
           completed = JSON.parse(localStorage.getItem("monolith.completedWorkouts") || "[]");
         } catch {}
-        session.syncStatus = isRealSupabaseAccount(currentAccount()) ? "pending" : "local";
+        const requiresRemoteCommit = isRealSupabaseAccount(currentAccount());
+        session.syncStatus = requiresRemoteCommit ? "pending" : "local";
         completed = completed.filter(item => !session.clientRequestId || item.clientRequestId !== session.clientRequestId);
         completed.unshift(session);
         localStorage.setItem("monolith.completedWorkouts", JSON.stringify(completed.slice(0, 250)));
@@ -23529,7 +23623,13 @@ ${photoSections}
         } catch (error) {
           session.syncStatus = "failed";
           logAppError("completed-workouts", "save", error, { studentId: session.studentId, date: entryDateKey(session.completedAt) });
-          toastV2(textV2("Treino salvo localmente. Não consegui sincronizar agora."));
+          if (requiresRemoteCommit) {
+            completed = completed.filter(item => !session.clientRequestId || item.clientRequestId !== session.clientRequestId);
+            localStorage.setItem("monolith.completedWorkouts", JSON.stringify(completed.slice(0, 250)));
+            toastV2(textV2("Não consegui salvar o treino no Supabase. Tente novamente."));
+            return false;
+          }
+          toastV2(textV2("Treino salvo neste aparelho. Não consegui sincronizar agora."));
         }
         completed = completed.filter(item => !session.clientRequestId || item.clientRequestId !== session.clientRequestId);
         completed.unshift(session);
@@ -24032,8 +24132,9 @@ ${photoSections}
           const session = readCompletedSessionV2();
           session.clientRequestId = clientRequestId;
           const synced = await saveCompletedWorkoutV2(session);
+          if (!synced && isRealSupabaseAccount(currentAccount())) return;
           document.getElementById("sessionMeta").textContent = `${textV2("Treino salvo hoje")}: ${session.completedSets}/${session.totalSets} ${textV2("séries")}`;
-          toastV2(textV2(synced ? "Treino do dia salvo no Supabase." : "Treino do dia salvo no histórico local."));
+          toastV2(textV2(synced ? "Treino do dia salvo no Supabase." : "Treino do dia salvo neste aparelho."));
           await stopVoiceSessionV2("completed", { clearDraft: true });
           showScreen("stats");
         }, { loadingText: "Salvando treino..." });
@@ -24094,7 +24195,7 @@ ${photoSections}
           if (workout.syncStatus === "failed" && trainerAssignment) {
             toastV2(textV2("Treino ficou só neste aparelho. Não chegou ao aluno."));
           } else if (workout.syncStatus === "failed") {
-            toastV2(textV2("Treino salvo localmente. Não consegui sincronizar agora."));
+            toastV2(textV2("Treino salvo neste aparelho. Não consegui sincronizar agora."));
           } else if (workout.syncStatus === "synced" && trainerAssignment) {
             toastV2(textV2("Treino enviado para o aluno."));
           } else if (workout.syncStatus === "synced") {

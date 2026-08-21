@@ -1,4 +1,4 @@
-const CACHE_NAME = "monolith-v94-voice-discovery";
+const CACHE_NAME = "monolith-v95-critical-save-fixes";
 
 self.addEventListener("install", event => {
   self.skipWaiting();
