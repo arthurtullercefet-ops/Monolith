@@ -1,4 +1,4 @@
-﻿<!doctype html>
+<!doctype html>
 <html lang="pt-BR">
 <head>
   <meta charset="utf-8" />
@@ -14,8 +14,8 @@
   <link rel="manifest" href="manifest.webmanifest" />
   <link rel="icon" href="monolith-icon.svg" />
   <script>
-window.MONOLITH_BUILD = "monolith-v96-alertas-space-assets";
-window.MONOLITH_VERSION_LABEL = "Monolith v96 · 21/08/2026";
+window.MONOLITH_BUILD = "monolith-v97-space-identity-polish";
+window.MONOLITH_VERSION_LABEL = "Monolith v97 · 21/08/2026";
     (function clearOldAppCaches() {
       if ("serviceWorker" in navigator) {
         navigator.serviceWorker.getRegistrations?.()
@@ -156,7 +156,11 @@ window.MONOLITH_VERSION_LABEL = "Monolith v96 · 21/08/2026";
       --line: rgba(255, 255, 255, .1);
       --text: #f5f5f5;
       --muted: #a7a7a7;
-      --gold: #c9a227;
+      --monolith-brand: #c9a227;
+      --space-primary: var(--monolith-brand);
+      --space-primary-rgb: 201, 162, 39;
+      --space-support: #f5f5f5;
+      --gold: var(--space-primary);
       --green: #58c77a;
       --orange: #e8a23a;
       --red: #e05050;
@@ -225,7 +229,7 @@ window.MONOLITH_VERSION_LABEL = "Monolith v96 · 21/08/2026";
       display: grid;
       grid-template-columns: minmax(320px, .9fr) minmax(340px, 1.1fr);
       background:
-        linear-gradient(135deg, rgba(201, 162, 39, .18), transparent 34%),
+        linear-gradient(135deg, rgba(var(--space-primary-rgb), .18), transparent 34%),
         radial-gradient(circle at 82% 18%, rgba(88, 199, 122, .12), transparent 28%),
         var(--black);
     }
@@ -326,7 +330,7 @@ window.MONOLITH_VERSION_LABEL = "Monolith v96 · 21/08/2026";
 
     .auth-tab.active {
       border-color: var(--gold);
-      background: rgba(201, 162, 39, .13);
+      background: rgba(var(--space-primary-rgb), .13);
       color: var(--text);
     }
 
@@ -465,7 +469,7 @@ window.MONOLITH_VERSION_LABEL = "Monolith v96 · 21/08/2026";
 
     .auth-warning {
       border-left: 3px solid var(--gold);
-      background: rgba(201, 162, 39, .09);
+      background: rgba(var(--space-primary-rgb), .09);
       padding: 12px;
       color: var(--muted);
       font-size: 12px;
@@ -566,14 +570,14 @@ window.MONOLITH_VERSION_LABEL = "Monolith v96 · 21/08/2026";
 
     .choice-card:has(input:checked) {
       border-color: var(--gold);
-      background: rgba(201, 162, 39, .12);
+      background: rgba(var(--space-primary-rgb), .12);
     }
 
     .consent-card {
       min-height: 50px;
       align-items: center;
-      border-color: rgba(201, 162, 39, .45);
-      background: rgba(201, 162, 39, .06);
+      border-color: rgba(var(--space-primary-rgb), .45);
+      background: rgba(var(--space-primary-rgb), .06);
     }
 
     .consent-card input {
@@ -640,6 +644,11 @@ window.MONOLITH_VERSION_LABEL = "Monolith v96 · 21/08/2026";
       letter-spacing: 0;
     }
 
+    .brand > .mark {
+      border-color: var(--monolith-brand);
+      color: var(--monolith-brand);
+    }
+
     .brand-title {
       margin: 0;
       font-size: 21px;
@@ -651,6 +660,58 @@ window.MONOLITH_VERSION_LABEL = "Monolith v96 · 21/08/2026";
       margin: 4px 0 0;
       font-size: 12px;
       color: var(--muted);
+    }
+
+    .space-brand-identity {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-top: 10px;
+      max-width: 100%;
+    }
+
+    .space-brand-identity[hidden] {
+      display: none !important;
+    }
+
+    .space-brand-mark {
+      min-width: 42px;
+      max-width: 88px;
+      height: 42px;
+      display: grid;
+      place-items: center;
+      border: 1px solid var(--space-primary);
+      color: var(--space-primary);
+      overflow: hidden;
+      font-weight: 800;
+    }
+
+    .space-brand-mark img {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+      display: block;
+      padding: 4px;
+    }
+
+    .space-brand-copy {
+      min-width: 0;
+      display: grid;
+      gap: 2px;
+    }
+
+    .space-brand-copy .kicker {
+      font-size: 10px;
+      line-height: 1.2;
+    }
+
+    .space-brand-copy strong {
+      display: block;
+      max-width: 150px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      font-size: 12px;
     }
 
     nav {
@@ -722,6 +783,11 @@ window.MONOLITH_VERSION_LABEL = "Monolith v96 · 21/08/2026";
       border-color: var(--line);
       background: var(--panel);
       color: var(--text);
+    }
+
+    .nav-btn.active {
+      border-color: var(--gold);
+      background: rgba(var(--space-primary-rgb), .12);
     }
 
     .nav-btn:focus-visible {
@@ -928,8 +994,10 @@ window.MONOLITH_VERSION_LABEL = "Monolith v96 · 21/08/2026";
       border: 1px solid var(--line);
       background: #101010;
       color: var(--text);
-      display: grid;
-      place-items: center;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 4px;
       cursor: pointer;
       font-size: 17px;
       border-radius: var(--radius-button);
@@ -945,19 +1013,29 @@ window.MONOLITH_VERSION_LABEL = "Monolith v96 · 21/08/2026";
     .language-button.active,
     .unit-button.active {
       border-color: var(--gold);
-      background: rgba(201, 162, 39, .12);
+      background: rgba(var(--space-primary-rgb), .12);
+    }
+
+    .language-button.active span,
+    .unit-button.active {
+      color: var(--text);
     }
 
     .language-button:hover,
     .unit-button:hover {
-      border-color: rgba(201, 162, 39, .58);
-      background: rgba(201, 162, 39, .08);
+      border-color: rgba(var(--space-primary-rgb), .58);
+      background: rgba(var(--space-primary-rgb), .08);
     }
 
     .language-button span {
       font-size: 11px;
       color: var(--muted);
-      margin-left: 4px;
+    }
+
+    .language-button .language-flag {
+      font-size: 16px;
+      line-height: 1;
+      color: inherit;
     }
 
     .checkin-measure {
@@ -1058,7 +1136,7 @@ window.MONOLITH_VERSION_LABEL = "Monolith v96 · 21/08/2026";
 
     .locked-note {
       border-left: 3px solid var(--gold);
-      background: rgba(201, 162, 39, .08);
+      background: rgba(var(--space-primary-rgb), .08);
       color: var(--muted);
       padding: 10px 12px;
       font-size: 13px;
@@ -1207,7 +1285,7 @@ window.MONOLITH_VERSION_LABEL = "Monolith v96 · 21/08/2026";
 
     .action:hover {
       filter: brightness(1.08);
-      box-shadow: 0 0 0 1px rgba(201, 162, 39, .18);
+      box-shadow: 0 0 0 1px rgba(var(--space-primary-rgb), .18);
     }
 
     .action:active,
@@ -1225,8 +1303,8 @@ window.MONOLITH_VERSION_LABEL = "Monolith v96 · 21/08/2026";
     }
 
     .ghost:hover {
-      border-color: rgba(201, 162, 39, .58);
-      background: rgba(201, 162, 39, .08);
+      border-color: rgba(var(--space-primary-rgb), .58);
+      background: rgba(var(--space-primary-rgb), .08);
       color: var(--text);
     }
 
@@ -1251,6 +1329,97 @@ window.MONOLITH_VERSION_LABEL = "Monolith v96 · 21/08/2026";
     .trainer-home {
       display: grid;
       gap: 18px;
+    }
+
+    .space-home-hero {
+      min-height: 176px;
+      display: grid;
+      align-items: end;
+      padding: 24px;
+      border: 1px solid var(--line);
+      border-radius: var(--radius-card);
+      background-color: #090909;
+      background-position: center;
+      background-size: cover;
+      overflow: hidden;
+      position: relative;
+      margin-bottom: 18px;
+    }
+
+    .space-home-hero[hidden] {
+      display: none !important;
+    }
+
+    .space-home-hero::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(90deg, rgba(8,8,8,.94), rgba(8,8,8,.52));
+      pointer-events: none;
+    }
+
+    .space-home-hero::after {
+      content: "";
+      position: absolute;
+      inset: 0 auto 0 0;
+      width: 5px;
+      background: var(--space-primary);
+    }
+
+    .space-home-hero-content {
+      position: relative;
+      z-index: 1;
+      display: grid;
+      gap: 10px;
+      max-width: 720px;
+    }
+
+    .space-home-hero-brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      min-width: 0;
+    }
+
+    .space-home-hero-logo {
+      width: 58px;
+      max-width: 108px;
+      height: 58px;
+      display: grid;
+      place-items: center;
+      border: 1px solid rgba(255,255,255,.18);
+      background: rgba(0,0,0,.28);
+      color: var(--space-primary);
+      font-weight: 900;
+      overflow: hidden;
+    }
+
+    .space-home-hero-logo img {
+      width: 100%;
+      height: 100%;
+      padding: 5px;
+      object-fit: contain;
+      display: block;
+    }
+
+    .space-home-hero-logo.image-failed::after,
+    .space-brand-mark.image-failed::after,
+    .space-preview-logo.image-failed::after {
+      content: "M";
+      color: var(--space-primary);
+      font-weight: 900;
+    }
+
+    .space-home-hero h3 {
+      margin: 0;
+      font-size: clamp(22px, 3vw, 34px);
+      line-height: 1.05;
+    }
+
+    .space-home-hero p {
+      margin: 0;
+      color: rgba(245,245,245,.86);
+      line-height: 1.45;
     }
 
     .trainer-home-grid {
@@ -1353,7 +1522,7 @@ window.MONOLITH_VERSION_LABEL = "Monolith v96 · 21/08/2026";
       gap: clamp(14px, 3vw, 28px);
       align-items: center;
       background:
-        linear-gradient(135deg, rgba(201, 162, 39, .15), rgba(10, 10, 10, 0) 45%),
+        linear-gradient(135deg, rgba(var(--space-primary-rgb), .15), rgba(10, 10, 10, 0) 45%),
         var(--panel);
     }
 
@@ -1565,7 +1734,7 @@ window.MONOLITH_VERSION_LABEL = "Monolith v96 · 21/08/2026";
 
     .coach-card.selected {
       border-color: var(--gold);
-      background: linear-gradient(135deg, rgba(201, 162, 39, .12), rgba(21, 21, 21, 1) 42%);
+      background: linear-gradient(135deg, rgba(var(--space-primary-rgb), .12), rgba(21, 21, 21, 1) 42%);
     }
 
     .section-title {
@@ -1726,7 +1895,7 @@ window.MONOLITH_VERSION_LABEL = "Monolith v96 · 21/08/2026";
     }
 
     .csv-preview tr.warning td {
-      background: rgba(201, 162, 39, .1);
+      background: rgba(var(--space-primary-rgb), .1);
       color: #f1d779;
     }
 
@@ -1815,7 +1984,7 @@ window.MONOLITH_VERSION_LABEL = "Monolith v96 · 21/08/2026";
     .student-file-tab:hover {
       color: var(--text);
       border-color: var(--gold);
-      background: rgba(201, 162, 39, .12);
+      background: rgba(var(--space-primary-rgb), .12);
     }
 
     .student-file-tab:disabled {
@@ -1858,7 +2027,7 @@ window.MONOLITH_VERSION_LABEL = "Monolith v96 · 21/08/2026";
     .student-card-menu-trigger:hover,
     .student-card-menu-trigger:focus-visible {
       border-color: var(--gold);
-      background: rgba(201, 162, 39, .1);
+      background: rgba(var(--space-primary-rgb), .1);
       outline: none;
     }
 
@@ -1901,8 +2070,8 @@ window.MONOLITH_VERSION_LABEL = "Monolith v96 · 21/08/2026";
 
     .student-card-menu-panel .ghost:hover,
     .student-card-menu-panel .ghost:focus-visible {
-      border-color: rgba(201, 162, 39, .36);
-      background: rgba(201, 162, 39, .12);
+      border-color: rgba(var(--space-primary-rgb), .36);
+      background: rgba(var(--space-primary-rgb), .12);
       color: var(--text);
       outline: none;
     }
@@ -1944,9 +2113,9 @@ window.MONOLITH_VERSION_LABEL = "Monolith v96 · 21/08/2026";
     }
 
     .focused-stats-section {
-      outline: 2px solid rgba(201, 162, 39, .78);
+      outline: 2px solid rgba(var(--space-primary-rgb), .78);
       outline-offset: 4px;
-      box-shadow: 0 0 0 1px rgba(201, 162, 39, .18);
+      box-shadow: 0 0 0 1px rgba(var(--space-primary-rgb), .18);
       transition: outline-color .2s ease, box-shadow .2s ease;
     }
 
@@ -1971,7 +2140,7 @@ window.MONOLITH_VERSION_LABEL = "Monolith v96 · 21/08/2026";
     .stats-tab.active,
     .stats-tab:hover {
       border-color: var(--gold);
-      background: rgba(201, 162, 39, .12);
+      background: rgba(var(--space-primary-rgb), .12);
       color: var(--text);
     }
 
@@ -1984,7 +2153,7 @@ window.MONOLITH_VERSION_LABEL = "Monolith v96 · 21/08/2026";
 
     .client-view-toggle.active {
       border-color: var(--gold);
-      background: rgba(201, 162, 39, .12);
+      background: rgba(var(--space-primary-rgb), .12);
     }
 
     .client-table-panel {
@@ -2123,7 +2292,7 @@ window.MONOLITH_VERSION_LABEL = "Monolith v96 · 21/08/2026";
       margin-top: 12px;
       border-left: 3px solid var(--gold);
       border-radius: var(--radius-field);
-      background: rgba(201, 162, 39, .08);
+      background: rgba(var(--space-primary-rgb), .08);
       padding: 13px;
       display: flex;
       align-items: center;
@@ -2142,8 +2311,8 @@ window.MONOLITH_VERSION_LABEL = "Monolith v96 · 21/08/2026";
       border-radius: 50%;
       display: grid;
       place-items: center;
-      background: rgba(201, 162, 39, .14);
-      border: 1px solid rgba(201, 162, 39, .35);
+      background: rgba(var(--space-primary-rgb), .14);
+      border: 1px solid rgba(var(--space-primary-rgb), .35);
       color: var(--gold);
       font-weight: 900;
     }
@@ -2223,7 +2392,7 @@ window.MONOLITH_VERSION_LABEL = "Monolith v96 · 21/08/2026";
     }
 
     .motivation-row td {
-      border-bottom: 1px solid rgba(201, 162, 39, .25);
+      border-bottom: 1px solid rgba(var(--space-primary-rgb), .25);
       padding: 8px 10px 12px;
     }
 
@@ -2252,7 +2421,7 @@ window.MONOLITH_VERSION_LABEL = "Monolith v96 · 21/08/2026";
 
     .motivation-strip {
       border-left: 3px solid var(--gold);
-      background: rgba(201, 162, 39, .09);
+      background: rgba(var(--space-primary-rgb), .09);
       color: #e8d28a;
       padding: 9px 11px;
       font-size: 13px;
@@ -2397,8 +2566,8 @@ window.MONOLITH_VERSION_LABEL = "Monolith v96 · 21/08/2026";
       height: 56px;
       min-width: 56px;
       border-radius: 50%;
-      border: 1px solid rgba(201, 162, 39, .46);
-      background: rgba(201, 162, 39, .12);
+      border: 1px solid rgba(var(--space-primary-rgb), .46);
+      background: rgba(var(--space-primary-rgb), .12);
       display: grid;
       place-items: center;
       color: var(--gold);
@@ -2801,7 +2970,7 @@ window.MONOLITH_VERSION_LABEL = "Monolith v96 · 21/08/2026";
       width: 100%;
       min-height: 38px;
       border: 1px solid var(--gold);
-      background: rgba(201, 162, 39, .12);
+      background: rgba(var(--space-primary-rgb), .12);
       color: var(--text);
       display: grid;
       place-items: center;
@@ -2851,7 +3020,7 @@ window.MONOLITH_VERSION_LABEL = "Monolith v96 · 21/08/2026";
     }
 
     .photo-upload-action:hover {
-      background: rgba(201, 162, 39, .2);
+      background: rgba(var(--space-primary-rgb), .2);
     }
 
     .photo-upload-status {
@@ -3987,7 +4156,7 @@ window.MONOLITH_VERSION_LABEL = "Monolith v96 · 21/08/2026";
     .achievement-mark {
       width: 44px;
       height: 44px;
-      border: 1px solid rgba(212, 175, 55, .55);
+      border: 1px solid rgba(var(--space-primary-rgb), .55);
       border-radius: 12px;
       display: grid;
       place-items: center;
@@ -4119,7 +4288,8 @@ window.MONOLITH_VERSION_LABEL = "Monolith v96 · 21/08/2026";
       z-index: 2;
     }
 
-    .space-brand-lockup img {
+    .space-brand-lockup img,
+    .space-preview-logo img {
       width: 54px;
       height: 54px;
       object-fit: contain;
@@ -4128,10 +4298,56 @@ window.MONOLITH_VERSION_LABEL = "Monolith v96 · 21/08/2026";
       border: 1px solid rgba(255,255,255,.12);
     }
 
+    .space-preview-logo {
+      width: 54px;
+      height: 54px;
+      display: grid;
+      place-items: center;
+    }
+
+    .space-preview-logo .mark {
+      width: 54px;
+      height: 54px;
+    }
+
+    .image-failed::after {
+      content: "M";
+      display: grid;
+      place-items: center;
+      width: 100%;
+      height: 100%;
+      color: var(--space-primary);
+      font-weight: 900;
+    }
+
     .space-asset-field {
       display: grid;
       gap: 8px;
       align-content: start;
+    }
+
+    .space-identity-control {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 14px;
+      margin-bottom: 14px;
+      border: 1px solid var(--line);
+      border-left: 3px solid var(--space-primary);
+      border-radius: var(--radius-card);
+      background: rgba(255,255,255,.025);
+      flex-wrap: wrap;
+    }
+
+    .space-identity-control h4 {
+      margin: 0 0 4px;
+      font-size: 14px;
+    }
+
+    .space-identity-control span {
+      color: var(--muted);
+      font-size: 12px;
     }
 
     .field-hint {
@@ -4146,7 +4362,7 @@ window.MONOLITH_VERSION_LABEL = "Monolith v96 · 21/08/2026";
 
     .space-asset-preview {
       min-height: 88px;
-      border: 1px dashed rgba(212,175,55,.36);
+      border: 1px dashed rgba(var(--space-primary-rgb),.36);
       border-radius: 12px;
       background: #0b0b0b;
       display: grid;
@@ -4181,7 +4397,7 @@ window.MONOLITH_VERSION_LABEL = "Monolith v96 · 21/08/2026";
       aspect-ratio: 1;
       border-radius: 16px;
       background: #080808;
-      border: 1px solid rgba(212,175,55,.45);
+      border: 1px solid rgba(var(--space-primary-rgb),.45);
       display: grid;
       place-items: center;
       padding: 30px;
@@ -4197,6 +4413,25 @@ window.MONOLITH_VERSION_LABEL = "Monolith v96 · 21/08/2026";
       .timeline-item > .action-row,
       .achievement-card > .action-row,
       .onboarding-step-card > .action-row { grid-column: 2; justify-content: flex-start; }
+      .space-home-hero {
+        min-height: 142px;
+        padding: 18px;
+        border-radius: 12px;
+      }
+      .space-home-hero-content {
+        max-width: 100%;
+      }
+      .space-home-hero-brand {
+        align-items: flex-start;
+      }
+      .space-home-hero-logo {
+        width: 48px;
+        height: 48px;
+        flex: 0 0 auto;
+      }
+      .space-home-hero h3 {
+        font-size: 22px;
+      }
     }
 
     .pulse-item {
@@ -4527,8 +4762,8 @@ window.MONOLITH_VERSION_LABEL = "Monolith v96 · 21/08/2026";
     .voice-fab[data-state="paused"] .voice-mic-icon { background: #252525; color: #d0d0d0; }
 
     @keyframes voicePulse {
-      0%, 100% { box-shadow: 0 0 0 0 rgba(201, 162, 39, .38); transform: scale(1); }
-      50% { box-shadow: 0 0 0 10px rgba(201, 162, 39, 0); transform: scale(1.04); }
+      0%, 100% { box-shadow: 0 0 0 0 rgba(var(--space-primary-rgb), .38); transform: scale(1); }
+      50% { box-shadow: 0 0 0 10px rgba(var(--space-primary-rgb), 0); transform: scale(1.04); }
     }
 
     .voice-panel {
@@ -4637,9 +4872,9 @@ window.MONOLITH_VERSION_LABEL = "Monolith v96 · 21/08/2026";
         <div class="auth-language">
           <label data-i18n="Idioma">Idioma</label>
           <div class="language-buttons" id="authLanguageSelect" aria-label="Idioma">
-            <button class="language-button" type="button" data-lang="pt" title="Português">🇧🇷<span>PT</span></button>
-            <button class="language-button" type="button" data-lang="en" title="English">🇺🇸<span>EN</span></button>
-            <button class="language-button" type="button" data-lang="es" title="Español">🇪🇸<span>ES</span></button>
+            <button class="language-button" type="button" data-lang="pt" title="Português" aria-label="Português"><span class="language-flag" aria-hidden="true">🇧🇷</span><span>PT</span></button>
+            <button class="language-button" type="button" data-lang="en" title="English" aria-label="English"><span class="language-flag" aria-hidden="true">🇺🇸</span><span>EN</span></button>
+            <button class="language-button" type="button" data-lang="es" title="Español" aria-label="Español"><span class="language-flag" aria-hidden="true">🇪🇸</span><span>ES</span></button>
           </div>
         </div>
       </div>
@@ -4675,7 +4910,7 @@ window.MONOLITH_VERSION_LABEL = "Monolith v96 · 21/08/2026";
           <button class="action" id="loginButton" type="submit">Entrar</button>
           <div class="auth-tools">
             <button class="auth-secondary" id="clearDeviceSessionButton" type="button">Limpar sessão/cache deste aparelho</button>
-            <div class="build-version" id="buildVersionLabel">Versão do app: Monolith v96 · 21/08/2026</div>
+            <div class="build-version" id="buildVersionLabel">Versão do app: Monolith v97 · 21/08/2026</div>
           </div>
         </form>
       </div>
@@ -4912,16 +5147,22 @@ window.MONOLITH_VERSION_LABEL = "Monolith v96 · 21/08/2026";
         <div>
           <div class="brand-title">MONOLITH</div>
           <p>Built One Day At A Time.</p>
-          <span class="kicker" id="activeSpaceBrand" data-no-i18n="true" hidden></span>
+          <div class="space-brand-identity" id="activeSpaceBrand" data-no-i18n="true" hidden>
+            <div class="space-brand-mark" id="activeSpaceLogoMark" aria-hidden="true">M</div>
+            <div class="space-brand-copy">
+              <span class="kicker">MONOLITH ×</span>
+              <strong id="activeSpaceBrandName"></strong>
+            </div>
+          </div>
         </div>
       </div>
 
       <div class="language-select">
         <label data-i18n="Idioma">Idioma</label>
         <div class="language-buttons" id="languageSelect" aria-label="Idioma">
-          <button class="language-button" type="button" data-lang="pt" title="Português">🇧🇷<span>PT</span></button>
-          <button class="language-button" type="button" data-lang="en" title="English">🇺🇸<span>EN</span></button>
-          <button class="language-button" type="button" data-lang="es" title="Español">🇪🇸<span>ES</span></button>
+          <button class="language-button" type="button" data-lang="pt" title="Português" aria-label="Português"><span class="language-flag" aria-hidden="true">🇧🇷</span><span>PT</span></button>
+          <button class="language-button" type="button" data-lang="en" title="English" aria-label="English"><span class="language-flag" aria-hidden="true">🇺🇸</span><span>EN</span></button>
+          <button class="language-button" type="button" data-lang="es" title="Español" aria-label="Español"><span class="language-flag" aria-hidden="true">🇪🇸</span><span>ES</span></button>
         </div>
       </div>
 
@@ -5020,6 +5261,8 @@ window.MONOLITH_VERSION_LABEL = "Monolith v96 · 21/08/2026";
             <div class="date" id="today"></div>
           </div>
         </div>
+
+        <div class="space-home-hero" id="spaceHomeHero" data-no-i18n="true" hidden></div>
 
         <div class="trainer-home" id="personalHomeDashboard" data-role-only="personal" hidden>
           <div class="panel compact-actions">
@@ -5995,6 +6238,13 @@ window.MONOLITH_VERSION_LABEL = "Monolith v96 · 21/08/2026";
         <div class="grid stats-layout">
           <form class="panel" id="spaceForm">
             <div class="section-title"><h3>Personalizar Space</h3><span>Monolith permanece presente</span></div>
+            <div class="space-identity-control">
+              <div>
+                <h4>Identidade do Space</h4>
+                <span id="spaceIdentityStatus" aria-live="polite">Personalizada</span>
+              </div>
+            </div>
+            <input id="spaceThemeMode" type="hidden" value="space" />
             <div class="form-grid">
               <div class="field"><label for="spaceName">Nome do Space</label><input id="spaceName" maxlength="100" placeholder="Ex: Superman Performance" required /></div>
               <div class="field"><label for="spaceSlug">Endereço do Space</label><input id="spaceSlug" maxlength="63" placeholder="superman-performance" required /><span class="field-hint" id="spaceSlugStatus" aria-live="polite"></span></div>
@@ -6005,7 +6255,7 @@ window.MONOLITH_VERSION_LABEL = "Monolith v96 · 21/08/2026";
               <div class="field space-asset-field"><label for="spaceCoverFile">Enviar imagem de capa</label><input id="spaceCoverFile" type="file" accept="image/png,image/jpeg,image/webp" aria-describedby="spaceCoverStatus" /><span class="field-hint" id="spaceCoverStatus" aria-live="polite">PNG, JPG ou WebP até 5 MB. Sugestão: 1600×500.</span><div class="space-asset-preview is-cover" id="spaceCoverPreview" aria-label="Prévia da capa"></div><button class="ghost" type="button" id="removeSpaceCoverButton">Remover capa</button></div>
               <div class="field full"><label for="spaceInstagram">Instagram</label><input id="spaceInstagram" /></div>
             </div>
-            <button class="action" id="saveSpaceButton" type="submit">Salvar Space</button>
+            <div class="modal-actions"><button class="ghost" type="button" id="previewSpaceIdentityButton">Ativar identidade do Space</button><button class="action" id="saveSpaceButton" type="submit">Salvar Space</button></div>
           </form>
           <div class="panel"><div class="section-title"><h3>Prévia</h3><span>Tema com fallback Monolith</span></div><div class="space-preview" id="spacePreview"></div></div>
         </div>
@@ -6435,8 +6685,8 @@ window.MONOLITH_VERSION_LABEL = "Monolith v96 · 21/08/2026";
   <script>
     const MONOLITH_SUPABASE_URL = "https://jhxasnxuvmkhntbwepau.supabase.co";
     const MONOLITH_SUPABASE_KEY = "sb_publishable_lDtAXIOtkMwgwsAZyghBdg_gyLHGwpH";
-const MONOLITH_BUILD = window.MONOLITH_BUILD || "monolith-v96-alertas-space-assets";
-const MONOLITH_VERSION_LABEL = window.MONOLITH_VERSION_LABEL || "Monolith v96 · 21/08/2026";
+const MONOLITH_BUILD = window.MONOLITH_BUILD || "monolith-v97-space-identity-polish";
+const MONOLITH_VERSION_LABEL = window.MONOLITH_VERSION_LABEL || "Monolith v97 · 21/08/2026";
 if (location.hash.toLowerCase() === "#pulse") history.replaceState(null, "", `${location.href.split("#")[0]}#alertas`);
 if (location.hash.toLowerCase() === "#leads") history.replaceState(null, "", `${location.href.split("#")[0]}#inicio`);
     const monolithSupabase = window.supabase?.createClient?.(MONOLITH_SUPABASE_URL, MONOLITH_SUPABASE_KEY, {
@@ -19488,7 +19738,21 @@ ${photoSections}
       "Space salvo.": "Space saved.",
       "Não consegui salvar o Space agora.": "Could not save the Space right now.",
       "O Monolith não cria leads. Converse pelo Instagram do personal.": "Monolith does not create leads. Continue through the trainer's Instagram.",
-      "Instagram indisponível.": "Instagram unavailable."
+      "Instagram indisponível.": "Instagram unavailable.",
+      "Identidade do Space": "Space identity",
+      "Personalizada": "Custom",
+      "Padrão Monolith": "Default Monolith",
+      "Usar visual padrão Monolith": "Use default Monolith visual",
+      "Ativar identidade do Space": "Activate Space identity",
+      "Usar visual padrão": "Use default visual",
+      "O Monolith voltará ao visual padrão, com suas cores e identidade original. Sua personalização ficará salva e poderá ser reativada depois.": "Monolith will return to the default visual with its original colors and identity. Your customization will stay saved and can be reactivated later.",
+      "Sua personalização ficará salva": "Your customization will stay saved",
+      "Logo indisponível": "Logo unavailable",
+      "Capa indisponível": "Cover unavailable",
+      "Falha ao carregar imagem": "Image failed to load",
+      "Personalização ativada": "Customization activated",
+      "Visual padrão ativado": "Default visual activated",
+      "Logo do Space": "Space logo"
     });
     Object.assign(translations.es, {
       "Alertas": "Alertas",
@@ -19581,7 +19845,21 @@ ${photoSections}
       "Space salvo.": "Space guardado.",
       "Não consegui salvar o Space agora.": "No se pudo guardar el Space ahora.",
       "O Monolith não cria leads. Converse pelo Instagram do personal.": "Monolith no crea leads. Continúa por el Instagram del entrenador.",
-      "Instagram indisponível.": "Instagram no disponible."
+      "Instagram indisponível.": "Instagram no disponible.",
+      "Identidade do Space": "Identidad del Space",
+      "Personalizada": "Personalizada",
+      "Padrão Monolith": "Monolith estándar",
+      "Usar visual padrão Monolith": "Usar visual estándar Monolith",
+      "Ativar identidade do Space": "Activar identidad del Space",
+      "Usar visual padrão": "Usar visual estándar",
+      "O Monolith voltará ao visual padrão, com suas cores e identidade original. Sua personalização ficará salva e poderá ser reativada depois.": "Monolith volverá al visual estándar, con sus colores e identidad original. Tu personalización quedará guardada y podrá reactivarse después.",
+      "Sua personalização ficará salva": "Tu personalización quedará guardada",
+      "Logo indisponível": "Logo no disponible",
+      "Capa indisponível": "Portada no disponible",
+      "Falha ao carregar imagem": "Error al cargar imagen",
+      "Personalização ativada": "Personalización activada",
+      "Visual padrão ativado": "Visual estándar activado",
+      "Logo do Space": "Logo del Space"
     });
     Object.assign(translations.en, {
       "Linha do tempo": "Timeline",
@@ -20856,6 +21134,7 @@ ${photoSections}
         coverStoragePath: data.cover_storage_path || "",
         primaryColor: data.primary_color,
         accentColor: data.accent_color,
+        themeMode: data.theme_mode || "space",
         socialLinks: data.social_links || {},
         source: "supabase"
       };
@@ -20925,24 +21204,119 @@ ${photoSections}
       status.classList.toggle("error", !availability.ok);
     }
 
+    function spaceIdentityMode(space = null) {
+      return (space?.themeMode || document.getElementById("spaceThemeMode")?.value || "space") === "monolith" ? "monolith" : "space";
+    }
+
+    function spaceIdentityActive(space = null) {
+      return spaceIdentityMode(space) === "space" && Boolean(space?.name || document.getElementById("spaceName")?.value.trim());
+    }
+
+    function colorToRgb(value = "#c9a227") {
+      const hex = String(value || "").trim().replace("#", "");
+      const normalized = hex.length === 3 ? hex.split("").map(char => char + char).join("") : hex;
+      if (!/^[0-9a-f]{6}$/i.test(normalized)) return "201, 162, 39";
+      return `${parseInt(normalized.slice(0, 2), 16)}, ${parseInt(normalized.slice(2, 4), 16)}, ${parseInt(normalized.slice(4, 6), 16)}`;
+    }
+
+    function currentSpaceDraftData(space = null) {
+      const mode = spaceIdentityMode(space);
+      const active = mode === "space";
+      return {
+        name: space?.name || document.getElementById("spaceName")?.value.trim() || "Seu Space",
+        welcomeMessage: space?.welcomeMessage || document.getElementById("spaceWelcome")?.value.trim() || "Built One Day At A Time.",
+        primaryColor: active ? (space?.primaryColor || document.getElementById("spacePrimaryColor")?.value || "#d4af37") : "#c9a227",
+        accentColor: active ? (space?.accentColor || document.getElementById("spaceAccentColor")?.value || "#f5f5f5") : "#f5f5f5",
+        logoUrl: active ? (space?.logoUrl || (spaceAssetDrafts.logo.remove ? "" : (spaceAssetDrafts.logo.previewUrl || spaceAssetDrafts.logo.currentUrl || ""))) : "",
+        coverUrl: active ? (space?.coverUrl || (spaceAssetDrafts.cover.remove ? "" : (spaceAssetDrafts.cover.previewUrl || spaceAssetDrafts.cover.currentUrl || ""))) : "",
+        themeMode: mode
+      };
+    }
+
+    function fallbackSpaceLogoHTML(label = "M") {
+      return `<span aria-hidden="true">${escapeHTML(label)}</span>`;
+    }
+
+    function spaceLogoImageHTML(url = "", alt = "Logo do Space") {
+      return url
+        ? `<img src="${escapeHTML(url)}" alt="${escapeHTML(t(alt))}" onerror="console.warn('Falha ao carregar imagem do Space'); this.closest('.space-brand-mark,.space-home-hero-logo,.space-preview-logo')?.classList.add('image-failed'); this.remove();" />`
+        : "";
+    }
+
+    function updateSpaceIdentityControls(mode = document.getElementById("spaceThemeMode")?.value || "space") {
+      const normalized = mode === "monolith" ? "monolith" : "space";
+      const input = document.getElementById("spaceThemeMode");
+      if (input) input.value = normalized;
+      const status = document.getElementById("spaceIdentityStatus");
+      if (status) status.textContent = t(normalized === "space" ? "Personalizada" : "Padrão Monolith");
+      const secondary = document.getElementById("previewSpaceIdentityButton");
+      if (secondary) {
+        secondary.hidden = false;
+        secondary.textContent = t(normalized === "space" ? "Usar visual padrão Monolith" : "Ativar identidade do Space");
+      }
+      document.body.dataset.spaceThemeMode = normalized;
+    }
+
+    function renderSpaceHomeHero(space = null) {
+      const hero = document.getElementById("spaceHomeHero");
+      if (!hero) return;
+      const data = currentSpaceDraftData(space);
+      const show = Boolean(space?.id || space?.name) && data.themeMode === "space";
+      hero.hidden = !show;
+      if (!show) {
+        hero.style.backgroundImage = "";
+        hero.innerHTML = "";
+        return;
+      }
+      hero.style.backgroundImage = data.coverUrl ? `url("${data.coverUrl.replace(/"/g, "%22")}")` : "";
+      hero.innerHTML = `
+        <div class="space-home-hero-content">
+          <div class="space-home-hero-brand">
+            <div class="space-home-hero-logo">${spaceLogoImageHTML(data.logoUrl, "Logo do Space") || fallbackSpaceLogoHTML("M")}</div>
+            <div>
+              <div class="kicker">MONOLITH ×</div>
+              <h3>${escapeHTML(data.name)}</h3>
+            </div>
+          </div>
+          <p>${escapeHTML(data.welcomeMessage || "Built One Day At A Time.")}</p>
+        </div>`;
+    }
+
     function renderSpacePreview(space = null) {
       const preview = document.getElementById("spacePreview");
       if (!preview) return;
-      const data = space || { name: document.getElementById("spaceName")?.value.trim() || "Seu Space", welcomeMessage: document.getElementById("spaceWelcome")?.value.trim() || "Built One Day At A Time.", primaryColor: document.getElementById("spacePrimaryColor")?.value || "#d4af37", accentColor: document.getElementById("spaceAccentColor")?.value || "#f5f5f5", logoUrl: spaceAssetDrafts.logo.remove ? "" : (spaceAssetDrafts.logo.previewUrl || spaceAssetDrafts.logo.currentUrl || ""), coverUrl: spaceAssetDrafts.cover.remove ? "" : (spaceAssetDrafts.cover.previewUrl || spaceAssetDrafts.cover.currentUrl || "") };
+      const data = currentSpaceDraftData(space);
       preview.style.setProperty("--space-primary", data.primaryColor);
+      preview.style.setProperty("--space-primary-rgb", colorToRgb(data.primaryColor));
       preview.style.backgroundImage = data.coverUrl ? `url("${data.coverUrl.replace(/"/g, "%22")}")` : "";
-      preview.innerHTML = `<div class="space-brand-lockup">${data.logoUrl ? `<img src="${escapeHTML(data.logoUrl)}" alt="" width="54" height="54" />` : `<span class="mark">M</span>`}<div><div class="kicker">MONOLITH ×</div><h3 data-no-i18n="true">${escapeHTML(data.name)}</h3></div></div><p>${escapeHTML(data.welcomeMessage || "")}</p>`;
+      preview.innerHTML = `<div class="space-brand-lockup"><div class="space-preview-logo">${spaceLogoImageHTML(data.logoUrl, "Prévia da logo") || `<span class="mark">M</span>`}</div><div><div class="kicker">MONOLITH ×</div><h3 data-no-i18n="true">${escapeHTML(data.themeMode === "space" ? data.name : "MONOLITH")}</h3><span class="field-hint">${escapeHTML(t(data.themeMode === "space" ? "Personalizada" : "Padrão Monolith"))}</span></div></div><p>${escapeHTML(data.themeMode === "space" ? data.welcomeMessage || "" : "Built One Day At A Time.")}</p>`;
     }
 
     function applySpaceTheme(space = null) {
       const root = document.documentElement;
-      root.style.setProperty("--gold", space?.primaryColor || "#c9a227");
+      const mode = spaceIdentityMode(space);
+      const active = Boolean(space?.name) && mode === "space";
+      const primary = active ? (space?.primaryColor || "#c9a227") : "#c9a227";
+      const support = active ? (space?.accentColor || "#f5f5f5") : "#f5f5f5";
+      root.style.setProperty("--space-primary", primary);
+      root.style.setProperty("--space-primary-rgb", colorToRgb(primary));
+      root.style.setProperty("--space-support", support);
+      root.style.setProperty("--gold", primary);
       const brand = document.getElementById("activeSpaceBrand");
+      const brandName = document.getElementById("activeSpaceBrandName");
+      const logoMark = document.getElementById("activeSpaceLogoMark");
       if (brand) {
-        brand.hidden = !space?.name;
-        brand.textContent = space?.name ? `MONOLITH × ${space.name}` : "";
+        brand.hidden = !active;
+        if (brandName) brandName.textContent = active ? space.name : "";
+        if (logoMark) {
+          logoMark.innerHTML = active && space.logoUrl ? spaceLogoImageHTML(space.logoUrl, "Logo do Space") : fallbackSpaceLogoHTML("M");
+          logoMark.setAttribute("aria-label", active ? t("Logo do Space") : "Monolith");
+        }
       }
       document.body.dataset.spaceId = space?.id || "";
+      document.body.dataset.spaceThemeMode = mode;
+      window.monolithActiveSpace = space || null;
+      renderSpaceHomeHero(space);
     }
 
     async function loadActiveSpace() {
@@ -20956,6 +21330,11 @@ ${photoSections}
           if (!error && data) space = await resolveSpaceAssetUrls(spaceFromRemoteRow(data));
           else if (error) safeRemoteLog("hydrate", "space", error, { userId: user.id });
         } else if (membershipError) safeRemoteLog("hydrate", "space-membership", membershipError, { userId: user.id });
+        if (!space && user.role === "personal") {
+          const { data, error } = await monolithSupabase.from("monolith_spaces").select("*").eq("owner_id", user.id).eq("active", true).maybeSingle();
+          if (!error && data) space = await resolveSpaceAssetUrls(spaceFromRemoteRow(data));
+          else if (error) safeRemoteLog("hydrate", "space-owner", error, { userId: user.id });
+        }
       }
       applySpaceTheme(space);
       return space;
@@ -20981,6 +21360,7 @@ ${photoSections}
       document.getElementById("spacePrimaryColor").value = space?.primaryColor || "#d4af37";
       document.getElementById("spaceAccentColor").value = space?.accentColor || "#f5f5f5";
       document.getElementById("spaceInstagram").value = space?.socialLinks?.instagram || "";
+      updateSpaceIdentityControls(space?.themeMode || "space");
       resetSpaceAssetDrafts(space);
       renderSpacePreview(space);
       updateSpaceSlugStatus();
@@ -20992,7 +21372,7 @@ ${photoSections}
       if (user?.role !== "personal") return;
       const memberIds = [user.id, ...studentsForPersonal(user.id).map(student => student.id)];
       const slug = normalizeSpaceSlug(document.getElementById("spaceSlug").value);
-      const space = { ownerId: user.id, memberIds, name: document.getElementById("spaceName").value.trim(), slug, welcomeMessage: document.getElementById("spaceWelcome").value.trim(), logoUrl: spaceAssetDrafts.logo.currentUrl, coverUrl: spaceAssetDrafts.cover.currentUrl, logoStoragePath: spaceAssetDrafts.logo.currentPath, coverStoragePath: spaceAssetDrafts.cover.currentPath, primaryColor: document.getElementById("spacePrimaryColor").value, accentColor: document.getElementById("spaceAccentColor").value, socialLinks: { instagram: document.getElementById("spaceInstagram").value.trim() } };
+      const space = { ownerId: user.id, memberIds, name: document.getElementById("spaceName").value.trim(), slug, welcomeMessage: document.getElementById("spaceWelcome").value.trim(), logoUrl: spaceAssetDrafts.logo.currentUrl, coverUrl: spaceAssetDrafts.cover.currentUrl, logoStoragePath: spaceAssetDrafts.logo.currentPath, coverStoragePath: spaceAssetDrafts.cover.currentPath, primaryColor: document.getElementById("spacePrimaryColor").value, accentColor: document.getElementById("spaceAccentColor").value, themeMode: document.getElementById("spaceThemeMode")?.value === "monolith" ? "monolith" : "space", socialLinks: { instagram: document.getElementById("spaceInstagram").value.trim() } };
       if (!space.name || space.slug.length < 2) { showToast("Informe nome e endereço válido para o Space."); return; }
       const availability = await checkSpaceSlugAvailability(space.slug, user.id);
       if (!availability.ok) { showToast(availability.message); updateSpaceSlugStatus(); return; }
@@ -21004,7 +21384,7 @@ ${photoSections}
           const nextCoverPath = spaceAssetDrafts.cover.file ? await uploadSpaceAsset("cover", spaceAssetDrafts.cover.file, user.id, token) : (spaceAssetDrafts.cover.remove ? "" : spaceAssetDrafts.cover.currentPath);
           const previousLogoPath = spaceAssetDrafts.logo.currentPath;
           const previousCoverPath = spaceAssetDrafts.cover.currentPath;
-          const { data, error } = await monolithSupabase.from("monolith_spaces").upsert({ owner_id: user.id, name: space.name, slug: space.slug, welcome_message: space.welcomeMessage || null, logo_url: null, cover_url: null, logo_storage_path: nextLogoPath || null, cover_storage_path: nextCoverPath || null, primary_color: space.primaryColor, accent_color: space.accentColor, social_links: space.socialLinks, active: true }, { onConflict: "owner_id" }).select("*").single();
+          const { data, error } = await monolithSupabase.from("monolith_spaces").upsert({ owner_id: user.id, name: space.name, slug: space.slug, welcome_message: space.welcomeMessage || null, logo_url: null, cover_url: null, logo_storage_path: nextLogoPath || null, cover_storage_path: nextCoverPath || null, primary_color: space.primaryColor, accent_color: space.accentColor, theme_mode: space.themeMode, social_links: space.socialLinks, active: true }, { onConflict: "owner_id" }).select("*").single();
           if (error) throw error;
           Object.assign(space, await resolveSpaceAssetUrls(spaceFromRemoteRow(data)));
           const memberships = memberIds.map(userId => ({ space_id: data.id, user_id: userId, role: userId === user.id ? "owner" : "member" }));
@@ -21025,6 +21405,42 @@ ${photoSections}
       } catch (error) {
         engagementOperationError("space", "save", error, "Não consegui salvar o Space agora.");
       }
+    }
+
+    async function setSpaceIdentityMode(nextMode, button = null) {
+      const mode = nextMode === "monolith" ? "monolith" : "space";
+      if (mode === "monolith") {
+        const confirmed = await confirmAction({
+          title: "Usar visual padrão Monolith",
+          message: "O Monolith voltará ao visual padrão, com suas cores e identidade original. Sua personalização ficará salva e poderá ser reativada depois.",
+          confirmLabel: "Usar visual padrão",
+          danger: false
+        });
+        if (!confirmed) return;
+      }
+      updateSpaceIdentityControls(mode);
+      renderSpacePreview();
+      applySpaceTheme({
+        id: window.monolithActiveSpace?.id || "",
+        name: document.getElementById("spaceName")?.value.trim() || window.monolithActiveSpace?.name || "",
+        welcomeMessage: document.getElementById("spaceWelcome")?.value.trim() || window.monolithActiveSpace?.welcomeMessage || "",
+        logoUrl: spaceAssetDrafts.logo.currentUrl,
+        coverUrl: spaceAssetDrafts.cover.currentUrl,
+        primaryColor: document.getElementById("spacePrimaryColor")?.value || "#d4af37",
+        accentColor: document.getElementById("spaceAccentColor")?.value || "#f5f5f5",
+        themeMode: mode
+      });
+      const form = document.getElementById("spaceForm");
+      if (form && document.getElementById("spaceName")?.value.trim() && document.getElementById("spaceSlug")?.value.trim()) {
+        await saveSpace({ preventDefault() {}, submitter: button || document.getElementById("saveSpaceButton") });
+      } else {
+        showToast(mode === "space" ? "Personalização ativada" : "Visual padrão ativado");
+      }
+    }
+
+    function toggleSpaceIdentity(button = null) {
+      const current = document.getElementById("spaceThemeMode")?.value === "monolith" ? "monolith" : "space";
+      return setSpaceIdentityMode(current === "space" ? "monolith" : "space", button);
     }
 
     function openShareCard(achievementKey = "") {
@@ -21130,6 +21546,7 @@ ${photoSections}
     document.getElementById("spaceCoverFile")?.addEventListener("change", event => readSpaceAssetInput("cover", event.target.files?.[0]));
     document.getElementById("removeSpaceLogoButton")?.addEventListener("click", () => removeSpaceAsset("logo"));
     document.getElementById("removeSpaceCoverButton")?.addEventListener("click", () => removeSpaceAsset("cover"));
+    document.getElementById("previewSpaceIdentityButton")?.addEventListener("click", event => toggleSpaceIdentity(event.currentTarget));
     document.getElementById("shareSummaryButton")?.addEventListener("click", () => openShareCard());
     document.getElementById("achievementList")?.addEventListener("click", event => { const button = event.target.closest(".share-achievement"); if (button) openShareCard(button.dataset.achievementKey); });
     document.getElementById("closeShareCardModal")?.addEventListener("click", () => document.getElementById("shareCardModal").classList.remove("active"));

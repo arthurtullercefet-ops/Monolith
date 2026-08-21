@@ -70,7 +70,9 @@ Official docs:
    This repairs the exact Programs and Monolith Voice tables expected by the app, reloads the PostgREST schema cache and prevents students from changing workout templates or global check-in tasks. Linked trainers retain scoped access under RLS.
 28. Paste and run `monolith-production-step-28-alerts-space-assets.sql`.
    This renames the product surface from Pulse to Alertas, deprecates Leads access without deleting old records, adds private Space logo/cover Storage paths, creates the `space-assets` bucket policies and exposes safe Space address availability checks.
-29. Confirm these tables exist:
+29. Paste and run `monolith-production-step-29-space-identity-mode.sql`.
+   This adds the non-destructive Space identity mode toggle: custom Space identity or default Monolith visual. Logo, cover, colors and text remain saved when the default visual is active.
+30. Confirm these tables exist:
    - `profiles`
    - `trainer_students`
    - `trainer_invites`
@@ -112,7 +114,7 @@ Official docs:
    - `accept_influencer_code`
    - `correct_daily_checkin`
    - `is_space_member`
-30. Confirm Storage has private buckets called `progress-photos` and `space-assets`.
+31. Confirm Storage has private buckets called `progress-photos` and `space-assets`.
 
 All step files are additive and idempotent. Run them in numerical order. Do not reset the database or delete QA records before running a step.
 
@@ -163,7 +165,7 @@ For real Supabase users, large datasets are not kept permanently in `localStorag
 | `monolith.onboardingProgress` | `onboarding_progress` |
 | `monolith.trainerLeads` | Deprecated; old `trainer_leads` and `trainer_lead_events` rows are retained but no longer exposed to trainers |
 | `monolith.achievements` | `student_achievements` |
-| `monolith.spaces` | `monolith_spaces`, `space_memberships` and private `space-assets` Storage paths |
+| `monolith.spaces` | `monolith_spaces`, `space_memberships`, `theme_mode` and private `space-assets` Storage paths |
 
 ## Step 3: production rules
 
@@ -198,6 +200,7 @@ After steps 13 through 24 are installed, test with fictitious accounts:
 - A trainer cannot read unknown users, visitor lists, lead events or unlinked prospects.
 - A Space owner and its members can read only their own Space and memberships.
 - A Space owner can upload, replace and remove only their own logo/cover files in `space-assets`; linked students can only read them through signed URLs.
+- Switching a Space to default Monolith visual does not delete logo, cover, colors, address, copy or Instagram; reactivation restores the saved identity.
 - Monolith Voice is hidden for trainers, stops after two hours or workout completion, rejects doubtful values and does not duplicate a repeated command.
 - A browser without on-device recognition releases the microphone between push-to-talk commands.
 - Demo and QA records remain intact and suspicious legacy values remain flagged rather than deleted.
