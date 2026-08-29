@@ -2,7 +2,7 @@
   "name": "monolith-qa",
   "private": true,
   "scripts": {
-    "test:qa": "node tests/qa-v99.cjs"
+    "test:qa": "node tests/qa-v100.cjs"
   },
   "devDependencies": {
     "playwright": "^1.55.0"

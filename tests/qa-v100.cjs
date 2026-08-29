@@ -4,7 +4,7 @@ const path = require("node:path");
 const { chromium } = require("playwright");
 
 const baseUrl = process.env.BASE_URL || "http://127.0.0.1:4174/";
-const artifactDir = path.resolve(__dirname, "..", "artifacts", "qa-v99");
+const artifactDir = path.resolve(__dirname, "..", "artifacts", "qa-v100");
 
 async function launchBrowser() {
   try {
@@ -15,7 +15,7 @@ async function launchBrowser() {
 }
 
 async function loginDemo(page, role = "personal") {
-  await page.goto(`${baseUrl}${baseUrl.includes("?") ? "&" : "?"}qa=monolith-v99`, { waitUntil: "domcontentloaded" });
+  await page.goto(`${baseUrl}${baseUrl.includes("?") ? "&" : "?"}qa=monolith-v100`, { waitUntil: "domcontentloaded" });
   await page.locator("#loginEmail").fill(`${role}@monolith.app`);
   await page.locator("#loginPassword").fill("123456");
   await page.locator("#loginButton").click();
@@ -76,6 +76,17 @@ async function main() {
         explicitCustom: spaceFromRemoteRow({ theme_mode: "space" }).themeMode,
         explicitMonolith: spaceFromRemoteRow({ theme_mode: "monolith" }).themeMode
       };
+      saveAccounts(accountsBeforeSpaceTest.map(account => account.id === personal.id ? { ...account, spaceEnabled: true } : account));
+      applyAuthState();
+      applySpaceTheme({ id: "qa-space", ownerId: personal.id, name: "Superman Performance", slug: "superman", themeMode: "monolith" });
+      renderProfile();
+      const spaceProfile = {
+        visible: !document.getElementById("profileSpaceStatusPanel").hidden,
+        upgradeHidden: document.getElementById("profileSpaceUpgradePanel").hidden,
+        text: document.getElementById("profileSpaceStatusPanel").innerText
+      };
+      saveAccounts(accountsBeforeSpaceTest);
+      applyAuthState();
       const reportResults = {};
       for (const language of ["pt", "en", "es"]) {
         applyLanguage(language);
@@ -102,12 +113,13 @@ async function main() {
         voiceRules,
         flagLabels,
         spaceModes,
+        spaceProfile,
         reportResults,
         hashAfterLeavingStats: location.hash
       };
     });
 
-    assert.equal(core.build, "monolith-v99-qa-report-state-voice");
+    assert.equal(core.build, "monolith-v100-report-diet-language-space");
     assert.equal(core.accountAfter, core.accountBefore, "language switching changed the authenticated account");
     assert.equal(core.selectedAfter, core.selectedBefore, "language switching changed the selected student");
     assert.deepEqual(core.audits.pt, []);
@@ -127,6 +139,10 @@ async function main() {
     assert.ok(core.flagLabels.some(item => item.label === "English" && item.flag.includes("flag-us")));
     assert.ok(core.flagLabels.some(item => item.label === "Español" && item.flag.includes("flag-es")));
     assert.deepEqual(core.spaceModes, { migratedDefault: "space", explicitCustom: "space", explicitMonolith: "monolith" });
+    assert.equal(core.spaceProfile.visible, true);
+    assert.equal(core.spaceProfile.upgradeHidden, true);
+    assert.match(core.spaceProfile.text, /Superman Performance/);
+    assert.match(core.spaceProfile.text, /superman/);
     assert.equal(core.hashAfterLeavingStats, "#inicio");
     Object.values(core.reportResults).forEach(result => {
       assert.ok(result.length > 1000, "monthly report HTML was not generated");
@@ -166,6 +182,165 @@ async function main() {
       }
     });
     assert.deepEqual(blockedReport, { html: "", status: "error" }, "a failed report query was rendered as empty/zero data");
+
+    const reportStates = await page.evaluate(() => {
+      setSelectedStudentForPersonal("aluno-demo");
+      setRemoteDataState("report", "aluno-demo", "loading");
+      renderStatsLoadingState();
+      const loadingText = `${document.getElementById("studentContextHeader").innerText}\n${document.getElementById("studentStatsReportSummary").innerText}`;
+      const loadingDisabled = document.getElementById("openStatsMonthlyReport").disabled && document.getElementById("downloadStatsMonthlyReport").disabled;
+      renderStatsErrorState();
+      const retryVisible = Boolean(document.querySelector("#studentStatsReportSummary [data-screen-jump='stats']"));
+      setRemoteDataState("report", "aluno-demo", "loaded");
+      renderStats();
+      setReportControlsState("ready");
+      return { loadingText, loadingDisabled, retryVisible };
+    });
+    assert.equal(reportStates.loadingDisabled, true);
+    assert.equal(reportStates.retryVisible, true);
+    assert.doesNotMatch(reportStates.loadingText, /0%|0 check-ins|Novo aluno/);
+
+    const languagePersistence = await page.evaluate(async () => {
+      await persistLanguagePreference("es");
+      applyAuthState();
+      const spanish = { cached: currentAccount().language, htmlLang: document.documentElement.lang };
+      await persistLanguagePreference("en");
+      applyAuthState();
+      const english = { cached: currentAccount().language, htmlLang: document.documentElement.lang };
+      await persistLanguagePreference("pt");
+      applyAuthState();
+      const portuguese = { cached: currentAccount().language, htmlLang: document.documentElement.lang };
+      return { spanish, english, portuguese };
+    });
+    assert.deepEqual(languagePersistence, {
+      spanish: { cached: "es", htmlLang: "es" },
+      english: { cached: "en", htmlLang: "en-US" },
+      portuguese: { cached: "pt", htmlLang: "pt-BR" }
+    });
+
+    const dietIsolation = await page.evaluate(async () => {
+      const originalAccounts = loadAccounts();
+      const originalPlans = loadDietPlans();
+      const trainer = currentAccount();
+      const gus = { id: "qa-gus", role: "student", name: "Gusfraba", email: "gus@qa.test", trainerId: trainer.id, plan: "Aluno" };
+      const fernando = { id: "qa-fernando", role: "student", name: "Fernando", email: "fernando@qa.test", trainerId: trainer.id, plan: "Aluno" };
+      saveAccounts([
+        ...originalAccounts.filter(account => ![trainer.id, gus.id, fernando.id].includes(account.id)),
+        { ...trainer, students: [...new Set([...(trainer.students || []), gus.id, fernando.id])] },
+        gus,
+        fernando
+      ]);
+      const plans = loadDietPlans();
+      const gusKey = dietPlanKey(gus.id, "2026-09", trainer.id);
+      plans[gusKey] = {
+        id: gusKey,
+        trainerId: trainer.id,
+        studentId: gus.id,
+        month: "2026-09",
+        calories: "1800",
+        protein: "140",
+        carbs: "170",
+        fat: "55",
+        meals: Array.from({ length: 5 }, (_, index) => ({ ...defaultMeal(index), name: `QA TEST ${index + 1}` })),
+        supplements: []
+      };
+      saveDietPlans(plans);
+      await showScreen("nutrition", { skipDirtyGuard: true });
+      document.getElementById("dietMonth").value = "2026-09";
+      document.getElementById("dietStudent").value = gus.id;
+      await renderNutrition();
+      const gusCalories = document.getElementById("dietCalories").value;
+      document.getElementById("dietStudent").value = fernando.id;
+      await renderNutrition();
+      const fernandoValues = ["dietCalories", "dietProtein", "dietCarbs", "dietFat"].map(id => document.getElementById(id).value);
+      const fernandoMealNames = [...document.querySelectorAll("#dietMealBuilder .meal-name")].map(input => input.value);
+      const mealCounts = {};
+      for (const count of [1, 2, 5, 10]) {
+        const select = document.getElementById("dietMealCount");
+        select.value = String(count);
+        select.dispatchEvent(new Event("change", { bubbles: true }));
+        await new Promise(resolve => setTimeout(resolve, 0));
+        mealCounts[count] = document.querySelectorAll("#dietMealBuilder .meal-card").length;
+      }
+      const supplementButton = document.getElementById("addDietSupplement");
+      const supplementButtonState = { disabled: supplementButton.disabled, html: supplementButton.outerHTML };
+      supplementButton.click();
+      supplementButton.click();
+      const supplementRows = document.querySelectorAll("#dietSupplementBuilder .supplement-card").length;
+      const supplementHtml = document.getElementById("dietSupplementBuilder").innerHTML;
+      const scopedKeysDifferent = dietPlanKey(gus.id, "2026-09", trainer.id) !== dietPlanKey(fernando.id, "2026-09", trainer.id);
+      const originalRemoteDietLoader = window.loadRemoteDietPlan;
+      window.loadRemoteDietPlan = async studentId => {
+        await new Promise(resolve => setTimeout(resolve, studentId === gus.id ? 60 : 5));
+        return studentId === gus.id ? plans[gusKey] : null;
+      };
+      document.getElementById("dietStudent").value = gus.id;
+      const slowGusRequest = renderNutrition();
+      await new Promise(resolve => setTimeout(resolve, 1));
+      document.getElementById("dietStudent").value = fernando.id;
+      const fastFernandoRequest = renderNutrition();
+      await Promise.all([slowGusRequest, fastFernandoRequest]);
+      const raceProtectedValues = ["dietCalories", "dietProtein", "dietCarbs", "dietFat"].map(id => document.getElementById(id).value);
+      window.loadRemoteDietPlan = originalRemoteDietLoader;
+      saveDietPlans(originalPlans);
+      saveAccounts(originalAccounts);
+      applyAuthState();
+      return { gusCalories, fernandoValues, fernandoMealNames, mealCounts, supplementRows, supplementHtml, supplementButtonState, scopedKeysDifferent, raceProtectedValues };
+    });
+    assert.equal(dietIsolation.gusCalories, "1800");
+    assert.deepEqual(dietIsolation.fernandoValues, ["", "", "", ""]);
+    assert.ok(dietIsolation.fernandoMealNames.every(name => !name.startsWith("QA TEST")));
+    assert.deepEqual(dietIsolation.mealCounts, { 1: 1, 2: 2, 5: 5, 10: 10 });
+    assert.equal(dietIsolation.supplementRows, 2, JSON.stringify({ html: dietIsolation.supplementHtml, button: dietIsolation.supplementButtonState, pageErrors }));
+    assert.equal(dietIsolation.scopedKeysDifferent, true);
+    assert.deepEqual(dietIsolation.raceProtectedValues, ["", "", "", ""]);
+
+    await page.evaluate(async () => {
+      await showScreen("workouts", { skipDirtyGuard: true });
+      document.getElementById("newWorkoutButton").click();
+      window.monolithResetWorkoutBuilder();
+      document.querySelector("#exerciseBuilder .add-set-v2").click();
+      const rows = [...document.querySelectorAll("#exerciseBuilder .set-row")];
+      rows.forEach((row, index) => {
+        row.querySelector(".set-weight").value = String((index + 1) * 10);
+        row.querySelector(".set-reps").value = String(12 - index);
+        row.querySelector(".set-rest").value = String(60 + index * 15);
+        row.querySelector(".set-type").value = ["warmup", "working_set", "failure", "drop_set"][index];
+      });
+    });
+    await page.locator("#exerciseBuilder .set-row").nth(3).locator(".remove-set-v2").click();
+    await page.locator("#confirmActionConfirmation").click();
+    await page.waitForFunction(() => document.querySelectorAll("#exerciseBuilder .set-row").length === 3);
+    const afterFourthRemoval = await page.evaluate(() => [...document.querySelectorAll("#exerciseBuilder .set-row")].map(row => ({
+      index: row.querySelector(".set-index").textContent,
+      weight: row.querySelector(".set-weight").value,
+      reps: row.querySelector(".set-reps").value,
+      rest: row.querySelector(".set-rest").value,
+      type: row.querySelector(".set-type").value
+    })));
+    assert.deepEqual(afterFourthRemoval.map(row => [row.weight, row.reps, row.rest, row.type]), [
+      ["10", "12", "60", "warmup"],
+      ["20", "11", "75", "working_set"],
+      ["30", "10", "90", "failure"]
+    ]);
+    await page.locator("#exerciseBuilder .set-row").nth(1).locator(".remove-set-v2").click();
+    await page.locator("#confirmActionConfirmation").click();
+    await page.waitForFunction(() => document.querySelectorAll("#exerciseBuilder .set-row").length === 2);
+    const afterSecondRemoval = await page.evaluate(() => [...document.querySelectorAll("#exerciseBuilder .set-row")].map(row => ({
+      index: row.querySelector(".set-index").textContent,
+      weight: row.querySelector(".set-weight").value,
+      reps: row.querySelector(".set-reps").value,
+      rest: row.querySelector(".set-rest").value,
+      type: row.querySelector(".set-type").value
+    })));
+    assert.deepEqual(afterSecondRemoval.map(row => [row.index, row.weight, row.reps, row.rest, row.type]), [
+      ["Série 1", "10", "12", "60", "warmup"],
+      ["Série 2", "30", "10", "90", "failure"]
+    ]);
+    await page.evaluate(() => {
+      document.getElementById("workoutModal").classList.remove("active");
+      setDirtyBaseline("workout");
+    });
 
     const voiceUi = await page.evaluate(async () => {
       const workout = assignedStudentId => ({
@@ -225,6 +400,7 @@ async function main() {
     const downloadPromise = page.waitForEvent("download", { timeout: 20000 });
     await page.locator("#downloadStatsMonthlyReport").click();
     const download = await downloadPromise;
+    assert.match(download.suggestedFilename(), /^monolith-relatorio-aluno-demo-\d{4}-\d{2}-pt\.html$/);
     const reportPath = path.join(artifactDir, await download.suggestedFilename());
     await download.saveAs(reportPath);
     const downloadedHtml = fs.readFileSync(reportPath, "utf8");

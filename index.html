@@ -14,8 +14,8 @@
   <link rel="manifest" href="manifest.webmanifest" />
   <link rel="icon" href="monolith-icon.svg" />
   <script>
-window.MONOLITH_BUILD = "monolith-v99-qa-report-state-voice";
-window.MONOLITH_VERSION_LABEL = "Monolith v99 · 28/08/2026";
+window.MONOLITH_BUILD = "monolith-v100-report-diet-language-space";
+window.MONOLITH_VERSION_LABEL = "Monolith v100 · 29/08/2026";
     (function clearOldAppCaches() {
       if ("serviceWorker" in navigator) {
         navigator.serviceWorker.getRegistrations?.()
@@ -6155,6 +6155,14 @@ window.MONOLITH_VERSION_LABEL = "Monolith v99 · 28/08/2026";
             <div class="auth-warning" id="spaceUpgradeNotice" hidden></div>
           </div>
 
+          <div class="panel" id="profileSpaceStatusPanel" data-role-only="personal" hidden>
+            <div class="section-title"><h3>Monolith Space</h3><span>Adicional ativo</span></div>
+            <div class="student-overview-grid" id="profileSpaceStatusDetails"></div>
+            <div class="settings-actions">
+              <button class="action" type="button" data-screen-jump="space">Abrir Meu Space</button>
+            </div>
+          </div>
+
           <div class="panel" id="profileStudentTrainerPanel" data-role-only="student" hidden>
             <div class="section-title"><h3>Personal vinculado</h3><span>Aluno</span></div>
             <p id="profileTrainerStatus">Verificando vínculo com personal...</p>
@@ -6640,6 +6648,7 @@ window.MONOLITH_VERSION_LABEL = "Monolith v99 · 28/08/2026";
               <button class="action" id="openStatsMonthlyReport" type="button">Abrir relatório mensal</button>
               <button class="ghost" id="downloadStatsMonthlyReport" type="button">Baixar relatório HTML</button>
             </div>
+            <div class="report-line" id="studentStatsReportStatus" role="status" aria-live="polite" hidden></div>
           </div>
         </div>
       </section>
@@ -6775,8 +6784,8 @@ window.MONOLITH_VERSION_LABEL = "Monolith v99 · 28/08/2026";
   <script>
     const MONOLITH_SUPABASE_URL = "https://jhxasnxuvmkhntbwepau.supabase.co";
     const MONOLITH_SUPABASE_KEY = "sb_publishable_lDtAXIOtkMwgwsAZyghBdg_gyLHGwpH";
-const MONOLITH_BUILD = window.MONOLITH_BUILD || "monolith-v99-qa-report-state-voice";
-const MONOLITH_VERSION_LABEL = window.MONOLITH_VERSION_LABEL || "Monolith v99 · 28/08/2026";
+const MONOLITH_BUILD = window.MONOLITH_BUILD || "monolith-v100-report-diet-language-space";
+const MONOLITH_VERSION_LABEL = window.MONOLITH_VERSION_LABEL || "Monolith v100 · 29/08/2026";
     const onboardingStepDefinitions = [
       ["welcome", "Boas-vindas", "Conheça o fluxo do seu acompanhamento.", "home"],
       ["terms", "Termos", "Revise consentimentos e informações da conta.", "profile"],
@@ -7065,12 +7074,14 @@ if (location.hash.toLowerCase() === "#leads") history.replaceState(null, "", `${
       return Boolean(account?.spaceEnabled);
     }
 
+    let pendingLanguagePreference = "";
+
     function cacheRemoteAccount(profile, authUser = null) {
       if (!profile?.id) return null;
       const savedVoiceSettings = (() => {
         try { return JSON.parse(localStorage.getItem("monolith.voiceSettings") || "{}"); } catch { return {}; }
       })();
-      const language = ["pt", "en", "es"].includes(profile.language) ? profile.language : localStorage.getItem("monolith.language") || "pt";
+      const language = pendingLanguagePreference || (["pt", "en", "es"].includes(profile.language) ? profile.language : localStorage.getItem("monolith.language") || "pt");
       const weightUnit = profile.weight_unit === "lb" || profile.weight_unit === "kg" ? profile.weight_unit : currentWeightUnit();
       const voiceLanguage = ["auto", "pt-BR", "en-US", "es-419"].includes(profile.voice_language) ? profile.voice_language : savedVoiceSettings.language || "auto";
       const voiceGender = ["neutral", "feminine", "masculine"].includes(profile.voice_gender) ? profile.voice_gender : savedVoiceSettings.gender || "neutral";
@@ -9001,6 +9012,24 @@ if (location.hash.toLowerCase() === "#leads") history.replaceState(null, "", `${
       });
     }
 
+    function renderProfileSpaceStatus(space = window.monolithActiveSpace || null, user = currentAccount()) {
+      const panel = document.getElementById("profileSpaceStatusPanel");
+      const details = document.getElementById("profileSpaceStatusDetails");
+      const enabled = user?.role === "personal" && hasSpaceEntitlement(user);
+      if (panel) panel.hidden = !enabled;
+      if (!details || !enabled) return;
+      const identity = space?.themeMode === "space" ? "Identidade ativa" : "Visual padrão Monolith";
+      const items = [
+        ["Status", "Adicional ativo", false],
+        ["Identidade", identity, false],
+        ["Nome do Space", space?.name || "Carregando dados...", Boolean(space?.name)],
+        ["Endereço do Space", space?.slug || "Não informado", Boolean(space?.slug)]
+      ];
+      details.innerHTML = items.map(([label, value, userContent]) => `
+        <div class="student-overview-item"><span>${escapeHTML(t(label))}</span><strong${userContent ? ' data-no-i18n="true"' : ""}>${escapeHTML(userContent ? value : t(value))}</strong></div>
+      `).join("");
+    }
+
     function updateSpaceEntitlementUI(user = currentAccount()) {
       const enabled = user?.role === "personal" && hasSpaceEntitlement(user);
       document.body.classList.toggle("auth-space-enabled", Boolean(enabled));
@@ -9008,6 +9037,7 @@ if (location.hash.toLowerCase() === "#leads") history.replaceState(null, "", `${
       if (spaceNav) spaceNav.hidden = !enabled;
       const profileUpgradePanel = document.getElementById("profileSpaceUpgradePanel");
       if (profileUpgradePanel) profileUpgradePanel.hidden = !(user?.role === "personal" && !enabled);
+      renderProfileSpaceStatus(window.monolithActiveSpace || null, user);
       if (!enabled && document.getElementById("space")?.classList.contains("active")) {
         window.monolithApplySpaceTheme?.(null);
         showScreen("profile", { historyMode: "replace", skipDirtyGuard: true });
@@ -9059,6 +9089,7 @@ if (location.hash.toLowerCase() === "#leads") history.replaceState(null, "", `${
       document.querySelectorAll("[data-role-only]").forEach(element => {
         element.hidden = !user || element.dataset.roleOnly !== user.role;
       });
+      if (user) applyLanguage(user.language || localStorage.getItem("monolith.language") || "pt");
       updateSpaceEntitlementUI(user);
       const invitePanel = document.getElementById("inviteCodePanel");
       if (invitePanel && (!user || user.role !== "personal")) invitePanel.hidden = true;
@@ -9790,7 +9821,14 @@ if (location.hash.toLowerCase() === "#leads") history.replaceState(null, "", `${
 
     function loadDietPlans() {
       try {
-        return JSON.parse(localStorage.getItem("monolith.dietPlans") || "{}");
+        const plans = JSON.parse(localStorage.getItem("monolith.dietPlans") || "{}");
+        const visiblePlans = { ...plans };
+        Object.entries(plans).forEach(([key, plan]) => {
+          if (!plan?.studentId || !plan?.month) return;
+          const scopedKey = dietPlanKey(plan.studentId, plan.month, plan.trainerId);
+          if (key !== scopedKey && plans[scopedKey]) delete visiblePlans[key];
+        });
+        return visiblePlans;
       } catch {
         return {};
       }
@@ -9865,8 +9903,10 @@ if (location.hash.toLowerCase() === "#leads") history.replaceState(null, "", `${
     function cacheDietPlan(plan) {
       if (!plan?.studentId || !plan?.month) return;
       const plans = loadDietPlans();
-      plans[dietPlanKey(plan.studentId, plan.month)] = {
+      const key = dietPlanKey(plan.studentId, plan.month, plan.trainerId);
+      plans[key] = {
         ...plan,
+        id: key,
         supplements: (plan.supplements || []).map((item, index) => cloneDietSupplement({ ...item, saved: true }, index))
       };
       saveDietPlans(plans);
@@ -9890,22 +9930,46 @@ if (location.hash.toLowerCase() === "#leads") history.replaceState(null, "", `${
       saveFoodLogs(logs);
     }
 
-    function removeCachedDietPlan(studentId, month = currentMonthKey()) {
+    function dietPlanTrainerId(studentId = "", explicitTrainerId = "") {
+      if (explicitTrainerId) return explicitTrainerId;
+      const user = currentAccount();
+      if (user?.role === "personal") return user.id || "";
+      if (user?.role === "student" && user.id === studentId) return user.trainerId || "";
+      return "";
+    }
+
+    function legacyDietPlanKey(studentId, month = currentMonthKey()) {
+      return `${studentId}:${month}`;
+    }
+
+    function removeCachedDietPlan(studentId, month = currentMonthKey(), trainerId = "") {
       const plans = loadDietPlans();
-      const key = dietPlanKey(studentId, month);
+      const key = dietPlanKey(studentId, month, trainerId);
       if (plans[key]?.syncStatus === "failed") return false;
       delete plans[key];
       saveDietPlans(plans);
       return true;
     }
 
-    function dietPlanKey(studentId, month = currentMonthKey()) {
-      return `${studentId}:${month}`;
+    function dietPlanKey(studentId, month = currentMonthKey(), trainerId = "") {
+      const ownerId = dietPlanTrainerId(studentId, trainerId) || "unassigned";
+      return `${ownerId}:${studentId}:${month}`;
     }
 
     function storedDietPlanForStudent(studentId, month = currentMonthKey()) {
       if (!canAccessStudentData(studentId)) return null;
-      return loadDietPlans()[dietPlanKey(studentId, month)] || null;
+      const plans = loadDietPlans();
+      const trainerId = dietPlanTrainerId(studentId);
+      const scopedKey = dietPlanKey(studentId, month, trainerId);
+      if (plans[scopedKey]) return plans[scopedKey];
+      const legacyPlan = plans[legacyDietPlanKey(studentId, month)];
+      const user = currentAccount();
+      const legacyBelongsToScope = Boolean(legacyPlan && (
+        (trainerId && legacyPlan.trainerId === trainerId) ||
+        (user?.role === "student" && user.id === studentId && (!trainerId || !legacyPlan.trainerId || legacyPlan.trainerId === trainerId))
+      ));
+      if (!legacyBelongsToScope) return null;
+      return { ...legacyPlan, id: scopedKey, trainerId: legacyPlan.trainerId || trainerId };
     }
 
     function studentsForPersonal(personalId) {
@@ -10211,7 +10275,7 @@ if (location.hash.toLowerCase() === "#leads") history.replaceState(null, "", `${
 
     function remoteDietPlanFromRow(row) {
       return {
-        id: dietPlanKey(row.student_id, row.month_key),
+        id: dietPlanKey(row.student_id, row.month_key, row.trainer_id),
         remoteId: row.id,
         studentId: row.student_id,
         trainerId: row.trainer_id,
@@ -10598,15 +10662,17 @@ if (location.hash.toLowerCase() === "#leads") history.replaceState(null, "", `${
     async function loadRemoteDietPlan(studentId, month = currentMonthKey()) {
       if (!monolithSupabase || !studentId || !month || !isRealSupabaseAccount(currentAccount())) return null;
       if (!canAccessStudentData(studentId)) return null;
-      const { data, error } = await monolithSupabase
+      const user = currentAccount();
+      let query = monolithSupabase
         .from("diet_plans")
         .select("*")
         .eq("student_id", studentId)
-        .eq("month_key", month)
-        .maybeSingle();
+        .eq("month_key", month);
+      if (user?.role === "personal") query = query.eq("trainer_id", user.id);
+      const { data, error } = await query.maybeSingle();
       if (error) throw error;
       if (!data) {
-        removeCachedDietPlan(studentId, month);
+        removeCachedDietPlan(studentId, month, user?.role === "personal" ? user.id : user?.trainerId || "");
         return null;
       }
       const plan = remoteDietPlanFromRow(data);
@@ -10705,6 +10771,8 @@ if (location.hash.toLowerCase() === "#leads") history.replaceState(null, "", `${
       return true;
     }
 
+    let reportRenderSequence = 0;
+
     async function hydrateRemoteReportData(student = null) {
       const studentId = activeDataStudentId(student);
       if (!studentId || !isRealSupabaseAccount(currentAccount())) return { status: "local", results: [] };
@@ -10722,11 +10790,19 @@ if (location.hash.toLowerCase() === "#leads") history.replaceState(null, "", `${
       setRemoteDataState("report", studentId, "loading");
       const results = await Promise.all(modules.map(([module, task, hasCache]) => loadRemoteModule(module, studentId, task, { hasCache })));
       const failures = results.filter(result => !result.ok);
+      const reportSnapshot = monthlyReportData(reportStudent);
+      const hasReportData = Boolean(
+        reportSnapshot.checkins.length ||
+        reportSnapshot.bodyMeasures.length ||
+        reportSnapshot.completedWorkouts.length ||
+        reportSnapshot.activeDietPlan ||
+        Object.values(reportSnapshot.progressPhotos || {}).some(group => Object.keys(group || {}).length)
+      );
       const reportStatus = failures.some(result => result.status === "error")
         ? "error"
         : failures.length
           ? "offline-cache"
-          : "loaded";
+          : hasReportData ? "loaded" : "empty";
       setRemoteDataState("report", studentId, reportStatus, { count: results.length - failures.length });
       if (failures.length) showToast("Alguns dados não puderam ser atualizados. Os módulos disponíveis continuam visíveis.");
       return { status: reportStatus, results };
@@ -11519,7 +11595,7 @@ if (location.hash.toLowerCase() === "#leads") history.replaceState(null, "", `${
             <button class="ghost move-supplement-up" type="button" aria-label="${escapeHTML(t("Mover suplemento para cima"))}">↑</button>
             <button class="ghost move-supplement-down" type="button" aria-label="${escapeHTML(t("Mover suplemento para baixo"))}">↓</button>
             <button class="ghost duplicate-supplement" type="button">${escapeHTML(t("Duplicar"))}</button>
-            <button class="ghost remove-supplement" type="button" aria-label="${escapeHTML(t("Remover suplemento"))} ${escapeHTML(item.name || index + 1)}">${escapeHTML(t("Remover suplemento"))}</button>
+            <button class="ghost remove-supplement" type="button" aria-label="${escapeHTML(t("Remover suplemento"))} ${escapeHTML(String(item.name || index + 1))}">${escapeHTML(t("Remover suplemento"))}</button>
           </div>
         </article>
       `).join("");
@@ -12375,7 +12451,31 @@ if (location.hash.toLowerCase() === "#leads") history.replaceState(null, "", `${
       }).join("") || `<div class="report-line">${escapeHTML(t("Nenhum diário alimentar salvo ainda."))}</div>`;
     }
 
+    let nutritionRenderSequence = 0;
+
+    function setDietRemoteState(state = "loaded") {
+      const form = document.getElementById("dietPlanForm");
+      if (form) form.dataset.remoteState = state;
+      updateNumericSubmitStates();
+    }
+
+    function emptyDietDraft(mealCount = 5) {
+      const count = Math.max(1, Math.min(10, Number(mealCount) || 5));
+      return {
+        trainerId: currentAccount()?.id || "",
+        studentId: selectedDietStudentId(),
+        month: document.getElementById("dietMonth")?.value || currentMonthKey(),
+        calories: "",
+        protein: "",
+        carbs: "",
+        fat: "",
+        meals: Array.from({ length: count }, (_, index) => defaultMeal(index)),
+        supplements: []
+      };
+    }
+
     async function renderNutrition() {
+      const requestId = ++nutritionRenderSequence;
       const user = currentAccount();
       const personalPanel = document.getElementById("nutritionPersonalPanel");
       const studentPanel = document.getElementById("nutritionStudentPanel");
@@ -12385,6 +12485,8 @@ if (location.hash.toLowerCase() === "#leads") history.replaceState(null, "", `${
       if (monthInput && !monthInput.value) monthInput.value = currentMonthKey();
       if (foodDate && !foodDate.value) foodDate.value = todayKey();
       const isPersonal = user.role === "personal";
+      const requestedMonth = monthInput?.value || currentMonthKey();
+      const requestedMealCount = Math.max(1, Math.min(10, Number(document.getElementById("dietMealCount")?.value) || 5));
       personalPanel.hidden = !isPersonal;
       studentPanel.hidden = isPersonal;
       personalPanel.style.display = isPersonal ? "" : "none";
@@ -12400,42 +12502,59 @@ if (location.hash.toLowerCase() === "#leads") history.replaceState(null, "", `${
       }
       if (isPersonal) {
         const select = document.getElementById("dietStudent");
+        const requestedStudentId = scopedStudentId(select?.value || selectedStudentForPersonal());
+        setDietRemoteState("loading");
+        applyDietPlanToForm(emptyDietDraft(requestedMealCount));
+        const loadingTarget = document.getElementById("dietPreview");
+        if (loadingTarget) loadingTarget.innerHTML = remoteStateHTML("loading", { loadingLabel: "Carregando dieta..." });
         const students = await ensureLinkedStudentsForPersonal(user.id);
-        const previousStudentId = scopedStudentId(select.value || selectedStudentForPersonal());
+        if (requestId !== nutritionRenderSequence || currentAccount()?.id !== user.id) return;
         select.innerHTML = `<option value="">${escapeHTML(t("Selecionar aluno"))}</option>` + students.map(student => `<option value="${escapeHTML(student.id)}">${escapeHTML(student.name)} - ${escapeHTML(student.email)}</option>`).join("");
-        if (students.some(student => student.id === previousStudentId)) select.value = previousStudentId;
+        if (students.some(student => student.id === requestedStudentId)) select.value = requestedStudentId;
         else select.value = "";
         renderDietImportStudentSelect(students);
         const dietStudentId = selectedDietStudentId();
-        const dietMonth = monthInput.value || currentMonthKey();
+        const dietMonth = requestedMonth;
+        if (!dietStudentId) {
+          applyDietPlanToForm(emptyDietDraft(requestedMealCount));
+          renderDietPlan("dietPreview", null);
+          setDietRemoteState("loaded");
+          return;
+        }
         let plan = dietStudentId ? storedDietPlanForStudent(dietStudentId, dietMonth) : null;
         if (dietStudentId) {
           try {
             plan = await loadRemoteDietPlan(dietStudentId, dietMonth) || plan;
           } catch (error) {
+            if (requestId !== nutritionRenderSequence) return;
             logAppError("diet", "load", error, { studentId: dietStudentId, month: dietMonth });
+            if (!plan) {
+              setDietRemoteState("error");
+              const target = document.getElementById("dietPreview");
+              if (target) target.innerHTML = remoteStateHTML("error", { retryScreen: "nutrition" });
+              showToast("Não consegui carregar a dieta remota agora.");
+              return;
+            }
             showToast("Não consegui carregar a dieta remota agora. Usei o cache local.");
           }
         }
-        document.getElementById("dietMealCount").value = String(plan?.meals?.length || document.getElementById("dietMealCount").value || 5);
-        ["dietCalories", "dietProtein", "dietCarbs", "dietFat"].forEach(id => {
-          const key = id.replace("diet", "").toLowerCase();
-          const input = document.getElementById(id);
-          if (input) input.value = plan?.[key] || "";
-        });
-        renderDietMealBuilder(plan?.meals || null);
-        renderDietSupplementBuilder(plan?.supplements || []);
-        renderDietPlan("dietPreview", plan);
+        if (requestId !== nutritionRenderSequence || selectedDietStudentId() !== dietStudentId || (monthInput?.value || currentMonthKey()) !== dietMonth) return;
+        applyDietPlanToForm(plan || emptyDietDraft(requestedMealCount));
+        renderDietPlan("dietPreview", plan || null);
+        setDietRemoteState("loaded");
       } else {
         const linkedTrainerId = await ensureStudentTrainerId(user);
+        if (requestId !== nutritionRenderSequence || currentAccount()?.id !== user.id) return;
         let plan = linkedTrainerId ? activeDietForStudent(user.id, currentMonthKey()) : null;
         try {
           if (linkedTrainerId) plan = await loadRemoteDietPlan(user.id, currentMonthKey()) || plan;
           else await loadRemoteFoodLogs(user.id);
         } catch (error) {
+          if (requestId !== nutritionRenderSequence) return;
           logAppError("nutrition", "load", error, { studentId: user.id, month: currentMonthKey() });
           showToast("Não consegui carregar nutrição remota agora. Usei o cache local.");
         }
+        if (requestId !== nutritionRenderSequence || currentAccount()?.id !== user.id) return;
         document.getElementById("selfNutritionPanel").hidden = Boolean(linkedTrainerId);
         document.getElementById("studentDietNote").textContent = linkedTrainerId ? t("Seu personal define esta dieta. Você pode visualizar, mas não redesenhar.") : t("Sem personal vinculado: use a contagem básica para registrar seu dia.");
         renderDietPlan("studentDietView", plan, linkedTrainerId ? "Nenhuma dieta prescrita para este mês." : "Nenhuma dieta de personal vinculada.");
@@ -15719,6 +15838,45 @@ if (location.hash.toLowerCase() === "#leads") history.replaceState(null, "", `${
       ,"Não consegui salvar as preferências agora.": "No se pudieron guardar las preferencias ahora."
     });
 
+    Object.assign(translations.en, {
+      "Carregando relatório...": "Loading report...",
+      "Gerando relatório...": "Generating report...",
+      "Download iniciado": "Download started",
+      "Não foi possível gerar o relatório": "Could not generate the report",
+      "Relatório aberto em nova aba.": "Report opened in a new tab.",
+      "Não foi possível carregar os dados do relatório.": "Could not load the report data.",
+      "Nenhum dado encontrado para o período selecionado.": "No data found for the selected period.",
+      "Monolith Space": "Monolith Space",
+      "Adicional ativo": "Active add-on",
+      "Identidade ativa": "Active identity",
+      "Visual padrão Monolith": "Default Monolith look",
+      "Status": "Status",
+      "Identidade": "Identity",
+      "Nome do Space": "Space name",
+      "Endereço do Space": "Space address",
+      "Abrir Meu Space": "Open My Space",
+      "Não consegui salvar o idioma no perfil. A escolha foi mantida neste aparelho.": "Could not save the language to your profile. Your choice was kept on this device."
+    });
+    Object.assign(translations.es, {
+      "Carregando relatório...": "Cargando informe...",
+      "Gerando relatório...": "Generando informe...",
+      "Download iniciado": "Descarga iniciada",
+      "Não foi possível gerar o relatório": "No se pudo generar el informe",
+      "Relatório aberto em nova aba.": "Informe abierto en una pestaña nueva.",
+      "Não foi possível carregar os dados do relatório.": "No se pudieron cargar los datos del informe.",
+      "Nenhum dado encontrado para o período selecionado.": "No se encontraron datos para el período seleccionado.",
+      "Monolith Space": "Monolith Space",
+      "Adicional ativo": "Adicional activo",
+      "Identidade ativa": "Identidad activa",
+      "Visual padrão Monolith": "Visual estándar de Monolith",
+      "Status": "Estado",
+      "Identidade": "Identidad",
+      "Nome do Space": "Nombre del Space",
+      "Endereço do Space": "Dirección del Space",
+      "Abrir Meu Space": "Abrir Mi Space",
+      "Não consegui salvar o idioma no perfil. A escolha foi mantida neste aparelho.": "No se pudo guardar el idioma en tu perfil. La elección se mantuvo en este dispositivo."
+    });
+
     function t(key, language = localStorage.getItem("monolith.language") || "pt") {
       return language === "pt" ? key : translations[language]?.[key] || key;
     }
@@ -15991,7 +16149,7 @@ if (location.hash.toLowerCase() === "#leads") history.replaceState(null, "", `${
       const dietForm = document.getElementById("dietPlanForm");
       const saveDiet = document.getElementById("saveDietPlanButton");
       const missingDietTarget = currentAccount()?.role === "personal" && !selectedDietStudentId();
-      if (dietForm && saveDiet) saveDiet.disabled = missingDietTarget || !validateVisibleNumericInputs(dietForm);
+      if (dietForm && saveDiet) saveDiet.disabled = missingDietTarget || ["loading", "error"].includes(dietForm.dataset.remoteState) || !validateVisibleNumericInputs(dietForm);
       const measureForm = document.getElementById("bodyMeasureForm");
       const saveMeasures = document.getElementById("saveBodyMeasuresButton");
       if (measureForm && saveMeasures) saveMeasures.disabled = !selectedMeasureTargetId() || !validateVisibleNumericInputs(measureForm);
@@ -16052,6 +16210,7 @@ if (location.hash.toLowerCase() === "#leads") history.replaceState(null, "", `${
     }
 
     function applyLanguage(language) {
+      language = ["pt", "en", "es"].includes(language) ? language : "pt";
       const stableStudentId = currentAccount()?.role === "personal"
         ? selectedStudentForPersonal() || localStorage.getItem("monolith.selectedStudentId") || ""
         : currentAccount()?.id || "";
@@ -16062,7 +16221,7 @@ if (location.hash.toLowerCase() === "#leads") history.replaceState(null, "", `${
         });
       });
       localStorage.setItem("monolith.language", language);
-      document.documentElement.lang = ({ pt: "pt-BR", en: "en-US", es: "es-419" })[language] || "pt-BR";
+      document.documentElement.lang = ({ pt: "pt-BR", en: "en-US", es: "es" })[language] || "pt-BR";
       document.querySelectorAll(".language-button").forEach(button => {
         const active = button.dataset.lang === language;
         button.classList.toggle("active", active);
@@ -16137,6 +16296,31 @@ if (location.hash.toLowerCase() === "#leads") history.replaceState(null, "", `${
       if (document.getElementById("timeline")?.classList.contains("active")) window.monolithRenderTimeline?.();
       if (document.getElementById("onboarding")?.classList.contains("active")) window.monolithRenderOnboarding?.();
       if (document.getElementById("space")?.classList.contains("active")) window.monolithRenderSpace?.();
+    }
+
+    async function persistLanguagePreference(language) {
+      const normalized = ["pt", "en", "es"].includes(language) ? language : "pt";
+      const user = currentAccount();
+      if (!user) return true;
+      pendingLanguagePreference = normalized;
+      const accounts = loadAccounts();
+      saveAccounts(accounts.map(account => account.id === user.id ? { ...account, language: normalized } : account));
+      if (!isRealSupabaseAccount(user)) {
+        pendingLanguagePreference = "";
+        return true;
+      }
+      if (!monolithSupabase) return false;
+      const { error } = await monolithSupabase.from("profiles").update({
+        language: normalized,
+        updated_at: new Date().toISOString()
+      }).eq("id", user.id);
+      if (error) {
+        logAppError("profile", "save-language", error, { userId: user.id, language: normalized });
+        showToast("Não consegui salvar o idioma no perfil. A escolha foi mantida neste aparelho.");
+        return false;
+      }
+      if (pendingLanguagePreference === normalized) pendingLanguagePreference = "";
+      return true;
     }
 
     const workoutModal = document.getElementById("workoutModal");
@@ -16762,6 +16946,7 @@ if (location.hash.toLowerCase() === "#leads") history.replaceState(null, "", `${
         if (nextAction) nextAction.innerHTML = "";
         if (training) training.innerHTML = empty;
         if (reportSummary) reportSummary.textContent = t("Selecione um aluno para gerar relatório.");
+        setReportControlsState("ready");
         return;
       }
       const student = user?.role === "student" ? user : reportStudentFromId(targetStudentId);
@@ -16818,7 +17003,10 @@ if (location.hash.toLowerCase() === "#leads") history.replaceState(null, "", `${
         `).join("") || `<div class="report-line">${escapeHTML(t("Sem treinos concluídos salvos."))}</div>`;
       }
       if (reportSummary) {
-        reportSummary.textContent = `${report.checkins.length} ${t("check-ins no período")}, ${t("aderência média de")} ${average === "--" ? 0 : average}%, ${report.completedWorkouts.length} ${t(report.completedWorkouts.length === 1 ? "treino concluído" : "treinos concluídos")}.`;
+        const hasReportData = Boolean(report.checkins.length || report.completedWorkouts.length || report.bodyMeasures.length || report.activeDietPlan);
+        reportSummary.textContent = hasReportData
+          ? `${report.checkins.length} ${t("check-ins no período")}, ${t("aderência média de")} ${average === "--" ? "--" : average}%, ${report.completedWorkouts.length} ${t(report.completedWorkouts.length === 1 ? "treino concluído" : "treinos concluídos")}.`
+          : t("Nenhum dado encontrado para o período selecionado.");
       }
     }
 
@@ -17098,8 +17286,11 @@ if (location.hash.toLowerCase() === "#leads") history.replaceState(null, "", `${
     function renderStats() {
       const container = document.getElementById("frequencyBars");
       if (!container) return;
-      renderStatsStudentSelect();
       const studentId = activeDataStudentId();
+      if (isRealSupabaseAccount(currentAccount()) && getRemoteDataState("report", studentId).status === "loading") {
+        renderStatsLoadingState();
+        return;
+      }
       const metrics = studentMetrics(studentId);
       const checkins = metrics.checkins;
       const reportFactors = factorsForStudent(studentId);
@@ -17613,7 +17804,7 @@ if (location.hash.toLowerCase() === "#leads") history.replaceState(null, "", `${
       const report = monthlyReportData(student);
       const language = reportLanguage();
       const rt = key => reportText(key, language);
-      const htmlLang = ({ pt: "pt-BR", en: "en-US", es: "es-419" })[language] || "pt-BR";
+      const htmlLang = ({ pt: "pt-BR", en: "en-US", es: "es" })[language] || "pt-BR";
       const studentName = report.student?.name || report.student?.full_name || rt("Aluno");
       const studentEmail = report.student?.email || "";
       const trainerName = report.trainerPublicProfile?.professional_name || report.trainer?.name || report.trainer?.full_name || "";
@@ -17621,14 +17812,14 @@ if (location.hash.toLowerCase() === "#leads") history.replaceState(null, "", `${
       const reportCycleLabel = report.period.anchored ? rt("Ciclo de acompanhamento") : rt("Período de acompanhamento");
       const periodLabel = `${reportDateLabel(report.period.startKey, language)} - ${reportDateLabel(report.period.displayEndKey, language)}`;
       const statsRows = report.stats.map(item => `<tr><td>${escapeHTML(t(item.name, language))}</td><td>${item.completed}/${item.total}</td><td>${Math.round((item.completed / Math.max(1, item.total)) * 100)}%</td></tr>`).join("");
-      const dayRows = report.checkins.map(day => `<tr><td>${escapeHTML(day.label || day.date)}</td><td>${day.weight ? formatWeight(day.weight) : rt("Peso não registrado")}</td><td>${day.completed}/${day.total}</td><td>${day.score}%</td><td>${day.items.map(item => `${escapeHTML(t(item.name, language))}: ${item.completed ? rt("ok") : rt("não")}`).join("<br>")}</td></tr>`).join("");
-      const workoutRows = report.completedWorkouts.slice(0, 30).map(session => `<tr><td>${escapeHTML(session.date || session.completedAt || "-")}</td><td data-no-i18n="true">${escapeHTML(session.workoutName || rt("Treino"))}</td><td>${session.completedSets || 0}/${session.totalSets || 0} ${rt("séries")}</td></tr>`).join("");
-      const evolutionRow = item => `<tr><td>${escapeHTML(window.monolithExerciseDisplayName?.(item, language) || item.name)}</td><td>${escapeHTML(item.first.date)}</td><td>${Math.round(item.first.volume)} vol / ${formatWeight(item.first.bestE1rm)} e1RM</td><td>${escapeHTML(item.latest.date)}</td><td>${Math.round(item.latest.volume)} vol / ${formatWeight(item.latest.bestE1rm)} e1RM</td><td>${item.percent > 0 ? "+" : ""}${item.percent}%</td></tr>`;
+      const dayRows = report.checkins.map(day => `<tr><td>${escapeHTML(reportDateLabel(day.date, language))}</td><td>${day.weight ? formatWeight(day.weight) : rt("Peso não registrado")}</td><td>${day.completed}/${day.total}</td><td>${day.score}%</td><td>${day.items.map(item => `${escapeHTML(t(item.name, language))}: ${item.completed ? rt("ok") : rt("não")}`).join("<br>")}</td></tr>`).join("");
+      const workoutRows = report.completedWorkouts.slice(0, 30).map(session => `<tr><td>${escapeHTML(reportDateLabel(String(session.date || session.completedAt || "-").slice(0, 10), language))}</td><td data-no-i18n="true">${escapeHTML(session.workoutName || rt("Treino"))}</td><td>${session.completedSets || 0}/${session.totalSets || 0} ${rt("séries")}</td></tr>`).join("");
+      const evolutionRow = item => `<tr><td>${escapeHTML(window.monolithExerciseDisplayName?.(item, language) || item.name)}</td><td>${escapeHTML(reportDateLabel(item.first.date, language))}</td><td>${Math.round(item.first.volume)} vol / ${formatWeight(item.first.bestE1rm)} e1RM</td><td>${escapeHTML(reportDateLabel(item.latest.date, language))}</td><td>${Math.round(item.latest.volume)} vol / ${formatWeight(item.latest.bestE1rm)} e1RM</td><td>${item.percent > 0 ? "+" : ""}${item.percent}%</td></tr>`;
       const gainRows = report.evolution.topGains.map(evolutionRow).join("");
       const dropRows = report.evolution.topDrops.map(evolutionRow).join("");
       const weightBars = reportChartBars(displayWeightSeries(report.weights), weightUnitLabel());
       const bodyFatBars = reportChartBars(bodyMeasureSeries("bodyFat", report.bodyMeasures), "%");
-      const measureRows = report.bodyMeasures.slice(0, 20).map(entry => `<tr><td>${escapeHTML(entry.date)}</td><td>${formatWeight(entry.weight)}</td><td>${formatMeasureValue(entry.bodyFat, "%")}</td><td>${formatMeasureValue(entry.waist, "cm")}</td><td>${formatMeasureValue(entry.chest, "cm")}</td><td>${formatMeasureValue(entry.arm, "cm")}</td><td>${formatMeasureValue(entry.leg, "cm")}</td><td>${formatMeasureValue(entry.hip, "cm")}</td><td>${escapeHTML(entry.notes || "")}</td></tr>`).join("");
+      const measureRows = report.bodyMeasures.slice(0, 20).map(entry => `<tr><td>${escapeHTML(reportDateLabel(entry.date, language))}</td><td>${formatWeight(entry.weight)}</td><td>${formatMeasureValue(entry.bodyFat, "%")}</td><td>${formatMeasureValue(entry.waist, "cm")}</td><td>${formatMeasureValue(entry.chest, "cm")}</td><td>${formatMeasureValue(entry.arm, "cm")}</td><td>${formatMeasureValue(entry.leg, "cm")}</td><td>${formatMeasureValue(entry.hip, "cm")}</td><td>${escapeHTML(entry.notes || "")}</td></tr>`).join("");
       const dietRows = report.activeDietPlan?.meals?.map((meal, index) => `<tr><td>${index + 1}</td><td>${escapeHTML(meal.name || `${rt("Refeição")} ${index + 1}`)}</td><td>${escapeHTML(meal.items || "")}</td><td>${escapeHTML([meal.calories ? `${meal.calories} kcal` : "", meal.protein ? `P ${meal.protein}` : "", meal.carbs ? `C ${meal.carbs}` : "", meal.fat ? `G ${meal.fat}` : ""].filter(Boolean).join(" / "))}</td><td>${escapeHTML(meal.substitutions || "")}</td><td>${escapeHTML(meal.notes || "")}</td></tr>`).join("") || "";
       const supplementRows = (report.activeDietPlan?.supplements || []).map((item, index) => cloneDietSupplement(item, index)).sort((a, b) => a.sortOrder - b.sortOrder).map(item => {
         const urlInfo = productUrlInfo(item.productUrl);
@@ -17660,7 +17851,7 @@ if (location.hash.toLowerCase() === "#leads") history.replaceState(null, "", `${
         const delta = first && latest ? latest.value - first.value : 0;
         return `<tr><td>${escapeHTML(rt(field.label))}</td><td>${first ? `${first.value} ${field.unit}` : "--"}</td><td>${latest ? `${latest.value} ${field.unit}` : "--"}</td><td>${first && latest ? `${delta > 0 ? "+" : ""}${delta.toFixed(1)} ${field.unit}` : "--"}</td></tr>`;
       }).join("");
-      const missedPreview = report.missedDays.slice(-7).map(day => escapeHTML(day)).join(", ");
+      const missedPreview = report.missedDays.slice(-7).map(day => escapeHTML(reportDateLabel(day, language))).join(", ");
       const alertLevel = report.missedDays.length >= 5 ? "drop" : "gain";
       return `<!doctype html>
 <html lang="${htmlLang}">
@@ -17733,23 +17924,41 @@ ${photoSections}
 </html>`;
     }
 
+    const activeDownloadUrls = new Set();
+
+    function releaseDownloadUrl(objectUrl) {
+      if (!activeDownloadUrls.has(objectUrl)) return;
+      URL.revokeObjectURL(objectUrl);
+      activeDownloadUrls.delete(objectUrl);
+    }
+
     function downloadTextFile(filename, type, content) {
       if (!filename || content === undefined || content === null || content === "") return false;
       const blob = new Blob([content], { type });
+      if (!blob.size) return false;
       const link = document.createElement("a");
       const objectUrl = URL.createObjectURL(blob);
+      activeDownloadUrls.add(objectUrl);
       link.href = objectUrl;
       link.download = filename;
-      link.hidden = true;
+      link.style.position = "fixed";
+      link.style.left = "-10000px";
+      link.setAttribute("aria-hidden", "true");
       document.body.appendChild(link);
       link.click();
       link.remove();
-      window.setTimeout(() => URL.revokeObjectURL(objectUrl), 1500);
+      window.setTimeout(() => releaseDownloadUrl(objectUrl), 60000);
       return true;
     }
 
     async function prepareMonthlyReportHTML(student = null) {
+      const requestedStudentId = activeDataStudentId(student);
+      const requestedLanguage = reportLanguage();
       const hydration = await hydrateRemoteReportData(student);
+      const currentTargetId = currentAccount()?.role === "student" ? currentAccount()?.id : activeDataStudentId();
+      if (requestedStudentId !== currentTargetId || requestedLanguage !== reportLanguage()) {
+        return { html: "", status: "stale" };
+      }
       if (hydration.status === "error") {
         authMessage("Não foi possível carregar todos os dados do relatório. Tente novamente.");
         return { html: "", status: "error" };
@@ -17757,6 +17966,35 @@ ${photoSections}
       const html = verifiedMonthlyReportHTML(student);
       return { html, status: html ? hydration.status : "translation-error" };
     }
+
+    function reportFilename(student = null, language = reportLanguage()) {
+      const name = String(student?.name || student?.full_name || "aluno")
+        .normalize("NFD")
+        .replace(/[\u0300-\u036f]/g, "")
+        .toLowerCase()
+        .replace(/[^a-z0-9]+/g, "-")
+        .replace(/^-+|-+$/g, "") || "aluno";
+      const [year, month] = currentMonthKey().split("-");
+      return `monolith-relatorio-${name}-${year}-${month}-${language}.html`;
+    }
+
+    function setReportControlsState(state = "ready", message = "") {
+      const loading = state === "loading";
+      ["openStatsMonthlyReport", "downloadStatsMonthlyReport"].forEach(id => {
+        const button = document.getElementById(id);
+        if (button) button.disabled = loading || (currentAccount()?.role === "personal" && !activeDataStudentId());
+      });
+      const status = document.getElementById("studentStatsReportStatus");
+      if (status) {
+        status.hidden = !message;
+        status.textContent = message ? t(message) : "";
+        status.classList.toggle("error", state === "error");
+      }
+    }
+
+    window.addEventListener("pagehide", () => {
+      [...activeDownloadUrls].forEach(releaseDownloadUrl);
+    });
 
     function reportFailureDocument(retryButtonId = "openStatsMonthlyReport") {
       const title = escapeHTML(t("Não foi possível criar o relatório."));
@@ -17824,7 +18062,7 @@ ${photoSections}
       `;
     }
 
-    function renderStudentContextHeader() {
+    function renderStudentContextHeader(options = {}) {
       const header = document.getElementById("studentContextHeader");
       if (!header) return;
       const user = currentAccount();
@@ -17844,6 +18082,11 @@ ${photoSections}
       const lastCheckin = metrics.lastCheckin?.date ? localDateLabel(metrics.lastCheckin.date) : t("Sem check-in");
       const score = metrics.adherence === null ? "--" : `${metrics.adherence}%`;
       const status = t(metrics.statusKey === "new" ? "Novo aluno" : metrics.statusKey === "attention" ? "Precisa de atenção" : "Em dia");
+      const statusPills = options.loading
+        ? `<span class="pill operation-loading">${escapeHTML(t("Carregando dados..."))}</span>`
+        : `<span class="pill">Score ${escapeHTML(score)}</span>
+          <span class="pill">${escapeHTML(t("Último check-in"))}: ${escapeHTML(lastCheckin)}</span>
+          <span class="pill">${escapeHTML(status)}</span>`;
       header.hidden = false;
       header.innerHTML = `
         <div class="student-context-main" data-no-i18n="true">
@@ -17854,9 +18097,7 @@ ${photoSections}
           </div>
         </div>
         <div class="pill-row">
-          <span class="pill">Score ${escapeHTML(score)}</span>
-          <span class="pill">${escapeHTML(t("Último check-in"))}: ${escapeHTML(lastCheckin)}</span>
-          <span class="pill">${escapeHTML(status)}</span>
+          ${statusPills}
         </div>
         <div class="action-row"><button class="ghost" type="button" data-student-screen="anamnesis" data-student-id="${escapeHTML(student.id)}">${clientActionIcon("anamnesis")}${escapeHTML(t("Ver anamnese"))}</button></div>
         ${studentFileTabsHTML(student.id)}
@@ -18253,8 +18494,14 @@ ${photoSections}
       const button = event.target.closest(".language-button");
       if (!button) return;
       applyLanguage(button.dataset.lang);
+      persistLanguagePreference(button.dataset.lang).catch(error => logAppError("profile", "save-language", error));
       renderBodyMeasures();
       renderPhotoVault();
+      if (document.getElementById("stats")?.classList.contains("active") && isRealSupabaseAccount(currentAccount())) {
+        refreshRemoteStudentData({ stats: true, measures: true, photos: true, summary: true }).catch(error => {
+          logAppError("stats", "language-refresh", error, { studentId: activeDataStudentId(), language: button.dataset.lang });
+        });
+      }
     }
     languageSelect.addEventListener("click", handleLanguageClick);
     authLanguageSelect?.addEventListener("click", handleLanguageClick);
@@ -18409,9 +18656,8 @@ ${photoSections}
       if (accepted) localStorage.setItem("monolith.supplementResponsibilityAccepted", "true");
       return accepted;
     }
-    document.getElementById("addDietSupplement")?.addEventListener("click", async () => {
-      if (!await ensureSupplementResponsibilityAccepted()) return;
-      const supplements = readDietSupplementBuilderEntries().filter(supplementHasUserContent);
+    document.getElementById("addDietSupplement")?.addEventListener("click", () => {
+      const supplements = readDietSupplementBuilderEntries();
       supplements.push(cloneDietSupplement({}, supplements.length, { freshId: true }));
       renderDietSupplementBuilder(supplements);
       markDirty("diet");
@@ -18803,7 +19049,7 @@ ${photoSections}
       renderStats();
       renderTrainerSummary();
     });
-    document.getElementById("statsStudent")?.addEventListener("change", event => {
+    document.getElementById("statsStudent")?.addEventListener("change", async event => {
       if (currentAccount()?.role !== "personal" || (event.target.value && !isLinkedStudentForPersonal(event.target.value))) {
         renderStatsStudentSelect();
         return;
@@ -18814,12 +19060,12 @@ ${photoSections}
         renderBodyMeasures();
         renderTrainerSummary();
         renderStudentContextHeader();
+        setReportControlsState("ready");
         return;
       }
       setSelectedStudentForPersonal(event.target.value);
-      renderStats();
-      renderBodyMeasures();
-      renderTrainerSummary();
+      renderStatsLoadingState();
+      await refreshRemoteStudentData({ stats: true, measures: true, photos: true, summary: true });
     });
     document.getElementById("measureStudent")?.addEventListener("change", event => {
       const user = currentAccount();
@@ -19010,17 +19256,32 @@ ${photoSections}
     });
 
     async function refreshRemoteStudentData({ stats = false, measures = false, photos = false, summary = false } = {}) {
+      const requestId = ++reportRenderSequence;
       await renderStatsStudentSelect();
-      const result = await hydrateRemoteReportData();
+      if (requestId !== reportRenderSequence) return { status: "stale", results: [] };
+      const studentId = activeDataStudentId();
+      const language = reportLanguage();
+      const student = currentAccount()?.role === "student" ? currentAccount() : reportStudentFromId(studentId);
+      renderStatsLoadingState();
+      const result = await hydrateRemoteReportData(student);
+      if (requestId !== reportRenderSequence || activeDataStudentId() !== studentId || reportLanguage() !== language) {
+        return { status: "stale", results: result.results || [] };
+      }
+      if (result.status === "error") {
+        renderStatsErrorState();
+        return result;
+      }
       if (stats) renderStats();
       if (measures) renderBodyMeasures();
       if (photos) renderPhotoVault();
       if (summary) renderTrainerSummary();
+      setReportControlsState("ready");
       return result;
     }
 
     function renderStatsLoadingState() {
       const loading = remoteStateHTML("loading", { loadingLabel: "Carregando evolução..." });
+      renderStudentContextHeader({ loading: true });
       [
         "studentStatsOverviewMetrics",
         "studentStatsOverviewDetails",
@@ -19031,11 +19292,25 @@ ${photoSections}
         "bodyMeasureBars",
         "bodyMeasureHistory",
         "lastMonthPhotos",
-        "currentMonthPhotos"
+        "currentMonthPhotos",
+        "studentStatsReportSummary"
       ].forEach(id => {
         const target = document.getElementById(id);
         if (target) target.innerHTML = loading;
       });
+      setReportControlsState("loading", "Carregando relatório...");
+    }
+
+    function renderStatsErrorState() {
+      const error = remoteStateHTML("error", {
+        errorLabel: "Não foi possível carregar os dados do relatório.",
+        retryScreen: "stats"
+      });
+      ["studentStatsOverviewMetrics", "studentStatsReportSummary"].forEach(id => {
+        const target = document.getElementById(id);
+        if (target) target.innerHTML = error;
+      });
+      setReportControlsState("error", "Não foi possível gerar o relatório");
     }
 
     function statsSectionHash(section = "overview") {
@@ -19777,13 +20052,19 @@ ${photoSections}
       }, { loadingText: "Salvando medidas..." });
     });
     document.getElementById("openMonthlyReport").addEventListener("click", () => openMonthlyReport());
-    document.getElementById("openStatsMonthlyReport")?.addEventListener("click", () => {
+    document.getElementById("openStatsMonthlyReport")?.addEventListener("click", async () => {
       if (currentAccount()?.role === "personal" && !activeDataStudentId()) {
         showToast("Selecione um aluno para gerar relatório.");
         return;
       }
       const student = currentAccount()?.role === "student" ? currentAccount() : reportStudentFromId(activeDataStudentId());
-      openMonthlyReport(student);
+      const requestedStudentId = student?.id || "";
+      const requestedLanguage = reportLanguage();
+      setReportControlsState("loading", "Gerando relatório...");
+      const opened = await openMonthlyReport(student);
+      const currentTargetId = currentAccount()?.role === "student" ? currentAccount()?.id : activeDataStudentId();
+      if (requestedStudentId !== currentTargetId || requestedLanguage !== reportLanguage()) return;
+      setReportControlsState(opened ? "ready" : "error", opened ? "Relatório aberto em nova aba." : "Não foi possível gerar o relatório");
     });
     document.getElementById("downloadStatsMonthlyReport")?.addEventListener("click", async () => {
       if (currentAccount()?.role === "personal" && !activeDataStudentId()) {
@@ -19791,10 +20072,19 @@ ${photoSections}
         return;
       }
       const student = currentAccount()?.role === "student" ? currentAccount() : reportStudentFromId(activeDataStudentId());
+      const language = reportLanguage();
+      const requestedStudentId = student?.id || "";
+      setReportControlsState("loading", "Gerando relatório...");
       const prepared = await prepareMonthlyReportHTML(student);
-      if (!prepared.html) return;
-      const downloaded = downloadTextFile(`monolith-report-${todayKey()}.html`, "text/html;charset=utf-8", prepared.html);
-      if (downloaded) showToast("Relatório HTML baixado.");
+      const currentTargetId = currentAccount()?.role === "student" ? currentAccount()?.id : activeDataStudentId();
+      if (requestedStudentId !== currentTargetId || language !== reportLanguage()) return;
+      if (!prepared.html) {
+        setReportControlsState("error", "Não foi possível gerar o relatório");
+        return;
+      }
+      const downloaded = downloadTextFile(reportFilename(student, language), "text/html;charset=utf-8", prepared.html);
+      setReportControlsState(downloaded ? "ready" : "error", downloaded ? "Download iniciado" : "Não foi possível gerar o relatório");
+      if (downloaded) showToast("Download iniciado");
     });
     document.addEventListener("change", async event => {
       const input = event.target.closest(".photo-card input[type='file']");
@@ -21582,6 +21872,7 @@ ${photoSections}
       document.body.dataset.spaceThemeMode = mode;
       window.monolithActiveSpace = space || null;
       renderSpaceHomeHero(space);
+      renderProfileSpaceStatus(space);
     }
 
     async function loadActiveSpace() {

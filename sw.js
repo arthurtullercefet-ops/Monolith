@@ -1,4 +1,4 @@
-const CACHE_NAME = "monolith-v99-qa-report-state-voice";
+const CACHE_NAME = "monolith-v100-report-diet-language-space";
 
 self.addEventListener("install", event => {
   self.skipWaiting();
