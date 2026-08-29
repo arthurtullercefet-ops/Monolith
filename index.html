@@ -14,8 +14,8 @@
   <link rel="manifest" href="manifest.webmanifest" />
   <link rel="icon" href="monolith-icon.svg" />
   <script>
-window.MONOLITH_BUILD = "monolith-v98-plus-space-entitlement";
-window.MONOLITH_VERSION_LABEL = "Monolith v98 · 21/08/2026";
+window.MONOLITH_BUILD = "monolith-v99-qa-report-state-voice";
+window.MONOLITH_VERSION_LABEL = "Monolith v99 · 28/08/2026";
     (function clearOldAppCaches() {
       if ("serviceWorker" in navigator) {
         navigator.serviceWorker.getRegistrations?.()
@@ -61,6 +61,7 @@ window.MONOLITH_VERSION_LABEL = "Monolith v98 · 21/08/2026";
         "monolith.selectedDietStudentId",
         "monolith.selectedWorkoutStudentId",
         "monolith.selectedCheckinStudentId",
+        "monolith.selectedStudentScopeExplicit",
         "monolith.trainerProfileRequired"
       ]);
       const memoryStore = window.monolithMemoryStore = window.monolithMemoryStore || {};
@@ -4901,7 +4902,6 @@ window.MONOLITH_VERSION_LABEL = "Monolith v98 · 21/08/2026";
     .voice-history-item span, .voice-history-item time { color: var(--muted); font-size: 11px; }
     .voice-privacy { margin: 12px 0 0; padding: 10px; border-left: 3px solid var(--gold); background: #19170f; }
     .session-exercise.voice-current { border-color: #80691e; box-shadow: inset 3px 0 0 var(--gold); }
-    .session-exercise.voice-current .session-exercise-head .kicker::after { content: " · VOICE"; color: var(--gold); }
 
     @media (max-width: 760px) {
       .voice-fab {
@@ -4986,7 +4986,7 @@ window.MONOLITH_VERSION_LABEL = "Monolith v98 · 21/08/2026";
           <button class="action" id="loginButton" type="submit">Entrar</button>
           <div class="auth-tools">
             <button class="auth-secondary" id="clearDeviceSessionButton" type="button">Limpar sessão/cache deste aparelho</button>
-            <div class="build-version" id="buildVersionLabel">Versão do app: Monolith v98 · 21/08/2026</div>
+            <div class="build-version" id="buildVersionLabel">Versão do app: Monolith v99 · 28/08/2026</div>
           </div>
         </form>
       </div>
@@ -5265,25 +5265,13 @@ window.MONOLITH_VERSION_LABEL = "Monolith v98 · 21/08/2026";
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12l9-9 9 9"/><path d="M5 10v10h14V10"/></svg>
           <span>Início</span>
         </button>
-        <button class="nav-btn" data-screen="clients" data-role-only="personal" title="Alunos">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
-          <span>Alunos</span>
-        </button>
         <button class="nav-btn" data-screen="alerts" data-role-only="personal" title="Alertas">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12h4l2-6 4 12 2-6h6"/></svg>
           <span>Alertas</span>
         </button>
-        <button class="nav-btn" data-screen="timeline" title="Linha do tempo">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>
-          <span>Linha do tempo</span>
-        </button>
-        <button class="nav-btn" data-screen="onboarding" title="Primeiros passos">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m5 12 4 4L19 6"/><path d="M5 6h4M5 18h14"/></svg>
-          <span>Primeiros passos</span>
-        </button>
-        <button class="nav-btn" data-screen="space" data-role-only="personal" title="Meu Space">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 20V8l8-4 8 4v12"/><path d="M9 20v-6h6v6"/></svg>
-          <span>Meu Space</span>
+        <button class="nav-btn" data-screen="clients" data-role-only="personal" title="Alunos">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+          <span>Alunos</span>
         </button>
         <button class="nav-btn" data-screen="workouts" title="Treinos">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 7v10"/><path d="M18 7v10"/><path d="M3 9v6"/><path d="M21 9v6"/><path d="M6 12h12"/></svg>
@@ -5297,13 +5285,25 @@ window.MONOLITH_VERSION_LABEL = "Monolith v98 · 21/08/2026";
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
           <span>Check-ins</span>
         </button>
+        <button class="nav-btn" data-screen="stats" title="Evolução">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19V5"/><path d="M4 19h16"/><path d="M8 16V9"/><path d="M13 16V6"/><path d="M18 16v-4"/></svg>
+          <span>Evolução</span>
+        </button>
+        <button class="nav-btn" data-screen="timeline" title="Linha do tempo">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>
+          <span>Linha do tempo</span>
+        </button>
+        <button class="nav-btn" data-screen="programs" title="Programas">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19.5V5a2 2 0 0 1 2-2h12v18H6a2 2 0 0 1-2-1.5z"/><path d="M8 7h6"/><path d="M8 11h6"/></svg>
+          <span>Programas</span>
+        </button>
         <button class="nav-btn" data-screen="anamnesis" title="Anamnese">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 5h6"/><path d="M9 3h6a2 2 0 0 1 2 2v1h2v15H5V6h2V5a2 2 0 0 1 2-2Z"/><path d="M9 11h6"/><path d="M9 15h6"/></svg>
           <span>Anamnese</span>
         </button>
-        <button class="nav-btn" data-screen="stats" title="Evolução">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19V5"/><path d="M4 19h16"/><path d="M8 16V9"/><path d="M13 16V6"/><path d="M18 16v-4"/></svg>
-          <span>Evolução</span>
+        <button class="nav-btn" data-screen="space" data-role-only="personal" title="Meu Space">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 20V8l8-4 8 4v12"/><path d="M9 20v-6h6v6"/></svg>
+          <span>Meu Space</span>
         </button>
         <button class="nav-btn" data-screen="profile" title="Perfil e configurações">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/></svg>
@@ -5316,10 +5316,6 @@ window.MONOLITH_VERSION_LABEL = "Monolith v98 · 21/08/2026";
         <button class="nav-btn" data-screen="measures" title="Medidas">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19h16"/><path d="M6 17V8"/><path d="M10 17V5"/><path d="M14 17v-7"/><path d="M18 17V3"/></svg>
           <span>Medidas</span>
-        </button>
-        <button class="nav-btn" data-screen="programs" title="Programas">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19.5V5a2 2 0 0 1 2-2h12v18H6a2 2 0 0 1-2-1.5z"/><path d="M8 7h6"/><path d="M8 11h6"/></svg>
-          <span>Programas</span>
         </button>
       </nav>
 
@@ -5746,7 +5742,7 @@ window.MONOLITH_VERSION_LABEL = "Monolith v98 · 21/08/2026";
             <h2 id="sessionTitle">Costas + Panturrilha</h2>
             <div class="date" id="sessionMeta">Conclua exercício por exercício</div>
           </div>
-          <div class="action-row"><button class="ghost" id="feedbackWorkoutButton" type="button" data-role-only="student">Enviar feedback</button><button class="ghost session-voice-button" id="sessionVoiceButton" type="button" data-role-only="student" aria-controls="monolithVoicePanel" aria-expanded="false" aria-label="Abrir Monolith Voice">Monolith Voice · <span id="sessionVoiceStatus">Desligado</span></button><button class="action" id="finishExercise">Concluir treino</button></div>
+          <div class="action-row"><button class="ghost" id="feedbackWorkoutButton" type="button" data-role-only="student">Enviar feedback</button><button class="ghost session-voice-button" id="sessionVoiceButton" type="button" aria-controls="monolithVoicePanel" aria-expanded="false" aria-label="Abrir Monolith Voice" hidden>Monolith Voice · <span id="sessionVoiceStatus">Desligado</span></button><button class="action" id="finishExercise">Concluir treino</button></div>
         </div>
         <div class="grid stats-layout">
           <div class="panel">
@@ -6662,7 +6658,6 @@ window.MONOLITH_VERSION_LABEL = "Monolith v98 · 21/08/2026";
             <button class="action" id="openMonthlyReport" type="button">Abrir relatório mensal</button>
             <button class="ghost export-btn" data-export="report">Baixar relatório HTML</button>
             <button class="ghost export-btn" data-export="monolith">Backup .monolith</button>
-            <button class="ghost" id="clearHistoryButton" type="button">Limpar histórico</button>
           </div>
         </div>
       </section>
@@ -6780,8 +6775,20 @@ window.MONOLITH_VERSION_LABEL = "Monolith v98 · 21/08/2026";
   <script>
     const MONOLITH_SUPABASE_URL = "https://jhxasnxuvmkhntbwepau.supabase.co";
     const MONOLITH_SUPABASE_KEY = "sb_publishable_lDtAXIOtkMwgwsAZyghBdg_gyLHGwpH";
-const MONOLITH_BUILD = window.MONOLITH_BUILD || "monolith-v98-plus-space-entitlement";
-const MONOLITH_VERSION_LABEL = window.MONOLITH_VERSION_LABEL || "Monolith v98 · 21/08/2026";
+const MONOLITH_BUILD = window.MONOLITH_BUILD || "monolith-v99-qa-report-state-voice";
+const MONOLITH_VERSION_LABEL = window.MONOLITH_VERSION_LABEL || "Monolith v99 · 28/08/2026";
+    const onboardingStepDefinitions = [
+      ["welcome", "Boas-vindas", "Conheça o fluxo do seu acompanhamento.", "home"],
+      ["terms", "Termos", "Revise consentimentos e informações da conta.", "profile"],
+      ["anamnesis", "Anamnese", "Conte seu histórico de saúde e movimento.", "anamnesis"],
+      ["goals", "Objetivos", "Registre o que deseja construir.", "anamnesis"],
+      ["measurements", "Medidas", "Crie seu primeiro registro corporal.", "stats"],
+      ["photos", "Fotos opcionais", "Adicione fotos protegidas, se desejar.", "stats"],
+      ["schedule", "Horários", "Informe sua disponibilidade.", "anamnesis"],
+      ["checkin", "Check-in", "Complete o primeiro check-in.", "checkin"],
+      ["workout", "Treino", "Acesse ou conclua o primeiro treino.", "workouts"],
+      ["diet", "Dieta", "Confira a dieta quando houver prescrição.", "nutrition"]
+    ];
 if (location.hash.toLowerCase() === "#pulse") history.replaceState(null, "", `${location.href.split("#")[0]}#alertas`);
 if (location.hash.toLowerCase() === "#leads") history.replaceState(null, "", `${location.href.split("#")[0]}#inicio`);
     const monolithSupabase = window.supabase?.createClient?.(MONOLITH_SUPABASE_URL, MONOLITH_SUPABASE_KEY, {
@@ -7436,6 +7443,15 @@ if (location.hash.toLowerCase() === "#leads") history.replaceState(null, "", `${
       const role = t(roleLabel(account.role));
       const plan = String(account.plan || "Supabase").trim();
       return role.toLowerCase() === t(plan).toLowerCase() ? role : `${role} · ${t(plan)}`;
+    }
+
+    function refreshAuthIdentityLabels() {
+      const user = currentAccount();
+      if (!user) return;
+      const sessionName = document.getElementById("sessionName");
+      const sessionRole = document.getElementById("sessionRole");
+      if (sessionName) sessionName.textContent = user.name;
+      if (sessionRole) sessionRole.textContent = accountRolePlanLabel(user);
     }
 
     const uiMessageState = {
@@ -8512,11 +8528,11 @@ if (location.hash.toLowerCase() === "#leads") history.replaceState(null, "", `${
             <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><circle cx="12" cy="5" r="1.8"/><circle cx="12" cy="12" r="1.8"/><circle cx="12" cy="19" r="1.8"/></svg>
           </button>
           <div class="student-card-menu-panel" role="menu" hidden>
-            <button class="ghost" role="menuitem" type="button" data-student-screen="workouts" data-student-id="${escapeHTML(student.id)}">${clientActionIcon("workouts")}${escapeHTML(t("Treinos"))}</button>
-            <button class="ghost" role="menuitem" type="button" data-student-screen="nutrition" data-student-id="${escapeHTML(student.id)}">${clientActionIcon("nutrition")}${escapeHTML(t("Dieta"))}</button>
-            <button class="ghost" role="menuitem" type="button" data-student-screen="checkin" data-student-id="${escapeHTML(student.id)}">${clientActionIcon("checkin")}${escapeHTML(t("Registrar check-in"))}</button>
-            <button class="ghost" role="menuitem" type="button" data-student-screen="anamnesis" data-student-id="${escapeHTML(student.id)}">${clientActionIcon("anamnesis")}${escapeHTML(t("Ver anamnese"))}</button>
-            <button class="ghost open-student-report" role="menuitem" type="button" data-student-id="${escapeHTML(student.id)}">${clientActionIcon("report")}${escapeHTML(t("Relatório HTML"))}</button>
+            <button class="ghost" role="menuitem" type="button" data-student-screen="workouts" data-student-id="${escapeHTML(student.id)}" aria-label="${escapeHTML(`${t("Treinos")}: ${student.name}`)}">${clientActionIcon("workouts")}${escapeHTML(t("Treinos"))}</button>
+            <button class="ghost" role="menuitem" type="button" data-student-screen="nutrition" data-student-id="${escapeHTML(student.id)}" aria-label="${escapeHTML(`${t("Dieta")}: ${student.name}`)}">${clientActionIcon("nutrition")}${escapeHTML(t("Dieta"))}</button>
+            <button class="ghost" role="menuitem" type="button" data-student-screen="checkin" data-student-id="${escapeHTML(student.id)}" aria-label="${escapeHTML(`${t("Registrar check-in")}: ${student.name}`)}">${clientActionIcon("checkin")}${escapeHTML(t("Registrar check-in"))}</button>
+            <button class="ghost" role="menuitem" type="button" data-student-screen="anamnesis" data-student-id="${escapeHTML(student.id)}" aria-label="${escapeHTML(`${t("Ver anamnese")}: ${student.name}`)}">${clientActionIcon("anamnesis")}${escapeHTML(t("Ver anamnese"))}</button>
+            <button class="ghost open-student-report" role="menuitem" type="button" data-student-id="${escapeHTML(student.id)}" aria-label="${escapeHTML(localizedMessage("Abrir relatório de {name}", { name: student.name }))}">${clientActionIcon("report")}${escapeHTML(t("Relatório HTML"))}</button>
           </div>
         </div>
       `;
@@ -8554,7 +8570,7 @@ if (location.hash.toLowerCase() === "#leads") history.replaceState(null, "", `${
             <td>${escapeHTML(summary.score)}</td>
             <td>${escapeHTML(summary.activity.label)}</td>
             <td><span class="student-status ${summary.statusKey}">${escapeHTML(summary.status)}</span></td>
-            <td><div class="action-row"><button class="ghost" type="button" data-student-screen="stats" data-student-section="overview" data-student-id="${escapeHTML(student.id)}">${escapeHTML(t("Abrir ficha"))}</button>${studentActionsMenuHTML(student)}</div></td>
+            <td><div class="action-row"><button class="ghost" type="button" data-student-screen="stats" data-student-section="overview" data-student-id="${escapeHTML(student.id)}" aria-label="${escapeHTML(localizedMessage("Abrir ficha de {name}", { name: student.name }))}">${escapeHTML(t("Abrir ficha"))}</button>${studentActionsMenuHTML(student)}</div></td>
           </tr>
         `;
       }).join("") || `<tr><td colspan="6">${escapeHTML(t(renderedClientStudents.length ? "Nenhum aluno encontrado com esses filtros." : "Nenhum aluno vinculado ainda. Gere um convite e envie o código para o aluno."))}</td></tr>`;
@@ -8586,7 +8602,7 @@ if (location.hash.toLowerCase() === "#leads") history.replaceState(null, "", `${
                 <span class="pill">${escapeHTML(status)}</span>
               </div>
               <div class="student-card-actions">
-                <button class="action" type="button" data-student-screen="stats" data-student-section="overview" data-student-id="${escapeHTML(student.id)}">${escapeHTML(t("Abrir ficha"))}</button>
+                <button class="action" type="button" data-student-screen="stats" data-student-section="overview" data-student-id="${escapeHTML(student.id)}" aria-label="${escapeHTML(localizedMessage("Abrir ficha de {name}", { name: student.name }))}">${escapeHTML(t("Abrir ficha"))}</button>
                 ${studentActionsMenuHTML(student)}
               </div>
             </div>
@@ -8934,7 +8950,7 @@ if (location.hash.toLowerCase() === "#leads") history.replaceState(null, "", `${
         attentionList.innerHTML = attention.slice(0, 6).map(item => `
           <div class="attention-item">
             <div><b>${escapeHTML(item.student.name)}</b><span>${escapeHTML(t(item.reason))}</span></div>
-            <button class="ghost" type="button" data-student-screen="stats" data-student-section="overview" data-student-id="${escapeHTML(item.student.id)}">${escapeHTML(t("Abrir ficha"))}</button>
+            <button class="ghost" type="button" data-student-screen="stats" data-student-section="overview" data-student-id="${escapeHTML(item.student.id)}" aria-label="${escapeHTML(localizedMessage("Abrir ficha de {name}", { name: item.student.name }))}">${escapeHTML(t("Abrir ficha"))}</button>
           </div>
         `).join("") || dashboardEmptyHTML("Nenhum aluno precisa de atenção.", {
           action: students.length ? "" : "Adicionar aluno",
@@ -9048,10 +9064,7 @@ if (location.hash.toLowerCase() === "#leads") history.replaceState(null, "", `${
       if (invitePanel && (!user || user.role !== "personal")) invitePanel.hidden = true;
       if (user) {
         if (user.source === "supabase") window.monolithTrimLocalStorage?.();
-        const sessionName = document.getElementById("sessionName");
-        const sessionRole = document.getElementById("sessionRole");
-        if (sessionName) sessionName.textContent = user.name;
-        if (sessionRole) sessionRole.textContent = accountRolePlanLabel(user);
+        refreshAuthIdentityLabels();
         renderClientList();
         renderTrainerLinkPanel();
         renderNutrition();
@@ -10026,10 +10039,17 @@ if (location.hash.toLowerCase() === "#leads") history.replaceState(null, "", `${
       return language === "pt" ? "pt-BR" : language === "es" ? "es-419" : "en-US";
     }
 
+    function localizedDateOptions(language = localStorage.getItem("monolith.language") || "pt") {
+      return language === "en"
+        ? { month: "numeric", day: "numeric", year: "numeric" }
+        : { day: "2-digit", month: "2-digit", year: "numeric" };
+    }
+
     function localDateLabel(dateKey) {
       const [year, month, day] = String(dateKey || "").split("-").map(Number);
       if (!year || !month || !day) return dateKey || "";
-      return new Intl.DateTimeFormat(currentLocale(), { dateStyle: "short" }).format(new Date(year, month - 1, day));
+      const language = localStorage.getItem("monolith.language") || "pt";
+      return new Intl.DateTimeFormat(currentLocale(language), localizedDateOptions(language)).format(new Date(year, month - 1, day));
     }
 
     function localDateTimeLabel(value) {
@@ -10438,7 +10458,7 @@ if (location.hash.toLowerCase() === "#leads") history.replaceState(null, "", `${
 
     async function loadRemoteCompletedWorkouts(studentId = activeDataStudentId()) {
       if (!monolithSupabase || !studentId || !isRealSupabaseAccount(currentAccount())) return [];
-      if (!canAccessStudentData(studentId)) return [];
+      if (!canAccessStudentData(studentId, { allowPersonalSelf: true })) return [];
       const { data, error } = await monolithSupabase
         .from("completed_workouts")
         .select("*")
@@ -10453,7 +10473,11 @@ if (location.hash.toLowerCase() === "#leads") history.replaceState(null, "", `${
 
     async function saveRemoteCompletedWorkout(session) {
       const user = currentAccount();
-      if (!monolithSupabase || !isRealSupabaseAccount(user) || user.role !== "student") return false;
+      const personalOwnSession = user?.role === "personal"
+        && session?.studentId === user.id
+        && !activeWorkoutV2?.assignedStudentId
+        && activeWorkoutV2?.ownerId === user.id;
+      if (!monolithSupabase || !isRealSupabaseAccount(user) || (user.role !== "student" && !personalOwnSession)) return false;
       const payload = {
         student_id: user.id,
         workout_template_id: /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(session.workoutId || "") ? session.workoutId : null,
@@ -10698,7 +10722,11 @@ if (location.hash.toLowerCase() === "#leads") history.replaceState(null, "", `${
       setRemoteDataState("report", studentId, "loading");
       const results = await Promise.all(modules.map(([module, task, hasCache]) => loadRemoteModule(module, studentId, task, { hasCache })));
       const failures = results.filter(result => !result.ok);
-      const reportStatus = failures.length ? (failures.some(result => result.status === "offline-cache") ? "offline-cache" : "error") : "loaded";
+      const reportStatus = failures.some(result => result.status === "error")
+        ? "error"
+        : failures.length
+          ? "offline-cache"
+          : "loaded";
       setRemoteDataState("report", studentId, reportStatus, { count: results.length - failures.length });
       if (failures.length) showToast("Alguns dados não puderam ser atualizados. Os módulos disponíveis continuam visíveis.");
       return { status: reportStatus, results };
@@ -13609,6 +13637,8 @@ if (location.hash.toLowerCase() === "#leads") history.replaceState(null, "", `${
         "Nenhum aluno encontrado com esses filtros.": "No students found with these filters.",
         "Mostrando {start}–{end} de {total} alunos": "Showing {start}–{end} of {total} students",
         "Ações de {name}": "Actions for {name}",
+        "Abrir ficha de {name}": "Open {name}'s file",
+        "Abrir relatório de {name}": "Open {name}'s report",
         "Não informado": "Not provided",
         "Sem atividade": "No activity",
         "Check-in": "Check-in",
@@ -14981,6 +15011,8 @@ if (location.hash.toLowerCase() === "#leads") history.replaceState(null, "", `${
         "Nenhum aluno encontrado com esses filtros.": "No se encontraron alumnos con estos filtros.",
         "Mostrando {start}–{end} de {total} alunos": "Mostrando {start}–{end} de {total} alumnos",
         "Ações de {name}": "Acciones de {name}",
+        "Abrir ficha de {name}": "Abrir ficha de {name}",
+        "Abrir relatório de {name}": "Abrir informe de {name}",
         "Não informado": "No informado",
         "Sem atividade": "Sin actividad",
         "Check-in": "Check-in",
@@ -16020,6 +16052,15 @@ if (location.hash.toLowerCase() === "#leads") history.replaceState(null, "", `${
     }
 
     function applyLanguage(language) {
+      const stableStudentId = currentAccount()?.role === "personal"
+        ? selectedStudentForPersonal() || localStorage.getItem("monolith.selectedStudentId") || ""
+        : currentAccount()?.id || "";
+      const reverseTranslationKeys = new Map();
+      ["en", "es"].forEach(sourceLanguage => {
+        Object.entries(translations[sourceLanguage] || {}).forEach(([key, value]) => {
+          if (value && !reverseTranslationKeys.has(value)) reverseTranslationKeys.set(value, key);
+        });
+      });
       localStorage.setItem("monolith.language", language);
       document.documentElement.lang = ({ pt: "pt-BR", en: "en-US", es: "es-419" })[language] || "pt-BR";
       document.querySelectorAll(".language-button").forEach(button => {
@@ -16040,8 +16081,13 @@ if (location.hash.toLowerCase() === "#leads") history.replaceState(null, "", `${
           return;
         }
         const current = element.textContent.trim();
-        if (!element.dataset.i18nKey && (translations.en[current] || translations.es[current])) {
-          element.dataset.i18nKey = current;
+        if (!element.dataset.i18nKey) {
+          if (translations.en[current] || translations.es[current]) {
+            element.dataset.i18nKey = current;
+          } else {
+            const canonical = reverseTranslationKeys.get(current);
+            if (canonical) element.dataset.i18nKey = canonical;
+          }
         }
         const key = element.dataset.i18nKey || element.dataset.i18n;
         if (!key) return;
@@ -16061,9 +16107,23 @@ if (location.hash.toLowerCase() === "#leads") history.replaceState(null, "", `${
       });
       renderTrainerProfileOptionGroups();
       renderMapFilterOptions();
+      const dietBuilder = document.getElementById("dietMealBuilder");
+      if (dietBuilder?.children.length) {
+        const mealDrafts = readDietMealBuilderEntries();
+        const supplementDrafts = readDietSupplementBuilderEntries();
+        renderDietMealBuilder(mealDrafts);
+        renderDietSupplementBuilder(supplementDrafts);
+      }
       updateWeightUnitLabels();
       refreshBuildVersionLabel();
-      applyAuthState();
+      refreshAuthIdentityLabels();
+      if (stableStudentId && currentAccount()?.role === "personal") {
+        setSelectedStudentForPersonal(stableStudentId);
+        ["statsStudent", "dietStudent", "checkinStudent", "anamnesisStudent", "programStudent"].forEach(id => {
+          const select = document.getElementById(id);
+          if (select && [...select.options].some(option => option.value === stableStudentId)) select.value = stableStudentId;
+        });
+      }
       renderStudentContextHeader();
       updateTodayLabel(language);
       rerenderUiMessageStates();
@@ -16413,7 +16473,11 @@ if (location.hash.toLowerCase() === "#leads") history.replaceState(null, "", `${
         return;
       }
       const students = await ensureLinkedStudentsForPersonal(user.id);
-      const previousStudentId = scopedStudentId(select.value || selectedStudentForPersonal());
+      const storedStudentId = localStorage.getItem("monolith.selectedStudentScopeExplicit") === "true"
+        ? localStorage.getItem("monolith.selectedStudentId") || ""
+        : "";
+      const previousStudentId = [select.value, selectedStudentForPersonal(), storedStudentId]
+        .find(studentId => students.some(student => student.id === studentId)) || "";
       select.innerHTML = `<option value="">${escapeHTML(t("Selecionar aluno"))}</option>` + students.map(student => `<option value="${escapeHTML(student.id)}">${escapeHTML(student.name)} - ${escapeHTML(student.email)}</option>`).join("");
       if (students.some(student => student.id === previousStudentId)) select.value = previousStudentId;
       else select.value = "";
@@ -17148,13 +17212,15 @@ if (location.hash.toLowerCase() === "#leads") history.replaceState(null, "", `${
           const image = photos[period]?.[key];
           const safeImage = image ? escapeHTML(image) : "";
           const inputId = `photoUpload-${period}-${key}`;
+          const periodLabel = t(period === "current" ? "Este mês" : "Mês passado");
+          const photoAccessibleName = `${t(label)}, ${periodLabel}`;
           const uploadLabel = image ? t("Substituir foto") : t("Enviar foto");
-          const fullscreenButton = image && user?.role === "personal" ? `<button class="ghost fullscreen-photo" type="button">${escapeHTML(t("Tela cheia"))}</button>` : "";
+          const fullscreenButton = image && user?.role === "personal" ? `<button class="ghost fullscreen-photo" type="button" aria-label="${escapeHTML(`${t("Tela cheia")}: ${photoAccessibleName}`)}">${escapeHTML(t("Tela cheia"))}</button>` : "";
           const card = document.createElement("div");
           card.className = "photo-card";
           card.dataset.period = period;
           card.dataset.slot = key;
-          card.innerHTML = `<div class="photo-preview">${image ? `<img src="${safeImage}" alt="${escapeHTML(t(label))}" loading="lazy" />` : `<span>${escapeHTML(t(label))}</span>`}</div>${canUploadPhotos ? `<label class="photo-upload-action" for="${inputId}">${escapeHTML(uploadLabel)}</label><input id="${inputId}" type="file" accept="image/jpeg,image/png,image/heic,image/heif" aria-label="${escapeHTML(t("Enviar foto"))} ${escapeHTML(t(label))}" /><div class="photo-upload-status" role="status" aria-live="polite"></div>` : ""}<button class="ghost reveal-photo" type="button" ${image ? "" : "disabled"}>${escapeHTML(t("Ver foto"))}</button>${fullscreenButton}${canUploadPhotos && image ? `<button class="ghost danger delete-photo" type="button">${escapeHTML(t("Excluir foto"))}</button>` : ""}`;
+          card.innerHTML = `<div class="photo-preview">${image ? `<img src="${safeImage}" alt="${escapeHTML(photoAccessibleName)}" loading="lazy" />` : `<span>${escapeHTML(t(label))}</span>`}</div>${canUploadPhotos ? `<label class="photo-upload-action" for="${inputId}">${escapeHTML(uploadLabel)}</label><input id="${inputId}" type="file" accept="image/jpeg,image/png,image/heic,image/heif" aria-label="${escapeHTML(`${uploadLabel}: ${photoAccessibleName}`)}" /><div class="photo-upload-status" role="status" aria-live="polite"></div>` : ""}<button class="ghost reveal-photo" type="button" aria-label="${escapeHTML(`${t("Ver foto")}: ${photoAccessibleName}`)}" ${image ? "" : "disabled"}>${escapeHTML(t("Ver foto"))}</button>${fullscreenButton}${canUploadPhotos && image ? `<button class="ghost danger delete-photo" type="button" aria-label="${escapeHTML(`${t("Excluir foto")}: ${photoAccessibleName}`)}">${escapeHTML(t("Excluir foto"))}</button>` : ""}`;
           container.appendChild(card);
         });
       });
@@ -17515,14 +17581,14 @@ if (location.hash.toLowerCase() === "#leads") history.replaceState(null, "", `${
 
     function reportFixedTranslationIssues(language = reportLanguage()) {
       if (language === "pt") return [];
-      const invariantByLanguage = {
-        en: new Set(["Score", "Macros", "Delta", "Item", "ok"]),
-        es: new Set(["Score", "Macros", "Delta", "Item", "ok", "Frente", "Lado", "Medida", "Peso", "Cintura", "Obs.", "Meta", "Alimentos", "Base", "Último registro"])
-      };
-      const invariant = invariantByLanguage[language] || new Set();
       const source = monthlyReportHTML.toString();
       const required = [...source.matchAll(/rt\("([^"]+)"\)/g)].map(match => match[1]);
-      return [...new Set(required)].filter(key => !invariant.has(key) && reportText(key, language) === key);
+      const reportDictionary = reportTranslations[language] || {};
+      const uiDictionary = translations[language] || {};
+      return [...new Set(required)].filter(key => (
+        !Object.prototype.hasOwnProperty.call(reportDictionary, key)
+        && !Object.prototype.hasOwnProperty.call(uiDictionary, key)
+      ));
     }
 
     function verifiedMonthlyReportHTML(student = null) {
@@ -17540,7 +17606,7 @@ if (location.hash.toLowerCase() === "#leads") history.replaceState(null, "", `${
       const date = dateFromKey(dateKey);
       if (!date) return dateKey || "";
       const locale = { pt: "pt-BR", en: "en-US", es: "es-419" }[language] || "pt-BR";
-      return new Intl.DateTimeFormat(locale, { dateStyle: "short" }).format(date);
+      return new Intl.DateTimeFormat(locale, localizedDateOptions(language)).format(date);
     }
 
     function monthlyReportHTML(student = null) {
@@ -17668,27 +17734,51 @@ ${photoSections}
     }
 
     function downloadTextFile(filename, type, content) {
+      if (!filename || content === undefined || content === null || content === "") return false;
       const blob = new Blob([content], { type });
       const link = document.createElement("a");
-      link.href = URL.createObjectURL(blob);
+      const objectUrl = URL.createObjectURL(blob);
+      link.href = objectUrl;
       link.download = filename;
+      link.hidden = true;
+      document.body.appendChild(link);
       link.click();
-      URL.revokeObjectURL(link.href);
+      link.remove();
+      window.setTimeout(() => URL.revokeObjectURL(objectUrl), 1500);
+      return true;
+    }
+
+    async function prepareMonthlyReportHTML(student = null) {
+      const hydration = await hydrateRemoteReportData(student);
+      if (hydration.status === "error") {
+        authMessage("Não foi possível carregar todos os dados do relatório. Tente novamente.");
+        return { html: "", status: "error" };
+      }
+      const html = verifiedMonthlyReportHTML(student);
+      return { html, status: html ? hydration.status : "translation-error" };
+    }
+
+    function reportFailureDocument(retryButtonId = "openStatsMonthlyReport") {
+      const title = escapeHTML(t("Não foi possível criar o relatório."));
+      const retry = escapeHTML(t("Tentar novamente"));
+      const safeButtonId = escapeHTML(retryButtonId);
+      return `<!doctype html><html lang="${escapeHTML(document.documentElement.lang || "pt-BR")}"><head><meta charset="utf-8"><title>MONOLITH</title></head><body style="font-family:Arial,sans-serif;margin:32px"><h1>${title}</h1><p>${escapeHTML(t("Os dados não foram alterados. Verifique a conexão e tente novamente."))}</p><button type="button" onclick="window.opener?.document.getElementById('${safeButtonId}')?.click();window.close()">${retry}</button></body></html>`;
     }
 
     async function openMonthlyReport(student = null) {
       const reportWindow = window.open("", "_blank");
+      if (!reportWindow) {
+        authMessage("O navegador bloqueou a nova janela. Permita pop-ups e tente novamente.");
+        return false;
+      }
       reportWindow.document.write(`<!doctype html><html><head><meta charset="utf-8"><title>MONOLITH</title></head><body style="font-family:Arial,sans-serif;margin:32px">${t("Carregando relatório...")}</body></html>`);
       reportWindow.document.close();
-      await hydrateRemoteReportData(student);
-      const reportHtml = verifiedMonthlyReportHTML(student);
-      if (!reportHtml) {
-        reportWindow.close();
-        return;
-      }
+      const prepared = await prepareMonthlyReportHTML(student);
+      const reportHtml = prepared.html;
       reportWindow.document.open();
-      reportWindow.document.write(reportHtml);
+      reportWindow.document.write(reportHtml || reportFailureDocument(student ? "openStatsMonthlyReport" : "openMonthlyReport"));
       reportWindow.document.close();
+      return Boolean(reportHtml);
     }
 
     async function openStudentReport(studentId) {
@@ -17970,7 +18060,7 @@ ${photoSections}
       }
       saveWorkoutPrograms([program, ...programs]);
     }
-    function downloadExport(type) {
+    async function downloadExport(type) {
       const payload = {
         app: "MONOLITH",
         exportedAt: new Date().toISOString(),
@@ -17985,24 +18075,20 @@ ${photoSections}
         foodLogs: currentAccount()?.role === "student" ? { [currentAccount().id]: loadFoodLogs()[currentAccount().id] || [] } : {}
       };
       if (type === "report" || type === "pdf") {
-        const reportHtml = verifiedMonthlyReportHTML();
-        if (!reportHtml) return;
-        downloadTextFile("monolith-relatorio-mensal.html", "text/html;charset=utf-8", reportHtml);
-        showToast("Relatório mensal criado. Abra e salve como PDF pelo navegador.");
-        return;
+        const prepared = await prepareMonthlyReportHTML();
+        if (!prepared.html) return false;
+        const downloaded = downloadTextFile("monolith-relatorio-mensal.html", "text/html;charset=utf-8", prepared.html);
+        if (downloaded) showToast("Relatório mensal criado. Abra e salve como PDF pelo navegador.");
+        return downloaded;
       }
       const config = {
         excel: ["monolith-export.xls", "application/vnd.ms-excel", "MONOLITH\tExport\nScore\t" + payload.dailyScore],
         csv: ["monolith-export.csv", "text/csv", "campo,valor\nscore," + payload.dailyScore + "\ncoach," + payload.selectedCoach],
         monolith: ["backup.monolith", "application/json", JSON.stringify(payload, null, 2)]
       }[type];
-      const blob = new Blob([config[2]], { type: config[1] });
-      const link = document.createElement("a");
-      link.href = URL.createObjectURL(blob);
-      link.download = config[0];
-      link.click();
-      URL.revokeObjectURL(link.href);
-      showToast(`${t("Exportação")} ${config[0]} ${t("criada.")}`);
+      const downloaded = downloadTextFile(config[0], config[1], config[2]);
+      if (downloaded) showToast(`${t("Exportação")} ${config[0]} ${t("criada.")}`);
+      return downloaded;
     }
 
     function updateTodayLabel(language = localStorage.getItem("monolith.language") || "pt") {
@@ -18169,8 +18255,6 @@ ${photoSections}
       applyLanguage(button.dataset.lang);
       renderBodyMeasures();
       renderPhotoVault();
-      renderNutrition();
-      renderTrainerMap();
     }
     languageSelect.addEventListener("click", handleLanguageClick);
     authLanguageSelect?.addEventListener("click", handleLanguageClick);
@@ -19379,14 +19463,17 @@ ${photoSections}
 
       const exportButton = event.target.closest(".export-btn");
       if (exportButton) {
-        downloadExport(exportButton.dataset.export);
+        void downloadExport(exportButton.dataset.export);
       }
 
       const revealPhoto = event.target.closest(".reveal-photo");
       if (revealPhoto) {
         const preview = revealPhoto.closest(".photo-card").querySelector(".photo-preview");
         preview.classList.toggle("revealed");
-        revealPhoto.textContent = preview.classList.contains("revealed") ? t("Ocultar foto") : t("Ver foto");
+        const actionKey = preview.classList.contains("revealed") ? "Ocultar foto" : "Ver foto";
+        const accessibleSuffix = revealPhoto.getAttribute("aria-label")?.split(":").slice(1).join(":").trim();
+        revealPhoto.textContent = t(actionKey);
+        if (accessibleSuffix) revealPhoto.setAttribute("aria-label", `${t(actionKey)}: ${accessibleSuffix}`);
       }
 
       const fullscreenPhoto = event.target.closest(".fullscreen-photo");
@@ -19689,15 +19776,6 @@ ${photoSections}
         showToast(synced ? "Medidas corporais salvas no Supabase." : "Medidas corporais salvas neste aparelho.");
       }, { loadingText: "Salvando medidas..." });
     });
-    document.getElementById("clearHistoryButton").addEventListener("click", () => {
-      localStorage.removeItem("monolith.completedWorkouts");
-      localStorage.removeItem("monolith.checkins");
-      localStorage.removeItem("monolith.bodyMeasures");
-      renderStats();
-      renderBodyMeasures();
-      renderTrainerSummary();
-      showToast("Histórico mensal limpo.");
-    });
     document.getElementById("openMonthlyReport").addEventListener("click", () => openMonthlyReport());
     document.getElementById("openStatsMonthlyReport")?.addEventListener("click", () => {
       if (currentAccount()?.role === "personal" && !activeDataStudentId()) {
@@ -19713,9 +19791,10 @@ ${photoSections}
         return;
       }
       const student = currentAccount()?.role === "student" ? currentAccount() : reportStudentFromId(activeDataStudentId());
-      await hydrateRemoteReportData(student);
-      const reportHtml = verifiedMonthlyReportHTML(student);
-      if (reportHtml) downloadTextFile(`monolith-report-${todayKey()}.html`, "text/html", reportHtml);
+      const prepared = await prepareMonthlyReportHTML(student);
+      if (!prepared.html) return;
+      const downloaded = downloadTextFile(`monolith-report-${todayKey()}.html`, "text/html;charset=utf-8", prepared.html);
+      if (downloaded) showToast("Relatório HTML baixado.");
     });
     document.addEventListener("change", async event => {
       const input = event.target.closest(".photo-card input[type='file']");
@@ -20513,19 +20592,6 @@ ${photoSections}
       }
     });
 
-    const onboardingStepDefinitions = [
-      ["welcome", "Boas-vindas", "Conheça o fluxo do seu acompanhamento.", "home"],
-      ["terms", "Termos", "Revise consentimentos e informações da conta.", "profile"],
-      ["anamnesis", "Anamnese", "Conte seu histórico de saúde e movimento.", "anamnesis"],
-      ["goals", "Objetivos", "Registre o que deseja construir.", "anamnesis"],
-      ["measurements", "Medidas", "Crie seu primeiro registro corporal.", "stats"],
-      ["photos", "Fotos opcionais", "Adicione fotos protegidas, se desejar.", "stats"],
-      ["schedule", "Horários", "Informe sua disponibilidade.", "anamnesis"],
-      ["checkin", "Check-in", "Complete o primeiro check-in.", "checkin"],
-      ["workout", "Treino", "Acesse ou conclua o primeiro treino.", "workouts"],
-      ["diet", "Dieta", "Confira a dieta quando houver prescrição.", "nutrition"]
-    ];
-
     function readMemoryList(key) {
       try { return JSON.parse(localStorage.getItem(key) || "[]"); }
       catch { return []; }
@@ -20551,7 +20617,7 @@ ${photoSections}
 
     function selectedTimelineStudentId() {
       const user = currentAccount();
-      return user?.role === "personal" ? document.getElementById("timelineStudent")?.value || selectedStudentForPersonal()?.id || "" : user?.id || "";
+      return user?.role === "personal" ? document.getElementById("timelineStudent")?.value || selectedStudentForPersonal() || "" : user?.id || "";
     }
 
     function replaceStudentEntries(entries, studentId, incoming, keyFn = item => item.id) {
@@ -20823,7 +20889,7 @@ ${photoSections}
       panel.hidden = false;
       const select = document.getElementById("timelineStudent");
       const students = studentsForPersonal(user.id);
-      const selected = selectedStudentForPersonal()?.id || "";
+      const selected = selectedStudentForPersonal() || "";
       select.innerHTML = `<option value="">${escapeHTML(t("Selecionar aluno"))}</option>` + students.map(student => `<option value="${escapeHTML(student.id)}" ${student.id === selected ? "selected" : ""}>${escapeHTML(student.name)} · ${escapeHTML(student.email || "")}</option>`).join("");
     }
 
@@ -21785,6 +21851,11 @@ ${photoSections}
     window.monolithRenderSpace = renderSpace;
 
     Object.assign(translations.en, {
+      "Não foi possível criar o relatório.": "The report could not be created.",
+      "Os dados não foram alterados. Verifique a conexão e tente novamente.": "No data was changed. Check your connection and try again.",
+      "Não foi possível carregar todos os dados do relatório. Tente novamente.": "Not all report data could be loaded. Try again.",
+      "O navegador bloqueou a nova janela. Permita pop-ups e tente novamente.": "The browser blocked the new window. Allow pop-ups and try again.",
+      "Relatório HTML baixado.": "HTML report downloaded.",
       "Desligado": "Off",
       "Toque no microfone para ativar.": "Tap the microphone to activate.",
       "Solicitando acesso ao microfone": "Requesting microphone access",
@@ -21838,6 +21909,7 @@ ${photoSections}
       "Nenhum comando nesta sessão.": "No commands in this session.",
       "O Monolith não salva áudio bruto. A ativação contínua só funciona com reconhecimento local; caso contrário, o microfone liga apenas ao tocar em Falar agora e o navegador pode usar seu próprio serviço.": "Monolith does not store raw audio. Continuous wake mode only runs with on-device recognition; otherwise, the microphone turns on only after tapping Talk now and the browser may use its own service.",
       "Abra um treino como aluno antes de ativar o Monolith Voice.": "Open a workout as a student before activating Monolith Voice.",
+      "Abra uma sessão do seu próprio treino antes de ativar o Monolith Voice.": "Open a session for your own workout before activating Monolith Voice.",
       "Monolith Voice ativado.": "Monolith Voice activated.",
       "Monolith Voice ativado. Diga Hey Monolith antes do comando.": "Monolith Voice activated. Say Hey Monolith before your command.",
       "Permissão negada. Libere o microfone no navegador ou use o comando em texto.": "Permission denied. Allow the microphone in your browser or use the text command.",
@@ -21881,6 +21953,11 @@ ${photoSections}
       "Ação cancelada": "Action canceled"
     });
     Object.assign(translations.es, {
+      "Não foi possível criar o relatório.": "No se pudo crear el informe.",
+      "Os dados não foram alterados. Verifique a conexão e tente novamente.": "No se modificaron los datos. Revisa la conexión e inténtalo de nuevo.",
+      "Não foi possível carregar todos os dados do relatório. Tente novamente.": "No se pudieron cargar todos los datos del informe. Inténtalo de nuevo.",
+      "O navegador bloqueou a nova janela. Permita pop-ups e tente novamente.": "El navegador bloqueó la nueva ventana. Permite las ventanas emergentes e inténtalo de nuevo.",
+      "Relatório HTML baixado.": "Informe HTML descargado.",
       "Desligado": "Desactivado",
       "Toque no microfone para ativar.": "Toca el micrófono para activarlo.",
       "Solicitando acesso ao microfone": "Solicitando acceso al micrófono",
@@ -21934,6 +22011,7 @@ ${photoSections}
       "Nenhum comando nesta sessão.": "No hay comandos en esta sesión.",
       "O Monolith não salva áudio bruto. A ativação contínua só funciona com reconhecimento local; caso contrário, o microfone liga apenas ao tocar em Falar agora e o navegador pode usar seu próprio serviço.": "Monolith no guarda audio sin procesar. La activación continua solo funciona con reconocimiento local; de lo contrario, el micrófono se enciende únicamente al tocar Hablar ahora y el navegador puede usar su propio servicio.",
       "Abra um treino como aluno antes de ativar o Monolith Voice.": "Abre un entrenamiento como alumno antes de activar Monolith Voice.",
+      "Abra uma sessão do seu próprio treino antes de ativar o Monolith Voice.": "Abre una sesión de tu propio entrenamiento antes de activar Monolith Voice.",
       "Monolith Voice ativado.": "Monolith Voice activado.",
       "Monolith Voice ativado. Diga Hey Monolith antes do comando.": "Monolith Voice activado. Di Hey Monolith antes del comando.",
       "Permissão negada. Libere o microfone no navegador ou use o comando em texto.": "Permiso denegado. Autoriza el micrófono en el navegador o usa el comando de texto.",
@@ -22406,6 +22484,37 @@ ${photoSections}
         return monolithVoiceStatusesV2.includes(status) ? status : "rejected";
       }
 
+      function voiceWorkoutExecutableByCurrentUserV2(workout = activeWorkoutV2, user = currentAccount()) {
+        if (!workout || !user) return false;
+        if (user.role === "student") {
+          return workout.assignedStudentId === user.id
+            || (!workout.assignedStudentId && workout.ownerId === user.id);
+        }
+        if (user.role === "personal") {
+          return !workout.assignedStudentId && workout.ownerId === user.id;
+        }
+        return false;
+      }
+
+      function voiceSessionEligibleV2() {
+        return voiceWorkoutExecutableByCurrentUserV2()
+          && document.getElementById("session")?.classList.contains("active");
+      }
+
+      window.monolithQaHooks = Object.assign(window.monolithQaHooks || {}, {
+        voiceWorkoutExecutable: voiceWorkoutExecutableByCurrentUserV2,
+        voiceSessionEligible: voiceSessionEligibleV2,
+        openVoiceTestSession(workout) {
+          showScreen("session", { skipDirtyGuard: true, historyMode: "replace" });
+          renderSessionV2(workout);
+          updateVoiceAvailabilityV2();
+          return voiceSessionEligibleV2();
+        },
+        beginVoiceSession: beginVoiceSessionV2,
+        setVoicePanelOpen: setVoicePanelOpenV2,
+        stopVoiceSession: stopVoiceSessionV2
+      });
+
       function saveVoiceSettingsV2() {
         localStorage.setItem("monolith.voiceSettings", JSON.stringify(voiceSettingsV2));
       }
@@ -22503,7 +22612,7 @@ ${photoSections}
 
       async function syncVoiceSessionRemoteV2(status = voiceSessionStatusForRemoteV2()) {
         const user = currentAccount();
-        if (!monolithSupabase || !isRealSupabaseAccount(user) || user.role !== "student" || !voiceStateV2.sessionKey || !activeWorkoutV2) return false;
+        if (!monolithSupabase || !isRealSupabaseAccount(user) || !voiceWorkoutExecutableByCurrentUserV2() || !voiceStateV2.sessionKey || !activeWorkoutV2) return false;
         const snapshot = voiceSessionSnapshotV2();
         const isUuid = value => /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(value || "");
         const payload = {
@@ -22541,7 +22650,7 @@ ${photoSections}
         const previous = voiceStateV2.commandSyncs.get(commandId) || Promise.resolve();
         const task = previous.catch(() => {}).then(async () => {
           const user = currentAccount();
-          if (!monolithSupabase || !isRealSupabaseAccount(user) || user.role !== "student") return false;
+          if (!monolithSupabase || !isRealSupabaseAccount(user) || !voiceWorkoutExecutableByCurrentUserV2()) return false;
           if (!voiceStateV2.remoteSessionId) {
             try { await syncVoiceSessionRemoteV2(); } catch (error) { logAppError("voice", "sync-session-before-command", error); }
           }
@@ -22760,8 +22869,10 @@ ${photoSections}
 
       function updateVoiceAvailabilityV2() {
         const fab = document.getElementById("monolithVoiceFab");
-        const eligible = currentAccount()?.role === "student" && Boolean(activeWorkoutV2) && document.getElementById("session")?.classList.contains("active");
+        const sessionButton = document.getElementById("sessionVoiceButton");
+        const eligible = voiceSessionEligibleV2();
         if (fab) fab.hidden = !eligible;
+        if (sessionButton) sessionButton.hidden = !eligible;
         if (!eligible) setVoicePanelOpenV2(false);
       }
 
@@ -22888,9 +22999,8 @@ ${photoSections}
       }
 
       async function beginVoiceSessionV2({ visualOnly = false } = {}) {
-        const user = currentAccount();
-        if (user?.role !== "student" || !activeWorkoutV2) {
-          toastV2(textV2("Abra um treino como aluno antes de ativar o Monolith Voice."));
+        if (!voiceSessionEligibleV2()) {
+          toastV2(textV2("Abra uma sessão do seu próprio treino antes de ativar o Monolith Voice."));
           return false;
         }
         setVoicePanelOpenV2(true);
@@ -23657,7 +23767,7 @@ ${photoSections}
       }
 
       async function processVoiceCommandV2(transcript, nativeConfidence = 0, source = "speech", suppliedCommandId = "") {
-        if (!activeWorkoutV2 || currentAccount()?.role !== "student") return false;
+        if (!voiceSessionEligibleV2()) return false;
         const command = parseVoiceCommandV2(transcript, nativeConfidence, source);
         command.commandId = suppliedCommandId || voiceCommandIdV2("voice-command");
         if (voiceStateV2.commandIds.has(command.commandId)) return false;
@@ -24641,6 +24751,7 @@ ${photoSections}
           const totalSets = workout.exercises.reduce((total, exercise) => total + exercise.sets.length, 0);
           const assignedStudent = accounts.find(account => account.id === workout.assignedStudentId);
           const canDelete = user?.role === "personal" && (!workout.ownerId || workout.ownerId === user.id || workout.source !== "supabase");
+          const canStartVoice = voiceWorkoutExecutableByCurrentUserV2(workout, user);
           const card = document.createElement("article");
           card.className = "workout";
           card.innerHTML = `
@@ -24656,10 +24767,10 @@ ${photoSections}
               </div>
             </div>
             <div class="pill-row">
-              <button class="ghost open-workout-session-v2" type="button" data-workout-id="${workout.id}">${htmlT("Abrir sessão")}</button>
-              ${studentView ? `<button class="action start-workout-voice-v2" type="button" data-workout-id="${workout.id}">${htmlT("Iniciar com Voice")}</button>` : ""}
-              ${user?.role === "personal" ? `<button class="ghost duplicate-workout-v2" type="button" data-workout-id="${workout.id}">${htmlT("Duplicar")}</button>` : ""}
-              ${canDelete ? `<button class="ghost delete-workout-v2" type="button" data-workout-id="${workout.id}">${htmlT("Excluir")}</button>` : ""}
+              <button class="ghost open-workout-session-v2" type="button" data-workout-id="${html(workout.id)}" aria-label="${html(`${textV2("Abrir sessão")}: ${workout.name}`)}">${htmlT("Abrir sessão")}</button>
+              ${canStartVoice ? `<button class="action start-workout-voice-v2" type="button" data-workout-id="${html(workout.id)}" aria-label="${html(`${textV2("Iniciar com Voice")}: ${workout.name}`)}">${htmlT("Iniciar com Voice")}</button>` : ""}
+              ${user?.role === "personal" ? `<button class="ghost duplicate-workout-v2" type="button" data-workout-id="${html(workout.id)}" aria-label="${html(`${textV2("Duplicar")}: ${workout.name}`)}">${htmlT("Duplicar")}</button>` : ""}
+              ${canDelete ? `<button class="ghost delete-workout-v2" type="button" data-workout-id="${html(workout.id)}" aria-label="${html(`${textV2("Excluir")}: ${workout.name}`)}">${htmlT("Excluir")}</button>` : ""}
             </div>
           `;
           workoutListV2.appendChild(card);
@@ -25002,7 +25113,9 @@ ${photoSections}
         const totalSets = exercises.reduce((total, exercise) => total + exercise.sets.length, 0);
         return {
           id: `session-${Date.now()}`,
-          studentId: currentAccount()?.role === "student" ? currentAccount().id : activeWorkoutV2.assignedStudentId || "",
+          studentId: currentAccount()?.role === "student"
+            ? currentAccount().id
+            : (!activeWorkoutV2.assignedStudentId && activeWorkoutV2.ownerId === currentAccount()?.id ? currentAccount().id : activeWorkoutV2.assignedStudentId || ""),
           workoutId: activeWorkoutV2.id,
           workoutName: activeWorkoutV2.name,
           completedAt: new Date().toISOString(),

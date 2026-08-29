@@ -74,7 +74,9 @@ Official docs:
    This adds the non-destructive Space identity mode toggle: custom Space identity or default Monolith visual. Logo, cover, colors and text remain saved when the default visual is active.
 30. Paste and run `monolith-production-step-30-space-entitlement.sql`.
    This adds `profiles.space_enabled` as the single Plus Space entitlement, backfills existing Space owners, gates Space reads/writes/uploads under RLS and preserves saved Spaces/files during downgrade.
-31. Confirm these tables exist:
+31. Paste and run `monolith-production-step-31-voice-own-session.sql`.
+   This lets an authenticated trainer persist Voice only for the trainer's own unassigned workout session, keeps student sessions restricted to the student, and aligns the database intent constraint with the bounded frontend intent list.
+32. Confirm these tables exist:
    - `profiles`
    - `trainer_students`
    - `trainer_invites`
@@ -109,7 +111,7 @@ Official docs:
    - `subscriptions`
    - `influencer_codes`
    - `referral_attributions`
-32. Confirm these functions exist:
+33. Confirm these functions exist:
    - `create_trainer_invite`
    - `create_trainer_invite_idempotent`
    - `accept_trainer_invite`
@@ -117,11 +119,11 @@ Official docs:
    - `correct_daily_checkin`
    - `is_space_member`
    - `monolith_space_enabled`
-33. Confirm Storage has private buckets called `progress-photos` and `space-assets`.
+34. Confirm Storage has private buckets called `progress-photos` and `space-assets`.
 
-All step files are additive and idempotent. Run them in numerical order. Do not reset the database or delete QA records before running a step.
+All step files are additive and idempotent. Run them in numerical order through step 31. Do not reset the database or delete QA records before running a step.
 
-For an existing Monolith project that already completed step 12, run only steps 13 through 24 in order. Re-running any of those files is safe; they contain no bulk deletion, table reset or QA cleanup.
+For an existing Monolith project that already completed step 12, run only steps 13 through 31 in order. Re-running any of those files is safe; they contain no bulk deletion, table reset or QA cleanup.
 
 ### Repair for PGRST205 in Programs or Monolith Voice
 
@@ -191,7 +193,7 @@ Before public launch:
 
 ## Release verification
 
-After steps 13 through 24 are installed, test with fictitious accounts:
+After steps 13 through 31 are installed, test with fictitious accounts:
 
 - A student cannot read another student's workouts, diet, measures, photos, anamnesis, feedback or timeline.
 - A student can execute an assigned workout but cannot insert, update or delete `workout_templates` or `checkin_factors` through the API.
