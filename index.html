@@ -1115,6 +1115,28 @@ window.MONOLITH_VERSION_LABEL = "Monolith v100 · 29/08/2026";
       background: linear-gradient(to bottom, #aa151b 0 25%, #f1bf00 25% 75%, #aa151b 75%);
     }
 
+    .language-flag.flag-br,
+    .language-flag.flag-us,
+    .language-flag.flag-es {
+      display: inline-grid;
+      place-items: center;
+      width: 22px;
+      height: 22px;
+      overflow: visible;
+      border: 0;
+      border-radius: 0;
+      background: transparent;
+      font-size: 17px;
+      line-height: 1;
+    }
+
+    .language-flag.flag-br::before,
+    .language-flag.flag-br::after,
+    .language-flag.flag-us::before,
+    .language-flag.flag-us::after,
+    .language-flag.flag-es::before,
+    .language-flag.flag-es::after { display: none; }
+
     .checkin-measure {
       display: grid;
       grid-template-columns: minmax(160px, .35fr) minmax(220px, 1fr);
@@ -4778,6 +4800,10 @@ window.MONOLITH_VERSION_LABEL = "Monolith v100 · 29/08/2026";
     .session-voice-button {
       min-width: 176px;
       justify-content: center;
+      border-color: #80691e;
+      background: #19170f;
+      color: var(--gold);
+      font-weight: 800;
     }
 
     .session-voice-status {
@@ -4836,6 +4862,9 @@ window.MONOLITH_VERSION_LABEL = "Monolith v100 · 29/08/2026";
     .voice-fab[data-state="saved"] .voice-mic-icon { background: #12331f; color: #5ee18a; }
     .voice-fab[data-state="misunderstood"] .voice-mic-icon { background: #332b12; color: #e6bd43; }
     .voice-fab[data-state="error"] .voice-mic-icon { background: #351717; color: #ff6767; }
+    .voice-fab[data-state="denied"] .voice-mic-icon { background: #351717; color: #ff6767; }
+    .voice-fab[data-state="unsupported"] .voice-mic-icon,
+    .voice-fab[data-state="recognition-unavailable"] .voice-mic-icon { background: #282410; color: var(--gold); }
     .voice-fab[data-state="paused"] .voice-mic-icon { background: #252525; color: #d0d0d0; }
 
     @keyframes voicePulse {
@@ -4863,6 +4892,7 @@ window.MONOLITH_VERSION_LABEL = "Monolith v100 · 29/08/2026";
     }
 
     .voice-panel.open { opacity: 1; visibility: visible; transform: translateY(0); }
+    #session.active { padding-bottom: 96px; }
     .voice-panel:focus { outline: none; }
     .voice-panel-head, .voice-status-row, .voice-command-actions, .voice-history-head {
       display: flex;
@@ -4913,10 +4943,7 @@ window.MONOLITH_VERSION_LABEL = "Monolith v100 · 29/08/2026";
       }
       .voice-fab .voice-mic-icon { width: 40px; height: 40px; }
       .voice-fab .voice-countdown { display: none; }
-      .voice-fab-copy strong::before { content: "Abrir Voice"; }
-      .voice-fab.open .voice-fab-copy strong::before { content: "Fechar Voice"; }
-      .voice-fab-copy strong { font-size: 0; }
-      .voice-fab-copy strong::before { font-size: 13px; }
+      .voice-fab-copy strong { font-size: 13px; }
       .voice-panel {
         right: max(12px, env(safe-area-inset-right));
         bottom: calc(76px + env(safe-area-inset-bottom));
@@ -4948,9 +4975,9 @@ window.MONOLITH_VERSION_LABEL = "Monolith v100 · 29/08/2026";
         <div class="auth-language">
           <label data-i18n="Idioma">Idioma</label>
           <div class="language-buttons" id="authLanguageSelect" aria-label="Idioma">
-            <button class="language-button" type="button" data-lang="pt" title="Português" aria-label="Português"><span class="language-flag flag-br" aria-hidden="true"></span><span>PT</span></button>
-            <button class="language-button" type="button" data-lang="en" title="English" aria-label="English"><span class="language-flag flag-us" aria-hidden="true"></span><span>EN</span></button>
-            <button class="language-button" type="button" data-lang="es" title="Español" aria-label="Español"><span class="language-flag flag-es" aria-hidden="true"></span><span>ES</span></button>
+            <button class="language-button" type="button" data-lang="pt" title="Português" aria-label="Português"><span class="language-flag flag-br" aria-hidden="true">🇧🇷</span><span>PT</span></button>
+            <button class="language-button" type="button" data-lang="en" title="English" aria-label="English"><span class="language-flag flag-us" aria-hidden="true">🇺🇸</span><span>EN</span></button>
+            <button class="language-button" type="button" data-lang="es" title="Español" aria-label="Español"><span class="language-flag flag-es" aria-hidden="true">🇪🇸</span><span>ES</span></button>
           </div>
         </div>
       </div>
@@ -5236,9 +5263,9 @@ window.MONOLITH_VERSION_LABEL = "Monolith v100 · 29/08/2026";
       <div class="language-select">
         <label data-i18n="Idioma">Idioma</label>
         <div class="language-buttons" id="languageSelect" aria-label="Idioma">
-          <button class="language-button" type="button" data-lang="pt" title="Português" aria-label="Português"><span class="language-flag flag-br" aria-hidden="true"></span><span>PT</span></button>
-          <button class="language-button" type="button" data-lang="en" title="English" aria-label="English"><span class="language-flag flag-us" aria-hidden="true"></span><span>EN</span></button>
-          <button class="language-button" type="button" data-lang="es" title="Español" aria-label="Español"><span class="language-flag flag-es" aria-hidden="true"></span><span>ES</span></button>
+          <button class="language-button" type="button" data-lang="pt" title="Português" aria-label="Português"><span class="language-flag flag-br" aria-hidden="true">🇧🇷</span><span>PT</span></button>
+          <button class="language-button" type="button" data-lang="en" title="English" aria-label="English"><span class="language-flag flag-us" aria-hidden="true">🇺🇸</span><span>EN</span></button>
+          <button class="language-button" type="button" data-lang="es" title="Español" aria-label="Español"><span class="language-flag flag-es" aria-hidden="true">🇪🇸</span><span>ES</span></button>
         </div>
       </div>
 
@@ -7508,6 +7535,8 @@ if (location.hash.toLowerCase() === "#leads") history.replaceState(null, "", `${
       if (toast && uiMessageState.toast?.message && !toast.classList.contains("with-action")) {
         toast.textContent = localizedMessage(uiMessageState.toast.message, uiMessageState.toast.params);
       }
+      const reportStatus = document.getElementById("studentStatsReportStatus");
+      if (reportStatus?.dataset.messageKey) reportStatus.textContent = t(reportStatus.dataset.messageKey);
     }
 
     function authMessage(message, params = {}) {
@@ -8429,9 +8458,17 @@ if (location.hash.toLowerCase() === "#leads") history.replaceState(null, "", `${
       saveAccounts([...students, ...retained]);
     }
 
+    function renderClientListState(html) {
+      const container = document.getElementById("clientList");
+      const tableBody = document.getElementById("clientTableBody");
+      if (container) container.innerHTML = html;
+      if (tableBody) tableBody.innerHTML = `<tr><td colspan="6">${html}</td></tr>`;
+    }
+
     async function renderClientList() {
       const container = document.getElementById("clientList");
       if (!container) return;
+      const requestId = ++clientListRenderSequence;
       const user = currentAccount();
       if (!user || user.role !== "personal") {
         container.innerHTML = `<div class="panel"><div class="report-line">${escapeHTML(t("Área disponível para personal trainer."))}</div></div>`;
@@ -8440,11 +8477,16 @@ if (location.hash.toLowerCase() === "#leads") history.replaceState(null, "", `${
       applyClientViewMode();
       if (user.source === "supabase") {
         setRemoteDataState("students", user.id, "loading");
-        container.innerHTML = remoteStateHTML("loading", { loadingLabel: "Carregando alunos vinculados..." });
+        renderClientListState(remoteStateHTML("loading", { loadingLabel: "Carregando alunos e check-ins..." }));
         try {
           const remoteStudents = await loadRemoteLinkedStudents(user.id);
+          if (requestId !== clientListRenderSequence) return;
           if (remoteStudents) {
             saveRemoteStudentsToCache(remoteStudents, user.id);
+            const checkinResults = await Promise.allSettled(remoteStudents.map(student => loadRemoteCheckins(student.id)));
+            if (requestId !== clientListRenderSequence) return;
+            const checkinFailure = checkinResults.find(result => result.status === "rejected");
+            if (checkinFailure) throw checkinFailure.reason;
             setRemoteDataState("students", user.id, remoteStudents.length ? "loaded" : "empty", { count: remoteStudents.length });
             renderClientCards(remoteStudents);
             return;
@@ -8452,7 +8494,7 @@ if (location.hash.toLowerCase() === "#leads") history.replaceState(null, "", `${
         } catch (error) {
           logAppError("students", "load-linked", error, { trainerId: user.id });
           setRemoteDataState("students", user.id, "error", { code: error?.code || "UNKNOWN" });
-          container.innerHTML = remoteStateHTML("error", { errorLabel: "Não consegui carregar alunos vinculados agora.", retryScreen: "clients" });
+          renderClientListState(remoteStateHTML("error", { errorLabel: "Não consegui carregar os alunos e check-ins agora.", retryScreen: "clients" }));
           return;
         }
       }
@@ -8488,6 +8530,7 @@ if (location.hash.toLowerCase() === "#leads") history.replaceState(null, "", `${
       applyClientViewMode(safeMode);
     }
 
+    let clientListRenderSequence = 0;
     let renderedClientStudents = [];
     let clientTablePage = 1;
     const clientTablePageSize = 10;
@@ -10026,13 +10069,16 @@ if (location.hash.toLowerCase() === "#leads") history.replaceState(null, "", `${
       if (!user) return "";
       if (user.role !== "personal") return user.id;
       const canUseStoredSelection = localStorage.getItem("monolith.selectedStudentScopeExplicit") === "true";
+      const storedSelection = canUseStoredSelection
+        ? localStorage.getItem("monolith.selectedStudentId") || ""
+        : "";
       const candidates = [
+        storedSelection,
         document.getElementById("statsStudent")?.value,
         document.getElementById("dietStudent")?.value,
         document.getElementById("checkinStudent")?.value,
         document.getElementById("workoutStudent")?.value,
         ...(canUseStoredSelection ? [
-          localStorage.getItem("monolith.selectedStudentId"),
           localStorage.getItem("monolith.selectedDietStudentId"),
           localStorage.getItem("monolith.selectedWorkoutStudentId"),
           localStorage.getItem("monolith.selectedCheckinStudentId")
@@ -10046,16 +10092,17 @@ if (location.hash.toLowerCase() === "#leads") history.replaceState(null, "", `${
 
     function setSelectedStudentForPersonal(studentId) {
       const user = currentAccount();
-      if (!studentId || !user || user.role !== "personal") return;
+      if (!studentId || !user || user.role !== "personal") return false;
       if (!isLinkedStudentForPersonal(studentId, user)) {
         clearSelectedStudentScope();
-        return;
+        return false;
       }
       localStorage.setItem("monolith.selectedStudentScopeExplicit", "true");
       localStorage.setItem("monolith.selectedStudentId", studentId);
       localStorage.setItem("monolith.selectedDietStudentId", studentId);
       localStorage.setItem("monolith.selectedWorkoutStudentId", studentId);
       localStorage.setItem("monolith.selectedCheckinStudentId", studentId);
+      return true;
     }
 
     function selectedCheckinStudentId() {
@@ -10095,7 +10142,7 @@ if (location.hash.toLowerCase() === "#leads") history.replaceState(null, "", `${
     function activeDataStudentId(student = null) {
       const user = currentAccount();
       if (!user) return "";
-      if (student?.id) return canAccessStudentData(student.id) ? student.id : (user.role === "student" ? user.id : selectedStudentForPersonal());
+      if (student?.id) return canAccessStudentData(student.id) ? student.id : "";
       return user.role === "personal" ? selectedStudentForPersonal() : user.id;
     }
 
@@ -10109,17 +10156,33 @@ if (location.hash.toLowerCase() === "#leads") history.replaceState(null, "", `${
         : { day: "2-digit", month: "2-digit", year: "numeric" };
     }
 
+    const MONOLITH_TIME_ZONE = "America/New_York";
+
+    function appCalendarDate(dateKey) {
+      const [year, month, day] = String(dateKey || "").split("-").map(Number);
+      if (!year || !month || !day) return null;
+      return new Date(Date.UTC(year, month - 1, day, 12));
+    }
+
     function localDateLabel(dateKey) {
       const [year, month, day] = String(dateKey || "").split("-").map(Number);
       if (!year || !month || !day) return dateKey || "";
       const language = localStorage.getItem("monolith.language") || "pt";
-      return new Intl.DateTimeFormat(currentLocale(language), localizedDateOptions(language)).format(new Date(year, month - 1, day));
+      return new Intl.DateTimeFormat(currentLocale(language), {
+        ...localizedDateOptions(language),
+        timeZone: MONOLITH_TIME_ZONE
+      }).format(appCalendarDate(dateKey));
     }
 
     function localDateTimeLabel(value) {
       const date = value instanceof Date ? value : new Date(value);
       if (Number.isNaN(date.getTime())) return String(value || "");
-      return new Intl.DateTimeFormat(currentLocale(), { dateStyle: "medium", timeStyle: "short" }).format(date);
+      const formatted = new Intl.DateTimeFormat(currentLocale(), {
+        dateStyle: "medium",
+        timeStyle: "short",
+        timeZone: MONOLITH_TIME_ZONE
+      }).format(date);
+      return currentLocale().startsWith("es") ? formatted.replace(/([ap])\.\s*m\.$/i, "$1. m") : formatted;
     }
 
     function lastMonthKey() {
@@ -10231,6 +10294,7 @@ if (location.hash.toLowerCase() === "#leads") history.replaceState(null, "", `${
     function remoteBodyMeasureFromRow(row) {
       return {
         id: row.id,
+        clientRequestId: row.client_request_id || "",
         studentId: row.student_id,
         date: row.measurement_date,
         weight: row.weight_kg ?? null,
@@ -10247,7 +10311,9 @@ if (location.hash.toLowerCase() === "#leads") history.replaceState(null, "", `${
         archivedBy: row.archived_by || "",
         correctionReason: row.correction_reason || "",
         isSuspicious: row.is_suspicious === true,
-        suspiciousReason: row.suspicious_reason || ""
+        suspiciousReason: row.suspicious_reason || "",
+        createdAt: row.created_at || "",
+        updatedAt: row.updated_at || row.created_at || ""
       };
     }
 
@@ -15911,8 +15977,8 @@ if (location.hash.toLowerCase() === "#leads") history.replaceState(null, "", `${
 
     function roundWeight(value) {
       if (!Number.isFinite(Number(value))) return "";
-      const rounded = Math.round(Number(value) * 10) / 10;
-      return Number.isInteger(rounded) ? String(rounded) : rounded.toFixed(1);
+      const rounded = Math.round(Number(value) * 100) / 100;
+      return Number.isInteger(rounded) ? String(rounded) : rounded.toFixed(2).replace(/0$/, "");
     }
 
     function formatWeight(valueKg, options = {}) {
@@ -15929,7 +15995,7 @@ if (location.hash.toLowerCase() === "#leads") history.replaceState(null, "", `${
 
     function parseWeightInput(value) {
       const kg = displayToKg(value);
-      return kg === null ? null : Math.round(kg * 100) / 100;
+      return kg === null ? null : Math.round(kg * 10000) / 10000;
     }
 
     function normalizePositiveNumberInput(value, { allowEmpty = true, min = 0, max = Infinity } = {}) {
@@ -15997,7 +16063,7 @@ if (location.hash.toLowerCase() === "#leads") history.replaceState(null, "", `${
         input.inputMode = rule.integer ? "numeric" : "decimal";
         input.setAttribute("min", String(rule.min ?? 0));
         input.setAttribute("max", String(rule.max));
-        input.setAttribute("step", rule.integer ? "1" : "0.1");
+        input.setAttribute("step", rule.integer ? "1" : "0.01");
         let shell = input.closest(".numeric-input-shell");
         if (!shell) {
           shell = document.createElement("div");
@@ -16795,9 +16861,15 @@ if (location.hash.toLowerCase() === "#leads") history.replaceState(null, "", `${
     }
 
     function todayKey(date = new Date()) {
-      const year = date.getFullYear();
-      const month = String(date.getMonth() + 1).padStart(2, "0");
-      const day = String(date.getDate()).padStart(2, "0");
+      const parts = Object.fromEntries(new Intl.DateTimeFormat("en-US", {
+        timeZone: MONOLITH_TIME_ZONE,
+        year: "numeric",
+        month: "2-digit",
+        day: "2-digit"
+      }).formatToParts(date).filter(part => part.type !== "literal").map(part => [part.type, part.value]));
+      const year = parts.year;
+      const month = parts.month;
+      const day = parts.day;
       return `${year}-${month}-${day}`;
     }
 
@@ -17005,7 +17077,7 @@ if (location.hash.toLowerCase() === "#leads") history.replaceState(null, "", `${
       if (reportSummary) {
         const hasReportData = Boolean(report.checkins.length || report.completedWorkouts.length || report.bodyMeasures.length || report.activeDietPlan);
         reportSummary.textContent = hasReportData
-          ? `${report.checkins.length} ${t("check-ins no período")}, ${t("aderência média de")} ${average === "--" ? "--" : average}%, ${report.completedWorkouts.length} ${t(report.completedWorkouts.length === 1 ? "treino concluído" : "treinos concluídos")}.`
+          ? `${quantityLabel(report.checkins.length, "check-in no período", "check-ins no período")}, ${t("aderência média de")} ${average === "--" ? "--" : average}%, ${report.completedWorkouts.length} ${t(report.completedWorkouts.length === 1 ? "treino concluído" : "treinos concluídos")}.`
           : t("Nenhum dado encontrado para o período selecionado.");
       }
     }
@@ -17048,10 +17120,37 @@ if (location.hash.toLowerCase() === "#leads") history.replaceState(null, "", `${
       }
     }
 
+    function uniqueBodyMeasuresForDisplay(entries = []) {
+      const seenIds = new Set();
+      const seenContent = new Set();
+      return entries.filter(entry => {
+        const id = String(entry.id || entry.clientRequestId || "").trim();
+        if (id && seenIds.has(id)) return false;
+        if (id) seenIds.add(id);
+        const contentKey = JSON.stringify([
+          entry.studentId || "",
+          entry.date || "",
+          entry.weight ?? null,
+          entry.bodyFat ?? null,
+          entry.waist ?? null,
+          entry.chest ?? null,
+          entry.arm ?? null,
+          entry.leg ?? null,
+          entry.hip ?? null,
+          entry.notes || "",
+          Boolean(entry.isSuspicious),
+          entry.suspiciousReason || ""
+        ]);
+        if (seenContent.has(contentKey)) return false;
+        seenContent.add(contentKey);
+        return true;
+      });
+    }
+
     function loadBodyMeasures(studentId = activeDataStudentId(), options = {}) {
       try {
         const user = currentAccount();
-        return loadAllBodyMeasuresRaw()
+        const visibleEntries = loadAllBodyMeasuresRaw()
           .filter(entry => {
             if (!options.includeArchived && entry.archivedAt) return false;
             if (!studentId) {
@@ -17061,7 +17160,8 @@ if (location.hash.toLowerCase() === "#leads") history.replaceState(null, "", `${
             }
             if (!canAccessStudentData(studentId, { allowPersonalSelf: true })) return false;
             return !entry.studentId || entry.studentId === studentId;
-          })
+          });
+        return uniqueBodyMeasuresForDisplay(visibleEntries)
           .sort((a, b) => String(b.date || "").localeCompare(String(a.date || "")));
       } catch {
         return [];
@@ -17287,9 +17387,16 @@ if (location.hash.toLowerCase() === "#leads") history.replaceState(null, "", `${
       const container = document.getElementById("frequencyBars");
       if (!container) return;
       const studentId = activeDataStudentId();
-      if (isRealSupabaseAccount(currentAccount()) && getRemoteDataState("report", studentId).status === "loading") {
-        renderStatsLoadingState();
-        return;
+      if (isRealSupabaseAccount(currentAccount())) {
+        const reportState = getRemoteDataState("report", studentId).status;
+        if (reportState === "loading") {
+          renderStatsLoadingState();
+          return;
+        }
+        if (reportState === "error") {
+          renderStatsErrorState();
+          return;
+        }
       }
       const metrics = studentMetrics(studentId);
       const checkins = metrics.checkins;
@@ -17513,17 +17620,18 @@ if (location.hash.toLowerCase() === "#leads") history.replaceState(null, "", `${
 
     function reportStudentFromId(studentId) {
       const user = currentAccount();
-      if (!studentId || user?.role === "student") return user;
+      if (!studentId) return null;
+      if (user?.role === "student") return studentId === user.id ? user : null;
       const safeStudentId = scopedStudentId(studentId);
-      if (!safeStudentId) return user;
-      return loadAccounts().find(account => account.id === safeStudentId) || { id: safeStudentId, name: "Aluno", email: "" };
+      if (!safeStudentId || safeStudentId !== studentId) return null;
+      return loadAccounts().find(account => account.id === safeStudentId) || null;
     }
 
-    function monthlyReportData(student = null) {
+    function monthlyReportData(student = null, options = {}) {
       const user = currentAccount();
-      const reportStudent = student || (user?.role === "student" ? user : reportStudentFromId(selectedDietStudentId()));
+      const reportStudent = student || (user?.role === "student" ? user : reportStudentFromId(activeDataStudentId()));
       const reportStudentId = activeDataStudentId(reportStudent);
-      const period = reportPeriodForStudent(reportStudent);
+      const period = options.period || reportPeriodForStudent(reportStudent);
       const metrics = studentMetrics(reportStudent, { period });
       const checkins = metrics.checkins;
       const allCompletedWorkouts = metrics.allCompletedWorkouts;
@@ -17548,8 +17656,9 @@ if (location.hash.toLowerCase() === "#leads") history.replaceState(null, "", `${
       const trainerId = user?.role === "personal" ? user.id : (reportStudent?.trainerId || user?.trainerId || "");
       const trainer = loadAccounts().find(account => account.id === trainerId) || (user?.role === "personal" ? user : null);
       const trainerPublicProfile = trainerId ? trainerProfilesCache()[trainerId] || trainerMapProfilesCache().find(item => item.trainer_id === trainerId) || null : null;
-      const locale = { pt: "pt-BR", en: "en-US", es: "es-419" }[reportLanguage()] || "pt-BR";
-      return { student: reportStudent, trainer, trainerPublicProfile, period, metrics, checkins, completedWorkouts, stats, evolution, missedDays, weights, bodyMeasures, progressPhotos, activeDietPlan, anamnesis, generatedAt: new Date().toLocaleString(locale) };
+      const language = options.language || reportLanguage();
+      const locale = { pt: "pt-BR", en: "en-US", es: "es-419" }[language] || "pt-BR";
+      return { student: reportStudent, trainer, trainerPublicProfile, period, metrics, checkins, completedWorkouts, stats, evolution, missedDays, weights, bodyMeasures, progressPhotos, activeDietPlan, anamnesis, generatedAt: new Date().toLocaleString(locale, { timeZone: MONOLITH_TIME_ZONE }) };
     }
 
     function monthlyReportHTMLLegacy() {
@@ -17782,27 +17891,30 @@ if (location.hash.toLowerCase() === "#leads") history.replaceState(null, "", `${
       ));
     }
 
-    function verifiedMonthlyReportHTML(student = null) {
-      const language = reportLanguage();
+    function verifiedMonthlyReportHTML(student = null, options = {}) {
+      const language = options.language || reportLanguage();
       const issues = reportFixedTranslationIssues(language);
       if (issues.length) {
         logAppError("report", "fixed-translation-audit", new Error(`Missing ${language} report translations`), { issues });
         authMessage("Relatório bloqueado: ainda há textos fixos sem tradução.");
         return "";
       }
-      return monthlyReportHTML(student);
+      return monthlyReportHTML(student, { ...options, language });
     }
 
     function reportDateLabel(dateKey, language = reportLanguage()) {
-      const date = dateFromKey(dateKey);
+      const date = appCalendarDate(dateKey);
       if (!date) return dateKey || "";
       const locale = { pt: "pt-BR", en: "en-US", es: "es-419" }[language] || "pt-BR";
-      return new Intl.DateTimeFormat(locale, localizedDateOptions(language)).format(date);
+      return new Intl.DateTimeFormat(locale, {
+        ...localizedDateOptions(language),
+        timeZone: MONOLITH_TIME_ZONE
+      }).format(date);
     }
 
-    function monthlyReportHTML(student = null) {
-      const report = monthlyReportData(student);
-      const language = reportLanguage();
+    function monthlyReportHTML(student = null, options = {}) {
+      const language = options.language || reportLanguage();
+      const report = options.report || monthlyReportData(student, { period: options.period, language });
       const rt = key => reportText(key, language);
       const htmlLang = ({ pt: "pt-BR", en: "en-US", es: "es" })[language] || "pt-BR";
       const studentName = report.student?.name || report.student?.full_name || rt("Aluno");
@@ -17945,15 +18057,18 @@ ${photoSections}
       link.style.left = "-10000px";
       link.setAttribute("aria-hidden", "true");
       document.body.appendChild(link);
+      let initiated = false;
+      link.addEventListener("click", () => { initiated = true; }, { once: true });
       link.click();
-      link.remove();
-      window.setTimeout(() => releaseDownloadUrl(objectUrl), 60000);
-      return true;
+      window.setTimeout(() => link.remove(), 1500);
+      window.setTimeout(() => releaseDownloadUrl(objectUrl), 120000);
+      return initiated;
     }
 
     async function prepareMonthlyReportHTML(student = null) {
       const requestedStudentId = activeDataStudentId(student);
       const requestedLanguage = reportLanguage();
+      const requestedPeriod = reportPeriodForStudent(student || reportStudentFromId(requestedStudentId));
       const hydration = await hydrateRemoteReportData(student);
       const currentTargetId = currentAccount()?.role === "student" ? currentAccount()?.id : activeDataStudentId();
       if (requestedStudentId !== currentTargetId || requestedLanguage !== reportLanguage()) {
@@ -17963,7 +18078,8 @@ ${photoSections}
         authMessage("Não foi possível carregar todos os dados do relatório. Tente novamente.");
         return { html: "", status: "error" };
       }
-      const html = verifiedMonthlyReportHTML(student);
+      const report = monthlyReportData(student, { period: requestedPeriod, language: requestedLanguage });
+      const html = verifiedMonthlyReportHTML(student, { report, period: requestedPeriod, language: requestedLanguage });
       return { html, status: html ? hydration.status : "translation-error" };
     }
 
@@ -17987,6 +18103,7 @@ ${photoSections}
       const status = document.getElementById("studentStatsReportStatus");
       if (status) {
         status.hidden = !message;
+        status.dataset.messageKey = message || "";
         status.textContent = message ? t(message) : "";
         status.classList.toggle("error", state === "error");
       }
@@ -18084,7 +18201,9 @@ ${photoSections}
       const status = t(metrics.statusKey === "new" ? "Novo aluno" : metrics.statusKey === "attention" ? "Precisa de atenção" : "Em dia");
       const statusPills = options.loading
         ? `<span class="pill operation-loading">${escapeHTML(t("Carregando dados..."))}</span>`
-        : `<span class="pill">Score ${escapeHTML(score)}</span>
+        : options.error
+          ? `<span class="pill danger">${escapeHTML(t("Não foi possível carregar os dados."))}</span>`
+          : `<span class="pill">Score ${escapeHTML(score)}</span>
           <span class="pill">${escapeHTML(t("Último check-in"))}: ${escapeHTML(lastCheckin)}</span>
           <span class="pill">${escapeHTML(status)}</span>`;
       header.hidden = false;
@@ -18153,6 +18272,7 @@ ${photoSections}
     const programDayOrder = [1, 2, 3, 4, 5, 6, 0];
     const programDayLabels = ["Domingo", "Segunda-feira", "Terça-feira", "Quarta-feira", "Quinta-feira", "Sexta-feira", "Sábado"];
     let lastProgramEditorKey = "";
+    let programRenderSequence = 0;
 
     function programTargetStudentId() {
       const user = currentAccount();
@@ -18168,7 +18288,7 @@ ${photoSections}
       panel.hidden = user?.role !== "personal";
       if (user?.role !== "personal") return;
       const students = await ensureLinkedStudentsForPersonal(user.id);
-      const previous = scopedStudentId(select.value || selectedStudentForPersonal());
+      const previous = scopedStudentId(selectedStudentForPersonal() || select.value);
       select.innerHTML = `<option value="">${escapeHTML(t("Selecionar aluno"))}</option>` + students.map(student => `<option value="${escapeHTML(student.id)}">${escapeHTML(student.name)} - ${escapeHTML(student.email)}</option>`).join("");
       select.value = students.some(student => student.id === previous) ? previous : "";
     }
@@ -18230,10 +18350,25 @@ ${photoSections}
       }).join("");
     }
 
+    function renderProgramRemoteState(state = "loading") {
+      const status = document.getElementById("programCurrentStatus");
+      const summary = document.getElementById("programSummary");
+      const calendar = document.getElementById("programCalendar");
+      if (status) status.textContent = t(state === "loading" ? "Carregando programa..." : "Não foi possível carregar o programa");
+      if (summary) summary.innerHTML = remoteStateHTML(state, {
+        loadingLabel: "Carregando programa...",
+        errorLabel: "Não foi possível carregar o programa.",
+        retryScreen: "programs"
+      });
+      if (calendar) calendar.innerHTML = "";
+    }
+
     async function renderPrograms() {
+      const requestId = ++programRenderSequence;
       const user = currentAccount();
       if (!user) return;
       await renderProgramStudentSelect();
+      if (requestId !== programRenderSequence) return;
       const studentId = programTargetStudentId();
       const empty = document.getElementById("programEmptyState");
       const workspace = document.getElementById("programWorkspace");
@@ -18243,18 +18378,26 @@ ${photoSections}
       if (workspace) workspace.hidden = needsSelection;
       if (form) form.hidden = user.role !== "personal" || needsSelection;
       if (needsSelection) return;
+      if (isRealSupabaseAccount(user)) renderProgramRemoteState("loading");
       await window.monolithRefreshWorkoutView?.();
+      if (requestId !== programRenderSequence || programTargetStudentId() !== studentId) return;
       let programsTableAvailable = true;
       if (isRealSupabaseAccount(user)) {
         try {
           await loadRemoteWorkoutPrograms(studentId);
         } catch (error) {
+          if (requestId !== programRenderSequence || programTargetStudentId() !== studentId) return;
           logAppError("programs", "load", error, { studentId });
           programsTableAvailable = !workoutProgramsTableMissing(error);
           if (!programsTableAvailable) markCachedWorkoutProgramsUnavailable(studentId);
           showToast(t("Não consegui carregar o programa agora. Verifique se a etapa 24 do banco foi executada."));
+          if (programsTableAvailable) {
+            renderProgramRemoteState("error");
+            return;
+          }
         }
       }
+      if (requestId !== programRenderSequence || programTargetStudentId() !== studentId) return;
       if (!programsTableAvailable) {
         renderProgramCalendar(null, studentId);
         const status = document.getElementById("programCurrentStatus");
@@ -18466,7 +18609,7 @@ ${photoSections}
         return;
       }
       const students = await ensureLinkedStudentsForPersonal(user.id);
-      const previousStudentId = scopedStudentId(select.value || selectedStudentForPersonal());
+      const previousStudentId = scopedStudentId(selectedStudentForPersonal() || select.value);
       select.innerHTML = `<option value="">${escapeHTML(t("Selecionar aluno"))}</option>` + students.map(student => `<option value="${escapeHTML(student.id)}">${escapeHTML(student.name)} - ${escapeHTML(student.email)}</option>`).join("");
       if (students.some(student => student.id === previousStudentId)) select.value = previousStudentId;
       else select.value = "";
@@ -19271,6 +19414,7 @@ ${photoSections}
         renderStatsErrorState();
         return result;
       }
+      renderStudentContextHeader();
       if (stats) renderStats();
       if (measures) renderBodyMeasures();
       if (photos) renderPhotoVault();
@@ -19302,6 +19446,7 @@ ${photoSections}
     }
 
     function renderStatsErrorState() {
+      renderStudentContextHeader({ error: true });
       const error = remoteStateHTML("error", {
         errorLabel: "Não foi possível carregar os dados do relatório.",
         retryScreen: "stats"
@@ -19709,7 +19854,23 @@ ${photoSections}
 
       const studentScreenButton = event.target.closest("[data-student-screen]");
       if (studentScreenButton && !studentScreenButton.disabled) {
-        setSelectedStudentForPersonal(studentScreenButton.dataset.studentId);
+        const targetStudentId = studentScreenButton.dataset.studentId || "";
+        if (!setSelectedStudentForPersonal(targetStudentId)) {
+          authMessage("Você não tem acesso aos dados deste aluno.");
+          return;
+        }
+        const targetSelectId = {
+          stats: "statsStudent",
+          nutrition: "dietStudent",
+          checkin: "checkinStudent",
+          workouts: "workoutStudent",
+          anamnesis: "anamnesisStudent",
+          programs: "programStudent"
+        }[studentScreenButton.dataset.studentScreen];
+        const targetSelect = targetSelectId ? document.getElementById(targetSelectId) : null;
+        if (targetSelect && [...targetSelect.options].some(option => option.value === targetStudentId)) {
+          targetSelect.value = targetStudentId;
+        }
         closeStudentActionMenus();
         showScreen(studentScreenButton.dataset.studentScreen, { section: studentScreenButton.dataset.studentSection || "", historyMode: "push" });
         return;
@@ -20073,16 +20234,19 @@ ${photoSections}
       }
       const student = currentAccount()?.role === "student" ? currentAccount() : reportStudentFromId(activeDataStudentId());
       const language = reportLanguage();
-      const requestedStudentId = student?.id || "";
-      setReportControlsState("loading", "Gerando relatório...");
-      const prepared = await prepareMonthlyReportHTML(student);
-      const currentTargetId = currentAccount()?.role === "student" ? currentAccount()?.id : activeDataStudentId();
-      if (requestedStudentId !== currentTargetId || language !== reportLanguage()) return;
-      if (!prepared.html) {
+      const reportState = getRemoteDataState("report", student?.id || "").status;
+      if (isRealSupabaseAccount(currentAccount()) && ["loading", "error"].includes(reportState)) {
+        setReportControlsState(reportState, reportState === "loading" ? "Carregando relatório..." : "Não foi possível gerar o relatório");
+        return;
+      }
+      const period = reportPeriodForStudent(student);
+      const report = monthlyReportData(student, { period, language });
+      const html = verifiedMonthlyReportHTML(student, { report, period, language });
+      if (!html) {
         setReportControlsState("error", "Não foi possível gerar o relatório");
         return;
       }
-      const downloaded = downloadTextFile(reportFilename(student, language), "text/html;charset=utf-8", prepared.html);
+      const downloaded = downloadTextFile(reportFilename(student, language), "text/html;charset=utf-8", html);
       setReportControlsState(downloaded ? "ready" : "error", downloaded ? "Download iniciado" : "Não foi possível gerar o relatório");
       if (downloaded) showToast("Download iniciado");
     });
@@ -22142,6 +22306,20 @@ ${photoSections}
     window.monolithRenderSpace = renderSpace;
 
     Object.assign(translations.en, {
+      "check-in no período": "check-in in the period",
+      "Carregando alunos e check-ins...": "Loading students and check-ins...",
+      "Não consegui carregar os alunos e check-ins agora.": "Students and check-ins could not be loaded right now.",
+      "Você não tem acesso aos dados deste aluno.": "You do not have access to this student's data.",
+      "Não foi possível carregar os dados.": "The data could not be loaded.",
+      "Carregando programa...": "Loading program...",
+      "Não foi possível carregar o programa": "The program could not be loaded",
+      "Não foi possível carregar o programa.": "The program could not be loaded.",
+      "Respira, controla e faz a próxima repetição valer.": "Breathe, control it, and make the next rep count.",
+      "Não negocia com a vontade de parar. Executa limpo.": "Do not negotiate with the urge to stop. Keep the execution clean.",
+      "Você não precisa estar motivado, precisa terminar esta série.": "You do not need to feel motivated, you need to finish this set.",
+      "Mais uma série bem feita e você fica mais perto do corpo que prometeu construir.": "One more well-done set and you are closer to the body you promised to build.",
+      "Foco no músculo, foco na técnica, foco no próximo número.": "Focus on the muscle, focus on technique, focus on the next number.",
+      "O treino de hoje vira evidência. Continua.": "Today's workout becomes evidence. Keep going.",
       "Não foi possível criar o relatório.": "The report could not be created.",
       "Os dados não foram alterados. Verifique a conexão e tente novamente.": "No data was changed. Check your connection and try again.",
       "Não foi possível carregar todos os dados do relatório. Tente novamente.": "Not all report data could be loaded. Try again.",
@@ -22170,6 +22348,11 @@ ${photoSections}
       "Toque para retomar o microfone.": "Tap to resume the microphone.",
       "Reconhecimento indisponível": "Speech recognition unavailable",
       "Use o comando em texto neste navegador.": "Use the text command in this browser.",
+      "Navegador incompatível": "Incompatible browser",
+      "Reconhecimento de voz indisponível. Fallback por texto disponível.": "Speech recognition is unavailable. Text fallback is available.",
+      "Fallback por texto disponível.": "Text fallback is available.",
+      "Permissão negada": "Permission denied",
+      "Libere o microfone no navegador ou use o comando em texto.": "Allow the microphone in your browser or use the text command.",
       "Sessão encerrada": "Session ended",
       "O limite de duas horas foi atingido.": "The two-hour limit was reached.",
       "Treino concluído": "Workout completed",
@@ -22244,6 +22427,20 @@ ${photoSections}
       "Ação cancelada": "Action canceled"
     });
     Object.assign(translations.es, {
+      "check-in no período": "check-in en el período",
+      "Carregando alunos e check-ins...": "Cargando alumnos y check-ins...",
+      "Não consegui carregar os alunos e check-ins agora.": "No se pudieron cargar los alumnos y check-ins ahora.",
+      "Você não tem acesso aos dados deste aluno.": "No tienes acceso a los datos de este alumno.",
+      "Não foi possível carregar os dados.": "No se pudieron cargar los datos.",
+      "Carregando programa...": "Cargando programa...",
+      "Não foi possível carregar o programa": "No se pudo cargar el programa",
+      "Não foi possível carregar o programa.": "No se pudo cargar el programa.",
+      "Respira, controla e faz a próxima repetição valer.": "Respira, controla y haz que la próxima repetición valga.",
+      "Não negocia com a vontade de parar. Executa limpo.": "No negocies con las ganas de parar. Ejecuta limpio.",
+      "Você não precisa estar motivado, precisa terminar esta série.": "No necesitas estar motivado, necesitas terminar esta serie.",
+      "Mais uma série bem feita e você fica mais perto do corpo que prometeu construir.": "Una serie más bien hecha y estás más cerca del cuerpo que prometiste construir.",
+      "Foco no músculo, foco na técnica, foco no próximo número.": "Foco en el músculo, foco en la técnica, foco en el próximo número.",
+      "O treino de hoje vira evidência. Continua.": "El entreno de hoy se convierte en evidencia. Continúa.",
       "Não foi possível criar o relatório.": "No se pudo crear el informe.",
       "Os dados não foram alterados. Verifique a conexão e tente novamente.": "No se modificaron los datos. Revisa la conexión e inténtalo de nuevo.",
       "Não foi possível carregar todos os dados do relatório. Tente novamente.": "No se pudieron cargar todos los datos del informe. Inténtalo de nuevo.",
@@ -22272,6 +22469,11 @@ ${photoSections}
       "Toque para retomar o microfone.": "Toca para reactivar el micrófono.",
       "Reconhecimento indisponível": "Reconocimiento de voz no disponible",
       "Use o comando em texto neste navegador.": "Usa el comando de texto en este navegador.",
+      "Navegador incompatível": "Navegador incompatible",
+      "Reconhecimento de voz indisponível. Fallback por texto disponível.": "El reconocimiento de voz no está disponible. El comando de texto sigue disponible.",
+      "Fallback por texto disponível.": "El comando de texto está disponible.",
+      "Permissão negada": "Permiso denegado",
+      "Libere o microfone no navegador ou use o comando em texto.": "Autoriza el micrófono en el navegador o usa el comando de texto.",
       "Sessão encerrada": "Sesión finalizada",
       "O limite de duas horas foi atingido.": "Se alcanzó el límite de dos horas.",
       "Treino concluído": "Entrenamiento completado",
@@ -22450,13 +22652,13 @@ ${photoSections}
       window.monolithSetTypeLabel = setTypeLabelV2;
       window.monolithExerciseDisplayName = exerciseDisplayNameV2;
       const motivationMessagesV2 = [
-        "Respira, controla e faz a proxima repeticao valer.",
-        "Nao negocia com a vontade de parar. Executa limpo.",
-        "Voce nao precisa estar motivado, precisa terminar esta serie.",
+        "Respira, controla e faz a próxima repetição valer.",
+        "Não negocia com a vontade de parar. Executa limpo.",
+        "Você não precisa estar motivado, precisa terminar esta série.",
         "Carga boa, forma melhor ainda. Domina o movimento.",
-        "Mais uma serie bem feita e voce fica mais perto do corpo que prometeu construir.",
-        "Foco no musculo, foco na tecnica, foco no proximo numero.",
-        "O treino de hoje vira evidencia. Continua.",
+        "Mais uma série bem feita e você fica mais perto do corpo que prometeu construir.",
+        "Foco no músculo, foco na técnica, foco no próximo número.",
+        "O treino de hoje vira evidência. Continua.",
         "Sem pressa, sem ego: amplitude, controle e intensidade."
       ];
       const defaultWorkoutsV2 = [
@@ -23021,7 +23223,9 @@ ${photoSections}
         misunderstood: ["Comando não compreendido", "Repita sem inventar valores."],
         error: ["Microfone indisponível", "Revise a permissão do navegador ou use o comando em texto."],
         paused: ["Monolith Voice pausado", "Toque para retomar o microfone."],
-        unsupported: ["Reconhecimento indisponível", "Use o comando em texto neste navegador."],
+        denied: ["Permissão negada", "Libere o microfone no navegador ou use o comando em texto."],
+        unsupported: ["Navegador incompatível", "Reconhecimento de voz indisponível. Fallback por texto disponível."],
+        "recognition-unavailable": ["Reconhecimento indisponível", "Fallback por texto disponível."],
         expired: ["Sessão encerrada", "O limite de duas horas foi atingido."],
         completed: ["Treino concluído", "O microfone foi desligado automaticamente."]
       };
@@ -23037,7 +23241,9 @@ ${photoSections}
           saved: "Aplicado",
           misunderstood: "Não compreendido",
           error: "Microfone indisponível",
-          unsupported: "Microfone indisponível",
+          denied: "Permissão negada",
+          unsupported: "Navegador incompatível",
+          "recognition-unavailable": "Reconhecimento indisponível",
           paused: "Desligado",
           completed: "Aplicado"
         };
@@ -23199,8 +23405,15 @@ ${photoSections}
           const fatal = ["not-allowed", "service-not-allowed", "audio-capture", "language-not-supported"].includes(event.error);
           if (fatal) {
             voiceStateV2.paused = true;
+            voiceStateV2.visualOnly = true;
             stopVoiceMediaV2();
-            setVoiceVisualStateV2("error", "Microfone indisponível", event.error === "not-allowed" ? "Permissão negada. Libere o microfone no navegador ou use o comando em texto." : "Não encontrei um microfone disponível.");
+            if (["not-allowed", "service-not-allowed"].includes(event.error)) {
+              setVoiceVisualStateV2("denied");
+            } else if (event.error === "language-not-supported") {
+              setVoiceVisualStateV2("recognition-unavailable");
+            } else {
+              setVoiceVisualStateV2("error", "Microfone indisponível", "Não encontrei um microfone disponível.");
+            }
           } else if (!["aborted", "no-speech"].includes(event.error)) {
             setVoiceVisualStateV2("misunderstood", "Não consegui ouvir", "Use Falar agora ou escreva o comando.", 2800);
           }
@@ -23259,9 +23472,9 @@ ${photoSections}
 
       async function startVoiceCaptureOnceV2() {
         if (!voiceStateV2.active) await beginVoiceSessionV2();
-        if (!VoiceRecognitionV2 || voiceStateV2.visualOnly) {
+        if (!VoiceRecognitionV2) {
           setVoicePanelOpenV2(true);
-          setVoiceVisualStateV2("error", "Microfone indisponível", "Use o comando em texto ou tente novamente manualmente.");
+          setVoiceVisualStateV2("unsupported");
           document.getElementById("voiceManualCommand")?.focus();
           return false;
         }
@@ -23284,7 +23497,7 @@ ${photoSections}
           finishVoiceCaptureOnceV2();
           voiceStateV2.visualOnly = true;
           voiceStateV2.paused = true;
-          setVoiceVisualStateV2("error", "Microfone indisponível", "Use o comando em texto ou tente novamente manualmente.");
+          setVoiceVisualStateV2(error?.name === "NotAllowedError" ? "denied" : "error", "", error?.name === "NotAllowedError" ? "" : "Use o comando em texto ou tente novamente manualmente.");
           return false;
         }
       }
@@ -23307,7 +23520,7 @@ ${photoSections}
           voiceStateV2.undoStack = [];
         }
         voiceStateV2.active = true;
-        voiceStateV2.paused = Boolean(visualOnly);
+        voiceStateV2.paused = false;
         voiceStateV2.visualOnly = Boolean(visualOnly);
         voiceStateV2.manuallyStopped = false;
         clearInterval(voiceStateV2.ticker);
@@ -23317,14 +23530,19 @@ ${photoSections}
         markVoiceCurrentExerciseV2(voiceStateV2.currentExerciseIndex, false);
         saveVoiceDraftV2();
         if (visualOnly) {
-          setVoiceVisualStateV2("error", "Microfone indisponível", "Use o comando em texto ou toque em Falar agora para tentar o microfone.");
+          if (!VoiceRecognitionV2) {
+            voiceStateV2.paused = true;
+            setVoiceVisualStateV2("unsupported");
+          } else {
+            setVoiceVisualStateV2("ready");
+          }
           scheduleVoiceSessionSyncV2();
           return true;
         }
         if (!VoiceRecognitionV2) {
           voiceStateV2.paused = true;
           voiceStateV2.visualOnly = true;
-          setVoiceVisualStateV2("error", "Microfone indisponível", "Este navegador não oferece reconhecimento de voz. O comando por texto continua funcionando.");
+          setVoiceVisualStateV2("unsupported");
           scheduleVoiceSessionSyncV2();
           return true;
         }
@@ -23356,7 +23574,7 @@ ${photoSections}
           voiceStateV2.paused = true;
           voiceStateV2.visualOnly = true;
           stopVoiceMediaV2();
-          setVoiceVisualStateV2("error", "Microfone indisponível", error?.name === "NotAllowedError" ? "Permissão negada. Libere o microfone no navegador ou use o comando em texto." : "Não consegui abrir o microfone. Use o comando em texto.");
+          setVoiceVisualStateV2(error?.name === "NotAllowedError" ? "denied" : "error", "", error?.name === "NotAllowedError" ? "" : "Não consegui abrir o microfone. Use o comando em texto.");
           scheduleVoiceSessionSyncV2();
           return false;
         }
@@ -23376,11 +23594,7 @@ ${photoSections}
         if (!voiceStateV2.active) return beginVoiceSessionV2();
         if (!VoiceRecognitionV2) {
           voiceStateV2.visualOnly = true;
-          setVoiceVisualStateV2("error", "Microfone indisponível", "Este navegador não oferece reconhecimento de voz. O comando por texto continua funcionando.");
-          setVoicePanelOpenV2(true);
-          return false;
-        }
-        if (voiceStateV2.visualOnly && voiceStateV2.status === "error") {
+          setVoiceVisualStateV2("unsupported");
           setVoicePanelOpenV2(true);
           return false;
         }
@@ -23411,7 +23625,7 @@ ${photoSections}
           logAppError("voice", "microphone-resume", error);
           voiceStateV2.paused = true;
           voiceStateV2.visualOnly = true;
-          setVoiceVisualStateV2("error", "Microfone indisponível", "Use o comando em texto ou tente novamente manualmente.");
+          setVoiceVisualStateV2(error?.name === "NotAllowedError" ? "denied" : "error", "", error?.name === "NotAllowedError" ? "" : "Use o comando em texto ou tente novamente manualmente.");
           return false;
         }
       }
@@ -23878,8 +24092,9 @@ ${photoSections}
         if (intent === "start_workout") {
           const workout = voiceWorkoutMatchV2(payload.query);
           if (!workout) { speakVoiceV2(voiceReplyV2("workout_missing")); return false; }
-          renderSessionV2(workout);
           showScreen("session", { skipDirtyGuard: true });
+          renderSessionV2(workout);
+          updateVoiceAvailabilityV2();
           markVoiceCurrentExerciseV2(0, true);
           addVoiceHistoryV2("Treino iniciado", workout.name, "applied", commandId);
           speakVoiceV2(voiceReplyV2("workout_started"));
@@ -25575,8 +25790,9 @@ ${photoSections}
             return;
           }
           await refreshCompletedWorkoutHistoryV2(workout.assignedStudentId || currentAccount()?.id || "");
-          renderSessionV2(workout);
           showScreen("session");
+          renderSessionV2(workout);
+          updateVoiceAvailabilityV2();
         }
 
         const voiceStart = event.target.closest(".start-workout-voice-v2");
@@ -25588,8 +25804,8 @@ ${photoSections}
           if (!workout) return;
           await runPendingOperation(`voice-open-workout:${workout.id}`, voiceStart, async () => {
             await refreshCompletedWorkoutHistoryV2(workout.assignedStudentId || currentAccount()?.id || "");
-            renderSessionV2(workout);
             showScreen("session", { skipDirtyGuard: true });
+            renderSessionV2(workout);
             updateVoiceAvailabilityV2();
             setVoicePanelOpenV2(true);
             if (!voiceStateV2.active) await beginVoiceSessionV2({ visualOnly: true });
