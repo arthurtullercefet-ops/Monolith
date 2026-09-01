@@ -14,8 +14,8 @@
   <link rel="manifest" href="manifest.webmanifest" />
   <link rel="icon" href="monolith-icon.svg" />
   <script>
-window.MONOLITH_BUILD = "monolith-v100-report-diet-language-space";
-window.MONOLITH_VERSION_LABEL = "Monolith v100 · 29/08/2026";
+window.MONOLITH_BUILD = "monolith-v101-student-flow-stability";
+window.MONOLITH_VERSION_LABEL = "Monolith v101 · 31/08/2026";
     (function clearOldAppCaches() {
       if ("serviceWorker" in navigator) {
         navigator.serviceWorker.getRegistrations?.()
@@ -622,6 +622,8 @@ window.MONOLITH_VERSION_LABEL = "Monolith v100 · 29/08/2026";
       position: sticky;
       top: 0;
       height: 100vh;
+      min-height: 0;
+      overflow: hidden;
       padding: 28px 18px;
       border-right: 1px solid var(--line);
       background: #080808;
@@ -635,6 +637,7 @@ window.MONOLITH_VERSION_LABEL = "Monolith v100 · 29/08/2026";
       align-items: center;
       gap: 12px;
       padding: 0 8px;
+      flex: 0 0 auto;
     }
 
     .mark {
@@ -721,6 +724,12 @@ window.MONOLITH_VERSION_LABEL = "Monolith v100 · 29/08/2026";
     nav {
       display: grid;
       gap: 6px;
+      min-height: 0;
+      overflow-x: hidden;
+      overflow-y: auto;
+      overscroll-behavior: contain;
+      scrollbar-gutter: stable;
+      padding-right: 4px;
     }
 
     .nav-btn {
@@ -850,6 +859,7 @@ window.MONOLITH_VERSION_LABEL = "Monolith v100 · 29/08/2026";
       border: 1px solid var(--line);
       background: var(--panel);
       padding: 14px;
+      flex: 0 0 auto;
     }
 
     .offline strong {
@@ -873,6 +883,7 @@ window.MONOLITH_VERSION_LABEL = "Monolith v100 · 29/08/2026";
       gap: 10px;
       border-radius: var(--radius-card);
       box-shadow: var(--shadow-soft);
+      flex: 0 0 auto;
     }
 
     .session-card strong {
@@ -3652,11 +3663,14 @@ window.MONOLITH_VERSION_LABEL = "Monolith v100 · 29/08/2026";
         min-width: 0;
         max-width: 100%;
         height: auto;
+        overflow: visible;
         padding: 16px;
       }
 
       nav {
         grid-template-columns: repeat(3, minmax(0, 1fr));
+        overflow: visible;
+        padding-right: 0;
       }
 
       .nav-btn {
@@ -4919,6 +4933,8 @@ window.MONOLITH_VERSION_LABEL = "Monolith v100 · 29/08/2026";
     .voice-command-form input { min-width: 0; }
     .voice-command-actions { justify-content: flex-start; flex-wrap: wrap; }
     .voice-command-actions button { min-height: 38px; }
+    #voiceTalkNow { display: inline-flex; align-items: center; gap: 8px; }
+    #voiceTalkNow svg { flex: 0 0 auto; }
     .voice-settings { margin-top: 14px; border-top: 1px solid var(--line); padding-top: 12px; }
     .voice-settings summary { cursor: pointer; font-weight: 700; }
     .voice-settings-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 12px; }
@@ -5013,7 +5029,7 @@ window.MONOLITH_VERSION_LABEL = "Monolith v100 · 29/08/2026";
           <button class="action" id="loginButton" type="submit">Entrar</button>
           <div class="auth-tools">
             <button class="auth-secondary" id="clearDeviceSessionButton" type="button">Limpar sessão/cache deste aparelho</button>
-            <div class="build-version" id="buildVersionLabel">Versão do app: Monolith v99 · 28/08/2026</div>
+            <div class="build-version" id="buildVersionLabel">Versão do app: Monolith v101 · 31/08/2026</div>
           </div>
         </form>
       </div>
@@ -5643,6 +5659,12 @@ window.MONOLITH_VERSION_LABEL = "Monolith v100 · 29/08/2026";
         <div class="grid stats-layout" id="nutritionStudentPanel" data-role-only="student" hidden>
           <div class="panel">
             <div class="section-title"><h3>Dieta do mês</h3><span>Somente leitura</span></div>
+            <div class="nutrition-controls">
+              <div class="field">
+                <label for="studentDietMonth">Mês da dieta</label>
+                <input id="studentDietMonth" type="month" />
+              </div>
+            </div>
             <div class="locked-note" id="studentDietNote">Seu personal define esta dieta. Você pode visualizar, mas não redesenhar.</div>
             <div class="diet-view" id="studentDietView"></div>
           </div>
@@ -5817,7 +5839,7 @@ window.MONOLITH_VERSION_LABEL = "Monolith v100 · 29/08/2026";
             <button class="action" type="submit">Enviar</button>
           </form>
           <div class="voice-command-actions">
-            <button class="ghost" id="voiceTalkNow" type="button">Falar agora</button>
+            <button class="ghost" id="voiceTalkNow" type="button"><svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z" fill="none" stroke="currentColor" stroke-width="2"/><path d="M19 10v2a7 7 0 0 1-14 0v-2M12 19v3M8 22h8" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg><span>Falar agora</span></button>
             <button class="ghost" id="voicePauseButton" type="button">Pausar</button>
             <button class="ghost" id="voiceUndoButton" type="button">Desfazer</button>
             <button class="ghost" id="voiceStopButton" type="button">Encerrar voz</button>
@@ -6811,8 +6833,8 @@ window.MONOLITH_VERSION_LABEL = "Monolith v100 · 29/08/2026";
   <script>
     const MONOLITH_SUPABASE_URL = "https://jhxasnxuvmkhntbwepau.supabase.co";
     const MONOLITH_SUPABASE_KEY = "sb_publishable_lDtAXIOtkMwgwsAZyghBdg_gyLHGwpH";
-const MONOLITH_BUILD = window.MONOLITH_BUILD || "monolith-v100-report-diet-language-space";
-const MONOLITH_VERSION_LABEL = window.MONOLITH_VERSION_LABEL || "Monolith v100 · 29/08/2026";
+const MONOLITH_BUILD = window.MONOLITH_BUILD || "monolith-v101-student-flow-stability";
+const MONOLITH_VERSION_LABEL = window.MONOLITH_VERSION_LABEL || "Monolith v101 · 31/08/2026";
     const onboardingStepDefinitions = [
       ["welcome", "Boas-vindas", "Conheça o fluxo do seu acompanhamento.", "home"],
       ["terms", "Termos", "Revise consentimentos e informações da conta.", "profile"],
@@ -8895,9 +8917,9 @@ if (location.hash.toLowerCase() === "#leads") history.replaceState(null, "", `${
       const lastWorkout = [...allCompleted].sort((a, b) => String(b.completedAt || b.date || "").localeCompare(String(a.completedAt || a.date || "")))[0] || null;
       const bodyEntries = reportUsableBodyMeasures(loadBodyMeasures(studentId));
       const weightCandidates = [
-        ...bodyEntries.filter(entry => Number.isFinite(Number(entry.weight))).map(entry => ({ date: entry.date, value: Number(entry.weight) })),
-        ...loadCheckins(studentId).filter(entry => Number.isFinite(Number(entry.weight))).map(entry => ({ date: entry.date, value: Number(entry.weight) }))
-      ].sort((a, b) => String(b.date).localeCompare(String(a.date)));
+        ...bodyEntries.map(entry => ({ date: entry.date, value: numericBodyMeasureValue(entry.weight) })),
+        ...loadCheckins(studentId).map(entry => ({ date: entry.date, value: numericBodyMeasureValue(entry.weight) }))
+      ].filter(entry => entry.value !== null).sort((a, b) => String(b.date).localeCompare(String(a.date)));
       let streak = 0;
       const checkedDates = new Set(checkins.map(entry => entry.date));
       for (let index = period.dateKeys.length - 1; index >= 0 && checkedDates.has(period.dateKeys[index]); index -= 1) streak += 1;
@@ -9132,7 +9154,10 @@ if (location.hash.toLowerCase() === "#leads") history.replaceState(null, "", `${
       document.querySelectorAll("[data-role-only]").forEach(element => {
         element.hidden = !user || element.dataset.roleOnly !== user.role;
       });
-      if (user) applyLanguage(user.language || localStorage.getItem("monolith.language") || "pt");
+      if (user) {
+        window.monolithApplySpaceTheme?.(cachedActiveSpaceForUser(user));
+        applyLanguage(user.language || localStorage.getItem("monolith.language") || "pt");
+      }
       updateSpaceEntitlementUI(user);
       const invitePanel = document.getElementById("inviteCodePanel");
       if (invitePanel && (!user || user.role !== "personal")) invitePanel.hidden = true;
@@ -9170,13 +9195,36 @@ if (location.hash.toLowerCase() === "#leads") history.replaceState(null, "", `${
         ];
       }
       saveAccounts(nextAccounts);
+      studentTrainerLinkStates.set(user.id, { status: "loaded", trainerId, error: null });
+      renderOnboardingHomeCard();
+    }
+
+    const studentTrainerLinkStates = new Map();
+    const studentTrainerLinkRequests = new Map();
+
+    function studentTrainerLinkState(user = currentAccount()) {
+      if (!user?.id || user.role !== "student") return { status: "empty", trainerId: "", error: null };
+      const latest = loadAccounts().find(account => account.id === user.id) || user;
+      const cachedTrainerId = latest.trainerId || "";
+      const state = studentTrainerLinkStates.get(user.id);
+      if (cachedTrainerId) return { status: "loaded", trainerId: cachedTrainerId, error: null };
+      return state || { status: isRealSupabaseAccount(latest) ? "idle" : "empty", trainerId: "", error: null };
     }
 
     async function ensureStudentTrainerId(user = currentAccount()) {
       if (!user || user.role !== "student") return "";
-      if (user.trainerId && (user.trainerLinkedAt || user.source !== "supabase")) return user.trainerId;
-      if (!user.source || user.source !== "supabase" || !monolithSupabase) return "";
-      try {
+      const latest = loadAccounts().find(account => account.id === user.id) || user;
+      if (latest.trainerId) {
+        studentTrainerLinkStates.set(user.id, { status: "loaded", trainerId: latest.trainerId, error: null });
+        return latest.trainerId;
+      }
+      if (!isRealSupabaseAccount(latest) || !monolithSupabase) {
+        studentTrainerLinkStates.set(user.id, { status: "empty", trainerId: "", error: null });
+        return "";
+      }
+      if (studentTrainerLinkRequests.has(user.id)) return studentTrainerLinkRequests.get(user.id);
+      studentTrainerLinkStates.set(user.id, { status: "loading", trainerId: "", error: null });
+      const request = (async () => {
         const { data: links, error } = await monolithSupabase
           .from("trainer_students")
           .select("trainer_id,status,created_at")
@@ -9185,18 +9233,25 @@ if (location.hash.toLowerCase() === "#leads") history.replaceState(null, "", `${
           .limit(1);
         if (error) throw error;
         const trainerId = links?.[0]?.trainer_id || "";
-        if (!trainerId) return "";
-        const { data: trainer } = await monolithSupabase
+        if (!trainerId) {
+          studentTrainerLinkStates.set(user.id, { status: "empty", trainerId: "", error: null });
+          return "";
+        }
+        const { data: trainer, error: trainerError } = await monolithSupabase
           .from("profiles")
           .select("id,email,full_name,role,space_enabled")
           .eq("id", trainerId)
           .maybeSingle();
-        saveStudentTrainerLink(user, trainerId, trainer, links?.[0]?.created_at || "");
+        if (trainerError) logAppError("trainer-link", "trainer-profile", trainerError, { studentId: user.id, trainerId });
+        saveStudentTrainerLink(latest, trainerId, trainer || null, links?.[0]?.created_at || "");
         return trainerId;
-      } catch (error) {
+      })().catch(error => {
         logAppError("trainer-link", "lookup", error, { studentId: user.id });
+        studentTrainerLinkStates.set(user.id, { status: "error", trainerId: "", error });
         return "";
-      }
+      }).finally(() => studentTrainerLinkRequests.delete(user.id));
+      studentTrainerLinkRequests.set(user.id, request);
+      return request;
     }
 
     async function renderTrainerLinkPanel() {
@@ -9208,16 +9263,18 @@ if (location.hash.toLowerCase() === "#leads") history.replaceState(null, "", `${
       const user = currentAccount();
       panel.hidden = !user || user.role !== "student";
       if (!user || user.role !== "student") return;
-      if (user.trainerId || (user.source === "supabase" && monolithSupabase)) {
-        if (!user.trainerId) status.textContent = t("Verificando vínculo com personal...");
-        const trainerId = user.trainerId || await ensureStudentTrainerId(user);
-        if (!trainerId) {
-          if (form) form.hidden = false;
-          if (helper) helper.hidden = false;
-          status.textContent = t("Sem personal vinculado.");
-          return;
-        }
-        const trainer = loadAccounts().find(account => account.id === trainerId);
+      const initialState = studentTrainerLinkState(user);
+      if (["idle", "loading"].includes(initialState.status)) {
+        if (form) form.hidden = true;
+        if (helper) helper.hidden = true;
+        status.textContent = t("Verificando vínculo com personal...");
+      }
+      const trainerId = initialState.trainerId || await ensureStudentTrainerId(user);
+      if (currentAccount()?.id !== user.id) return;
+      const resolvedState = studentTrainerLinkState(currentAccount());
+      if (trainerId || resolvedState.trainerId) {
+        const linkedTrainerId = trainerId || resolvedState.trainerId;
+        const trainer = loadAccounts().find(account => account.id === linkedTrainerId);
         if (form) form.hidden = true;
         if (helper) helper.hidden = true;
         status.textContent = trainer ? `${t("Vinculado a")} ${trainer.name}.` : t("Aluno vinculado a um personal.");
@@ -9225,7 +9282,9 @@ if (location.hash.toLowerCase() === "#leads") history.replaceState(null, "", `${
       }
       if (form) form.hidden = false;
       if (helper) helper.hidden = false;
-      status.textContent = t("Sem personal vinculado.");
+      status.textContent = resolvedState.status === "error"
+        ? t("Não foi possível verificar o personal vinculado agora.")
+        : t("Sem personal vinculado.");
     }
 
     function showUnlinkTrainerNotice(message = "") {
@@ -9258,6 +9317,36 @@ if (location.hash.toLowerCase() === "#leads") history.replaceState(null, "", `${
       }
       const name = profile ? trainerMapProfileName(profile) : trainerNameFromCache(trainerId) || t("Personal vinculado");
       card.innerHTML = `${profile ? trainerMapAvatarHTML(profile) : `<div class="trainer-map-avatar">${escapeHTML(studentInitials(name).toUpperCase())}</div>`}<div><strong data-no-i18n="true">${escapeHTML(name)}</strong><span>${escapeHTML(t("Vínculo ativo"))}</span></div><button class="ghost" type="button" data-open-trainer-profile="${escapeHTML(trainerId)}" ${profile ? "" : "disabled"}>${escapeHTML(t("Abrir perfil"))}</button>`;
+    }
+
+    async function renderProfileTrainerLink(user = currentAccount()) {
+      const status = document.getElementById("profileTrainerStatus");
+      const unlinkButton = document.getElementById("unlinkTrainerButton");
+      if (!status || !user || user.role !== "student") return;
+      const initialState = studentTrainerLinkState(user);
+      if (["idle", "loading"].includes(initialState.status)) {
+        status.textContent = t("Verificando vínculo com personal...");
+        if (unlinkButton) unlinkButton.hidden = true;
+      }
+      const trainerId = initialState.trainerId || await ensureStudentTrainerId(user);
+      if (currentAccount()?.id !== user.id) return;
+      const latestUser = currentAccount();
+      const resolvedState = studentTrainerLinkState(latestUser);
+      const linkedTrainerId = trainerId || resolvedState.trainerId;
+      if (linkedTrainerId) {
+        const trainerName = trainerNameFromCache(linkedTrainerId);
+        const linkedDate = entryDateKey(latestUser?.trainerLinkedAt || "");
+        const linkedMeta = linkedDate ? ` · ${t("Vínculo iniciado em")}: ${localDateLabel(linkedDate)}` : "";
+        status.textContent = `${trainerName ? `${t("Vinculado a")} ${trainerName}` : t("Aluno vinculado a um personal")}${linkedMeta}.`;
+        if (unlinkButton) unlinkButton.hidden = false;
+        renderLinkedTrainerProfile(linkedTrainerId);
+        return;
+      }
+      status.textContent = resolvedState.status === "error"
+        ? t("Não foi possível verificar o personal vinculado agora.")
+        : t("Sem personal vinculado.");
+      if (unlinkButton) unlinkButton.hidden = true;
+      renderLinkedTrainerProfile("");
     }
 
     async function unlinkStudentTrainer() {
@@ -9314,6 +9403,7 @@ if (location.hash.toLowerCase() === "#leads") history.replaceState(null, "", `${
         return account;
       });
       saveAccounts(accounts);
+      studentTrainerLinkStates.set(user.id, { status: "empty", trainerId: "", error: null });
       localStorage.removeItem("monolith.selectedStudentId");
       localStorage.removeItem("monolith.selectedDietStudentId");
       localStorage.removeItem("monolith.selectedWorkoutStudentId");
@@ -9578,43 +9668,8 @@ if (location.hash.toLowerCase() === "#leads") history.replaceState(null, "", `${
         setDirtyBaseline("profilePreferences");
       }
       const studentTrainerPanel = document.getElementById("profileStudentTrainerPanel");
-      const studentTrainerStatus = document.getElementById("profileTrainerStatus");
-      const unlinkButton = document.getElementById("unlinkTrainerButton");
       if (studentTrainerPanel) studentTrainerPanel.hidden = user?.role !== "student";
-      if (studentTrainerStatus && user?.role === "student") {
-        const cachedTrainerId = user.trainerId || "";
-        if (cachedTrainerId) {
-          const trainerName = trainerNameFromCache(cachedTrainerId);
-          studentTrainerStatus.textContent = trainerName ? `${t("Vinculado a")} ${trainerName}.` : t("Aluno vinculado a um personal.");
-          if (unlinkButton) unlinkButton.hidden = false;
-          renderLinkedTrainerProfile(cachedTrainerId);
-        } else if (user.source === "supabase" && monolithSupabase) {
-          studentTrainerStatus.textContent = t("Verificando vínculo com personal...");
-          if (unlinkButton) unlinkButton.hidden = true;
-          ensureStudentTrainerId(user).then(trainerId => {
-            const nextUser = currentAccount();
-            if (nextUser?.id !== user.id) return;
-            if (trainerId) {
-              const trainerName = trainerNameFromCache(trainerId);
-              studentTrainerStatus.textContent = trainerName ? `${t("Vinculado a")} ${trainerName}.` : t("Aluno vinculado a um personal.");
-              if (unlinkButton) unlinkButton.hidden = false;
-              renderLinkedTrainerProfile(trainerId);
-            } else {
-              studentTrainerStatus.textContent = t("Sem personal vinculado.");
-              if (unlinkButton) unlinkButton.hidden = true;
-              renderLinkedTrainerProfile("");
-            }
-          }).catch(() => {
-            studentTrainerStatus.textContent = t("Sem personal vinculado.");
-            if (unlinkButton) unlinkButton.hidden = true;
-            renderLinkedTrainerProfile("");
-          });
-        } else {
-          studentTrainerStatus.textContent = t("Sem personal vinculado.");
-          if (unlinkButton) unlinkButton.hidden = true;
-          renderLinkedTrainerProfile("");
-        }
-      }
+      if (user?.role === "student") renderProfileTrainerLink(user);
       showUnlinkTrainerNotice("");
     }
 
@@ -9798,15 +9853,20 @@ if (location.hash.toLowerCase() === "#leads") history.replaceState(null, "", `${
     function dateFromKey(dateKey = "") {
       const [year, month, day] = String(dateKey || "").slice(0, 10).split("-").map(Number);
       if (!year || !month || !day) return null;
-      const date = new Date(year, month - 1, day);
+      const date = new Date(Date.UTC(year, month - 1, day));
       return Number.isNaN(date.getTime()) ? null : date;
+    }
+
+    function civilDateKey(date) {
+      if (!(date instanceof Date) || Number.isNaN(date.getTime())) return "";
+      return `${date.getUTCFullYear()}-${String(date.getUTCMonth() + 1).padStart(2, "0")}-${String(date.getUTCDate()).padStart(2, "0")}`;
     }
 
     function cycleBoundary(anchorDate, monthOffset = 0) {
       if (!(anchorDate instanceof Date) || Number.isNaN(anchorDate.getTime())) return null;
-      const targetMonth = new Date(anchorDate.getFullYear(), anchorDate.getMonth() + monthOffset, 1);
-      const lastDay = new Date(targetMonth.getFullYear(), targetMonth.getMonth() + 1, 0).getDate();
-      return new Date(targetMonth.getFullYear(), targetMonth.getMonth(), Math.min(anchorDate.getDate(), lastDay));
+      const targetMonth = new Date(Date.UTC(anchorDate.getUTCFullYear(), anchorDate.getUTCMonth() + monthOffset, 1));
+      const lastDay = new Date(Date.UTC(targetMonth.getUTCFullYear(), targetMonth.getUTCMonth() + 1, 0)).getUTCDate();
+      return new Date(Date.UTC(targetMonth.getUTCFullYear(), targetMonth.getUTCMonth(), Math.min(anchorDate.getUTCDate(), lastDay)));
     }
 
     function reportPeriodForStudent(student = null) {
@@ -9815,24 +9875,24 @@ if (location.hash.toLowerCase() === "#leads") history.replaceState(null, "", `${
       const anchor = dateFromKey(linkedAt);
       if (!anchor || anchor > today) {
         const start = new Date(today);
-        start.setDate(start.getDate() - 29);
+        start.setUTCDate(start.getUTCDate() - 29);
         const end = new Date(today);
-        end.setDate(end.getDate() + 1);
+        end.setUTCDate(end.getUTCDate() + 1);
         const dateKeys = [];
-        for (let cursor = new Date(start); cursor < end; cursor.setDate(cursor.getDate() + 1)) dateKeys.push(todayKey(cursor));
-        return { startKey: todayKey(start), endKey: todayKey(end), displayEndKey: todayKey(today), dateKeys, dayCount: dateKeys.length, linkedAt: "", anchored: false };
+        for (let cursor = new Date(start); cursor < end; cursor.setUTCDate(cursor.getUTCDate() + 1)) dateKeys.push(civilDateKey(cursor));
+        return { startKey: civilDateKey(start), endKey: civilDateKey(end), displayEndKey: civilDateKey(today), dateKeys, dayCount: dateKeys.length, linkedAt: "", anchored: false };
       }
       let cycleIndex = 0;
       while (cycleBoundary(anchor, cycleIndex + 1) <= today) cycleIndex += 1;
       const start = cycleBoundary(anchor, cycleIndex);
       const end = cycleBoundary(anchor, cycleIndex + 1);
-      const elapsedEnd = new Date(Math.min(end.getTime(), new Date(today.getFullYear(), today.getMonth(), today.getDate() + 1).getTime()));
+      const elapsedEnd = new Date(Math.min(end.getTime(), Date.UTC(today.getUTCFullYear(), today.getUTCMonth(), today.getUTCDate() + 1)));
       const dateKeys = [];
-      for (let cursor = new Date(start); cursor < elapsedEnd; cursor.setDate(cursor.getDate() + 1)) dateKeys.push(todayKey(cursor));
+      for (let cursor = new Date(start); cursor < elapsedEnd; cursor.setUTCDate(cursor.getUTCDate() + 1)) dateKeys.push(civilDateKey(cursor));
       return {
-        startKey: todayKey(start),
-        endKey: todayKey(end),
-        displayEndKey: todayKey(end),
+        startKey: civilDateKey(start),
+        endKey: civilDateKey(end),
+        displayEndKey: civilDateKey(end),
         dateKeys,
         dayCount: dateKeys.length,
         linkedAt,
@@ -9851,13 +9911,13 @@ if (location.hash.toLowerCase() === "#leads") history.replaceState(null, "", `${
       const start = dateFromKey(period.startKey);
       const end = dateFromKey(period.endKey);
       if (!start || !end) return [currentMonthKey()];
-      const cursor = new Date(start.getFullYear(), start.getMonth(), 1);
+      const cursor = new Date(Date.UTC(start.getUTCFullYear(), start.getUTCMonth(), 1));
       const inclusiveEnd = new Date(end);
-      inclusiveEnd.setDate(inclusiveEnd.getDate() - 1);
-      const last = new Date(inclusiveEnd.getFullYear(), inclusiveEnd.getMonth(), 1);
+      inclusiveEnd.setUTCDate(inclusiveEnd.getUTCDate() - 1);
+      const last = new Date(Date.UTC(inclusiveEnd.getUTCFullYear(), inclusiveEnd.getUTCMonth(), 1));
       while (cursor <= last) {
-        result.push(`${cursor.getFullYear()}-${String(cursor.getMonth() + 1).padStart(2, "0")}`);
-        cursor.setMonth(cursor.getMonth() + 1);
+        result.push(`${cursor.getUTCFullYear()}-${String(cursor.getUTCMonth() + 1).padStart(2, "0")}`);
+        cursor.setUTCMonth(cursor.getUTCMonth() + 1);
       }
       return [...new Set(result)];
     }
@@ -10150,6 +10210,17 @@ if (location.hash.toLowerCase() === "#leads") history.replaceState(null, "", `${
       return language === "pt" ? "pt-BR" : language === "es" ? "es-419" : "en-US";
     }
 
+    function localizedNumber(value, options = {}) {
+      if (value === null || value === undefined || String(value).trim() === "") return "--";
+      const number = Number(String(value).replace(",", "."));
+      if (!Number.isFinite(number)) return "--";
+      const language = options.language || localStorage.getItem("monolith.language") || "pt";
+      return new Intl.NumberFormat(currentLocale(language), {
+        minimumFractionDigits: options.minimumFractionDigits ?? 0,
+        maximumFractionDigits: options.maximumFractionDigits ?? 2
+      }).format(number);
+    }
+
     function localizedDateOptions(language = localStorage.getItem("monolith.language") || "pt") {
       return language === "en"
         ? { month: "numeric", day: "numeric", year: "numeric" }
@@ -10159,19 +10230,20 @@ if (location.hash.toLowerCase() === "#leads") history.replaceState(null, "", `${
     const MONOLITH_TIME_ZONE = "America/New_York";
 
     function appCalendarDate(dateKey) {
-      const [year, month, day] = String(dateKey || "").split("-").map(Number);
+      const [year, month, day] = entryDateKey(dateKey).split("-").map(Number);
       if (!year || !month || !day) return null;
-      return new Date(Date.UTC(year, month - 1, day, 12));
+      return new Date(Date.UTC(year, month - 1, day));
     }
 
     function localDateLabel(dateKey) {
-      const [year, month, day] = String(dateKey || "").split("-").map(Number);
+      const civilKey = entryDateKey(dateKey);
+      const [year, month, day] = civilKey.split("-").map(Number);
       if (!year || !month || !day) return dateKey || "";
       const language = localStorage.getItem("monolith.language") || "pt";
       return new Intl.DateTimeFormat(currentLocale(language), {
         ...localizedDateOptions(language),
-        timeZone: MONOLITH_TIME_ZONE
-      }).format(appCalendarDate(dateKey));
+        timeZone: "UTC"
+      }).format(appCalendarDate(civilKey));
     }
 
     function localDateTimeLabel(value) {
@@ -10182,27 +10254,25 @@ if (location.hash.toLowerCase() === "#leads") history.replaceState(null, "", `${
         timeStyle: "short",
         timeZone: MONOLITH_TIME_ZONE
       }).format(date);
-      return currentLocale().startsWith("es") ? formatted.replace(/([ap])\.\s*m\.$/i, "$1. m") : formatted;
+      return currentLocale().startsWith("es") ? formatted.replace(/([ap])\.\s*m\.(?:\.)?$/i, "$1. m.") : formatted;
     }
 
     function lastMonthKey() {
-      const date = new Date();
-      date.setMonth(date.getMonth() - 1);
-      return todayKey(date).slice(0, 7);
+      return previousMonthKey(currentMonthKey());
     }
 
     function previousMonthKey(monthKey = currentMonthKey()) {
       const [year, month] = String(monthKey || currentMonthKey()).split("-").map(Number);
       if (!year || !month) return lastMonthKey();
-      const date = new Date(year, month - 2, 1);
-      return todayKey(date).slice(0, 7);
+      const date = new Date(Date.UTC(year, month - 2, 1));
+      return `${date.getUTCFullYear()}-${String(date.getUTCMonth() + 1).padStart(2, "0")}`;
     }
 
     function nextMonthKey(monthKey = currentMonthKey()) {
       const [year, month] = String(monthKey || currentMonthKey()).split("-").map(Number);
       if (!year || !month) return currentMonthKey();
-      const date = new Date(year, month, 1);
-      return todayKey(date).slice(0, 7);
+      const date = new Date(Date.UTC(year, month, 1));
+      return `${date.getUTCFullYear()}-${String(date.getUTCMonth() + 1).padStart(2, "0")}`;
     }
 
     function photoMonthFromPeriod(period) {
@@ -10735,6 +10805,10 @@ if (location.hash.toLowerCase() === "#leads") history.replaceState(null, "", `${
         .eq("student_id", studentId)
         .eq("month_key", month);
       if (user?.role === "personal") query = query.eq("trainer_id", user.id);
+      if (user?.role === "student") {
+        const linkedTrainerId = studentTrainerLinkState(user).trainerId || user.trainerId || "";
+        if (linkedTrainerId) query = query.eq("trainer_id", linkedTrainerId);
+      }
       const { data, error } = await query.maybeSingle();
       if (error) throw error;
       if (!data) {
@@ -11249,17 +11323,19 @@ if (location.hash.toLowerCase() === "#leads") history.replaceState(null, "", `${
         return;
       }
       const created = record.createdAt || record.submittedAt || record.updatedAt;
+      const language = localStorage.getItem("monolith.language") || "pt";
+      const civilLabel = value => reportDateLabel(entryDateKey(value), language);
       const parts = [
-        created ? `${t("Criada em")}: ${reportDateLabel(created, localStorage.getItem("monolith.language") || "pt")}` : "",
-        record.updatedAt ? `${t("Última atualização")}: ${reportDateLabel(record.updatedAt, localStorage.getItem("monolith.language") || "pt")}` : "",
+        created ? `${t("Criada em")}: ${civilLabel(created)}` : "",
+        record.updatedAt ? `${t("Última atualização")}: ${civilLabel(record.updatedAt)}` : "",
         record.status === "draft"
           ? t("Rascunho privado: ainda não compartilhado com o personal")
           : record.consentAcceptedAt
-            ? `${t("Consentimento aceito em")}: ${reportDateLabel(record.consentAcceptedAt, localStorage.getItem("monolith.language") || "pt")}`
+            ? `${t("Consentimento aceito em")}: ${civilLabel(record.consentAcceptedAt)}`
             : "",
         record.status === "draft" ? "" : t("Compartilhada somente com o personal vinculado")
         ,record.version ? `${t("Versão")} ${record.version}` : ""
-        ,record.lastReviewedAt ? `${t("Revisada pelo personal em")}: ${reportDateLabel(record.lastReviewedAt, localStorage.getItem("monolith.language") || "pt")}` : ""
+        ,record.lastReviewedAt ? `${t("Revisada pelo personal em")}: ${civilLabel(record.lastReviewedAt)}` : ""
       ].filter(Boolean);
       meta.innerHTML = parts.map(part => `<span>${escapeHTML(part)}</span>`).join("");
     }
@@ -12030,23 +12106,24 @@ if (location.hash.toLowerCase() === "#leads") history.replaceState(null, "", `${
         return;
       }
       const statusLabel = dietPlanStatusLabel(plan);
+      const nutritionNumber = value => value === null || value === undefined || String(value).trim() === "" ? "--" : localizedNumber(value, { maximumFractionDigits: 2 });
       container.innerHTML = `
-        <div class="metric"><span>${escapeHTML(t("Meta diária"))}</span><b>${escapeHTML(plan.calories || "--")} kcal</b></div>
+        <div class="metric"><span>${escapeHTML(t("Meta diária"))}</span><b>${escapeHTML(nutritionNumber(plan.calories))} kcal</b></div>
         <div class="pill-row">
           <span class="pill">${escapeHTML(t(statusLabel))}</span>
-          <span class="pill">${escapeHTML(t("Proteína"))}: ${escapeHTML(plan.protein || "--")} g</span>
-          <span class="pill">${escapeHTML(t("Carboidratos"))}: ${escapeHTML(plan.carbs || "--")} g</span>
-          <span class="pill">${escapeHTML(t("Gorduras"))}: ${escapeHTML(plan.fat || "--")} g</span>
+          <span class="pill">${escapeHTML(t("Proteína"))}: ${escapeHTML(nutritionNumber(plan.protein))} g</span>
+          <span class="pill">${escapeHTML(t("Carboidratos"))}: ${escapeHTML(nutritionNumber(plan.carbs))} g</span>
+          <span class="pill">${escapeHTML(t("Gorduras"))}: ${escapeHTML(nutritionNumber(plan.fat))} g</span>
           <span class="pill">${escapeHTML(quantityLabel(plan.meals?.length || 0, "refeição", "refeições"))}</span>
         </div>
         ${(plan.meals || []).map((meal, index) => `
           <article class="meal-card">
-            <header><h4 data-no-i18n="true">${escapeHTML(meal.name || `${t("Refeição")} ${index + 1}`)}</h4><span>${escapeHTML(meal.calories || "--")} kcal</span></header>
+            <header><h4 data-no-i18n="true">${escapeHTML(meal.name || `${t("Refeição")} ${index + 1}`)}</h4><span>${escapeHTML(nutritionNumber(meal.calories))} kcal</span></header>
             <p data-no-i18n="true">${escapeHTML(meal.items || t("Sem alimentos cadastrados."))}</p>
             <div class="pill-row">
-              <span class="pill">P ${escapeHTML(meal.protein || "--")}</span>
-              <span class="pill">C ${escapeHTML(meal.carbs || "--")}</span>
-              <span class="pill">G ${escapeHTML(meal.fat || "--")}</span>
+              <span class="pill">P ${escapeHTML(nutritionNumber(meal.protein))}</span>
+              <span class="pill">C ${escapeHTML(nutritionNumber(meal.carbs))}</span>
+              <span class="pill">G ${escapeHTML(nutritionNumber(meal.fat))}</span>
             </div>
             ${meal.micros ? `<p data-no-i18n="true"><strong>${escapeHTML(t("Micros"))}:</strong> ${escapeHTML(meal.micros)}</p>` : ""}
             ${meal.substitutions ? `<p data-no-i18n="true"><strong>${escapeHTML(t("Substituições"))}:</strong> ${escapeHTML(meal.substitutions)}</p>` : ""}
@@ -12546,11 +12623,14 @@ if (location.hash.toLowerCase() === "#leads") history.replaceState(null, "", `${
       const personalPanel = document.getElementById("nutritionPersonalPanel");
       const studentPanel = document.getElementById("nutritionStudentPanel");
       if (!user || !personalPanel || !studentPanel) return;
-      const monthInput = document.getElementById("dietMonth");
+      const personalMonthInput = document.getElementById("dietMonth");
+      const studentMonthInput = document.getElementById("studentDietMonth");
       const foodDate = document.getElementById("foodLogDate");
-      if (monthInput && !monthInput.value) monthInput.value = currentMonthKey();
+      if (personalMonthInput && !personalMonthInput.value) personalMonthInput.value = currentMonthKey();
+      if (studentMonthInput && !studentMonthInput.value) studentMonthInput.value = currentMonthKey();
       if (foodDate && !foodDate.value) foodDate.value = todayKey();
       const isPersonal = user.role === "personal";
+      const monthInput = isPersonal ? personalMonthInput : studentMonthInput;
       const requestedMonth = monthInput?.value || currentMonthKey();
       const requestedMealCount = Math.max(1, Math.min(10, Number(document.getElementById("dietMealCount")?.value) || 5));
       personalPanel.hidden = !isPersonal;
@@ -12560,6 +12640,7 @@ if (location.hash.toLowerCase() === "#leads") history.replaceState(null, "", `${
       if (isRealSupabaseAccount(user)) {
         const loadingTarget = document.getElementById(isPersonal ? "dietPreview" : "studentDietView");
         if (loadingTarget) loadingTarget.innerHTML = remoteStateHTML("loading", { loadingLabel: "Carregando dieta..." });
+        if (!isPersonal) document.getElementById("selfNutritionPanel").hidden = true;
       }
       if (!isPersonal) {
         const select = document.getElementById("dietStudent");
@@ -12611,16 +12692,28 @@ if (location.hash.toLowerCase() === "#leads") history.replaceState(null, "", `${
       } else {
         const linkedTrainerId = await ensureStudentTrainerId(user);
         if (requestId !== nutritionRenderSequence || currentAccount()?.id !== user.id) return;
-        let plan = linkedTrainerId ? activeDietForStudent(user.id, currentMonthKey()) : null;
+        const linkState = studentTrainerLinkState(currentAccount());
+        if (!linkedTrainerId && linkState.status === "error") {
+          document.getElementById("selfNutritionPanel").hidden = true;
+          document.getElementById("studentDietNote").textContent = t("Não foi possível verificar o personal vinculado agora.");
+          document.getElementById("studentDietView").innerHTML = remoteStateHTML("error", { errorLabel: "Não foi possível carregar a dieta.", retryScreen: "nutrition" });
+          return;
+        }
+        let plan = linkedTrainerId ? activeDietForStudent(user.id, requestedMonth) : null;
         try {
-          if (linkedTrainerId) plan = await loadRemoteDietPlan(user.id, currentMonthKey()) || plan;
+          if (linkedTrainerId) plan = await loadRemoteDietPlan(user.id, requestedMonth) || plan;
           else await loadRemoteFoodLogs(user.id);
         } catch (error) {
           if (requestId !== nutritionRenderSequence) return;
-          logAppError("nutrition", "load", error, { studentId: user.id, month: currentMonthKey() });
+          logAppError("nutrition", "load", error, { studentId: user.id, month: requestedMonth });
+          if (linkedTrainerId && !plan) {
+            document.getElementById("studentDietView").innerHTML = remoteStateHTML("error", { errorLabel: "Não foi possível carregar a dieta.", retryScreen: "nutrition" });
+            showToast("Não consegui carregar a dieta remota agora.");
+            return;
+          }
           showToast("Não consegui carregar nutrição remota agora. Usei o cache local.");
         }
-        if (requestId !== nutritionRenderSequence || currentAccount()?.id !== user.id) return;
+        if (requestId !== nutritionRenderSequence || currentAccount()?.id !== user.id || (studentMonthInput?.value || currentMonthKey()) !== requestedMonth) return;
         document.getElementById("selfNutritionPanel").hidden = Boolean(linkedTrainerId);
         document.getElementById("studentDietNote").textContent = linkedTrainerId ? t("Seu personal define esta dieta. Você pode visualizar, mas não redesenhar.") : t("Sem personal vinculado: use a contagem básica para registrar seu dia.");
         renderDietPlan("studentDietView", plan, linkedTrainerId ? "Nenhuma dieta prescrita para este mês." : "Nenhuma dieta de personal vinculada.");
@@ -15985,7 +16078,7 @@ if (location.hash.toLowerCase() === "#leads") history.replaceState(null, "", `${
       const display = kgToDisplay(valueKg);
       if (display === null) return "--";
       const separator = options.space === false ? "" : " ";
-      return `${roundWeight(display)}${separator}${weightUnitLabel()}`;
+      return `${localizedNumber(display, { maximumFractionDigits: 2 })}${separator}${weightUnitLabel()}`;
     }
 
     function weightInputValue(valueKg) {
@@ -16166,7 +16259,7 @@ if (location.hash.toLowerCase() === "#leads") history.replaceState(null, "", `${
     function localizedMonthLabel(monthKey) {
       const [year, month] = String(monthKey || "").split("-").map(Number);
       if (!year || !month) return monthKey || "";
-      return new Intl.DateTimeFormat(currentLocale(), { month: "long", year: "numeric" }).format(new Date(year, month - 1, 1));
+      return new Intl.DateTimeFormat(currentLocale(), { month: "long", year: "numeric", timeZone: "UTC" }).format(new Date(Date.UTC(year, month - 1, 1)));
     }
 
     function setSaveTarget(id, message, params = {}, ready = false) {
@@ -16238,7 +16331,7 @@ if (location.hash.toLowerCase() === "#leads") history.replaceState(null, "", `${
       return series
         .map(item => ({ ...item, value: kgToDisplay(item.value) }))
         .filter(item => item.value !== null)
-        .map(item => ({ ...item, value: roundWeight(item.value) }));
+        .map(item => ({ ...item, value: Math.round(Number(item.value) * 100) / 100 }));
     }
 
     function updateWeightUnitUI() {
@@ -16277,6 +16370,7 @@ if (location.hash.toLowerCase() === "#leads") history.replaceState(null, "", `${
 
     function applyLanguage(language) {
       language = ["pt", "en", "es"].includes(language) ? language : "pt";
+      clearTransientToast();
       const stableStudentId = currentAccount()?.role === "personal"
         ? selectedStudentForPersonal() || localStorage.getItem("monolith.selectedStudentId") || ""
         : currentAccount()?.id || "";
@@ -16409,6 +16503,16 @@ if (location.hash.toLowerCase() === "#leads") history.replaceState(null, "", `${
         toast.classList.remove("active");
         uiMessageState.toast = null;
       }, 2400);
+    }
+
+    function clearTransientToast() {
+      clearTimeout(toastTimer);
+      clearTimeout(authToastTimer);
+      uiMessageState.toast = null;
+      const target = document.getElementById("toast");
+      if (!target) return;
+      target.classList.remove("active", "with-action");
+      target.textContent = "";
     }
 
     function showUndoToast(message, undo) {
@@ -17084,7 +17188,7 @@ if (location.hash.toLowerCase() === "#leads") history.replaceState(null, "", `${
 
     function weightSeries(checkins = lastThirtyCheckins()) {
       return checkins
-        .filter(entry => Number.isFinite(Number(String(entry.weight || "").replace(",", "."))))
+        .filter(entry => entry.weight !== null && entry.weight !== undefined && String(entry.weight).trim() !== "" && Number.isFinite(Number(String(entry.weight).replace(",", "."))))
         .map(entry => ({
           date: entry.label || entry.date,
           key: entry.date,
@@ -17108,7 +17212,37 @@ if (location.hash.toLowerCase() === "#leads") history.replaceState(null, "", `${
 
     function formatMeasureValue(value, unit = "") {
       if (value === null || value === undefined || value === "") return "--";
-      return unit === "%" ? `${value}%` : `${value}${unit ? ` ${unit}` : ""}`;
+      const formatted = localizedNumber(value, { maximumFractionDigits: 2 });
+      return unit === "%" ? `${formatted}%` : `${formatted}${unit ? ` ${unit}` : ""}`;
+    }
+
+    const conservativeBodyMeasureRanges = {
+      weight: [25, 350],
+      bodyFat: [2, 65],
+      waist: [40, 200],
+      chest: [50, 200],
+      arm: [15, 80],
+      leg: [25, 100],
+      hip: [50, 200]
+    };
+
+    function numericBodyMeasureValue(value) {
+      if (value === null || value === undefined || String(value).trim() === "") return null;
+      const parsed = Number(String(value).replace(",", "."));
+      return Number.isFinite(parsed) ? parsed : null;
+    }
+
+    function bodyMeasureSuspicion(entry = {}) {
+      if (entry.isSuspicious === true) return { suspicious: true, reason: entry.suspiciousReason || "Registro antigo fora da faixa esperada." };
+      for (const [key, [min, max]] of Object.entries(conservativeBodyMeasureRanges)) {
+        const raw = entry[key];
+        if (raw === null || raw === undefined || String(raw).trim() === "") continue;
+        const value = numericBodyMeasureValue(raw);
+        if (value === null || value < min || value > max) {
+          return { suspicious: true, reason: "Valor fora da faixa conservadora de visualização." };
+        }
+      }
+      return { suspicious: false, reason: "" };
     }
 
     function loadAllBodyMeasuresRaw() {
@@ -17187,8 +17321,8 @@ if (location.hash.toLowerCase() === "#leads") history.replaceState(null, "", `${
     function bodyMeasureSeries(key, entries = loadBodyMeasures(), options = {}) {
       const includeSuspicious = options.includeSuspicious === true;
       return reportUsableBodyMeasures(entries, { includeSuspicious })
-        .filter(entry => !entry.archivedAt && Number.isFinite(Number(entry[key])))
-        .map(entry => ({ date: entry.date, value: Number(entry[key]) }))
+        .map(entry => ({ date: entry.date, value: numericBodyMeasureValue(entry[key]) }))
+        .filter(entry => !entry.archivedAt && entry.value !== null)
         .sort((a, b) => a.date.localeCompare(b.date));
     }
 
@@ -17207,7 +17341,8 @@ if (location.hash.toLowerCase() === "#leads") history.replaceState(null, "", `${
       return series.map(item => {
         const height = Math.max(22, Math.round(((item.value - min) / range) * 92) + 24);
         const label = localDateLabel(item.date);
-        return `<div class="mini-bar" style="height:${height}px" title="${escapeHTML(`${label}: ${item.value}${suffix}`)}" tabindex="0"><b>${item.value}${suffix}</b><span>${escapeHTML(label)}</span></div>`;
+        const displayValue = localizedNumber(item.value, { maximumFractionDigits: 2 });
+        return `<div class="mini-bar" style="height:${height}px" title="${escapeHTML(`${label}: ${displayValue}${suffix}`)}" tabindex="0"><b>${displayValue}${suffix}</b><span>${escapeHTML(label)}</span></div>`;
       }).join("");
     }
 
@@ -17233,8 +17368,8 @@ if (location.hash.toLowerCase() === "#leads") history.replaceState(null, "", `${
         if (target) target.textContent = value;
       };
       setText("latestMeasureWeight", latest?.weight ? formatWeight(latest.weight) : "--");
-      setText("latestBodyFat", latest?.bodyFat ? `${latest.bodyFat}%` : "--");
-      setText("latestWaist", latest?.waist ? `${latest.waist} cm` : "--");
+      setText("latestBodyFat", latest?.bodyFat ? formatMeasureValue(latest.bodyFat, "%") : "--");
+      setText("latestWaist", latest?.waist ? formatMeasureValue(latest.waist, "cm") : "--");
       setText("measureCount", String(entries.filter(entry => !entry.archivedAt).length));
       renderMiniChart("measureWeightChart", displayWeightSeries(bodyMeasureSeries("weight", entries, { includeSuspicious })), weightUnitLabel(), "Sem pesos salvos nas medidas.");
       renderMiniChart("bodyFatChart", bodyMeasureSeries("bodyFat", entries, { includeSuspicious }), "%", "Sem percentual de gordura salvo.");
@@ -17246,10 +17381,14 @@ if (location.hash.toLowerCase() === "#leads") history.replaceState(null, "", `${
           measureBars.innerHTML = bodyMeasureFields.map(field => {
             const series = bodyMeasureSeries(field.key, entries, { includeSuspicious });
             const first = series[0]?.value;
-            const current = latest[field.key];
-            const delta = current !== null && current !== undefined && first !== undefined ? current - first : 0;
-            const percent = first ? Math.max(0, Math.min(100, Math.round((current / first) * 100))) : 0;
-            return `<div class="bar"><span><b>${escapeHTML(t(field.label))}</b><b>${formatMeasureValue(current, field.unit)} ${delta ? `(${delta > 0 ? "+" : ""}${delta.toFixed(1)} ${field.unit})` : ""}</b></span><div class="track"><div class="fill" style="width:${percent}%"></div></div></div>`;
+            const current = series[series.length - 1]?.value;
+            const hasComparison = series.length >= 2 && first !== undefined && current !== undefined;
+            const delta = hasComparison ? current - first : null;
+            const percent = first && current !== undefined ? Math.max(0, Math.min(100, Math.round((current / first) * 100))) : 0;
+            const comparison = hasComparison
+              ? `(${delta > 0 ? "+" : ""}${localizedNumber(delta, { maximumFractionDigits: 1 })} ${field.unit})`
+              : t("Sem comparação");
+            return `<div class="bar"><span><b>${escapeHTML(t(field.label))}</b><b>${formatMeasureValue(current, field.unit)} · ${escapeHTML(comparison)}</b></span><div class="track"><div class="fill" style="width:${percent}%"></div></div></div>`;
           }).join("");
         }
       }
@@ -17263,12 +17402,13 @@ if (location.hash.toLowerCase() === "#leads") history.replaceState(null, "", `${
             ["Peso", entry.weight, "weight"],
             ["Gordura", entry.bodyFat, "%"],
             ...bodyMeasureFields.map(field => [field.label, entry[field.key], field.unit])
-          ].filter(([, value]) => value !== null && value !== undefined && value !== "").map(([label, value, unit]) => `<span>${escapeHTML(t(label))}: ${unit === "weight" ? formatWeight(value) : `${value}${unit ? ` ${unit}` : ""}`}</span>`).join("");
-          const suspicious = entry.isSuspicious ? `<span class="suspicious-badge" title="${escapeHTML(t(entry.suspiciousReason || "Registro antigo fora da faixa esperada."))}">${escapeHTML(t("Valor suspeito"))}</span>` : "";
+          ].filter(([, value]) => value !== null && value !== undefined && value !== "").map(([label, value, unit]) => `<span>${escapeHTML(t(label))}: ${unit === "weight" ? formatWeight(value) : formatMeasureValue(value, unit)}</span>`).join("");
+          const suspicion = bodyMeasureSuspicion(entry);
+          const suspicious = suspicion.suspicious ? `<span class="suspicious-badge" title="${escapeHTML(t(suspicion.reason))}">${escapeHTML(t("Valor suspeito"))}</span>` : "";
           const archived = entry.archivedAt ? `<span class="pill">${escapeHTML(t("Arquivado"))}</span>` : "";
           const archiveLabel = entry.archivedAt ? "Restaurar" : "Arquivar";
           const authorship = [author ? `${t("Registrado por")}: ${author.name}` : "", correctionAuthor ? `${t("Corrigido por")}: ${correctionAuthor.name}` : "", entry.correctionReason ? `${t("Motivo")}: ${entry.correctionReason}` : ""].filter(Boolean).join(" · ");
-          return `<article class="measure-entry ${entry.isSuspicious ? "suspicious-record" : ""} ${entry.archivedAt ? "archived-record" : ""}" data-measure-id="${escapeHTML(entry.id || "")}" data-measure-date="${escapeHTML(entry.date || "")}"><header><strong>${escapeHTML(localDateLabel(entry.date))}</strong><span data-no-i18n="true">${escapeHTML(entry.notes || "")}</span>${suspicious}${archived}</header><div class="measure-tags">${tags}</div>${authorship ? `<div class="date" data-no-i18n="true">${escapeHTML(authorship)}</div>` : ""}<div class="measure-entry-actions"><button class="ghost edit-measure" type="button">${escapeHTML(t("Editar"))}</button><button class="ghost archive-measure" type="button">${escapeHTML(t(archiveLabel))}</button><button class="ghost delete-measure" type="button">${escapeHTML(t("Excluir"))}</button></div></article>`;
+          return `<article class="measure-entry ${suspicion.suspicious ? "suspicious-record" : ""} ${entry.archivedAt ? "archived-record" : ""}" data-measure-id="${escapeHTML(entry.id || "")}" data-measure-date="${escapeHTML(entry.date || "")}"><header><strong>${escapeHTML(localDateLabel(entry.date))}</strong><span data-no-i18n="true">${escapeHTML(entry.notes || "")}</span>${suspicious}${archived}</header><div class="measure-tags">${tags}</div>${authorship ? `<div class="date" data-no-i18n="true">${escapeHTML(authorship)}</div>` : ""}<div class="measure-entry-actions"><button class="ghost edit-measure" type="button">${escapeHTML(t("Editar"))}</button><button class="ghost archive-measure" type="button">${escapeHTML(t(archiveLabel))}</button><button class="ghost delete-measure" type="button">${escapeHTML(t("Excluir"))}</button></div></article>`;
         }).join("") || `<div class="report-line">${t("Nenhum registro físico salvo ainda.")}</div>`;
       }
     }
@@ -17544,8 +17684,9 @@ if (location.hash.toLowerCase() === "#leads") history.replaceState(null, "", `${
     }
 
     function reportNumber(value) {
-      const parsed = Number(String(value || "").replace(",", "."));
-      return Number.isFinite(parsed) ? parsed : 0;
+      if (value === null || value === undefined || String(value).trim() === "") return null;
+      const parsed = Number(String(value).replace(",", "."));
+      return Number.isFinite(parsed) ? parsed : null;
     }
 
     function reportMetricInRange(value, min = 0, max = Number.MAX_SAFE_INTEGER) {
@@ -17564,7 +17705,7 @@ if (location.hash.toLowerCase() === "#leads") history.replaceState(null, "", `${
     function reportUsableBodyMeasures(entries = [], { includeSuspicious = false, includeArchived = false } = {}) {
       return (entries || []).filter(entry => {
         if (!includeArchived && entry.archivedAt) return false;
-        if (!includeSuspicious && entry.isSuspicious) return false;
+        if (!includeSuspicious && bodyMeasureSuspicion(entry).suspicious) return false;
         return true;
       });
     }
@@ -17648,7 +17789,7 @@ if (location.hash.toLowerCase() === "#leads") history.replaceState(null, "", `${
       });
       const evolution = exerciseEvolutionReport(evolutionWorkouts);
       const missedDays = metrics.missedDays;
-      const bodyMeasures = loadBodyMeasures(reportStudentId).filter(entry => !entry.isSuspicious && dateKeyInPeriod(entry.date, period));
+      const bodyMeasures = reportUsableBodyMeasures(loadBodyMeasures(reportStudentId)).filter(entry => dateKeyInPeriod(entry.date, period));
       const weights = physicalWeightSeries(checkins, bodyMeasures);
       const activeDietPlan = metrics.activeDietPlan;
       const progressPhotos = loadProgressPhotos(reportStudentId);
@@ -17689,7 +17830,8 @@ if (location.hash.toLowerCase() === "#leads") history.replaceState(null, "", `${
       const range = Math.max(.1, max - min);
       return series.map(item => {
         const height = Math.max(14, Math.round(((item.value - min) / range) * 90) + 16);
-        return `<div class="wbar" style="height:${height}px"><b>${item.value}${suffix}</b><span>${escapeHTML(item.date)}</span></div>`;
+        const dateLabel = reportDateLabel(item.key || item.date, reportLanguage()) || item.date || "";
+        return `<div class="wbar" style="height:${height}px"><b>${localizedNumber(item.value, { maximumFractionDigits: 2, language: reportLanguage() })}${suffix}</b><span>${escapeHTML(dateLabel)}</span></div>`;
       }).join("");
     }
 
@@ -17779,7 +17921,8 @@ if (location.hash.toLowerCase() === "#leads") history.replaceState(null, "", `${
         "ok": "ok",
         "não": "no",
         "séries": "sets",
-        "Conteúdo escrito pelo personal é exibido no idioma original.": "Trainer-written content is shown in its original language."
+        "Conteúdo escrito pelo personal é exibido no idioma original.": "Trainer-written content is shown in its original language.",
+        "Sem comparação": "No comparison"
       },
       es: {
         "Salvar como PDF": "Guardar como PDF",
@@ -17866,7 +18009,8 @@ if (location.hash.toLowerCase() === "#leads") history.replaceState(null, "", `${
         "ok": "ok",
         "não": "no",
         "séries": "series",
-        "Conteúdo escrito pelo personal é exibido no idioma original.": "El contenido escrito por el entrenador se muestra en su idioma original."
+        "Conteúdo escrito pelo personal é exibido no idioma original.": "El contenido escrito por el entrenador se muestra en su idioma original.",
+        "Sem comparação": "Sin comparación"
       }
     };
 
@@ -17903,12 +18047,13 @@ if (location.hash.toLowerCase() === "#leads") history.replaceState(null, "", `${
     }
 
     function reportDateLabel(dateKey, language = reportLanguage()) {
-      const date = appCalendarDate(dateKey);
+      const civilKey = entryDateKey(dateKey);
+      const date = appCalendarDate(civilKey);
       if (!date) return dateKey || "";
       const locale = { pt: "pt-BR", en: "en-US", es: "es-419" }[language] || "pt-BR";
       return new Intl.DateTimeFormat(locale, {
         ...localizedDateOptions(language),
-        timeZone: MONOLITH_TIME_ZONE
+        timeZone: "UTC"
       }).format(date);
     }
 
@@ -17960,8 +18105,9 @@ if (location.hash.toLowerCase() === "#leads") history.replaceState(null, "", `${
         const series = bodyMeasureSeries(field.key, report.bodyMeasures);
         const first = series[0];
         const latest = series[series.length - 1];
-        const delta = first && latest ? latest.value - first.value : 0;
-        return `<tr><td>${escapeHTML(rt(field.label))}</td><td>${first ? `${first.value} ${field.unit}` : "--"}</td><td>${latest ? `${latest.value} ${field.unit}` : "--"}</td><td>${first && latest ? `${delta > 0 ? "+" : ""}${delta.toFixed(1)} ${field.unit}` : "--"}</td></tr>`;
+        const hasComparison = series.length >= 2 && first && latest;
+        const delta = hasComparison ? latest.value - first.value : null;
+        return `<tr><td>${escapeHTML(rt(field.label))}</td><td>${first ? formatMeasureValue(first.value, field.unit) : "--"}</td><td>${latest ? formatMeasureValue(latest.value, field.unit) : "--"}</td><td>${hasComparison ? `${delta > 0 ? "+" : ""}${localizedNumber(delta, { maximumFractionDigits: 1, language })} ${field.unit}` : rt("Sem comparação")}</td></tr>`;
       }).join("");
       const missedPreview = report.missedDays.slice(-7).map(day => escapeHTML(reportDateLabel(day, language))).join(", ");
       const alertLevel = report.missedDays.length >= 5 ? "drop" : "gain";
@@ -18044,25 +18190,43 @@ ${photoSections}
       activeDownloadUrls.delete(objectUrl);
     }
 
+    function safeDownloadFilename(filename = "monolith.html") {
+      const safe = String(filename || "monolith.html")
+        .normalize("NFD")
+        .replace(/[\u0300-\u036f]/g, "")
+        .replace(/[<>:"/\\|?*\u0000-\u001F]+/g, "-")
+        .replace(/\s+/g, "-")
+        .replace(/-+/g, "-")
+        .replace(/^-+|-+$/g, "");
+      return safe || "monolith.html";
+    }
+
     function downloadTextFile(filename, type, content) {
       if (!filename || content === undefined || content === null || content === "") return false;
-      const blob = new Blob([content], { type });
-      if (!blob.size) return false;
-      const link = document.createElement("a");
-      const objectUrl = URL.createObjectURL(blob);
-      activeDownloadUrls.add(objectUrl);
-      link.href = objectUrl;
-      link.download = filename;
-      link.style.position = "fixed";
-      link.style.left = "-10000px";
-      link.setAttribute("aria-hidden", "true");
-      document.body.appendChild(link);
-      let initiated = false;
-      link.addEventListener("click", () => { initiated = true; }, { once: true });
-      link.click();
-      window.setTimeout(() => link.remove(), 1500);
-      window.setTimeout(() => releaseDownloadUrl(objectUrl), 120000);
-      return initiated;
+      try {
+        const safeFilename = safeDownloadFilename(filename);
+        const utf8Content = String(type || "").toLowerCase().includes("text/") ? `\uFEFF${String(content)}` : content;
+        const blob = new Blob([utf8Content], { type: type || "application/octet-stream" });
+        if (!blob.size) return false;
+        if (typeof navigator.msSaveOrOpenBlob === "function") return navigator.msSaveOrOpenBlob(blob, safeFilename) !== false;
+        const link = document.createElement("a");
+        if (!("download" in link)) return false;
+        const objectUrl = URL.createObjectURL(blob);
+        activeDownloadUrls.add(objectUrl);
+        link.href = objectUrl;
+        link.download = safeFilename;
+        link.rel = "noopener";
+        link.style.display = "none";
+        link.setAttribute("aria-hidden", "true");
+        document.body.appendChild(link);
+        link.click();
+        window.setTimeout(() => link.remove(), 0);
+        window.setTimeout(() => releaseDownloadUrl(objectUrl), 60000);
+        return true;
+      } catch (error) {
+        logAppError("report", "download", error, { filename });
+        return false;
+      }
     }
 
     async function prepareMonthlyReportHTML(student = null) {
@@ -18108,10 +18272,6 @@ ${photoSections}
         status.classList.toggle("error", state === "error");
       }
     }
-
-    window.addEventListener("pagehide", () => {
-      [...activeDownloadUrls].forEach(releaseDownloadUrl);
-    });
 
     function reportFailureDocument(retryButtonId = "openStatsMonthlyReport") {
       const title = escapeHTML(t("Não foi possível criar o relatório."));
@@ -18339,7 +18499,7 @@ ${photoSections}
       const week = workoutProgramWeek(program);
       const syncWarning = program.syncStatus === "failed" ? ` · ${t("Não sincronizado")}` : "";
       status.textContent = `${t(program.status === "paused" ? "Pausado" : "Ativo")} · ${t("Semana")} ${week}/${program.durationWeeks}${syncWarning}`;
-      summary.innerHTML = `<h3 data-no-i18n="true">${escapeHTML(program.name)}</h3><div class="pill-row"><span class="pill">${escapeHTML(t("Início"))}: ${escapeHTML(localDateLabel(program.startDate))}</span><span class="pill">${program.durationWeeks} ${escapeHTML(t("semanas"))}</span>${program.syncStatus === "failed" ? `<span class="pill">${escapeHTML(t("Não sincronizado"))}</span>` : ""}</div>`;
+      summary.innerHTML = `<h3 data-no-i18n="true">${escapeHTML(program.name)}</h3><div class="pill-row"><span class="pill">${escapeHTML(t("Início do programa"))}: ${escapeHTML(localDateLabel(program.startDate))}</span><span class="pill">${program.durationWeeks} ${escapeHTML(t("semanas"))}</span>${program.syncStatus === "failed" ? `<span class="pill">${escapeHTML(t("Não sincronizado"))}</span>` : ""}</div>`;
       const workouts = workoutsAvailableForProgram(studentId);
       const todayDay = new Date().getDay();
       calendar.innerHTML = programDayOrder.map(day => {
@@ -18786,6 +18946,7 @@ ${photoSections}
       if (event.target === event.currentTarget) closeTrainerMapProfile();
     });
     document.getElementById("dietMonth")?.addEventListener("change", renderNutrition);
+    document.getElementById("studentDietMonth")?.addEventListener("change", renderNutrition);
     async function ensureSupplementResponsibilityAccepted() {
       if (localStorage.getItem("monolith.supplementResponsibilityAccepted") === "true") return true;
       const accepted = await confirmAction({
@@ -19584,6 +19745,7 @@ ${photoSections}
     }
 
     function showScreen(id, options = {}) {
+      if (!options.preserveMessage) clearTransientToast();
       if (id === "pulse") id = "alerts";
       if (id === "leads") {
         showToast("Leads foi removido da área do Personal.");
@@ -19593,9 +19755,16 @@ ${photoSections}
         showToast("A busca por personais é iniciada pelo aluno.");
         id = "home";
       }
-      if (id === "space" && !hasSpaceEntitlement(currentAccount())) {
+      const user = currentAccount();
+      const personalOnlyRoutes = new Set(["clients", "alerts", "space", "trainerProfileOnboarding"]);
+      if (user?.role === "student" && personalOnlyRoutes.has(id)) {
+        showToast(id === "space"
+          ? "A administração do Space é exclusiva do Personal."
+          : "Você não tem acesso a esta área.");
+        id = "home";
+      } else if (id === "space" && !hasSpaceEntitlement(user)) {
         showToast("Plus Space não está ativo nesta conta.");
-        id = currentAccount()?.role === "personal" ? "profile" : "home";
+        id = "profile";
       }
       const activeScreen = document.querySelector(".screen.active")?.id;
       const dirtyScope = activeDirtyScope();
@@ -19673,7 +19842,7 @@ ${photoSections}
         if (student?.trainerId) {
           showToast("Você já possui um personal vinculado.");
           renderLinkedTrainerProfile(student.trainerId);
-          showScreen("home", { historyMode: options.historyMode || "replace" });
+          showScreen("home", { historyMode: options.historyMode || "replace", preserveMessage: true });
           return true;
         }
         renderTrainerMap();
@@ -21394,7 +21563,7 @@ ${photoSections}
       const loadFailedWithoutData = timelineLoadState.studentId === studentId && timelineLoadState.status === "error" && !allEvents.length;
       document.getElementById("timelineList").innerHTML = loadFailedWithoutData
         ? remoteStateHTML("error", { errorLabel: "Não foi possível carregar a linha do tempo. Tente novamente.", retryScreen: "timeline" })
-        : visible.map(item => `<article class="timeline-item"><span class="timeline-icon">${timelineIcon(item.type)}</span><div class="timeline-copy"><strong>${escapeHTML(t(item.title))}</strong><time>${escapeHTML(localDateTimeLabel(item.occurredAt))}</time><span>${escapeHTML(timelineDetailText(item))}</span>${item.type === "feedback" && item.details?.trainerResponse ? `<span><strong>${escapeHTML(t("Resposta do personal"))}:</strong> ${escapeHTML(item.details.trainerResponse)}</span>` : ""}</div>${currentAccount()?.role === "personal" && item.type === "feedback" ? `<div class="action-row"><button class="ghost respond-feedback" type="button" data-feedback-id="${escapeHTML(String(item.id).replace(/^feedback:/, ""))}">${escapeHTML(t("Responder"))}</button></div>` : ""}</article>`).join("") || dashboardEmptyHTML("Nenhum registro encontrado neste período.");
+        : visible.map(item => `<article class="timeline-item"><span class="timeline-icon">${timelineIcon(item.type)}</span><div class="timeline-copy"><strong>${escapeHTML(timelineTitleText(item))}</strong><time>${escapeHTML(localDateTimeLabel(item.occurredAt))}</time><span>${escapeHTML(timelineDetailText(item))}</span>${item.type === "feedback" && item.details?.trainerResponse ? `<span><strong>${escapeHTML(t("Resposta do personal"))}:</strong> ${escapeHTML(item.details.trainerResponse)}</span>` : ""}</div>${currentAccount()?.role === "personal" && item.type === "feedback" ? `<div class="action-row"><button class="ghost respond-feedback" type="button" data-feedback-id="${escapeHTML(String(item.id).replace(/^feedback:/, ""))}">${escapeHTML(t("Responder"))}</button></div>` : ""}</article>`).join("") || dashboardEmptyHTML("Nenhum registro encontrado neste período.");
       const more = document.getElementById("loadMoreTimelineButton");
       more.hidden = events.length <= timelineVisibleLimit;
       document.getElementById("achievementList").innerHTML = achievements.slice(0, 6).map(item => `<article class="achievement-card"><span class="achievement-mark">M</span><div class="timeline-copy"><strong>${escapeHTML(t(item.title || achievementDefinitions.find(([key]) => key === item.key)?.[1] || item.key))}</strong><span>${escapeHTML(t(item.criteria || item.details?.criteria || "Critério concluído"))}</span></div><div class="action-row"><button class="ghost share-achievement" type="button" data-achievement-key="${escapeHTML(item.key)}">${escapeHTML(t("Compartilhar"))}</button></div></article>`).join("");
@@ -21446,15 +21615,21 @@ ${photoSections}
 
     function timelineDetailText(item) {
       const details = item.details || {};
-      if (item.type === "workout") return `${details.sets || 0} ${t("séries")} · ${Math.round(details.volume || 0)} ${t("de volume")}`;
+      if (item.type === "workout") return `${details.sets || 0} ${t("séries")} · ${localizedNumber(Math.round(details.volume || 0), { maximumFractionDigits: 0 })} ${t("de volume")}`;
       if (item.type === "checkin") return `${t("Score")}: ${details.score ?? "--"}%${details.weight ? ` · ${formatWeight(details.weight)}` : ""}`;
-      if (item.type === "measurement") return [details.weight ? formatWeight(details.weight) : "", details.bodyFat ? `${details.bodyFat}%` : ""].filter(Boolean).join(" · ") || t("Registro corporal");
+      if (item.type === "measurement") return [details.weight ? formatWeight(details.weight) : "", details.bodyFat ? formatMeasureValue(details.bodyFat, "%") : ""].filter(Boolean).join(" · ") || t("Registro corporal");
       if (item.type === "feedback") return [details.difficulty ? `${t("Dificuldade")}: ${details.difficulty}/5` : "", details.comment || "", ...(details.flags || []).map(flag => t(flag))].filter(Boolean).join(" · ");
-      if (item.type === "diet") return details.calories ? `${details.calories} kcal` : localizedMonthLabel(details.month);
+      if (item.type === "diet") return details.calories ? `${localizedNumber(details.calories, { maximumFractionDigits: 2 })} kcal` : localizedMonthLabel(details.month);
       if (item.type === "program") return details.durationWeeks ? `${details.durationWeeks} ${t("semanas")}` : "";
       if (item.type === "record") return [details.exercise || "", details.weight ? `${formatWeight(details.weight)} × ${details.reps || 0}` : "", details.e1rm ? `e1RM ${formatWeight(details.e1rm)}` : ""].filter(Boolean).join(" · ");
       if (item.type === "streak") return `${details.days || 0} ${t("dias seguidos")}`;
       return details.criteria || "";
+    }
+
+    function timelineTitleText(item = {}) {
+      if (item.type === "workout" && item.title !== "Treino concluído") return item.title || t("Treino concluído");
+      if (item.type === "program" && item.title !== "Programa criado") return item.title || t("Programa criado");
+      return t(item.title || "Registro");
     }
 
     function loadOnboardingConfigs() {
@@ -21529,8 +21704,12 @@ ${photoSections}
         const total = Array.isArray(config?.requiredSteps) ? config.requiredSteps.length : 0;
         return total ? { total, done: total, nextScreen: "onboarding", nextKey: "", complete: true } : null;
       }
-      const trainerId = user.trainerId || "";
-      const config = loadOnboardingConfigs()[trainerId] || defaultOnboardingConfig(trainerId);
+      const linkState = studentTrainerLinkState(user);
+      if (isRealSupabaseAccount(user) && ["idle", "loading", "error"].includes(linkState.status) && !linkState.trainerId) return null;
+      const trainerId = linkState.trainerId || user.trainerId || "";
+      const storedConfig = loadOnboardingConfigs()[trainerId] || null;
+      if (isRealSupabaseAccount(user) && trainerId && !storedConfig) return null;
+      const config = storedConfig || defaultOnboardingConfig(trainerId);
       const requiredSteps = Array.isArray(config.requiredSteps) ? config.requiredSteps : [];
       const total = requiredSteps.length;
       if (!total) return null;
@@ -22039,16 +22218,22 @@ ${photoSections}
       renderProfileSpaceStatus(space);
     }
 
-    async function loadActiveSpace() {
-      const user = currentAccount();
-      if (!user) { applySpaceTheme(null); return null; }
-      if (user.role === "personal" && !hasSpaceEntitlement(user)) { applySpaceTheme(null); return null; }
-      let space = loadSpaces().find(item => {
+    function cachedActiveSpaceForUser(user = currentAccount()) {
+      if (!user || (user.role === "personal" && !hasSpaceEntitlement(user))) return null;
+      return loadSpaces().find(item => {
         if (item.ownerId === user.id) return hasSpaceEntitlement(user);
         if (!(item.memberIds || []).includes(user.id)) return false;
         const owner = loadAccounts().find(account => account.id === item.ownerId);
         return isRealSupabaseAccount(user) || hasSpaceEntitlement(owner);
       }) || null;
+    }
+
+    async function loadActiveSpace() {
+      const user = currentAccount();
+      if (!user) { applySpaceTheme(null); return null; }
+      if (user.role === "personal" && !hasSpaceEntitlement(user)) { applySpaceTheme(null); return null; }
+      let space = cachedActiveSpaceForUser(user);
+      applySpaceTheme(space);
       if (monolithSupabase && isRealSupabaseAccount(user)) {
         const { data: memberships, error: membershipError } = await monolithSupabase.from("space_memberships").select("space_id,role").eq("user_id", user.id).limit(1);
         if (!membershipError && memberships?.[0]?.space_id) {
@@ -22062,6 +22247,7 @@ ${photoSections}
           else if (error) safeRemoteLog("hydrate", "space-owner", error, { userId: user.id });
         }
       }
+      if (space?.id) saveSpaces([space, ...loadSpaces().filter(item => item.id !== space.id)]);
       applySpaceTheme(space);
       return space;
     }
@@ -22074,7 +22260,7 @@ ${photoSections}
       if (user?.role !== "personal") return;
       if (!hasSpaceEntitlement(user)) {
         showToast("Plus Space não está ativo nesta conta.");
-        showScreen("profile", { historyMode: "replace", skipDirtyGuard: true });
+        showScreen("profile", { historyMode: "replace", skipDirtyGuard: true, preserveMessage: true });
         return;
       }
       let space = loadSpaces().find(item => item.ownerId === user.id) || null;
@@ -22547,6 +22733,67 @@ ${photoSections}
       "Ação desfeita": "Acción deshecha",
       "Ação cancelada": "Acción cancelada"
     });
+
+    Object.assign(translations.en, {
+      "Mês da dieta": "Diet month",
+      "Não foi possível verificar o personal vinculado agora.": "The linked trainer could not be verified right now.",
+      "Não foi possível carregar a dieta.": "The diet could not be loaded.",
+      "Sem comparação": "No comparison",
+      "Valor fora da faixa conservadora de visualização.": "Value outside the conservative display range.",
+      "A administração do Space é exclusiva do Personal.": "Space administration is available only to trainers.",
+      "Você não tem acesso a esta área.": "You do not have access to this area.",
+      "Início do programa": "Start",
+      "Continuar": "Continue",
+      "Pronto": "Ready",
+      "Ouvindo": "Listening",
+      "Pausado": "Paused",
+      "Incompatível": "Unsupported",
+      "Erro": "Error",
+      "Dieta publicada": "Diet published",
+      "Check-in concluído": "Check-in completed",
+      "Medidas registradas": "Measurements recorded",
+      "Programa criado": "Program created",
+      "Fotos de evolução atualizadas": "Progress photos updated",
+      "Proteína": "Protein",
+      "Carboidratos": "Carbohydrates",
+      "Gorduras": "Fats",
+      "refeição": "meal",
+      "refeições": "meals",
+      "Substituições": "Substitutions",
+      "Personal": "Trainer",
+      "Aluno vinculado a um personal": "Student linked to a trainer"
+    });
+    Object.assign(translations.es, {
+      "Mês da dieta": "Mes de la dieta",
+      "Não foi possível verificar o personal vinculado agora.": "No se pudo verificar al entrenador vinculado ahora.",
+      "Não foi possível carregar a dieta.": "No se pudo cargar la dieta.",
+      "Sem comparação": "Sin comparación",
+      "Valor fora da faixa conservadora de visualização.": "Valor fuera del rango conservador de visualización.",
+      "A administração do Space é exclusiva do Personal.": "La administración del Space es exclusiva del entrenador.",
+      "Você não tem acesso a esta área.": "No tienes acceso a esta área.",
+      "Início do programa": "Inicio",
+      "Continuar": "Continuar",
+      "Pronto": "Listo",
+      "Ouvindo": "Escuchando",
+      "Pausado": "Pausado",
+      "Incompatível": "Incompatible",
+      "Erro": "Error",
+      "Dieta publicada": "Dieta publicada",
+      "Check-in concluído": "Check-in completado",
+      "Medidas registradas": "Medidas registradas",
+      "Programa criado": "Programa creado",
+      "Fotos de evolução atualizadas": "Fotos de evolución actualizadas",
+      "Proteína": "Proteína",
+      "Carboidratos": "Carbohidratos",
+      "Gorduras": "Grasas",
+      "refeição": "comida",
+      "refeições": "comidas",
+      "Substituições": "Sustituciones",
+      "Personal": "Entrenador",
+      "Aluno vinculado a um personal": "Alumno vinculado a un entrenador"
+    });
+
+    applyLanguage(localStorage.getItem("monolith.language") || "pt");
 
     initializeUnsavedProtection();
   </script>
@@ -23233,18 +23480,18 @@ ${photoSections}
       function voiceButtonStateLabelV2(status = voiceStateV2.status) {
         const labels = {
           off: "Desligado",
-          requesting: "Escutando",
-          active: "Escutando",
-          ready: "Desligado",
-          detected: "Escutando",
+          requesting: "Ouvindo",
+          active: "Ouvindo",
+          ready: "Pronto",
+          detected: "Ouvindo",
           processing: "Interpretando",
           saved: "Aplicado",
           misunderstood: "Não compreendido",
-          error: "Microfone indisponível",
-          denied: "Permissão negada",
-          unsupported: "Navegador incompatível",
-          "recognition-unavailable": "Reconhecimento indisponível",
-          paused: "Desligado",
+          error: "Erro",
+          denied: "Erro",
+          unsupported: "Incompatível",
+          "recognition-unavailable": "Incompatível",
+          paused: "Pausado",
           completed: "Aplicado"
         };
         return labels[status] || "Desligado";
@@ -24432,10 +24679,24 @@ ${photoSections}
 
       function loadWorkoutsV2() {
         try {
-          return JSON.parse(localStorage.getItem("monolith.workouts") || "[]").map(normalizeWorkoutV2);
+          return uniqueWorkoutsByStableIdV2(JSON.parse(localStorage.getItem("monolith.workouts") || "[]").map(normalizeWorkoutV2));
         } catch {
           return [];
         }
+      }
+
+      function uniqueWorkoutsByStableIdV2(workouts = []) {
+        const seen = new Set();
+        return (workouts || []).filter(workout => {
+          const stableKey = workout.id
+            ? `id:${workout.id}`
+            : workout.clientRequestId
+              ? `request:${workout.clientRequestId}`
+              : "";
+          if (stableKey && seen.has(stableKey)) return false;
+          if (stableKey) seen.add(stableKey);
+          return true;
+        });
       }
 
       function deletedLibraryWorkoutsV2() {
@@ -24461,6 +24722,9 @@ ${photoSections}
           goal: row.goal,
           tag: row.tag && row.tag !== "Local" ? row.tag : "Supabase",
           source: "supabase",
+          clientRequestId: row.client_request_id || "",
+          createdAt: row.created_at || "",
+          updatedAt: row.updated_at || "",
           exercises: row.exercises || [],
           createdBy: row.created_by || "",
           updatedBy: row.updated_by || "",
@@ -24477,7 +24741,7 @@ ${photoSections}
           .select("*")
           .order("created_at", { ascending: false });
         if (error) throw error;
-        return (data || []).map(workoutFromRemoteV2).filter(workout => {
+        return uniqueWorkoutsByStableIdV2((data || []).map(workoutFromRemoteV2).filter(workout => {
           if (!user) return false;
           if (user.role === "student") {
             if (workout.assignedStudentId) return workout.assignedStudentId === user.id;
@@ -24488,7 +24752,7 @@ ${photoSections}
             return workout.ownerId === user.id;
           }
           return false;
-        });
+        }));
       }
 
       async function updateWorkoutCreateAccessV2() {
@@ -24641,7 +24905,7 @@ ${photoSections}
       }
 
       function saveWorkoutsV2(workouts) {
-        localStorage.setItem("monolith.workouts", JSON.stringify(workouts.map(normalizeWorkoutV2)));
+        localStorage.setItem("monolith.workouts", JSON.stringify(uniqueWorkoutsByStableIdV2(workouts.map(normalizeWorkoutV2))));
       }
 
       function setWorkoutCsvStatusV2(message, translated = false) {
@@ -25046,7 +25310,7 @@ ${photoSections}
         retainedLocal.forEach(workout => {
           if (!merged.some(item => item.id === workout.id || (item.clientRequestId && item.clientRequestId === workout.clientRequestId))) merged.push(workout);
         });
-        workoutsV2 = merged;
+        workoutsV2 = uniqueWorkoutsByStableIdV2(merged);
         saveWorkoutsV2(workoutsV2);
         if (!remoteResult.ok && !workoutsV2.length) {
           workoutListV2.innerHTML = remoteStateHTML("error", { errorLabel: "Não foi possível carregar os treinos. Tente novamente.", retryScreen: "workouts" });
@@ -25997,7 +26261,7 @@ ${photoSections}
       });
       document.getElementById("closeVoicePanel")?.addEventListener("click", () => setVoicePanelOpenV2(false));
       document.getElementById("voiceTalkNow")?.addEventListener("click", async () => {
-        if (!voiceStateV2.active) await beginVoiceSessionV2();
+        if (!voiceStateV2.active || voiceStateV2.visualOnly) await beginVoiceSessionV2();
         else if (voiceStateV2.paused && !voiceStateV2.visualOnly) await resumeVoiceSessionV2();
         setVoicePanelOpenV2(true);
         if (voiceStateV2.visualOnly || !VoiceRecognitionV2) {
