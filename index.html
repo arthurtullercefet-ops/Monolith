@@ -14,8 +14,8 @@
   <link rel="manifest" href="manifest.webmanifest" />
   <link rel="icon" href="monolith-icon.svg" />
   <script>
-window.MONOLITH_BUILD = "monolith-v101-student-flow-stability";
-window.MONOLITH_VERSION_LABEL = "Monolith v101 · 31/08/2026";
+window.MONOLITH_BUILD = "monolith-v102-heavy-flow-stability";
+window.MONOLITH_VERSION_LABEL = "Monolith v102 · 03/09/2026";
     (function clearOldAppCaches() {
       if ("serviceWorker" in navigator) {
         navigator.serviceWorker.getRegistrations?.()
@@ -202,6 +202,71 @@ window.MONOLITH_VERSION_LABEL = "Monolith v101 · 31/08/2026";
 
     body:not(.authenticated) .app {
       display: none;
+    }
+
+    .identity-hydration-shell {
+      display: none;
+      min-height: 100vh;
+      place-items: center;
+      padding: 24px;
+      background: #070707;
+    }
+
+    body.authenticated.identity-hydrating .identity-hydration-shell {
+      display: grid;
+    }
+
+    body.authenticated.identity-hydrating .app {
+      visibility: hidden;
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+    }
+
+    .identity-hydration-card {
+      width: min(420px, 100%);
+      display: grid;
+      grid-template-columns: 52px 1fr;
+      align-items: center;
+      gap: 18px;
+      padding: 24px;
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      background: #101010;
+      box-shadow: var(--shadow);
+    }
+
+    .identity-hydration-mark {
+      width: 52px;
+      height: 52px;
+      display: grid;
+      place-items: center;
+      border: 1px solid #666;
+      border-radius: 10px;
+      color: #aaa;
+      font-size: 22px;
+      font-weight: 800;
+    }
+
+    .identity-hydration-lines {
+      display: grid;
+      gap: 10px;
+    }
+
+    .identity-hydration-line {
+      height: 10px;
+      border-radius: 10px;
+      background: #252525;
+      animation: identity-pulse 1.1s ease-in-out infinite alternate;
+    }
+
+    .identity-hydration-line:last-child {
+      width: 64%;
+    }
+
+    @keyframes identity-pulse {
+      from { opacity: .45; }
+      to { opacity: 1; }
     }
 
     .skip-link {
@@ -4973,6 +5038,7 @@ window.MONOLITH_VERSION_LABEL = "Monolith v101 · 31/08/2026";
     @media (prefers-reduced-motion: reduce) {
       .voice-fab .voice-mic-icon, .voice-wave i { animation: none !important; }
       .voice-panel { transition: none; }
+      .identity-hydration-line { animation: none; }
     }
   </style>
 </head>
@@ -5029,7 +5095,7 @@ window.MONOLITH_VERSION_LABEL = "Monolith v101 · 31/08/2026";
           <button class="action" id="loginButton" type="submit">Entrar</button>
           <div class="auth-tools">
             <button class="auth-secondary" id="clearDeviceSessionButton" type="button">Limpar sessão/cache deste aparelho</button>
-            <div class="build-version" id="buildVersionLabel">Versão do app: Monolith v101 · 31/08/2026</div>
+            <div class="build-version" id="buildVersionLabel">Versão do app: Monolith v102 · 03/09/2026</div>
           </div>
         </form>
       </div>
@@ -5110,6 +5176,16 @@ window.MONOLITH_VERSION_LABEL = "Monolith v101 · 31/08/2026";
       </div>
     </div>
   </section>
+
+  <div class="identity-hydration-shell" id="identityHydrationShell" role="status" aria-live="polite" aria-label="Carregando conta" hidden>
+    <div class="identity-hydration-card">
+      <div class="identity-hydration-mark" aria-hidden="true">M</div>
+      <div class="identity-hydration-lines" aria-hidden="true">
+        <div class="identity-hydration-line"></div>
+        <div class="identity-hydration-line"></div>
+      </div>
+    </div>
+  </div>
 
   <script>
     (function () {
@@ -5504,7 +5580,7 @@ window.MONOLITH_VERSION_LABEL = "Monolith v101 · 31/08/2026";
           <div class="checkin-measure">
             <div class="measure-field">
               <label id="dailyWeightLabel" for="dailyWeight" data-i18n="Peso de hoje">Peso de hoje</label>
-              <input id="dailyWeight" inputmode="decimal" placeholder="Ex: 82.4" />
+              <input id="dailyWeight" inputmode="decimal" placeholder="Ex: 82,4" data-i18n-placeholder="Ex: 82,4" />
             </div>
             <div class="measure-note">O peso entra no relatório mensal e ajuda o personal a ver evolução, retenção e queda dia a dia.</div>
           </div>
@@ -6594,7 +6670,7 @@ window.MONOLITH_VERSION_LABEL = "Monolith v101 · 31/08/2026";
               </div>
               <div class="field">
                 <label id="measureWeightLabel" for="measureWeight" data-i18n="Peso corporal">Peso corporal</label>
-                <input id="measureWeight" inputmode="decimal" placeholder="Ex: 82.4" data-i18n-placeholder="Ex: 82.4" />
+                <input id="measureWeight" inputmode="decimal" placeholder="Ex: 82,4" data-i18n-placeholder="Ex: 82,4" />
               </div>
               <div class="field">
                 <label for="measureBodyFat">Gordura corporal</label>
@@ -6833,8 +6909,8 @@ window.MONOLITH_VERSION_LABEL = "Monolith v101 · 31/08/2026";
   <script>
     const MONOLITH_SUPABASE_URL = "https://jhxasnxuvmkhntbwepau.supabase.co";
     const MONOLITH_SUPABASE_KEY = "sb_publishable_lDtAXIOtkMwgwsAZyghBdg_gyLHGwpH";
-const MONOLITH_BUILD = window.MONOLITH_BUILD || "monolith-v101-student-flow-stability";
-const MONOLITH_VERSION_LABEL = window.MONOLITH_VERSION_LABEL || "Monolith v101 · 31/08/2026";
+const MONOLITH_BUILD = window.MONOLITH_BUILD || "monolith-v102-heavy-flow-stability";
+const MONOLITH_VERSION_LABEL = window.MONOLITH_VERSION_LABEL || "Monolith v102 · 03/09/2026";
     const onboardingStepDefinitions = [
       ["welcome", "Boas-vindas", "Conheça o fluxo do seu acompanhamento.", "home"],
       ["terms", "Termos", "Revise consentimentos e informações da conta.", "profile"],
@@ -7127,6 +7203,7 @@ if (location.hash.toLowerCase() === "#leads") history.replaceState(null, "", `${
 
     function cacheRemoteAccount(profile, authUser = null) {
       if (!profile?.id) return null;
+      const cachedAccount = loadAccounts().find(item => item.id === profile.id) || null;
       const savedVoiceSettings = (() => {
         try { return JSON.parse(localStorage.getItem("monolith.voiceSettings") || "{}"); } catch { return {}; }
       })();
@@ -7146,7 +7223,11 @@ if (location.hash.toLowerCase() === "#leads") history.replaceState(null, "", `${
         weightUnit,
         voiceLanguage,
         voiceGender,
-        source: "supabase"
+        source: "supabase",
+        ...(appRoleFromDb(profile.role) === "student" && cachedAccount?.trainerId ? {
+          trainerId: cachedAccount.trainerId,
+          trainerLinkedAt: cachedAccount.trainerLinkedAt || ""
+        } : {})
       };
       localStorage.setItem("monolith.language", language);
       localStorage.setItem("monolith.weightUnit", weightUnit);
@@ -8095,9 +8176,9 @@ if (location.hash.toLowerCase() === "#leads") history.replaceState(null, "", `${
     }
 
     function trainerStartingPrice(profile) {
-      if (Number(profile.hourly_price) > 0) return `${t("A partir de")} $${profile.hourly_price}/${t("hora")}`;
-      if (Number(profile.monthly_price) > 0) return `${t("A partir de")} $${profile.monthly_price}/${t("mês")}`;
-      if (Number(profile.online_monthly_price) > 0) return `${t("A partir de")} $${profile.online_monthly_price}/${t("mês online")}`;
+      if (Number(profile.hourly_price) > 0) return `${t("A partir de")} $${localizedNumber(profile.hourly_price)}/${t("hora")}`;
+      if (Number(profile.monthly_price) > 0) return `${t("A partir de")} $${localizedNumber(profile.monthly_price)}/${t("mês")}`;
+      if (Number(profile.online_monthly_price) > 0) return `${t("A partir de")} $${localizedNumber(profile.online_monthly_price)}/${t("mês online")}`;
       return t("Preço sob consulta");
     }
 
@@ -8809,8 +8890,8 @@ if (location.hash.toLowerCase() === "#leads") history.replaceState(null, "", `${
           const start = dateFromKey(program.startDate);
           if (!start) return false;
           const end = new Date(start);
-          end.setDate(end.getDate() + Number(program.durationWeeks || 0) * 7);
-          return program.startDate <= today && today < todayKey(end);
+          end.setUTCDate(end.getUTCDate() + Number(program.durationWeeks || 0) * 7);
+          return program.startDate <= today && today < civilDateKey(end);
         })
         .sort((a, b) => String(b.updatedAt || b.startDate).localeCompare(String(a.updatedAt || a.startDate)))[0] || null;
     }
@@ -8825,21 +8906,37 @@ if (location.hash.toLowerCase() === "#leads") history.replaceState(null, "", `${
     function programScheduleForDate(program, dateKey = todayKey()) {
       const date = dateFromKey(dateKey);
       if (!program || !date) return null;
-      return (program.schedule || []).find(item => Number(item.dayOfWeek) === date.getDay()) || null;
+      return (program.schedule || []).find(item => Number(item.dayOfWeek) === date.getUTCDay()) || null;
     }
 
     function nextProgramAssignment(program, workouts = [], fromKey = todayKey()) {
       if (!program || program.status !== "active") return null;
-      const start = dateFromKey(fromKey);
-      if (!start) return null;
-      for (let offset = 0; offset < 8; offset += 1) {
+      const programStart = dateFromKey(program.startDate);
+      const requestedStart = dateFromKey(fromKey);
+      if (!programStart || !requestedStart) return null;
+      const start = requestedStart < programStart ? programStart : requestedStart;
+      const end = new Date(programStart);
+      end.setUTCDate(end.getUTCDate() + Math.max(1, Number(program.durationWeeks || 1)) * 7);
+      const studentId = program.studentId || currentAccount()?.id || "";
+      const completed = loadCompletedWorkoutEntries().filter(session => !studentId || session.studentId === studentId || (!session.studentId && studentId === currentAccount()?.id));
+      for (let offset = 0; offset < 15; offset += 1) {
         const date = new Date(start);
-        date.setDate(date.getDate() + offset);
-        const key = todayKey(date);
+        date.setUTCDate(date.getUTCDate() + offset);
+        if (date >= end) break;
+        const key = civilDateKey(date);
         const slot = programScheduleForDate(program, key);
         if (!slot || slot.kind === "rest") continue;
         const workout = workouts.find(item => item.id === slot.workoutId) || null;
-        return { ...slot, date: key, workout, isToday: offset === 0 };
+        const completedOnDate = completed.some(session => {
+          const completedKey = /^\d{4}-\d{2}-\d{2}$/.test(String(session.date || ""))
+            ? session.date
+            : session.completedAt ? todayKey(new Date(session.completedAt)) : entryDateKey(session.date);
+          if (completedKey !== key) return false;
+          if (session.workoutId && slot.workoutId) return session.workoutId === slot.workoutId;
+          return Boolean(workout?.name && session.workoutName === workout.name);
+        });
+        if (completedOnDate) continue;
+        return { ...slot, date: key, workout, isToday: key === fromKey };
       }
       return null;
     }
@@ -9140,6 +9237,47 @@ if (location.hash.toLowerCase() === "#leads") history.replaceState(null, "", `${
         : t("O plano atual acompanha até 15 alunos. Acima disso, o Personal Pro será necessário.");
     }
 
+    const accountIdentityHydrationStates = new Map();
+    const accountIdentityHydrationRequests = new Map();
+
+    function setIdentityHydrationVisible(visible) {
+      const shell = document.getElementById("identityHydrationShell");
+      document.body.classList.toggle("identity-hydrating", Boolean(visible));
+      if (shell) shell.hidden = !visible;
+    }
+
+    async function hydrateAccountIdentity(user = currentAccount()) {
+      if (!user?.id) return null;
+      if (["loaded", "partial"].includes(accountIdentityHydrationStates.get(user.id))) return window.monolithActiveSpace || null;
+      if (!isRealSupabaseAccount(user)) {
+        accountIdentityHydrationStates.set(user.id, "loaded");
+        window.monolithApplySpaceTheme?.(cachedActiveSpaceForUser(user));
+        setIdentityHydrationVisible(false);
+        return null;
+      }
+      if (accountIdentityHydrationRequests.has(user.id)) return accountIdentityHydrationRequests.get(user.id);
+      accountIdentityHydrationStates.set(user.id, "loading");
+      setIdentityHydrationVisible(true);
+      const request = (async () => {
+        const tasks = [window.monolithLoadActiveSpace?.()];
+        if (user.role === "student") tasks.push(ensureStudentTrainerId(user));
+        const results = await Promise.allSettled(tasks);
+        if (currentAccount()?.id !== user.id) return results;
+        if (results[0]?.status === "rejected") window.monolithApplySpaceTheme?.(null);
+        accountIdentityHydrationStates.set(user.id, results.some(result => result.status === "rejected") ? "partial" : "loaded");
+        renderTrainerLinkPanel();
+        renderProfileTrainerLink(currentAccount());
+        renderStudentDashboard();
+        renderOnboardingHomeCard();
+        return results;
+      })().finally(() => {
+        accountIdentityHydrationRequests.delete(user.id);
+        if (currentAccount()?.id === user.id) setIdentityHydrationVisible(false);
+      });
+      accountIdentityHydrationRequests.set(user.id, request);
+      return request;
+    }
+
     function applyAuthState() {
       const user = currentAccount();
       document.body.classList.toggle("authenticated", Boolean(user));
@@ -9148,13 +9286,17 @@ if (location.hash.toLowerCase() === "#leads") history.replaceState(null, "", `${
       if (!user) {
         trainerProfileOnboardingRequired = false;
         window.monolithTrainerProfileRequired = false;
+        accountIdentityHydrationStates.clear();
         document.body.classList.remove("auth-role-student", "auth-role-personal");
         window.monolithApplySpaceTheme?.(null);
+        setIdentityHydrationVisible(false);
       }
       document.querySelectorAll("[data-role-only]").forEach(element => {
         element.hidden = !user || element.dataset.roleOnly !== user.role;
       });
       if (user) {
+        const identityReady = !isRealSupabaseAccount(user) || ["loaded", "partial"].includes(accountIdentityHydrationStates.get(user.id));
+        setIdentityHydrationVisible(!identityReady);
         window.monolithApplySpaceTheme?.(cachedActiveSpaceForUser(user));
         applyLanguage(user.language || localStorage.getItem("monolith.language") || "pt");
       }
@@ -9168,12 +9310,13 @@ if (location.hash.toLowerCase() === "#leads") history.replaceState(null, "", `${
         renderTrainerLinkPanel();
         renderNutrition();
         renderProfile();
-        window.monolithLoadActiveSpace?.();
+        hydrateAccountIdentity(user);
       }
     }
 
     function saveStudentTrainerLink(user, trainerId, trainer = null, linkedAt = "") {
       if (!user?.id || !trainerId) return;
+      studentTrainerLinkRevisions.set(user.id, (studentTrainerLinkRevisions.get(user.id) || 0) + 1);
       const accounts = loadAccounts();
       const trainerAccount = trainer ? {
         id: trainer.id,
@@ -9201,6 +9344,7 @@ if (location.hash.toLowerCase() === "#leads") history.replaceState(null, "", `${
 
     const studentTrainerLinkStates = new Map();
     const studentTrainerLinkRequests = new Map();
+    const studentTrainerLinkRevisions = new Map();
 
     function studentTrainerLinkState(user = currentAccount()) {
       if (!user?.id || user.role !== "student") return { status: "empty", trainerId: "", error: null };
@@ -9224,6 +9368,7 @@ if (location.hash.toLowerCase() === "#leads") history.replaceState(null, "", `${
       }
       if (studentTrainerLinkRequests.has(user.id)) return studentTrainerLinkRequests.get(user.id);
       studentTrainerLinkStates.set(user.id, { status: "loading", trainerId: "", error: null });
+      const requestRevision = studentTrainerLinkRevisions.get(user.id) || 0;
       const request = (async () => {
         const { data: links, error } = await monolithSupabase
           .from("trainer_students")
@@ -9233,6 +9378,7 @@ if (location.hash.toLowerCase() === "#leads") history.replaceState(null, "", `${
           .limit(1);
         if (error) throw error;
         const trainerId = links?.[0]?.trainer_id || "";
+        if ((studentTrainerLinkRevisions.get(user.id) || 0) !== requestRevision) return studentTrainerLinkState(user).trainerId || "";
         if (!trainerId) {
           studentTrainerLinkStates.set(user.id, { status: "empty", trainerId: "", error: null });
           return "";
@@ -9243,10 +9389,12 @@ if (location.hash.toLowerCase() === "#leads") history.replaceState(null, "", `${
           .eq("id", trainerId)
           .maybeSingle();
         if (trainerError) logAppError("trainer-link", "trainer-profile", trainerError, { studentId: user.id, trainerId });
+        if ((studentTrainerLinkRevisions.get(user.id) || 0) !== requestRevision) return studentTrainerLinkState(user).trainerId || "";
         saveStudentTrainerLink(latest, trainerId, trainer || null, links?.[0]?.created_at || "");
         return trainerId;
       })().catch(error => {
         logAppError("trainer-link", "lookup", error, { studentId: user.id });
+        if ((studentTrainerLinkRevisions.get(user.id) || 0) !== requestRevision) return studentTrainerLinkState(user).trainerId || "";
         studentTrainerLinkStates.set(user.id, { status: "error", trainerId: "", error });
         return "";
       }).finally(() => studentTrainerLinkRequests.delete(user.id));
@@ -9403,6 +9551,7 @@ if (location.hash.toLowerCase() === "#leads") history.replaceState(null, "", `${
         return account;
       });
       saveAccounts(accounts);
+      studentTrainerLinkRevisions.set(user.id, (studentTrainerLinkRevisions.get(user.id) || 0) + 1);
       studentTrainerLinkStates.set(user.id, { status: "empty", trainerId: "", error: null });
       localStorage.removeItem("monolith.selectedStudentId");
       localStorage.removeItem("monolith.selectedDietStudentId");
@@ -9449,9 +9598,8 @@ if (location.hash.toLowerCase() === "#leads") history.replaceState(null, "", `${
         } else {
           trainerId = data;
         }
-        const accounts = loadAccounts();
         const trainerLinkedAt = new Date().toISOString();
-        saveAccounts(accounts.map(account => account.id === user.id ? { ...account, trainerId, trainerLinkedAt } : account));
+        saveStudentTrainerLink(user, trainerId, null, trainerLinkedAt);
         await renderTrainerLinkPanel();
         authMessage("Personal vinculado com sucesso.");
         return true;
@@ -9468,6 +9616,8 @@ if (location.hash.toLowerCase() === "#leads") history.replaceState(null, "", `${
         if (account.id === trainer.id) return { ...account, students: [...new Set([...(account.students || []), user.id])] };
         return account;
       }));
+      studentTrainerLinkRevisions.set(user.id, (studentTrainerLinkRevisions.get(user.id) || 0) + 1);
+      studentTrainerLinkStates.set(user.id, { status: "loaded", trainerId: trainer.id, error: null });
       await renderTrainerLinkPanel();
       authMessage("Personal vinculado com sucesso.");
       return true;
@@ -10215,10 +10365,17 @@ if (location.hash.toLowerCase() === "#leads") history.replaceState(null, "", `${
       const number = Number(String(value).replace(",", "."));
       if (!Number.isFinite(number)) return "--";
       const language = options.language || localStorage.getItem("monolith.language") || "pt";
-      return new Intl.NumberFormat(currentLocale(language), {
+      const formatter = new Intl.NumberFormat(currentLocale(language), {
         minimumFractionDigits: options.minimumFractionDigits ?? 0,
-        maximumFractionDigits: options.maximumFractionDigits ?? 2
-      }).format(number);
+        maximumFractionDigits: options.maximumFractionDigits ?? 2,
+        useGrouping: options.useGrouping !== false
+      });
+      if (language !== "es") return formatter.format(number);
+      const parts = formatter.formatToParts(number);
+      const integer = parts.filter(part => part.type === "integer").map(part => part.value).join("").replace(/\B(?=(\d{3})+(?!\d))/g, ".");
+      const sign = parts.filter(part => part.type === "minusSign" || part.type === "plusSign").map(part => part.value).join("");
+      const fraction = parts.find(part => part.type === "fraction")?.value || "";
+      return `${sign}${integer}${fraction ? `,${fraction}` : ""}`;
     }
 
     function localizedDateOptions(language = localStorage.getItem("monolith.language") || "pt") {
@@ -10246,15 +10403,32 @@ if (location.hash.toLowerCase() === "#leads") history.replaceState(null, "", `${
       }).format(appCalendarDate(civilKey));
     }
 
-    function localDateTimeLabel(value) {
+    function normalizeLocalizedTimePunctuation(value, language = localStorage.getItem("monolith.language") || "pt") {
+      const text = String(value || "");
+      if (language !== "es") return text;
+      return text.replace(/([ap])\.\s*m\.(?:\.)*/gi, "$1. m.");
+    }
+
+    function localDateTimeLabel(value, language = localStorage.getItem("monolith.language") || "pt") {
       const date = value instanceof Date ? value : new Date(value);
       if (Number.isNaN(date.getTime())) return String(value || "");
-      const formatted = new Intl.DateTimeFormat(currentLocale(), {
+      const formatted = new Intl.DateTimeFormat(currentLocale(language), {
         dateStyle: "medium",
         timeStyle: "short",
         timeZone: MONOLITH_TIME_ZONE
       }).format(date);
-      return currentLocale().startsWith("es") ? formatted.replace(/([ap])\.\s*m\.(?:\.)?$/i, "$1. m.") : formatted;
+      return normalizeLocalizedTimePunctuation(formatted, language);
+    }
+
+    function localTimeLabel(value, language = localStorage.getItem("monolith.language") || "pt") {
+      const date = value instanceof Date ? value : new Date(value);
+      if (Number.isNaN(date.getTime())) return String(value || "");
+      const formatted = new Intl.DateTimeFormat(currentLocale(language), {
+        hour: "2-digit",
+        minute: "2-digit",
+        timeZone: MONOLITH_TIME_ZONE
+      }).format(date);
+      return normalizeLocalizedTimePunctuation(formatted, language);
     }
 
     function lastMonthKey() {
@@ -11597,6 +11771,7 @@ if (location.hash.toLowerCase() === "#leads") history.replaceState(null, "", `${
         if (!isRealSupabaseAccount(user)) cacheAnamnesis(record);
         clearDirty("anamnesis");
         await renderAnamnesis();
+        renderOnboardingHomeCard();
         if (status === "draft") showToast(t(synced ? "Rascunho salvo no Supabase. Você pode continuar depois." : "Rascunho salvo. Você pode continuar depois."));
         else showToast(t(synced ? "Anamnese concluída e compartilhada com seu personal vinculado." : "Anamnese concluída."));
         return true;
@@ -12727,6 +12902,38 @@ if (location.hash.toLowerCase() === "#leads") history.replaceState(null, "", `${
         requestAnimationFrame(() => {
           if (!dirtyScopes.get("diet")?.dirty) setDirtyBaseline("diet");
         });
+      }
+    }
+
+    function rerenderNutritionLanguage() {
+      const user = currentAccount();
+      if (!user) return;
+      if (user.role === "personal") {
+        const form = document.getElementById("dietPlanForm");
+        if (!form || form.dataset.remoteState === "loading") return;
+        const draft = readDietPlanForm();
+        renderDietPlan("dietPreview", draft.studentId ? draft : null);
+        return;
+      }
+      const month = document.getElementById("studentDietMonth")?.value || currentMonthKey();
+      const linkState = studentTrainerLinkState(user);
+      if (["idle", "loading"].includes(linkState.status) && !linkState.trainerId) {
+        const note = document.getElementById("studentDietNote");
+        if (note) note.textContent = t("Verificando vínculo com personal...");
+        return;
+      }
+      const linkedTrainerId = linkState.trainerId || user.trainerId || "";
+      const plan = linkedTrainerId ? activeDietForStudent(user.id, month) : null;
+      const selfPanel = document.getElementById("selfNutritionPanel");
+      const note = document.getElementById("studentDietNote");
+      if (selfPanel) selfPanel.hidden = Boolean(linkedTrainerId);
+      if (note) note.textContent = linkedTrainerId
+        ? t("Seu personal define esta dieta. Você pode visualizar, mas não redesenhar.")
+        : t("Sem personal vinculado: use a contagem básica para registrar seu dia.");
+      renderDietPlan("studentDietView", plan, linkedTrainerId ? "Nenhuma dieta prescrita para este mês." : "Nenhuma dieta de personal vinculada.");
+      if (!linkedTrainerId) {
+        renderFoodLogMeals();
+        renderFoodLogSummary();
       }
     }
 
@@ -16078,7 +16285,7 @@ if (location.hash.toLowerCase() === "#leads") history.replaceState(null, "", `${
       const display = kgToDisplay(valueKg);
       if (display === null) return "--";
       const separator = options.space === false ? "" : " ";
-      return `${localizedNumber(display, { maximumFractionDigits: 2 })}${separator}${weightUnitLabel()}`;
+      return `${localizedNumber(display, { maximumFractionDigits: 2, language: options.language })}${separator}${weightUnitLabel()}`;
     }
 
     function weightInputValue(valueKg) {
@@ -16446,6 +16653,14 @@ if (location.hash.toLowerCase() === "#leads") history.replaceState(null, "", `${
       renderStudentContextHeader();
       updateTodayLabel(language);
       rerenderUiMessageStates();
+      rerenderNutritionLanguage();
+      if (currentAccount()?.role === "student") {
+        renderStudentDashboard();
+        renderTrainerLinkPanel();
+        renderProfileTrainerLink(currentAccount());
+      }
+      renderOnboardingHomeCard();
+      window.monolithRerenderVoiceLocalization?.();
       updateNumericSubmitStates();
       renderFactors();
       renderStats();
@@ -17210,9 +17425,9 @@ if (location.hash.toLowerCase() === "#leads") history.replaceState(null, "", `${
       return normalized === "" || normalized === null ? null : Number(normalized);
     }
 
-    function formatMeasureValue(value, unit = "") {
+    function formatMeasureValue(value, unit = "", language = localStorage.getItem("monolith.language") || "pt") {
       if (value === null || value === undefined || value === "") return "--";
-      const formatted = localizedNumber(value, { maximumFractionDigits: 2 });
+      const formatted = localizedNumber(value, { maximumFractionDigits: 2, language });
       return unit === "%" ? `${formatted}%` : `${formatted}${unit ? ` ${unit}` : ""}`;
     }
 
@@ -17799,7 +18014,7 @@ if (location.hash.toLowerCase() === "#leads") history.replaceState(null, "", `${
       const trainerPublicProfile = trainerId ? trainerProfilesCache()[trainerId] || trainerMapProfilesCache().find(item => item.trainer_id === trainerId) || null : null;
       const language = options.language || reportLanguage();
       const locale = { pt: "pt-BR", en: "en-US", es: "es-419" }[language] || "pt-BR";
-      return { student: reportStudent, trainer, trainerPublicProfile, period, metrics, checkins, completedWorkouts, stats, evolution, missedDays, weights, bodyMeasures, progressPhotos, activeDietPlan, anamnesis, generatedAt: new Date().toLocaleString(locale, { timeZone: MONOLITH_TIME_ZONE }) };
+      return { student: reportStudent, trainer, trainerPublicProfile, period, metrics, checkins, completedWorkouts, stats, evolution, missedDays, weights, bodyMeasures, progressPhotos, activeDietPlan, anamnesis, generatedAt: normalizeLocalizedTimePunctuation(new Date().toLocaleString(locale, { timeZone: MONOLITH_TIME_ZONE }), language) };
     }
 
     function monthlyReportHTMLLegacy() {
@@ -18068,16 +18283,17 @@ if (location.hash.toLowerCase() === "#leads") history.replaceState(null, "", `${
       const reportTitle = rt("Relatório do período");
       const reportCycleLabel = report.period.anchored ? rt("Ciclo de acompanhamento") : rt("Período de acompanhamento");
       const periodLabel = `${reportDateLabel(report.period.startKey, language)} - ${reportDateLabel(report.period.displayEndKey, language)}`;
-      const statsRows = report.stats.map(item => `<tr><td>${escapeHTML(t(item.name, language))}</td><td>${item.completed}/${item.total}</td><td>${Math.round((item.completed / Math.max(1, item.total)) * 100)}%</td></tr>`).join("");
-      const dayRows = report.checkins.map(day => `<tr><td>${escapeHTML(reportDateLabel(day.date, language))}</td><td>${day.weight ? formatWeight(day.weight) : rt("Peso não registrado")}</td><td>${day.completed}/${day.total}</td><td>${day.score}%</td><td>${day.items.map(item => `${escapeHTML(t(item.name, language))}: ${item.completed ? rt("ok") : rt("não")}`).join("<br>")}</td></tr>`).join("");
-      const workoutRows = report.completedWorkouts.slice(0, 30).map(session => `<tr><td>${escapeHTML(reportDateLabel(String(session.date || session.completedAt || "-").slice(0, 10), language))}</td><td data-no-i18n="true">${escapeHTML(session.workoutName || rt("Treino"))}</td><td>${session.completedSets || 0}/${session.totalSets || 0} ${rt("séries")}</td></tr>`).join("");
-      const evolutionRow = item => `<tr><td>${escapeHTML(window.monolithExerciseDisplayName?.(item, language) || item.name)}</td><td>${escapeHTML(reportDateLabel(item.first.date, language))}</td><td>${Math.round(item.first.volume)} vol / ${formatWeight(item.first.bestE1rm)} e1RM</td><td>${escapeHTML(reportDateLabel(item.latest.date, language))}</td><td>${Math.round(item.latest.volume)} vol / ${formatWeight(item.latest.bestE1rm)} e1RM</td><td>${item.percent > 0 ? "+" : ""}${item.percent}%</td></tr>`;
+      const rn = (value, maximumFractionDigits = 2) => localizedNumber(value, { maximumFractionDigits, language });
+      const statsRows = report.stats.map(item => `<tr><td>${escapeHTML(t(item.name, language))}</td><td>${rn(item.completed, 0)}/${rn(item.total, 0)}</td><td>${rn(Math.round((item.completed / Math.max(1, item.total)) * 100), 0)}%</td></tr>`).join("");
+      const dayRows = report.checkins.map(day => `<tr><td>${escapeHTML(reportDateLabel(day.date, language))}</td><td>${day.weight ? formatWeight(day.weight, { language }) : rt("Peso não registrado")}</td><td>${rn(day.completed, 0)}/${rn(day.total, 0)}</td><td>${rn(day.score, 0)}%</td><td>${day.items.map(item => `${escapeHTML(t(item.name, language))}: ${item.completed ? rt("ok") : rt("não")}`).join("<br>")}</td></tr>`).join("");
+      const workoutRows = report.completedWorkouts.slice(0, 30).map(session => `<tr><td>${escapeHTML(reportDateLabel(String(session.date || session.completedAt || "-").slice(0, 10), language))}</td><td data-no-i18n="true">${escapeHTML(session.workoutName || rt("Treino"))}</td><td>${rn(session.completedSets || 0, 0)}/${rn(session.totalSets || 0, 0)} ${rt("séries")}</td></tr>`).join("");
+      const evolutionRow = item => `<tr><td>${escapeHTML(window.monolithExerciseDisplayName?.(item, language) || item.name)}</td><td>${escapeHTML(reportDateLabel(item.first.date, language))}</td><td>${rn(Math.round(item.first.volume), 0)} vol / ${formatWeight(item.first.bestE1rm, { language })} e1RM</td><td>${escapeHTML(reportDateLabel(item.latest.date, language))}</td><td>${rn(Math.round(item.latest.volume), 0)} vol / ${formatWeight(item.latest.bestE1rm, { language })} e1RM</td><td>${item.percent > 0 ? "+" : ""}${rn(item.percent, 2)}%</td></tr>`;
       const gainRows = report.evolution.topGains.map(evolutionRow).join("");
       const dropRows = report.evolution.topDrops.map(evolutionRow).join("");
       const weightBars = reportChartBars(displayWeightSeries(report.weights), weightUnitLabel());
       const bodyFatBars = reportChartBars(bodyMeasureSeries("bodyFat", report.bodyMeasures), "%");
-      const measureRows = report.bodyMeasures.slice(0, 20).map(entry => `<tr><td>${escapeHTML(reportDateLabel(entry.date, language))}</td><td>${formatWeight(entry.weight)}</td><td>${formatMeasureValue(entry.bodyFat, "%")}</td><td>${formatMeasureValue(entry.waist, "cm")}</td><td>${formatMeasureValue(entry.chest, "cm")}</td><td>${formatMeasureValue(entry.arm, "cm")}</td><td>${formatMeasureValue(entry.leg, "cm")}</td><td>${formatMeasureValue(entry.hip, "cm")}</td><td>${escapeHTML(entry.notes || "")}</td></tr>`).join("");
-      const dietRows = report.activeDietPlan?.meals?.map((meal, index) => `<tr><td>${index + 1}</td><td>${escapeHTML(meal.name || `${rt("Refeição")} ${index + 1}`)}</td><td>${escapeHTML(meal.items || "")}</td><td>${escapeHTML([meal.calories ? `${meal.calories} kcal` : "", meal.protein ? `P ${meal.protein}` : "", meal.carbs ? `C ${meal.carbs}` : "", meal.fat ? `G ${meal.fat}` : ""].filter(Boolean).join(" / "))}</td><td>${escapeHTML(meal.substitutions || "")}</td><td>${escapeHTML(meal.notes || "")}</td></tr>`).join("") || "";
+      const measureRows = report.bodyMeasures.slice(0, 20).map(entry => `<tr><td>${escapeHTML(reportDateLabel(entry.date, language))}</td><td>${formatWeight(entry.weight, { language })}</td><td>${formatMeasureValue(entry.bodyFat, "%", language)}</td><td>${formatMeasureValue(entry.waist, "cm", language)}</td><td>${formatMeasureValue(entry.chest, "cm", language)}</td><td>${formatMeasureValue(entry.arm, "cm", language)}</td><td>${formatMeasureValue(entry.leg, "cm", language)}</td><td>${formatMeasureValue(entry.hip, "cm", language)}</td><td>${escapeHTML(entry.notes || "")}</td></tr>`).join("");
+      const dietRows = report.activeDietPlan?.meals?.map((meal, index) => `<tr><td>${rn(index + 1, 0)}</td><td>${escapeHTML(meal.name || `${rt("Refeição")} ${rn(index + 1, 0)}`)}</td><td>${escapeHTML(meal.items || "")}</td><td>${escapeHTML([meal.calories ? `${rn(meal.calories)} kcal` : "", meal.protein ? `P ${rn(meal.protein)}` : "", meal.carbs ? `C ${rn(meal.carbs)}` : "", meal.fat ? `G ${rn(meal.fat)}` : ""].filter(Boolean).join(" / "))}</td><td>${escapeHTML(meal.substitutions || "")}</td><td>${escapeHTML(meal.notes || "")}</td></tr>`).join("") || "";
       const supplementRows = (report.activeDietPlan?.supplements || []).map((item, index) => cloneDietSupplement(item, index)).sort((a, b) => a.sortOrder - b.sortOrder).map(item => {
         const urlInfo = productUrlInfo(item.productUrl);
         const commercial = item.isSponsored ? `${rt(item.partnerName ? "Produto parceiro" : "Link patrocinado")}${item.partnerName ? ` · ${item.partnerName}` : ""}` : "";
@@ -18107,7 +18323,7 @@ if (location.hash.toLowerCase() === "#leads") history.replaceState(null, "", `${
         const latest = series[series.length - 1];
         const hasComparison = series.length >= 2 && first && latest;
         const delta = hasComparison ? latest.value - first.value : null;
-        return `<tr><td>${escapeHTML(rt(field.label))}</td><td>${first ? formatMeasureValue(first.value, field.unit) : "--"}</td><td>${latest ? formatMeasureValue(latest.value, field.unit) : "--"}</td><td>${hasComparison ? `${delta > 0 ? "+" : ""}${localizedNumber(delta, { maximumFractionDigits: 1, language })} ${field.unit}` : rt("Sem comparação")}</td></tr>`;
+        return `<tr><td>${escapeHTML(rt(field.label))}</td><td>${first ? formatMeasureValue(first.value, field.unit, language) : "--"}</td><td>${latest ? formatMeasureValue(latest.value, field.unit, language) : "--"}</td><td>${hasComparison ? `${delta > 0 ? "+" : ""}${localizedNumber(delta, { maximumFractionDigits: 1, language })} ${field.unit}` : rt("Sem comparação")}</td></tr>`;
       }).join("");
       const missedPreview = report.missedDays.slice(-7).map(day => escapeHTML(reportDateLabel(day, language))).join(", ");
       const alertLevel = report.missedDays.length >= 5 ? "drop" : "gain";
@@ -18160,7 +18376,7 @@ ${bodyFatBars ? `<div class="chart">${bodyFatBars}</div>` : `<p class="muted">${
 <table><thead><tr><th>${rt("Medida")}</th><th>${rt("Primeiro registro")}</th><th>${rt("Atual")}</th><th>${rt("Delta")}</th></tr></thead><tbody>${measureDeltaRows}</tbody></table>
 <table><thead><tr><th>${rt("Data")}</th><th>${rt("Peso")}</th><th>${rt("Gordura")}</th><th>${rt("Cintura")}</th><th>${rt("Peito")}</th><th>${rt("Braço")}</th><th>${rt("Perna")}</th><th>${rt("Quadril")}</th><th>${rt("Obs.")}</th></tr></thead><tbody>${measureRows || `<tr><td colspan="9">${rt("Sem medidas corporais salvas.")}</td></tr>`}</tbody></table>
 <h2>${rt("Dieta ativa no período")}</h2>
-<p class="muted">${rt("Meta")}: ${escapeHTML(report.activeDietPlan?.calories || "--")} kcal / P ${escapeHTML(report.activeDietPlan?.protein || "--")} / C ${escapeHTML(report.activeDietPlan?.carbs || "--")} / G ${escapeHTML(report.activeDietPlan?.fat || "--")}</p>
+<p class="muted">${rt("Meta")}: ${report.activeDietPlan?.calories ? escapeHTML(rn(report.activeDietPlan.calories)) : "--"} kcal / P ${report.activeDietPlan?.protein ? escapeHTML(rn(report.activeDietPlan.protein)) : "--"} / C ${report.activeDietPlan?.carbs ? escapeHTML(rn(report.activeDietPlan.carbs)) : "--"} / G ${report.activeDietPlan?.fat ? escapeHTML(rn(report.activeDietPlan.fat)) : "--"}</p>
 <table><thead><tr><th>#</th><th>${rt("Refeição")}</th><th>${rt("Alimentos")}</th><th>${rt("Macros")}</th><th>${rt("Substituições")}</th><th>${rt("Observação")}</th></tr></thead><tbody>${dietRows || `<tr><td colspan="6">${rt("Nenhuma dieta ativa cadastrada para este mês.")}</td></tr>`}</tbody></table>
 <h2>${rt("Plano de suplementação")}</h2>
 <table><thead><tr><th>${rt("Nome")}</th><th>${rt("Marca")}</th><th>${rt("Dose")}</th><th>${rt("Frequência")}</th><th>${rt("Momento de uso")}</th><th>${rt("Instruções")}</th><th>${rt("Período")}</th><th>${rt("Produto")}</th></tr></thead><tbody>${supplementRows || `<tr><td colspan="8">${rt("Nenhuma orientação de suplementação foi adicionada ao seu plano.")}</td></tr>`}</tbody></table>
@@ -18203,27 +18419,38 @@ ${photoSections}
 
     function downloadTextFile(filename, type, content) {
       if (!filename || content === undefined || content === null || content === "") return false;
+      let objectUrl = "";
+      let link = null;
       try {
         const safeFilename = safeDownloadFilename(filename);
         const utf8Content = String(type || "").toLowerCase().includes("text/") ? `\uFEFF${String(content)}` : content;
         const blob = new Blob([utf8Content], { type: type || "application/octet-stream" });
         if (!blob.size) return false;
         if (typeof navigator.msSaveOrOpenBlob === "function") return navigator.msSaveOrOpenBlob(blob, safeFilename) !== false;
-        const link = document.createElement("a");
+        link = document.createElement("a");
         if (!("download" in link)) return false;
-        const objectUrl = URL.createObjectURL(blob);
+        objectUrl = URL.createObjectURL(blob);
         activeDownloadUrls.add(objectUrl);
         link.href = objectUrl;
         link.download = safeFilename;
         link.rel = "noopener";
-        link.style.display = "none";
+        link.style.position = "fixed";
+        link.style.left = "-10000px";
+        link.style.top = "0";
+        link.style.width = "1px";
+        link.style.height = "1px";
         link.setAttribute("aria-hidden", "true");
+        let delivered = false;
+        link.addEventListener("click", () => { delivered = true; }, { once: true });
         document.body.appendChild(link);
         link.click();
-        window.setTimeout(() => link.remove(), 0);
+        if (!delivered) throw new Error("download-click-not-delivered");
+        window.setTimeout(() => link.remove(), 1000);
         window.setTimeout(() => releaseDownloadUrl(objectUrl), 60000);
         return true;
       } catch (error) {
+        link?.remove();
+        if (objectUrl) releaseDownloadUrl(objectUrl);
         logAppError("report", "download", error, { filename });
         return false;
       }
@@ -18399,6 +18626,7 @@ ${photoSections}
       const user = currentAccount();
       if (user?.role !== "student") return;
       renderOnboardingHomeCard();
+      refreshOnboardingHomeCard(user);
       const metrics = studentMetrics(user);
       const assignment = metrics.programAssignment;
       const workout = metrics.nextWorkout;
@@ -18412,7 +18640,7 @@ ${photoSections}
       setText("studentNextWorkout", workoutsStillLoading ? t("Carregando treino...") : workout?.name || (programScheduleForDate(metrics.activeProgram)?.kind === "rest" ? t("Descanso") : t("Sem treino")));
       setText("studentStreak", `${metrics.streak} ${t(metrics.streak === 1 ? "dia" : "dias")}`);
       setText("studentProgramWeek", metrics.activeProgram ? `${workoutProgramWeek(metrics.activeProgram)} / ${metrics.activeProgram.durationWeeks}` : "--");
-      setText("studentWeeklyVolume", `${Math.round(metrics.weeklyVolume)} kg`);
+      setText("studentWeeklyVolume", `${localizedNumber(metrics.weeklyVolume, { maximumFractionDigits: 0 })} kg`);
       const panel = document.getElementById("studentNextWorkoutPanel");
       if (!panel) return;
       panel.hidden = false;
@@ -19839,9 +20067,17 @@ ${photoSections}
       }
       if (id === "trainerMap") {
         const student = currentAccount();
-        if (student?.trainerId) {
+        const linkState = studentTrainerLinkState(student);
+        const linkedTrainerId = linkState.trainerId || student?.trainerId || "";
+        if (["idle", "loading"].includes(linkState.status) && !linkedTrainerId) {
+          showToast("Verificando vínculo com personal...");
+          ensureStudentTrainerId(student).then(() => renderTrainerLinkPanel());
+          showScreen("home", { historyMode: options.historyMode || "replace", preserveMessage: true });
+          return true;
+        }
+        if (linkedTrainerId) {
           showToast("Você já possui um personal vinculado.");
-          renderLinkedTrainerProfile(student.trainerId);
+          renderLinkedTrainerProfile(linkedTrainerId);
           showScreen("home", { historyMode: options.historyMode || "replace", preserveMessage: true });
           return true;
         }
@@ -20416,8 +20652,8 @@ ${photoSections}
         return;
       }
       const downloaded = downloadTextFile(reportFilename(student, language), "text/html;charset=utf-8", html);
-      setReportControlsState(downloaded ? "ready" : "error", downloaded ? "Download iniciado" : "Não foi possível gerar o relatório");
-      if (downloaded) showToast("Download iniciado");
+      setReportControlsState(downloaded ? "ready" : "error", downloaded ? "" : "Não foi possível gerar o relatório");
+      showToast(downloaded ? "Relatório HTML baixado." : "Não foi possível gerar o relatório.");
     });
     document.addEventListener("change", async event => {
       const input = event.target.closest(".photo-card input[type='file']");
@@ -21483,6 +21719,21 @@ ${photoSections}
       ["return", "Retorno", "Voltou a registrar treino após uma pausa", metrics => metrics.allCompletedWorkouts.length >= 2]
     ];
 
+    function achievementDefinitionFor(item = {}) {
+      const key = item.key || item.sourceId || String(item.id || "").replace(/^achievement:/, "");
+      return achievementDefinitions.find(([definitionKey]) => definitionKey === key) || null;
+    }
+
+    function achievementTitleText(item = {}) {
+      const definition = achievementDefinitionFor(item);
+      return definition ? t(definition[1]) : String(item.title || item.key || t("Conquista"));
+    }
+
+    function achievementCriteriaText(item = {}) {
+      const definition = achievementDefinitionFor(item);
+      return definition ? t(definition[2]) : String(item.criteria || item.details?.criteria || t("Critério concluído"));
+    }
+
     async function evaluateAchievements(studentId) {
       const metrics = studentMetrics(studentId);
       const current = loadAchievements().filter(item => item.studentId === studentId);
@@ -21566,7 +21817,7 @@ ${photoSections}
         : visible.map(item => `<article class="timeline-item"><span class="timeline-icon">${timelineIcon(item.type)}</span><div class="timeline-copy"><strong>${escapeHTML(timelineTitleText(item))}</strong><time>${escapeHTML(localDateTimeLabel(item.occurredAt))}</time><span>${escapeHTML(timelineDetailText(item))}</span>${item.type === "feedback" && item.details?.trainerResponse ? `<span><strong>${escapeHTML(t("Resposta do personal"))}:</strong> ${escapeHTML(item.details.trainerResponse)}</span>` : ""}</div>${currentAccount()?.role === "personal" && item.type === "feedback" ? `<div class="action-row"><button class="ghost respond-feedback" type="button" data-feedback-id="${escapeHTML(String(item.id).replace(/^feedback:/, ""))}">${escapeHTML(t("Responder"))}</button></div>` : ""}</article>`).join("") || dashboardEmptyHTML("Nenhum registro encontrado neste período.");
       const more = document.getElementById("loadMoreTimelineButton");
       more.hidden = events.length <= timelineVisibleLimit;
-      document.getElementById("achievementList").innerHTML = achievements.slice(0, 6).map(item => `<article class="achievement-card"><span class="achievement-mark">M</span><div class="timeline-copy"><strong>${escapeHTML(t(item.title || achievementDefinitions.find(([key]) => key === item.key)?.[1] || item.key))}</strong><span>${escapeHTML(t(item.criteria || item.details?.criteria || "Critério concluído"))}</span></div><div class="action-row"><button class="ghost share-achievement" type="button" data-achievement-key="${escapeHTML(item.key)}">${escapeHTML(t("Compartilhar"))}</button></div></article>`).join("");
+      document.getElementById("achievementList").innerHTML = achievements.slice(0, 6).map(item => `<article class="achievement-card"><span class="achievement-mark">M</span><div class="timeline-copy"><strong>${escapeHTML(achievementTitleText(item))}</strong><span>${escapeHTML(achievementCriteriaText(item))}</span></div><div class="action-row"><button class="ghost share-achievement" type="button" data-achievement-key="${escapeHTML(item.key)}">${escapeHTML(t("Compartilhar"))}</button></div></article>`).join("");
       renderTimelineLoadStatus(studentId, allEvents.length > 0);
     }
 
@@ -21615,18 +21866,20 @@ ${photoSections}
 
     function timelineDetailText(item) {
       const details = item.details || {};
-      if (item.type === "workout") return `${details.sets || 0} ${t("séries")} · ${localizedNumber(Math.round(details.volume || 0), { maximumFractionDigits: 0 })} ${t("de volume")}`;
-      if (item.type === "checkin") return `${t("Score")}: ${details.score ?? "--"}%${details.weight ? ` · ${formatWeight(details.weight)}` : ""}`;
+      if (item.type === "achievement") return achievementCriteriaText(item);
+      if (item.type === "workout") return `${localizedNumber(details.sets || 0, { maximumFractionDigits: 0 })} ${t("séries")} · ${localizedNumber(Math.round(details.volume || 0), { maximumFractionDigits: 0 })} ${t("de volume")}`;
+      if (item.type === "checkin") return `${t("Score")}: ${details.score === null || details.score === undefined ? "--" : localizedNumber(details.score, { maximumFractionDigits: 0 })}%${details.weight ? ` · ${formatWeight(details.weight)}` : ""}`;
       if (item.type === "measurement") return [details.weight ? formatWeight(details.weight) : "", details.bodyFat ? formatMeasureValue(details.bodyFat, "%") : ""].filter(Boolean).join(" · ") || t("Registro corporal");
       if (item.type === "feedback") return [details.difficulty ? `${t("Dificuldade")}: ${details.difficulty}/5` : "", details.comment || "", ...(details.flags || []).map(flag => t(flag))].filter(Boolean).join(" · ");
       if (item.type === "diet") return details.calories ? `${localizedNumber(details.calories, { maximumFractionDigits: 2 })} kcal` : localizedMonthLabel(details.month);
-      if (item.type === "program") return details.durationWeeks ? `${details.durationWeeks} ${t("semanas")}` : "";
-      if (item.type === "record") return [details.exercise || "", details.weight ? `${formatWeight(details.weight)} × ${details.reps || 0}` : "", details.e1rm ? `e1RM ${formatWeight(details.e1rm)}` : ""].filter(Boolean).join(" · ");
-      if (item.type === "streak") return `${details.days || 0} ${t("dias seguidos")}`;
+      if (item.type === "program") return details.durationWeeks ? `${localizedNumber(details.durationWeeks, { maximumFractionDigits: 0 })} ${t("semanas")}` : "";
+      if (item.type === "record") return [details.exercise || "", details.weight ? `${formatWeight(details.weight)} × ${localizedNumber(details.reps || 0, { maximumFractionDigits: 0 })}` : "", details.e1rm ? `e1RM ${formatWeight(details.e1rm)}` : ""].filter(Boolean).join(" · ");
+      if (item.type === "streak") return `${localizedNumber(details.days || 0, { maximumFractionDigits: 0 })} ${t("dias seguidos")}`;
       return details.criteria || "";
     }
 
     function timelineTitleText(item = {}) {
+      if (item.type === "achievement") return achievementTitleText(item);
       if (item.type === "workout" && item.title !== "Treino concluído") return item.title || t("Treino concluído");
       if (item.type === "program" && item.title !== "Programa criado") return item.title || t("Programa criado");
       return t(item.title || "Registro");
@@ -21688,13 +21941,62 @@ ${photoSections}
       const anamnesis = storedAnamnesis(studentId);
       const completed = new Set(["welcome"]);
       if (currentAccount()?.id === studentId) completed.add("terms");
-      if (anamnesis?.status === "completed" || anamnesis?.status === "reviewed") { completed.add("anamnesis"); completed.add("goals"); completed.add("schedule"); }
+      if (["submitted", "completed", "reviewed"].includes(anamnesis?.status)) { completed.add("anamnesis"); completed.add("goals"); completed.add("schedule"); }
       if (loadBodyMeasures(studentId).length) completed.add("measurements");
       if (Object.values(loadProgressPhotos(studentId) || {}).some(group => Object.values(group || {}).some(Boolean))) completed.add("photos");
       if (metrics.checkins.length) completed.add("checkin");
       if (metrics.assignedWorkouts.length || metrics.allCompletedWorkouts.length) completed.add("workout");
       if (metrics.activeDietPlan) completed.add("diet");
       return completed;
+    }
+
+    const onboardingHomeHydrationStates = new Map();
+    const onboardingHomeHydrationRequests = new Map();
+
+    function anamnesisRecordProgress(record = null) {
+      if (!record) return 0;
+      if (["completed", "reviewed", "submitted"].includes(record.status)) return 100;
+      const answers = record.answers || {};
+      const required = [
+        "primaryGoal", "experience", "weeklyFrequency", "heartCondition", "chestPain", "bloodPressure",
+        "dizziness", "doctorRestriction", "hasConditions", "usesMedication", "hasSurgeries", "hasInjuries",
+        "hasPain", "hasMovementRestrictions", "sleepQuality", "stressLevel", "smoking", "alcohol"
+      ];
+      const conditional = {
+        heartCondition: "heartConditionDetails", chestPain: "chestPainDetails", bloodPressure: "bloodPressureDetails",
+        dizziness: "dizzinessDetails", doctorRestriction: "doctorRestrictionDetails", hasConditions: "conditions",
+        usesMedication: "medications", hasSurgeries: "surgeries", hasInjuries: "injuries", hasPain: "painLocations",
+        hasMovementRestrictions: "movementRestrictions"
+      };
+      Object.entries(conditional).forEach(([parent, detail]) => {
+        if (answers[parent] === "yes") required.push(detail);
+      });
+      const answered = required.filter(key => String(answers[key] || "").trim()).length + (record.consent ? 1 : 0);
+      return Math.round((answered / (required.length + 1)) * 100);
+    }
+
+    function refreshOnboardingHomeCard(user = currentAccount()) {
+      if (!user?.id || user.role !== "student" || !isRealSupabaseAccount(user)) return Promise.resolve(null);
+      if (onboardingHomeHydrationRequests.has(user.id)) return onboardingHomeHydrationRequests.get(user.id);
+      const state = onboardingHomeHydrationStates.get(user.id);
+      if (["loaded", "partial"].includes(state)) return Promise.resolve(state);
+      onboardingHomeHydrationStates.set(user.id, "loading");
+      const request = hydrateOnboarding()
+        .then(result => {
+          onboardingHomeHydrationStates.set(user.id, result.status === "partial" ? "partial" : "loaded");
+          return result;
+        })
+        .catch(error => {
+          onboardingHomeHydrationStates.set(user.id, "error");
+          safeRemoteLog("hydrate", "onboarding-home", error, { userId: user.id });
+          return null;
+        })
+        .finally(() => {
+          onboardingHomeHydrationRequests.delete(user.id);
+          if (currentAccount()?.id === user.id) renderOnboardingHomeCard();
+        });
+      onboardingHomeHydrationRequests.set(user.id, request);
+      return request;
     }
 
     function onboardingHomeSummary(user = currentAccount()) {
@@ -21705,10 +22007,11 @@ ${photoSections}
         return total ? { total, done: total, nextScreen: "onboarding", nextKey: "", complete: true } : null;
       }
       const linkState = studentTrainerLinkState(user);
-      if (isRealSupabaseAccount(user) && ["idle", "loading", "error"].includes(linkState.status) && !linkState.trainerId) return null;
+      if (isRealSupabaseAccount(user) && ["idle", "loading"].includes(linkState.status) && !linkState.trainerId) return { loading: true };
       const trainerId = linkState.trainerId || user.trainerId || "";
       const storedConfig = loadOnboardingConfigs()[trainerId] || null;
-      if (isRealSupabaseAccount(user) && trainerId && !storedConfig) return null;
+      const hydrationState = onboardingHomeHydrationStates.get(user.id) || "idle";
+      if (isRealSupabaseAccount(user) && !["loaded", "partial", "error"].includes(hydrationState)) return { loading: true };
       const config = storedConfig || defaultOnboardingConfig(trainerId);
       const requiredSteps = Array.isArray(config.requiredSteps) ? config.requiredSteps : [];
       const total = requiredSteps.length;
@@ -21716,10 +22019,17 @@ ${photoSections}
       const scopedTrainerId = trainerId || null;
       const savedProgress = loadOnboardingProgress().find(item => item.studentId === user.id && (item.trainerId || null) === scopedTrainerId);
       const completed = new Set([...(savedProgress?.completedSteps || []), ...inferredOnboardingSteps(user.id)]);
+      const anamnesis = storedAnamnesis(user.id);
+      if (anamnesis && !["completed", "reviewed", "submitted"].includes(anamnesis.status)) {
+        completed.delete("anamnesis");
+        completed.delete("goals");
+        completed.delete("schedule");
+      }
       const done = requiredSteps.filter(key => completed.has(key)).length;
       const nextKey = requiredSteps.find(key => !completed.has(key)) || "";
       const definition = onboardingStepDefinitions.find(([key]) => key === nextKey);
-      return { total, done, nextKey, nextScreen: definition?.[3] || "onboarding", complete: done >= total };
+      const anamnesisProgress = nextKey === "anamnesis" ? anamnesisRecordProgress(anamnesis) : 0;
+      return { total, done, nextKey, nextScreen: definition?.[3] || "onboarding", complete: done >= total, anamnesisProgress };
     }
 
     function renderOnboardingHomeCard() {
@@ -21729,11 +22039,25 @@ ${photoSections}
       const button = document.getElementById("homeOnboardingButton");
       if (!card || !text || !button || !user) return;
       const summary = onboardingHomeSummary(user);
+      if (summary?.loading) {
+        card.hidden = false;
+        text.textContent = t("Carregando próximos passos...");
+        button.hidden = true;
+        refreshOnboardingHomeCard(user);
+        return;
+      }
       const show = Boolean(summary && !summary.complete && summary.total > 0);
       card.hidden = !show;
       if (!show) return;
-      const remaining = Math.max(0, summary.total - summary.done);
-      text.textContent = localizedMessage("{count} etapa(s) faltando para concluir a configuração inicial.", { count: remaining });
+      button.hidden = false;
+      if (summary.nextKey === "anamnesis" && summary.anamnesisProgress > 0) {
+        text.textContent = localizedMessage("Anamnese em andamento · {count}% concluído.", { count: summary.anamnesisProgress });
+        button.textContent = t("Continuar anamnese");
+      } else {
+        const remaining = Math.max(0, summary.total - summary.done);
+        text.textContent = localizedMessage("{count} etapa(s) faltando para concluir a configuração inicial.", { count: remaining });
+        button.textContent = t("Continuar");
+      }
       button.dataset.onboardingScreen = summary.nextScreen || "onboarding";
       button.dataset.onboardingKey = summary.nextKey || "";
     }
@@ -22228,28 +22552,59 @@ ${photoSections}
       }) || null;
     }
 
+    const activeSpaceLoadRequests = new Map();
+
     async function loadActiveSpace() {
       const user = currentAccount();
       if (!user) { applySpaceTheme(null); return null; }
       if (user.role === "personal" && !hasSpaceEntitlement(user)) { applySpaceTheme(null); return null; }
+      if (activeSpaceLoadRequests.has(user.id)) return activeSpaceLoadRequests.get(user.id);
       let space = cachedActiveSpaceForUser(user);
       applySpaceTheme(space);
-      if (monolithSupabase && isRealSupabaseAccount(user)) {
-        const { data: memberships, error: membershipError } = await monolithSupabase.from("space_memberships").select("space_id,role").eq("user_id", user.id).limit(1);
-        if (!membershipError && memberships?.[0]?.space_id) {
-          const { data, error } = await monolithSupabase.from("monolith_spaces").select("*").eq("id", memberships[0].space_id).eq("active", true).maybeSingle();
-          if (!error && data) space = await resolveSpaceAssetUrls(spaceFromRemoteRow(data));
-          else if (error) safeRemoteLog("hydrate", "space", error, { userId: user.id });
-        } else if (membershipError) safeRemoteLog("hydrate", "space-membership", membershipError, { userId: user.id });
-        if (!space && user.role === "personal") {
-          const { data, error } = await monolithSupabase.from("monolith_spaces").select("*").eq("owner_id", user.id).eq("active", true).maybeSingle();
-          if (!error && data) space = await resolveSpaceAssetUrls(spaceFromRemoteRow(data));
-          else if (error) safeRemoteLog("hydrate", "space-owner", error, { userId: user.id });
+      const request = (async () => {
+        if (monolithSupabase && isRealSupabaseAccount(user)) {
+          let resolvedRemote = false;
+          let remoteFailed = false;
+          const { data: memberships, error: membershipError } = await monolithSupabase.from("space_memberships").select("space_id,role").eq("user_id", user.id).limit(1);
+          if (membershipError) {
+            remoteFailed = true;
+            safeRemoteLog("hydrate", "space-membership", membershipError, { userId: user.id });
+          } else if (memberships?.[0]?.space_id) {
+            const { data, error } = await monolithSupabase.from("monolith_spaces").select("*").eq("id", memberships[0].space_id).eq("active", true).maybeSingle();
+            if (!error) {
+              space = data ? await resolveSpaceAssetUrls(spaceFromRemoteRow(data)) : null;
+              resolvedRemote = true;
+            } else {
+              remoteFailed = true;
+              safeRemoteLog("hydrate", "space", error, { userId: user.id });
+            }
+          } else if (user.role === "student") {
+            space = null;
+            resolvedRemote = true;
+          }
+          if (user.role === "personal" && !resolvedRemote) {
+            const { data, error } = await monolithSupabase.from("monolith_spaces").select("*").eq("owner_id", user.id).eq("active", true).maybeSingle();
+            if (!error) {
+              space = data ? await resolveSpaceAssetUrls(spaceFromRemoteRow(data)) : null;
+              resolvedRemote = true;
+            } else {
+              remoteFailed = true;
+              safeRemoteLog("hydrate", "space-owner", error, { userId: user.id });
+            }
+          }
+          if (remoteFailed && !resolvedRemote) space = null;
         }
-      }
-      if (space?.id) saveSpaces([space, ...loadSpaces().filter(item => item.id !== space.id)]);
-      applySpaceTheme(space);
-      return space;
+        if (currentAccount()?.id !== user.id) return null;
+        if (space?.id) saveSpaces([space, ...loadSpaces().filter(item => item.id !== space.id)]);
+        applySpaceTheme(space);
+        return space;
+      })().catch(error => {
+        safeRemoteLog("hydrate", "active-space", error, { userId: user.id });
+        if (currentAccount()?.id === user.id) applySpaceTheme(null);
+        throw error;
+      }).finally(() => activeSpaceLoadRequests.delete(user.id));
+      activeSpaceLoadRequests.set(user.id, request);
+      return request;
     }
 
     window.monolithLoadActiveSpace = loadActiveSpace;
@@ -22365,12 +22720,12 @@ ${photoSections}
       const studentId = selectedTimelineStudentId();
       const metrics = studentMetrics(studentId);
       const achievement = loadAchievements().find(item => item.studentId === studentId && item.key === achievementKey);
-      const title = achievement?.title || "30 dias de Monolith";
-      const value = achievement ? achievement.criteria : localizedMessage("{count} treinos concluídos", { count: metrics.completedWorkouts.length });
+      const title = achievement ? achievementTitleText(achievement) : t("30 dias de Monolith");
+      const value = achievement ? achievementCriteriaText(achievement) : localizedMessage("{count} treinos concluídos", { count: metrics.completedWorkouts.length });
       const preview = document.getElementById("shareCardPreview");
       preview.dataset.title = title;
       preview.dataset.value = value;
-      preview.innerHTML = `<div><div class="kicker">MONOLITH</div><h2>${escapeHTML(t(title))}</h2><p>${escapeHTML(t(value))}</p><span>${escapeHTML(metrics.student?.name || currentAccount()?.name || "")}</span></div>`;
+      preview.innerHTML = `<div><div class="kicker">MONOLITH</div><h2>${escapeHTML(title)}</h2><p>${escapeHTML(value)}</p><span>${escapeHTML(metrics.student?.name || currentAccount()?.name || "")}</span></div>`;
       document.getElementById("shareCardModal").classList.add("active");
     }
 
@@ -22761,7 +23116,17 @@ ${photoSections}
       "refeições": "meals",
       "Substituições": "Substitutions",
       "Personal": "Trainer",
-      "Aluno vinculado a um personal": "Student linked to a trainer"
+      "Aluno vinculado a um personal": "Student linked to a trainer",
+      "Carregando próximos passos...": "Loading next steps...",
+      "Anamnese em andamento · {count}% concluído.": "Health questionnaire in progress · {count}% complete.",
+      "Continuar anamnese": "Continue questionnaire",
+      "Carregando conta": "Loading account",
+      "Respostas do Monolith Voice": "Monolith Voice responses",
+      "Nível de detalhe das respostas": "Response detail level",
+      "Volume das respostas por voz": "Spoken response volume",
+      "Use Falar agora ou escreva o comando.": "Tap Talk now or type the command.",
+      "Sessão pronta. Toque em Falar agora para abrir o microfone.": "Session ready. Tap Talk now to enable the microphone.",
+      "Ex: 82,4": "Ex: 82.4"
     });
     Object.assign(translations.es, {
       "Mês da dieta": "Mes de la dieta",
@@ -22790,7 +23155,17 @@ ${photoSections}
       "refeições": "comidas",
       "Substituições": "Sustituciones",
       "Personal": "Entrenador",
-      "Aluno vinculado a um personal": "Alumno vinculado a un entrenador"
+      "Aluno vinculado a um personal": "Alumno vinculado a un entrenador",
+      "Carregando próximos passos...": "Cargando próximos pasos...",
+      "Anamnese em andamento · {count}% concluído.": "Anamnesis en curso · {count}% completado.",
+      "Continuar anamnese": "Continuar anamnesis",
+      "Carregando conta": "Cargando cuenta",
+      "Respostas do Monolith Voice": "Respuestas de Monolith Voice",
+      "Nível de detalhe das respostas": "Nivel de detalle de las respuestas",
+      "Volume das respostas por voz": "Volumen de las respuestas por voz",
+      "Use Falar agora ou escreva o comando.": "Toca Hablar ahora o escribe el comando.",
+      "Sessão pronta. Toque em Falar agora para abrir o microfone.": "Sesión lista. Toca Hablar ahora para activar el micrófono.",
+      "Ex: 82,4": "Ej: 82,4"
     });
 
     applyLanguage(localStorage.getItem("monolith.language") || "pt");
@@ -23530,6 +23905,27 @@ ${photoSections}
         }
       }
 
+      function rerenderVoiceLocalizationV2() {
+        voiceSettingsToUIV2();
+        setVoiceVisualStateV2(voiceStateV2.status || "off");
+        const transcript = document.getElementById("voiceTranscript");
+        if (transcript) {
+          transcript.setAttribute("aria-label", textV2("Respostas do Monolith Voice"));
+          if (!voiceStateV2.active && !voiceStateV2.history.length) transcript.textContent = textV2("“Hey Monolith” ou toque em Falar agora.");
+        }
+        const accessibleLabels = {
+          voiceResponsesEnabled: "Ativar respostas por voz",
+          voiceVibrationEnabled: "Ativar vibração",
+          voiceResponseDetail: "Nível de detalhe das respostas",
+          voiceGender: "Estilo da voz",
+          voiceWakeWord: "Palavra de ativação",
+          voiceVolume: "Volume das respostas por voz"
+        };
+        Object.entries(accessibleLabels).forEach(([id, key]) => document.getElementById(id)?.setAttribute("aria-label", textV2(key)));
+      }
+
+      window.monolithRerenderVoiceLocalization = rerenderVoiceLocalizationV2;
+
       function setVoicePanelOpenV2(open) {
         const previousOpen = voiceStateV2.panelOpen;
         voiceStateV2.panelOpen = Boolean(open);
@@ -23570,7 +23966,7 @@ ${photoSections}
           <div class="voice-history-item">
             <span class="voice-history-mark" aria-hidden="true">${item.status === "rejected" ? "!" : item.status === "undone" ? "↶" : item.status === "interpreted" ? "i" : "✓"}</span>
             <div><strong>${htmlT(item.label)}</strong><span data-no-i18n="true">${html(item.detail || "")}</span></div>
-            <time>${html(new Date(item.createdAt).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }))}</time>
+            <time>${html(localTimeLabel(item.createdAt))}</time>
           </div>
         `).join("");
       }
@@ -26386,8 +26782,7 @@ ${photoSections}
         renderWorkoutCsvControlsV2(currentAccount()?.role !== "personal");
         if (activeWorkoutV2) renderSessionV2(activeWorkoutV2);
         resetBuilderV2();
-        voiceSettingsToUIV2();
-        setVoiceVisualStateV2(voiceStateV2.active ? (voiceStateV2.paused ? "paused" : "active") : "off");
+        rerenderVoiceLocalizationV2();
       });
       window.addEventListener("monolith-weight-unit-change", () => {
         syncActiveWorkoutFromSessionV2();
