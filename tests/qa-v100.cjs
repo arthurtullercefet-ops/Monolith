@@ -15,7 +15,7 @@ async function launchBrowser() {
 }
 
 async function loginDemo(page, role = "personal") {
-  await page.goto(`${baseUrl}${baseUrl.includes("?") ? "&" : "?"}qa=monolith-v100`, { waitUntil: "domcontentloaded" });
+  await page.goto(`${baseUrl}${baseUrl.includes("?") ? "&" : "?"}qa=monolith-v103`, { waitUntil: "domcontentloaded" });
   await page.locator("#loginEmail").fill(`${role}@monolith.app`);
   await page.locator("#loginPassword").fill("123456");
   await page.locator("#loginButton").click();
@@ -119,7 +119,7 @@ async function main() {
       };
     });
 
-    assert.equal(core.build, "monolith-v100-report-diet-language-space");
+    assert.equal(core.build, "monolith-v103-calendar-billing");
     assert.equal(core.accountAfter, core.accountBefore, "language switching changed the authenticated account");
     assert.equal(core.selectedAfter, core.selectedBefore, "language switching changed the selected student");
     assert.deepEqual(core.audits.pt, []);
@@ -128,11 +128,11 @@ async function main() {
     assert.equal(core.dates.pt, "12/08/2026");
     assert.equal(core.dates.en, "8/12/2026");
     assert.equal(core.dates.es, "12/08/2026");
-    const expectedMenu = ["home", "alerts", "clients", "workouts", "nutrition", "checkin", "stats", "timeline", "programs", "anamnesis"];
+    const expectedMenu = ["home", "alerts", "clients", "schedule", "payments", "workouts", "nutrition", "checkin", "stats", "timeline", "programs", "anamnesis"];
     if (core.visibleMenu.includes("space")) expectedMenu.push("space");
     expectedMenu.push("profile");
     assert.deepEqual(core.visibleMenu, expectedMenu);
-    assert.deepEqual(core.visibleMenuWithSpace, ["home", "alerts", "clients", "workouts", "nutrition", "checkin", "stats", "timeline", "programs", "anamnesis", "space", "profile"]);
+    assert.deepEqual(core.visibleMenuWithSpace, ["home", "alerts", "clients", "schedule", "payments", "workouts", "nutrition", "checkin", "stats", "timeline", "programs", "anamnesis", "space", "profile"]);
     assert.deepEqual(core.voiceRules, { personalOwn: true, personalManagingStudent: false, studentOwn: true, otherStudent: false });
     assert.equal(core.flagLabels.length, 6);
     assert.ok(core.flagLabels.some(item => item.label === "Português" && item.flag.includes("flag-br")));
@@ -404,7 +404,7 @@ async function main() {
     const reportPath = path.join(artifactDir, await download.suggestedFilename());
     await download.saveAs(reportPath);
     const downloadedHtml = fs.readFileSync(reportPath, "utf8");
-    assert.match(downloadedHtml, /^<!doctype html>/i);
+    assert.match(downloadedHtml, /^\uFEFF?<!doctype html>/i);
     assert.ok(downloadedHtml.includes("MONOLITH"));
 
     const popupPromise = page.waitForEvent("popup", { timeout: 10000 });
@@ -445,7 +445,7 @@ async function main() {
       .filter(button => getComputedStyle(button).display !== "none")
       .sort((a, b) => Number(getComputedStyle(a).order || 0) - Number(getComputedStyle(b).order || 0))
       .map(button => button.dataset.screen));
-    assert.deepEqual(studentMenu, ["home", "workouts", "nutrition", "checkin", "stats", "timeline", "anamnesis", "programs", "trainerMap", "profile"]);
+    assert.deepEqual(studentMenu, ["home", "schedule", "workouts", "nutrition", "checkin", "stats", "timeline", "anamnesis", "programs", "payments", "trainerMap", "profile"]);
     const studentVoiceUi = await studentPage.evaluate(async () => {
       const workout = assignedStudentId => ({
         id: `qa-student-voice-${assignedStudentId}`,

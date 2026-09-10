@@ -2,7 +2,7 @@
   "name": "monolith-qa",
   "private": true,
   "scripts": {
-    "test:qa": "node tests/qa-v100.cjs"
+    "test:qa": "node tests/qa-v100.cjs && node tests/qa-v103-calendar-billing.cjs"
   },
   "devDependencies": {
     "playwright": "^1.55.0"

@@ -1,4 +1,4 @@
-const CACHE_NAME = "monolith-v100-report-diet-language-space";
+const CACHE_NAME = "monolith-v103-calendar-billing";
 
 self.addEventListener("install", event => {
   self.skipWaiting();

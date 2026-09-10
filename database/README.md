@@ -76,7 +76,11 @@ Official docs:
    This adds `profiles.space_enabled` as the single Plus Space entitlement, backfills existing Space owners, gates Space reads/writes/uploads under RLS and preserves saved Spaces/files during downgrade.
 31. Paste and run `monolith-production-step-31-voice-own-session.sql`.
    This lets an authenticated trainer persist Voice only for the trainer's own unassigned workout session, keeps student sessions restricted to the student, and aligns the database intent constraint with the bounded frontend intent list.
-32. Confirm these tables exist:
+32. Paste and run `monolith-production-step-32-trainer-calendar.sql`.
+   This adds the trainer calendar, private blocks, weekly recurrence, student confirmation/rescheduling, private trainer notes and an immutable appointment event trail.
+33. Paste and run `monolith-production-step-33-student-billing.sql`.
+   This adds manual student billing control for money received outside Monolith, including cycle-based charges anchored to the current link date, partial receipts, exemptions, reversals and audited corrections. It does not process money.
+34. Confirm these tables exist:
    - `profiles`
    - `trainer_students`
    - `trainer_invites`
@@ -111,7 +115,19 @@ Official docs:
    - `subscriptions`
    - `influencer_codes`
    - `referral_attributions`
-33. Confirm these functions exist:
+   - `appointment_series`
+   - `appointments`
+   - `appointment_private_notes`
+   - `appointment_reschedule_requests`
+   - `appointment_events`
+   - `trainer_billing_settings`
+   - `student_billing_profiles`
+   - `student_charges`
+   - `student_payment_receipts`
+   - `student_payment_private_details`
+   - `student_charge_private_notes`
+   - `student_billing_events`
+35. Confirm these functions exist:
    - `create_trainer_invite`
    - `create_trainer_invite_idempotent`
    - `accept_trainer_invite`
@@ -119,11 +135,24 @@ Official docs:
    - `correct_daily_checkin`
    - `is_space_member`
    - `monolith_space_enabled`
-34. Confirm Storage has private buckets called `progress-photos` and `space-assets`.
+   - `create_monolith_appointment`
+   - `create_monolith_appointment_series`
+   - `update_monolith_appointment_scope`
+   - `set_monolith_appointment_status`
+   - `confirm_monolith_appointment`
+   - `request_monolith_appointment_reschedule`
+   - `resolve_monolith_reschedule_request`
+   - `reschedule_monolith_appointment`
+   - `generate_monolith_student_charges`
+   - `record_monolith_student_payment`
+   - `reverse_monolith_student_payment`
+   - `update_monolith_student_charge`
+   - `set_monolith_student_charge_exempt`
+36. Confirm Storage has private buckets called `progress-photos` and `space-assets`.
 
-All step files are additive and idempotent. Run them in numerical order through step 31. Do not reset the database or delete QA records before running a step.
+All step files are additive and idempotent. Run them in numerical order through step 33. Do not reset the database or delete QA records before running a step.
 
-For an existing Monolith project that already completed step 12, run only steps 13 through 31 in order. Re-running any of those files is safe; they contain no bulk deletion, table reset or QA cleanup.
+For an existing Monolith project that already completed step 12, run only steps 13 through 33 in order. Re-running any of those files is safe; they contain no bulk deletion, table reset or QA cleanup.
 
 ### Repair for PGRST205 in Programs or Monolith Voice
 
@@ -171,6 +200,8 @@ For real Supabase users, large datasets are not kept permanently in `localStorag
 | `monolith.trainerLeads` | Deprecated; old `trainer_leads` and `trainer_lead_events` rows are retained but no longer exposed to trainers |
 | `monolith.achievements` | `student_achievements` |
 | `monolith.spaces` | `monolith_spaces`, `space_memberships`, `profiles.space_enabled`, `theme_mode` and private `space-assets` Storage paths |
+| `monolith.appointments` and `monolith.appointmentRequests` | `appointments`, `appointment_series`, `appointment_reschedule_requests`, private notes and appointment events |
+| `monolith.billingSettings`, `monolith.billingProfiles`, `monolith.studentCharges` and `monolith.paymentReceipts` | trainer billing settings, student billing profiles, charges, receipts, private details and billing events |
 
 ## Step 3: production rules
 
@@ -193,7 +224,7 @@ Before public launch:
 
 ## Release verification
 
-After steps 13 through 31 are installed, test with fictitious accounts:
+After steps 13 through 33 are installed, test with fictitious accounts:
 
 - A student cannot read another student's workouts, diet, measures, photos, anamnesis, feedback or timeline.
 - A student can execute an assigned workout but cannot insert, update or delete `workout_templates` or `checkin_factors` through the API.
@@ -210,4 +241,10 @@ After steps 13 through 31 are installed, test with fictitious accounts:
 - Switching a Space to default Monolith visual does not delete logo, cover, colors, address, copy or Instagram; reactivation restores the saved identity.
 - Monolith Voice is hidden for trainers, stops after two hours or workout completion, rejects doubtful values and does not duplicate a repeated command.
 - A browser without on-device recognition releases the microphone between push-to-talk commands.
+- A student sees only appointments assigned to the student, can confirm or request rescheduling, and never receives trainer-private appointment notes.
+- An unlinked trainer cannot create an appointment or charge for a student, while historical billing remains visible to its original trainer and student.
+- Student billing never exposes payment method or private notes to the student, and a receipt cannot exceed the outstanding balance.
+- Concurrent payment confirmations lock the charge before recalculating its balance, preventing accidental overpayment.
+- Reactivating a trainer-student relationship updates `trainer_students.active_since`; future cycles use the new link date without changing historical charges.
+- Repeating charge generation for the same trainer, student and cycle does not create duplicates.
 - Demo and QA records remain intact and suspicious legacy values remain flagged rather than deleted.

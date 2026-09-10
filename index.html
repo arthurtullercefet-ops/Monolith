@@ -14,8 +14,8 @@
   <link rel="manifest" href="manifest.webmanifest" />
   <link rel="icon" href="monolith-icon.svg" />
   <script>
-window.MONOLITH_BUILD = "monolith-v102-heavy-flow-stability";
-window.MONOLITH_VERSION_LABEL = "Monolith v102 · 03/09/2026";
+window.MONOLITH_BUILD = "monolith-v103-calendar-billing";
+window.MONOLITH_VERSION_LABEL = "Monolith v103 · 10/09/2026";
     (function clearOldAppCaches() {
       if ("serviceWorker" in navigator) {
         navigator.serviceWorker.getRegistrations?.()
@@ -52,7 +52,13 @@ window.MONOLITH_VERSION_LABEL = "Monolith v102 · 03/09/2026";
         "monolith.leadEvents",
         "monolith.achievements",
         "monolith.spaces",
-        "monolith.factors"
+        "monolith.factors",
+        "monolith.appointments",
+        "monolith.appointmentRequests",
+        "monolith.billingSettings",
+        "monolith.billingProfiles",
+        "monolith.studentCharges",
+        "monolith.paymentReceipts"
       ]);
       const sessionOnlyKeys = new Set([
         "monolith.accounts",
@@ -859,15 +865,17 @@ window.MONOLITH_VERSION_LABEL = "Monolith v102 · 03/09/2026";
     body.auth-role-personal .nav-btn[data-screen="home"] { order: 1; }
     body.auth-role-personal .nav-btn[data-screen="alerts"] { order: 2; }
     body.auth-role-personal .nav-btn[data-screen="clients"] { order: 3; }
-    body.auth-role-personal .nav-btn[data-screen="workouts"] { order: 4; }
-    body.auth-role-personal .nav-btn[data-screen="nutrition"] { order: 5; }
-    body.auth-role-personal .nav-btn[data-screen="checkin"] { order: 6; }
-    body.auth-role-personal .nav-btn[data-screen="stats"] { order: 7; }
-    body.auth-role-personal .nav-btn[data-screen="timeline"] { order: 8; }
-    body.auth-role-personal .nav-btn[data-screen="programs"] { order: 9; }
-    body.auth-role-personal .nav-btn[data-screen="anamnesis"] { order: 10; }
-    body.auth-role-personal .nav-btn[data-screen="space"] { order: 11; }
-    body.auth-role-personal .nav-btn[data-screen="profile"] { order: 12; }
+    body.auth-role-personal .nav-btn[data-screen="schedule"] { order: 4; }
+    body.auth-role-personal .nav-btn[data-screen="payments"] { order: 5; }
+    body.auth-role-personal .nav-btn[data-screen="workouts"] { order: 6; }
+    body.auth-role-personal .nav-btn[data-screen="nutrition"] { order: 7; }
+    body.auth-role-personal .nav-btn[data-screen="checkin"] { order: 8; }
+    body.auth-role-personal .nav-btn[data-screen="stats"] { order: 9; }
+    body.auth-role-personal .nav-btn[data-screen="timeline"] { order: 10; }
+    body.auth-role-personal .nav-btn[data-screen="programs"] { order: 11; }
+    body.auth-role-personal .nav-btn[data-screen="anamnesis"] { order: 12; }
+    body.auth-role-personal .nav-btn[data-screen="space"] { order: 13; }
+    body.auth-role-personal .nav-btn[data-screen="profile"] { order: 14; }
     body.auth-role-personal .nav-btn[data-screen="onboarding"] { display: none !important; }
     body:not(.auth-space-enabled) .nav-btn[data-screen="space"],
     body:not(.auth-space-enabled) #space {
@@ -908,15 +916,17 @@ window.MONOLITH_VERSION_LABEL = "Monolith v102 · 03/09/2026";
     }
 
     body.auth-role-student .nav-btn[data-screen="home"] { order: 1; }
-    body.auth-role-student .nav-btn[data-screen="workouts"] { order: 2; }
-    body.auth-role-student .nav-btn[data-screen="nutrition"] { order: 3; }
-    body.auth-role-student .nav-btn[data-screen="checkin"] { order: 4; }
-    body.auth-role-student .nav-btn[data-screen="stats"] { order: 5; }
-    body.auth-role-student .nav-btn[data-screen="timeline"] { order: 6; }
-    body.auth-role-student .nav-btn[data-screen="anamnesis"] { order: 7; }
-    body.auth-role-student .nav-btn[data-screen="programs"] { order: 8; }
-    body.auth-role-student .nav-btn[data-screen="trainerMap"] { order: 9; }
-    body.auth-role-student .nav-btn[data-screen="profile"] { order: 10; }
+    body.auth-role-student .nav-btn[data-screen="schedule"] { order: 2; }
+    body.auth-role-student .nav-btn[data-screen="workouts"] { order: 3; }
+    body.auth-role-student .nav-btn[data-screen="nutrition"] { order: 4; }
+    body.auth-role-student .nav-btn[data-screen="checkin"] { order: 5; }
+    body.auth-role-student .nav-btn[data-screen="stats"] { order: 6; }
+    body.auth-role-student .nav-btn[data-screen="timeline"] { order: 7; }
+    body.auth-role-student .nav-btn[data-screen="anamnesis"] { order: 8; }
+    body.auth-role-student .nav-btn[data-screen="programs"] { order: 9; }
+    body.auth-role-student .nav-btn[data-screen="payments"] { order: 10; }
+    body.auth-role-student .nav-btn[data-screen="trainerMap"] { order: 11; }
+    body.auth-role-student .nav-btn[data-screen="profile"] { order: 12; }
     body.auth-role-student .nav-btn[data-screen="onboarding"] { display: none !important; }
 
     .offline {
@@ -1329,6 +1339,8 @@ window.MONOLITH_VERSION_LABEL = "Monolith v102 · 03/09/2026";
       min-width: 0;
       padding: 28px;
     }
+
+    main:focus { outline: none; }
 
     .topbar {
       display: flex;
@@ -5014,7 +5026,156 @@ window.MONOLITH_VERSION_LABEL = "Monolith v102 · 03/09/2026";
     .voice-privacy { margin: 12px 0 0; padding: 10px; border-left: 3px solid var(--gold); background: #19170f; }
     .session-exercise.voice-current { border-color: #80691e; box-shadow: inset 3px 0 0 var(--gold); }
 
+    .schedule-shell, .billing-shell { min-width: 0; display: grid; gap: 14px; }
+    .schedule-shell > *, .billing-shell > * { min-width: 0; }
+    .schedule-toolbar, .billing-toolbar {
+      display: flex;
+      align-items: end;
+      justify-content: space-between;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+    .schedule-toolbar-group, .billing-toolbar-group, .segmented-control {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+    .segmented-control { padding: 4px; border: 1px solid var(--line); border-radius: 12px; background: #101010; }
+    .segmented-control button { min-height: 36px; }
+    .segmented-control button.active { border-color: var(--gold); background: var(--space-primary-soft); color: var(--gold); }
+    .schedule-range-title { min-width: min(320px, 100%); font-size: 18px; font-weight: 800; }
+    .schedule-summary, .billing-summary { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+    .schedule-calendar { width: 100%; max-width: 100%; min-width: 0; overflow-x: auto; }
+    .schedule-week {
+      min-width: 840px;
+      display: grid;
+      grid-template-columns: repeat(7, minmax(112px, 1fr));
+      gap: 8px;
+    }
+    .schedule-day-column, .schedule-month-day {
+      min-height: 160px;
+      padding: 10px;
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      background: #111;
+    }
+    .schedule-day-column.today, .schedule-month-day.today { border-color: rgba(var(--space-primary-rgb), .7); }
+    .schedule-day-heading { display: flex; align-items: baseline; justify-content: space-between; gap: 8px; margin-bottom: 10px; }
+    .schedule-day-heading strong { font-size: 12px; text-transform: uppercase; color: var(--muted); }
+    .schedule-day-heading b { font-size: 18px; }
+    .schedule-events { display: grid; gap: 7px; }
+    .schedule-event {
+      width: 100%;
+      min-height: 0;
+      display: grid;
+      gap: 3px;
+      padding: 8px;
+      border: 1px solid rgba(var(--space-primary-rgb), .34);
+      border-left: 3px solid var(--gold);
+      border-radius: 10px;
+      background: #191919;
+      color: var(--text);
+      text-align: left;
+      cursor: pointer;
+    }
+    .schedule-event:hover, .schedule-event:focus-visible { border-color: var(--gold); background: #202020; }
+    .schedule-event.cancelled, .schedule-event.rescheduled { opacity: .55; border-left-color: var(--muted); }
+    .schedule-event.completed { border-left-color: var(--green); }
+    .schedule-event.no_show { border-left-color: var(--red); }
+    .schedule-event.awaiting_confirmation { border-left-color: var(--orange); }
+    .schedule-event-time { color: var(--gold); font-size: 11px; font-weight: 800; }
+    .schedule-event-title { overflow-wrap: anywhere; font-size: 12px; font-weight: 750; }
+    .schedule-event-status { color: var(--muted); font-size: 10px; }
+    .schedule-month {
+      min-width: 800px;
+      display: grid;
+      grid-template-columns: repeat(7, minmax(108px, 1fr));
+      gap: 7px;
+    }
+    .schedule-month-weekday { padding: 4px 8px; color: var(--muted); font-size: 11px; font-weight: 800; text-transform: uppercase; }
+    .schedule-month-day { min-height: 128px; }
+    .schedule-month-day.outside { opacity: .42; }
+    .schedule-day-list, .upcoming-appointment-list, .billing-list, .billing-receipt-list { display: grid; gap: 10px; }
+    .appointment-row, .billing-row, .billing-receipt {
+      display: grid;
+      gap: 10px;
+      padding: 14px;
+      border: 1px solid var(--line);
+      border-radius: var(--radius-card);
+      background: #121212;
+    }
+    .appointment-row-head, .billing-row-head, .billing-receipt-head {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 12px;
+    }
+    .appointment-meta, .billing-meta { display: flex; flex-wrap: wrap; gap: 7px; color: var(--muted); font-size: 12px; }
+    .status-chip {
+      display: inline-flex;
+      align-items: center;
+      width: fit-content;
+      min-height: 26px;
+      padding: 3px 8px;
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      color: var(--muted);
+      font-size: 11px;
+      font-weight: 800;
+    }
+    .status-chip.confirmed, .status-chip.completed, .status-chip.paid { border-color: rgba(88, 199, 122, .42); color: var(--green); }
+    .status-chip.awaiting_confirmation, .status-chip.pending, .status-chip.partial, .status-chip.late { border-color: rgba(232, 162, 58, .48); color: var(--orange); }
+    .status-chip.no_show { border-color: rgba(224, 80, 80, .52); color: #ff7a7a; }
+    .status-chip.cancelled, .status-chip.rescheduled, .status-chip.exempt, .status-chip.reversed { color: var(--muted); }
+    .appointment-details-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+    .appointment-detail { padding: 10px; border: 1px solid var(--line); border-radius: 10px; }
+    .appointment-detail span { display: block; margin-bottom: 4px; color: var(--muted); font-size: 10px; text-transform: uppercase; }
+    .recurrence-fields, .billing-package-fields { margin-top: 10px; padding-top: 12px; border-top: 1px solid var(--line); }
+    .weekday-picker { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 6px; }
+    .weekday-picker label { display: grid; place-items: center; min-height: 40px; border: 1px solid var(--line); border-radius: 10px; cursor: pointer; }
+    .weekday-picker label:has(input:checked) { border-color: var(--gold); background: var(--space-primary-soft); color: var(--gold); }
+    .weekday-picker input { position: absolute; opacity: 0; pointer-events: none; }
+    .modal-wide { width: min(780px, calc(100vw - 28px)); }
+    .billing-filters { display: grid; grid-template-columns: minmax(180px, 1fr) repeat(2, minmax(150px, .45fr)); gap: 10px; }
+    .billing-currency-summary { display: grid; gap: 8px; }
+    .billing-currency-line { display: flex; justify-content: space-between; gap: 10px; padding: 8px 0; border-bottom: 1px solid var(--line); }
+    .billing-currency-line:last-child { border-bottom: 0; }
+    .billing-amount { font-size: 20px; font-weight: 850; }
+    .billing-balance { color: var(--muted); }
+    .billing-preview-list { max-height: min(440px, 55vh); overflow: auto; display: grid; gap: 8px; }
+    .billing-preview-item { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; gap: 10px; align-items: center; padding: 10px; border: 1px solid var(--line); border-radius: 10px; }
+    .billing-preview-item input { width: 20px; height: 20px; }
+    .billing-money-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; margin-top: 12px; }
+    .billing-money-grid > div { padding: 10px; border: 1px solid var(--line); border-radius: 10px; background: #0d0d0d; }
+    .billing-money-grid span { display: block; margin-bottom: 4px; color: var(--muted); font-size: 10px; text-transform: uppercase; }
+    .billing-money-grid strong { overflow-wrap: anywhere; }
+    .billing-history { margin-top: 12px; border-top: 1px solid var(--line); padding-top: 10px; }
+    .billing-history summary { cursor: pointer; color: var(--muted); font-weight: 750; }
+    .billing-receipt-list { margin-top: 10px; }
+    .billing-receipt.reversed { opacity: .64; }
+    .home-agenda-widget { margin-top: 14px; }
+
+
     @media (max-width: 760px) {
+      .schedule-summary, .billing-summary { grid-template-columns: 1fr; }
+      .schedule-toolbar, .billing-toolbar { align-items: stretch; }
+      .schedule-toolbar-group, .billing-toolbar-group { width: 100%; }
+      .schedule-toolbar-group {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+      }
+      .schedule-toolbar-group > button, .billing-toolbar-group > button { min-width: 0; flex: 1; }
+      .schedule-range-title { grid-column: 1 / -1; min-width: 0; width: 100%; overflow-wrap: anywhere; }
+      .segmented-control { width: 100%; display: grid; grid-template-columns: repeat(3, 1fr); }
+      .segmented-control button { min-width: 0; width: 100%; padding-inline: 8px; }
+      .schedule-week { min-width: 0; grid-template-columns: 1fr; }
+      .schedule-day-column { min-height: 96px; }
+      .billing-filters, .appointment-details-grid { grid-template-columns: 1fr; }
+      .billing-money-grid { grid-template-columns: 1fr; }
+      .weekday-picker { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+      .billing-preview-item { grid-template-columns: auto minmax(0, 1fr); }
+      .billing-preview-item > strong { grid-column: 2; }
       .voice-fab {
         right: max(12px, env(safe-area-inset-right));
         bottom: max(16px, env(safe-area-inset-bottom));
@@ -5095,7 +5256,7 @@ window.MONOLITH_VERSION_LABEL = "Monolith v102 · 03/09/2026";
           <button class="action" id="loginButton" type="submit">Entrar</button>
           <div class="auth-tools">
             <button class="auth-secondary" id="clearDeviceSessionButton" type="button">Limpar sessão/cache deste aparelho</button>
-            <div class="build-version" id="buildVersionLabel">Versão do app: Monolith v102 · 03/09/2026</div>
+            <div class="build-version" id="buildVersionLabel">Versão do app: Monolith v103 · 10/09/2026</div>
           </div>
         </form>
       </div>
@@ -5392,6 +5553,14 @@ window.MONOLITH_VERSION_LABEL = "Monolith v102 · 03/09/2026";
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
           <span>Alunos</span>
         </button>
+        <button class="nav-btn" data-screen="schedule" title="Agenda">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M16 3v4M8 3v4M3 10h18"/><path d="M8 14h3M13 14h3M8 18h3"/></svg>
+          <span>Agenda</span>
+        </button>
+        <button class="nav-btn" data-screen="payments" title="Pagamentos">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 10h18M7 15h4"/></svg>
+          <span>Pagamentos</span>
+        </button>
         <button class="nav-btn" data-screen="workouts" title="Treinos">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 7v10"/><path d="M18 7v10"/><path d="M3 9v6"/><path d="M21 9v6"/><path d="M6 12h12"/></svg>
           <span>Treinos</span>
@@ -5546,6 +5715,10 @@ window.MONOLITH_VERSION_LABEL = "Monolith v102 · 03/09/2026";
             </form>
             <div class="report-line" id="trainerLinkStatus">Sem personal vinculado.</div>
           </div>
+        </div>
+        <div class="panel home-agenda-widget" id="homeAgendaWidget">
+          <div class="section-title"><h3>Próximos compromissos</h3><button class="ghost" type="button" data-screen-jump="schedule">Abrir agenda</button></div>
+          <div class="upcoming-appointment-list" id="homeUpcomingAppointments"></div>
         </div>
       </section>
 
@@ -6166,6 +6339,93 @@ window.MONOLITH_VERSION_LABEL = "Monolith v102 · 03/09/2026";
             </div>
           </div>
         </form>
+      </section>
+
+      <section id="schedule" class="screen">
+        <div class="topbar">
+          <div>
+            <h2>Agenda</h2>
+            <div class="date" id="scheduleSubtitle">Organize compromissos, confirmações e remarcações</div>
+          </div>
+          <button class="action" id="newAppointmentButton" type="button" data-role-only="personal" hidden>Novo compromisso</button>
+        </div>
+        <div class="schedule-shell">
+          <div class="panel schedule-toolbar">
+            <div class="schedule-toolbar-group">
+              <button class="ghost" id="schedulePrevious" type="button" aria-label="Período anterior">‹</button>
+              <button class="ghost" id="scheduleToday" type="button">Hoje</button>
+              <button class="ghost" id="scheduleNext" type="button" aria-label="Próximo período">›</button>
+              <div class="schedule-range-title" id="scheduleRangeTitle"></div>
+            </div>
+            <div class="segmented-control" id="scheduleViewControl" aria-label="Visualização da agenda">
+              <button class="ghost" type="button" data-schedule-view="day">Dia</button>
+              <button class="ghost active" type="button" data-schedule-view="week">Semana</button>
+              <button class="ghost" type="button" data-schedule-view="month">Mês</button>
+            </div>
+          </div>
+          <div class="grid metrics schedule-summary">
+            <div class="metric"><span>Hoje</span><b id="scheduleTodayCount">0</b></div>
+            <div class="metric"><span>Próximos 7 dias</span><b id="scheduleUpcomingCount">0</b></div>
+            <div class="metric"><span>Aguardando ação</span><b id="schedulePendingCount">0</b></div>
+          </div>
+          <div class="panel" id="schedulePendingPanel" hidden>
+            <div class="section-title"><h3>Pendências da agenda</h3><span>Confirmações, remarcações e encerramentos</span></div>
+            <div class="upcoming-appointment-list" id="schedulePendingList"></div>
+          </div>
+          <div class="panel">
+            <div class="section-title">
+              <h3 id="scheduleCalendarTitle">Semana</h3>
+              <label class="check-option"><input id="scheduleShowInactive" type="checkbox" /><span>Mostrar cancelados e remarcados</span></label>
+            </div>
+            <div class="report-line" id="scheduleRemoteStatus" hidden></div>
+            <div class="schedule-calendar" id="scheduleCalendar" aria-live="polite"></div>
+          </div>
+          <div class="panel" id="appointmentDetailsPanel" hidden>
+            <div class="section-title"><h3>Detalhes do compromisso</h3><button class="icon-btn" id="closeAppointmentDetails" type="button" aria-label="Fechar detalhes">×</button></div>
+            <div id="appointmentDetails"></div>
+          </div>
+        </div>
+      </section>
+
+      <section id="payments" class="screen">
+        <div class="topbar">
+          <div>
+            <h2>Pagamentos</h2>
+            <div class="date" id="paymentsSubtitle">Controle manual dos valores recebidos fora do Monolith</div>
+          </div>
+          <button class="action" id="prepareChargesButton" type="button" data-role-only="personal" hidden>Preparar cobranças</button>
+        </div>
+        <div class="billing-shell">
+          <div class="auth-warning">O Monolith não processa pagamentos. Esta área registra valores que o personal recebeu externamente.</div>
+          <form class="panel" id="billingDefaultsForm" data-role-only="personal" hidden>
+            <div class="section-title"><h3>Configuração padrão</h3><span>Aplicada quando o aluno não possui ajuste individual</span></div>
+            <div class="form-grid">
+              <div class="field"><label for="billingDefaultAmount">Valor padrão</label><input id="billingDefaultAmount" inputmode="decimal" placeholder="Ex: 150,00" /></div>
+              <div class="field"><label for="billingDefaultCurrency">Moeda</label><select id="billingDefaultCurrency"><option>USD</option><option>BRL</option><option>EUR</option><option>GBP</option><option>CAD</option></select></div>
+              <div class="field"><label for="billingDefaultType">Tipo</label><select id="billingDefaultType"><option value="monthly">Mensalidade</option><option value="session_package">Pacote de sessões</option></select></div>
+              <div class="field"><label for="billingDefaultSessions">Sessões do pacote</label><input id="billingDefaultSessions" type="number" min="1" max="1000" step="1" /></div>
+              <div class="field full"><label for="billingDefaultDescription">Descrição padrão</label><input id="billingDefaultDescription" maxlength="160" placeholder="Ex: Acompanhamento mensal" /></div>
+            </div>
+            <div class="settings-actions"><button class="action" id="saveBillingDefaultsButton" type="submit">Salvar configuração</button></div>
+          </form>
+          <div class="panel billing-toolbar">
+            <div class="billing-toolbar-group">
+              <div class="field"><label for="billingMonth">Competência</label><input id="billingMonth" type="month" /></div>
+              <button class="ghost" id="refreshBillingButton" type="button">Atualizar</button>
+            </div>
+            <div class="billing-toolbar-group" data-role-only="personal">
+              <button class="ghost" id="configureStudentBillingButton" type="button">Configurar aluno</button>
+            </div>
+          </div>
+          <div class="grid metrics billing-summary" id="billingSummary"></div>
+          <div class="panel billing-filters">
+            <div class="field"><label for="billingSearch">Buscar</label><input id="billingSearch" type="search" placeholder="Nome ou e-mail do aluno" /></div>
+            <div class="field"><label for="billingStatusFilter">Status</label><select id="billingStatusFilter"><option value="">Todos</option><option value="paid">Pago</option><option value="pending">Pendente</option><option value="partial">Parcial</option><option value="late">Atrasado</option><option value="exempt">Isento</option></select></div>
+            <div class="field"><label for="billingCurrencyFilter">Moeda</label><select id="billingCurrencyFilter"><option value="">Todas</option><option>USD</option><option>BRL</option><option>EUR</option><option>GBP</option><option>CAD</option></select></div>
+          </div>
+          <div class="report-line" id="billingRemoteStatus" hidden></div>
+          <div class="billing-list" id="billingList" aria-live="polite"></div>
+        </div>
       </section>
 
       <section id="profile" class="screen">
@@ -6867,6 +7127,106 @@ window.MONOLITH_VERSION_LABEL = "Monolith v102 · 03/09/2026";
     </form>
   </div>
 
+  <div class="modal-backdrop" id="appointmentModal" role="dialog" aria-modal="true" aria-labelledby="appointmentModalTitle">
+    <form class="modal modal-wide" id="appointmentForm">
+      <div class="modal-head"><h3 id="appointmentModalTitle">Novo compromisso</h3><button class="icon-btn" id="closeAppointmentModal" type="button" aria-label="Fechar">×</button></div>
+      <input id="appointmentId" type="hidden" />
+      <input id="appointmentMode" type="hidden" value="create" />
+      <div class="form-grid">
+        <div class="field"><label for="appointmentStudent">Aluno</label><select id="appointmentStudent"><option value="">Bloqueio particular</option></select></div>
+        <div class="field"><label for="appointmentType">Tipo</label><select id="appointmentType"><option value="in_person_training">Treino presencial</option><option value="online_training">Treino online</option><option value="anamnesis">Anamnese</option><option value="physical_assessment">Avaliação física</option><option value="meeting">Reunião</option><option value="other">Outro</option></select></div>
+        <div class="field"><label for="appointmentDate">Data</label><input id="appointmentDate" type="date" required /></div>
+        <div class="field"><label for="appointmentTime">Horário</label><input id="appointmentTime" type="time" required /></div>
+        <div class="field"><label for="appointmentDuration">Duração em minutos</label><input id="appointmentDuration" type="number" min="5" max="1440" step="5" value="60" required /></div>
+        <div class="field"><label for="appointmentTimezone">Fuso horário</label><input id="appointmentTimezone" list="monolithTimezones" required /></div>
+        <div class="field"><label for="appointmentLocation">Localização</label><input id="appointmentLocation" maxlength="240" placeholder="Ex: Academia Central" /></div>
+        <div class="field"><label for="appointmentLink">Link</label><input id="appointmentLink" type="url" maxlength="500" placeholder="https://" /></div>
+        <div class="field full"><label for="appointmentSharedNotes">Instruções para o aluno</label><textarea id="appointmentSharedNotes" maxlength="1500" rows="3"></textarea></div>
+        <div class="field full"><label for="appointmentPrivateNotes">Notas privadas do personal</label><textarea id="appointmentPrivateNotes" maxlength="2000" rows="3"></textarea></div>
+      </div>
+      <datalist id="monolithTimezones"><option value="America/New_York"></option><option value="America/Sao_Paulo"></option><option value="America/Chicago"></option><option value="America/Los_Angeles"></option><option value="Europe/London"></option><option value="Europe/Madrid"></option><option value="UTC"></option></datalist>
+      <label class="check-option" id="appointmentRecurringOption"><input id="appointmentRecurring" type="checkbox" /><span>Repetir semanalmente</span></label>
+      <div class="recurrence-fields" id="appointmentRecurrenceFields" hidden>
+        <div class="field"><label>Dias da semana</label><div class="weekday-picker" id="appointmentWeekdays"><label><input type="checkbox" value="1" /><span>Seg</span></label><label><input type="checkbox" value="2" /><span>Ter</span></label><label><input type="checkbox" value="3" /><span>Qua</span></label><label><input type="checkbox" value="4" /><span>Qui</span></label><label><input type="checkbox" value="5" /><span>Sex</span></label><label><input type="checkbox" value="6" /><span>Sáb</span></label><label><input type="checkbox" value="7" /><span>Dom</span></label></div></div>
+        <div class="form-grid"><div class="field"><label for="appointmentRecurrenceEnd">Repetir até</label><input id="appointmentRecurrenceEnd" type="date" /></div><div class="field"><label for="appointmentOccurrenceLimit">Máximo de ocorrências</label><input id="appointmentOccurrenceLimit" type="number" min="1" max="100" value="12" /></div></div>
+      </div>
+      <div class="field" id="appointmentEditScopeField" hidden><label for="appointmentEditScope">Aplicar alteração</label><select id="appointmentEditScope"><option value="this">Somente este compromisso</option><option value="future">Este e os próximos</option><option value="all">Toda a série</option></select></div>
+      <div class="report-line" id="appointmentFormStatus" role="status" aria-live="polite" hidden></div>
+      <div class="modal-actions"><button class="ghost" id="cancelAppointment" type="button">Cancelar</button><button class="action" id="saveAppointmentButton" type="submit">Salvar compromisso</button></div>
+    </form>
+  </div>
+
+  <div class="modal-backdrop" id="rescheduleRequestModal" role="dialog" aria-modal="true" aria-labelledby="rescheduleRequestTitle">
+    <form class="modal" id="rescheduleRequestForm">
+      <div class="modal-head"><h3 id="rescheduleRequestTitle">Pedir remarcação</h3><button class="icon-btn" id="closeRescheduleRequestModal" type="button" aria-label="Fechar">×</button></div>
+      <input id="rescheduleAppointmentId" type="hidden" />
+      <div class="field"><label for="rescheduleReason">Motivo</label><textarea id="rescheduleReason" required minlength="2" maxlength="1000" rows="3"></textarea></div>
+      <div class="form-grid">
+        <div class="field"><label for="rescheduleSlot1">Primeira sugestão</label><input id="rescheduleSlot1" type="datetime-local" required /></div>
+        <div class="field"><label for="rescheduleSlot2">Segunda sugestão</label><input id="rescheduleSlot2" type="datetime-local" /></div>
+        <div class="field"><label for="rescheduleSlot3">Terceira sugestão</label><input id="rescheduleSlot3" type="datetime-local" /></div>
+      </div>
+      <div class="modal-actions"><button class="ghost" id="cancelRescheduleRequest" type="button">Cancelar</button><button class="action" type="submit">Enviar pedido</button></div>
+    </form>
+  </div>
+
+  <div class="modal-backdrop" id="billingProfileModal" role="dialog" aria-modal="true" aria-labelledby="billingProfileTitle">
+    <form class="modal" id="billingProfileForm">
+      <div class="modal-head"><h3 id="billingProfileTitle">Configurar cobrança do aluno</h3><button class="icon-btn" id="closeBillingProfileModal" type="button" aria-label="Fechar">×</button></div>
+      <div class="field"><label for="billingProfileStudent">Aluno</label><select id="billingProfileStudent" required></select></div>
+      <label class="check-option"><input id="billingProfileEnabled" type="checkbox" checked /><span>Gerar cobranças para este aluno</span></label>
+      <div class="form-grid">
+        <div class="field"><label for="billingProfileAmount">Valor individual</label><input id="billingProfileAmount" inputmode="decimal" placeholder="Vazio usa o padrão" /></div>
+        <div class="field"><label for="billingProfileCurrency">Moeda individual</label><select id="billingProfileCurrency"><option value="">Usar padrão</option><option>USD</option><option>BRL</option><option>EUR</option><option>GBP</option><option>CAD</option></select></div>
+        <div class="field"><label for="billingProfileType">Tipo individual</label><select id="billingProfileType"><option value="">Usar padrão</option><option value="monthly">Mensalidade</option><option value="session_package">Pacote de sessões</option></select></div>
+        <div class="field"><label for="billingProfileSessions">Sessões</label><input id="billingProfileSessions" type="number" min="1" max="1000" /></div>
+        <div class="field"><label for="billingProfileAnchor">Dia inicial do ciclo</label><input id="billingProfileAnchor" type="number" min="1" max="31" placeholder="Data do vínculo" /></div>
+        <div class="field"><label for="billingProfileDueOffset">Ajuste do vencimento em dias</label><input id="billingProfileDueOffset" type="number" min="-31" max="31" placeholder="0" /></div>
+        <div class="field full"><label for="billingProfileDescription">Descrição individual</label><input id="billingProfileDescription" maxlength="160" placeholder="Vazio usa o padrão" /></div>
+      </div>
+      <div class="modal-actions"><button class="ghost" id="cancelBillingProfile" type="button">Cancelar</button><button class="action" type="submit">Salvar configuração</button></div>
+    </form>
+  </div>
+
+  <div class="modal-backdrop" id="billingPreviewModal" role="dialog" aria-modal="true" aria-labelledby="billingPreviewTitle">
+    <div class="modal modal-wide">
+      <div class="modal-head"><h3 id="billingPreviewTitle">Revisar cobranças</h3><button class="icon-btn" id="closeBillingPreviewModal" type="button" aria-label="Fechar">×</button></div>
+      <p>Revise os alunos e valores antes de criar os registros deste ciclo.</p>
+      <div class="billing-preview-list" id="billingPreviewList"></div>
+      <div class="modal-actions"><button class="ghost" id="cancelBillingPreview" type="button">Cancelar</button><button class="action" id="confirmBillingPreview" type="button">Criar cobranças selecionadas</button></div>
+    </div>
+  </div>
+
+  <div class="modal-backdrop" id="paymentReceiptModal" role="dialog" aria-modal="true" aria-labelledby="paymentReceiptTitle">
+    <form class="modal" id="paymentReceiptForm">
+      <div class="modal-head"><h3 id="paymentReceiptTitle">Registrar recebimento</h3><button class="icon-btn" id="closePaymentReceiptModal" type="button" aria-label="Fechar">×</button></div>
+      <input id="paymentChargeId" type="hidden" />
+      <div class="form-grid">
+        <div class="field"><label for="paymentAmount">Valor recebido</label><input id="paymentAmount" inputmode="decimal" required /></div>
+        <div class="field"><label for="paymentDate">Data do recebimento</label><input id="paymentDate" type="date" required /></div>
+        <div class="field"><label for="paymentMethod">Forma de pagamento</label><select id="paymentMethod"><option value="cash">Dinheiro</option><option value="bank_transfer">Transferência bancária</option><option value="pix">Pix</option><option value="zelle">Zelle</option><option value="external_card">Cartão recebido externamente</option><option value="other">Outro</option></select></div>
+        <div class="field" id="paymentOtherMethodField" hidden><label for="paymentOtherMethod">Descreva a forma</label><input id="paymentOtherMethod" maxlength="100" /></div>
+        <div class="field full"><label for="paymentPrivateNotes">Observações privadas</label><textarea id="paymentPrivateNotes" maxlength="1000" rows="3"></textarea></div>
+      </div>
+      <div class="modal-actions"><button class="ghost" id="cancelPaymentReceipt" type="button">Cancelar</button><button class="action" type="submit">Confirmar recebimento</button></div>
+    </form>
+  </div>
+
+  <div class="modal-backdrop" id="chargeEditModal" role="dialog" aria-modal="true" aria-labelledby="chargeEditTitle">
+    <form class="modal" id="chargeEditForm">
+      <div class="modal-head"><h3 id="chargeEditTitle">Editar cobrança</h3><button class="icon-btn" id="closeChargeEditModal" type="button" aria-label="Fechar">×</button></div>
+      <input id="chargeEditId" type="hidden" />
+      <div class="form-grid">
+        <div class="field"><label for="chargeEditAmount">Valor</label><input id="chargeEditAmount" inputmode="decimal" required /></div>
+        <div class="field"><label for="chargeEditDueDate">Vencimento</label><input id="chargeEditDueDate" type="date" required /></div>
+        <div class="field full"><label for="chargeEditDescription">Descrição</label><input id="chargeEditDescription" maxlength="160" /></div>
+        <div class="field full"><label for="chargeEditPrivateNotes">Observações privadas</label><textarea id="chargeEditPrivateNotes" maxlength="1000" rows="3"></textarea></div>
+        <div class="field full" id="chargeEditReasonField" hidden><label for="chargeEditReason">Motivo do ajuste</label><input id="chargeEditReason" maxlength="300" /></div>
+      </div>
+      <div class="modal-actions"><button class="ghost" id="cancelChargeEdit" type="button">Cancelar</button><button class="action" type="submit">Salvar ajuste</button></div>
+    </form>
+  </div>
+
   <div class="modal-backdrop" id="unsavedChangesModal" role="dialog" aria-modal="true" aria-labelledby="unsavedChangesTitle">
     <div class="modal unsaved-modal">
       <div class="modal-head">
@@ -6909,8 +7269,8 @@ window.MONOLITH_VERSION_LABEL = "Monolith v102 · 03/09/2026";
   <script>
     const MONOLITH_SUPABASE_URL = "https://jhxasnxuvmkhntbwepau.supabase.co";
     const MONOLITH_SUPABASE_KEY = "sb_publishable_lDtAXIOtkMwgwsAZyghBdg_gyLHGwpH";
-const MONOLITH_BUILD = window.MONOLITH_BUILD || "monolith-v102-heavy-flow-stability";
-const MONOLITH_VERSION_LABEL = window.MONOLITH_VERSION_LABEL || "Monolith v102 · 03/09/2026";
+const MONOLITH_BUILD = window.MONOLITH_BUILD || "monolith-v103-calendar-billing";
+const MONOLITH_VERSION_LABEL = window.MONOLITH_VERSION_LABEL || "Monolith v103 · 10/09/2026";
     const onboardingStepDefinitions = [
       ["welcome", "Boas-vindas", "Conheça o fluxo do seu acompanhamento.", "home"],
       ["terms", "Termos", "Revise consentimentos e informações da conta.", "profile"],
@@ -7014,6 +7374,8 @@ if (location.hash.toLowerCase() === "#leads") history.replaceState(null, "", `${
           }
         }
         if (id === "clients" && typeof renderTrainerSummary === "function") renderTrainerSummary();
+        if (id === "schedule" && typeof window.monolithRenderSchedule === "function") window.monolithRenderSchedule();
+        if (id === "payments" && typeof window.monolithRenderBilling === "function") window.monolithRenderBilling();
         if (id === "workouts" && typeof window.monolithRefreshWorkoutView === "function") window.monolithRefreshWorkoutView();
         if (id === "programs" && typeof window.monolithRenderPrograms === "function") window.monolithRenderPrograms();
         if ((id === "alerts" || id === "pulse") && typeof window.monolithRenderPulse === "function") window.monolithRenderPulse();
@@ -7211,6 +7573,7 @@ if (location.hash.toLowerCase() === "#leads") history.replaceState(null, "", `${
       const weightUnit = profile.weight_unit === "lb" || profile.weight_unit === "kg" ? profile.weight_unit : currentWeightUnit();
       const voiceLanguage = ["auto", "pt-BR", "en-US", "es-419"].includes(profile.voice_language) ? profile.voice_language : savedVoiceSettings.language || "auto";
       const voiceGender = ["neutral", "feminine", "masculine"].includes(profile.voice_gender) ? profile.voice_gender : savedVoiceSettings.gender || "neutral";
+      const timezone = profile.timezone || Intl.DateTimeFormat().resolvedOptions().timeZone || "UTC";
       const account = {
         id: profile.id,
         role: appRoleFromDb(profile.role),
@@ -7223,6 +7586,7 @@ if (location.hash.toLowerCase() === "#leads") history.replaceState(null, "", `${
         weightUnit,
         voiceLanguage,
         voiceGender,
+        timezone,
         source: "supabase",
         ...(appRoleFromDb(profile.role) === "student" && cachedAccount?.trainerId ? {
           trainerId: cachedAccount.trainerId,
@@ -7251,6 +7615,7 @@ if (location.hash.toLowerCase() === "#leads") history.replaceState(null, "", `${
         email: authUser?.email || fallback.email || "",
         full_name: metadata.full_name || fallback.name || authUser?.email?.split("@")[0] || "Monolith User",
         role: metadata.role || fallback.dbRole || dbRoleFromApp(fallback.role || "student"),
+        timezone: fallback.timezone || Intl.DateTimeFormat().resolvedOptions().timeZone || "UTC",
         space_enabled: fallback.spaceEnabled === true
       };
     }
@@ -7269,15 +7634,16 @@ if (location.hash.toLowerCase() === "#leads") history.replaceState(null, "", `${
         language: localStorage.getItem("monolith.language") || "pt",
         weight_unit: localStorage.getItem("monolith.weightUnit") || "kg",
         voice_language: voiceSettings.language || "auto",
-        voice_gender: voiceSettings.gender || "neutral"
+        voice_gender: voiceSettings.gender || "neutral",
+        timezone: fallback.timezone || Intl.DateTimeFormat().resolvedOptions().timeZone || "UTC"
       };
       let { data, error } = await monolithSupabase
         .from("profiles")
         .upsert(payload, { onConflict: "id" })
         .select()
         .single();
-      if (error && /voice_language|voice_gender|schema cache/i.test(supabaseErrorText(error))) {
-        const { voice_language, voice_gender, ...legacyPayload } = payload;
+      if (error && /voice_language|voice_gender|timezone|schema cache/i.test(supabaseErrorText(error))) {
+        const { voice_language, voice_gender, timezone, ...legacyPayload } = payload;
         ({ data, error } = await monolithSupabase.from("profiles").upsert(legacyPayload, { onConflict: "id" }).select().single());
       }
       if (error) throw error;
@@ -9280,6 +9646,8 @@ if (location.hash.toLowerCase() === "#leads") history.replaceState(null, "", `${
 
     function applyAuthState() {
       const user = currentAccount();
+      const previousUserId = document.body.dataset.authUserId || "";
+      document.body.dataset.authUserId = user?.id || "";
       document.body.classList.toggle("authenticated", Boolean(user));
       document.body.classList.toggle("auth-role-student", user?.role === "student");
       document.body.classList.toggle("auth-role-personal", user?.role === "personal");
@@ -9311,6 +9679,9 @@ if (location.hash.toLowerCase() === "#leads") history.replaceState(null, "", `${
         renderNutrition();
         renderProfile();
         hydrateAccountIdentity(user);
+        if (previousUserId !== user.id) {
+          requestAnimationFrame(() => document.getElementById("mainContent")?.focus({ preventScroll: true }));
+        }
       }
     }
 
@@ -16243,6 +16614,390 @@ if (location.hash.toLowerCase() === "#leads") history.replaceState(null, "", `${
       "Não consegui salvar o idioma no perfil. A escolha foi mantida neste aparelho.": "No se pudo guardar el idioma en tu perfil. La elección se mantuvo en este dispositivo."
     });
 
+    Object.assign(translations.en, {
+      "Agenda": "Schedule",
+      "Pagamentos": "Payments",
+      "Organize compromissos, confirmações e remarcações": "Organize appointments, confirmations and rescheduling",
+      "Meus compromissos e solicitações": "My appointments and requests",
+      "Novo compromisso": "New appointment",
+      "Período anterior": "Previous period",
+      "Próximo período": "Next period",
+      "Visualização da agenda": "Schedule view",
+      "Dia": "Day",
+      "Semana": "Week",
+      "Mês": "Month",
+      "Próximos 7 dias": "Next 7 days",
+      "Aguardando ação": "Awaiting action",
+      "Pendências da agenda": "Schedule tasks",
+      "Confirmações, remarcações e encerramentos": "Confirmations, rescheduling and closing tasks",
+      "Mostrar cancelados e remarcados": "Show cancelled and rescheduled",
+      "Detalhes do compromisso": "Appointment details",
+      "Fechar detalhes": "Close details",
+      "Próximos compromissos": "Upcoming appointments",
+      "Abrir agenda": "Open schedule",
+      "Controle manual dos valores recebidos fora do Monolith": "Manual tracking of amounts received outside Monolith",
+      "O Monolith não processa pagamentos. Esta área registra valores que o personal recebeu externamente.": "Monolith does not process payments. This area records amounts the trainer received externally.",
+      "Preparar cobranças": "Prepare charges",
+      "Configuração padrão": "Default settings",
+      "Aplicada quando o aluno não possui ajuste individual": "Applied when the student has no individual override",
+      "Valor padrão": "Default amount",
+      "Moeda": "Currency",
+      "Tipo": "Type",
+      "Sessões do pacote": "Package sessions",
+      "Descrição padrão": "Default description",
+      "Salvar configuração": "Save settings",
+      "Competência": "Billing month",
+      "Configurar aluno": "Configure student",
+      "Buscar": "Search",
+      "Nome ou e-mail do aluno": "Student name or email",
+      "Todos": "All",
+      "Todas": "All",
+      "Pago": "Paid",
+      "Pendente": "Pending",
+      "Parcial": "Partial",
+      "Atrasado": "Overdue",
+      "Isento": "Exempt",
+      "Bloqueio particular": "Private block",
+      "Treino presencial": "In-person training",
+      "Treino online": "Online training",
+      "Avaliação física": "Physical assessment",
+      "Reunião": "Meeting",
+      "Data": "Date",
+      "Horário": "Time",
+      "Duração em minutos": "Duration in minutes",
+      "Fuso horário": "Time zone",
+      "Localização": "Location",
+      "Link": "Link",
+      "Instruções para o aluno": "Instructions for the student",
+      "Notas privadas do personal": "Private trainer notes",
+      "Repetir semanalmente": "Repeat weekly",
+      "Dias da semana": "Weekdays",
+      "Repetir até": "Repeat until",
+      "Máximo de ocorrências": "Maximum occurrences",
+      "Aplicar alteração": "Apply change",
+      "Somente este compromisso": "This appointment only",
+      "Este e os próximos": "This and following appointments",
+      "Toda a série": "Entire series",
+      "Salvar compromisso": "Save appointment",
+      "Pedir remarcação": "Request rescheduling",
+      "Motivo": "Reason",
+      "Primeira sugestão": "First suggestion",
+      "Segunda sugestão": "Second suggestion",
+      "Terceira sugestão": "Third suggestion",
+      "Enviar pedido": "Send request",
+      "Configurar cobrança do aluno": "Configure student billing",
+      "Gerar cobranças para este aluno": "Generate charges for this student",
+      "Valor individual": "Individual amount",
+      "Vazio usa o padrão": "Leave blank to use default",
+      "Moeda individual": "Individual currency",
+      "Usar padrão": "Use default",
+      "Tipo individual": "Individual type",
+      "Sessões": "Sessions",
+      "Dia inicial do ciclo": "Cycle start day",
+      "Data do vínculo": "Link date",
+      "Ajuste do vencimento em dias": "Due-date adjustment in days",
+      "Descrição individual": "Individual description",
+      "Revisar cobranças": "Review charges",
+      "Revise os alunos e valores antes de criar os registros deste ciclo.": "Review students and amounts before creating this cycle's records.",
+      "Criar cobranças selecionadas": "Create selected charges",
+      "Registrar recebimento": "Record payment",
+      "Valor recebido": "Amount received",
+      "Data do recebimento": "Payment date",
+      "Forma de pagamento": "Payment method",
+      "Dinheiro": "Cash",
+      "Transferência bancária": "Bank transfer",
+      "Cartão recebido externamente": "Card received externally",
+      "Descreva a forma": "Describe the method",
+      "Observações privadas": "Private notes",
+      "Confirmar recebimento": "Confirm payment",
+      "Editar cobrança": "Edit charge",
+      "Vencimento": "Due date",
+      "Descrição": "Description",
+      "Motivo do ajuste": "Adjustment reason",
+      "Salvar ajuste": "Save adjustment",
+      "Aguardando confirmação": "Awaiting confirmation",
+      "Confirmado": "Confirmed",
+      "Concluído": "Completed",
+      "Cancelado": "Cancelled",
+      "Remarcado": "Rescheduled",
+      "Ausência": "No-show",
+      "Confirmar presença": "Confirm attendance",
+      "Remarcar": "Reschedule",
+      "Concluir": "Complete",
+      "Registrar ausência": "Mark no-show",
+      "Editar": "Edit",
+      "Aluno particular": "Private time",
+      "Nenhum compromisso neste período.": "No appointments in this period.",
+      "Nenhum compromisso próximo.": "No upcoming appointments.",
+      "Nenhuma pendência na agenda.": "No schedule tasks.",
+      "Mensalidade": "Monthly fee",
+      "Pacote de sessões": "Session package",
+      "Recebido": "Received",
+      "Em aberto": "Outstanding",
+      "Saldo": "Balance",
+      "Período": "Period",
+      "Registrar pagamento": "Record payment",
+      "Tornar isento": "Mark exempt",
+      "Remover isenção": "Remove exemption",
+      "Estornar": "Reverse",
+      "Nenhuma cobrança encontrada.": "No charges found.",
+      "Nenhum recebimento registrado.": "No payments recorded.",
+      "Cobrança isenta": "Exempt charge",
+      "Recebimento estornado": "Payment reversed",
+      "Configuração financeira salva.": "Billing settings saved.",
+      "Cobranças criadas.": "Charges created.",
+      "Compromisso salvo.": "Appointment saved.",
+      "Presença confirmada.": "Attendance confirmed.",
+      "Pedido de remarcação enviado.": "Reschedule request sent.",
+      "Esta função precisa das etapas 32 e 33 do banco de dados.": "This feature requires database steps 32 and 33.",
+      "Detalhes": "Details",
+      "Pedido de remarcação": "Reschedule request",
+      "Editar compromisso": "Edit appointment",
+      "Aceitar remarcação": "Accept rescheduling",
+      "Recusar pedido": "Reject request",
+      "Confirmar": "Confirm",
+      "Escolha os dias da semana e a data final da recorrência.": "Choose the weekdays and recurrence end date.",
+      "Não foi possível carregar os dados agora.": "The data could not be loaded right now.",
+      "Aplicar à recorrência": "Apply to recurrence",
+      "Escolha quais compromissos serão alterados.": "Choose which appointments will be changed.",
+      "O compromisso original será mantido.": "The original appointment will be kept.",
+      "Carregando...": "Loading...",
+      "Valor": "Amount",
+      "Histórico": "History",
+      "Tentar novamente": "Try again",
+      "Informe um valor padrão maior que zero.": "Enter a default amount greater than zero.",
+      "Informe a quantidade de sessões do pacote.": "Enter the number of sessions in the package.",
+      "Selecione um aluno vinculado.": "Select a linked student.",
+      "Informe um valor válido.": "Enter a valid amount.",
+      "Configuração do aluno salva.": "Student settings saved.",
+      "Salve a configuração padrão antes de preparar cobranças.": "Save the default settings before preparing charges.",
+      "Já criada": "Already created",
+      "Nenhum aluno disponível para cobrança.": "No students available for billing.",
+      "Selecione ao menos um aluno.": "Select at least one student.",
+      "O valor deve ser positivo e não pode superar o saldo.": "The amount must be positive and cannot exceed the balance.",
+      "Descreva a forma de pagamento.": "Describe the payment method.",
+      "Recebimento registrado.": "Payment recorded.",
+      "O valor não pode ser menor que o total já recebido.": "The amount cannot be lower than the total already received.",
+      "Cobrança atualizada.": "Charge updated.",
+      "Tornar cobrança isenta": "Mark charge exempt",
+      "O saldo deixará de aparecer como pendente.": "The balance will no longer appear as outstanding.",
+      "Motivo da isenção": "Exemption reason",
+      "Confirmar isenção": "Confirm exemption",
+      "Remover isenção": "Remove exemption",
+      "A cobrança voltará a ficar em aberto.": "The charge will become outstanding again.",
+      "Estornar recebimento": "Reverse payment",
+      "O registro será mantido no histórico como estornado.": "The record will remain in history as reversed.",
+      "Motivo do estorno": "Reversal reason"
+      ,"Salvar alterações": "Save changes"
+      ,"Seg": "Mon"
+      ,"Ter": "Tue"
+      ,"Qua": "Wed"
+      ,"Qui": "Thu"
+      ,"Sex": "Fri"
+      ,"Sáb": "Sat"
+      ,"Dom": "Sun"
+      ,"Conflito de horário": "Schedule conflict"
+      ,"Já existe um compromisso neste horário. Deseja manter a sobreposição?": "There is already an appointment at this time. Keep the overlap?"
+      ,"Compromisso existente": "Existing appointment"
+      ,"Manter os dois": "Keep both"
+      ,"Escolha um dos horários sugeridos pelo aluno. Você poderá ajustar os detalhes antes de salvar.": "Choose one of the times suggested by the student. You can adjust the details before saving."
+      ,"Horário sugerido": "Suggested time"
+      ,"Usar este horário": "Use this time"
+      ,"Fuso horário inválido.": "Invalid time zone."
+    });
+
+    Object.assign(translations.es, {
+      "Agenda": "Agenda",
+      "Pagamentos": "Pagos",
+      "Organize compromissos, confirmações e remarcações": "Organiza citas, confirmaciones y cambios de horario",
+      "Meus compromissos e solicitações": "Mis citas y solicitudes",
+      "Novo compromisso": "Nueva cita",
+      "Período anterior": "Período anterior",
+      "Próximo período": "Período siguiente",
+      "Visualização da agenda": "Vista de agenda",
+      "Dia": "Día",
+      "Semana": "Semana",
+      "Mês": "Mes",
+      "Próximos 7 dias": "Próximos 7 días",
+      "Aguardando ação": "Esperando acción",
+      "Pendências da agenda": "Pendientes de agenda",
+      "Confirmações, remarcações e encerramentos": "Confirmaciones, cambios de horario y cierres",
+      "Mostrar cancelados e remarcados": "Mostrar cancelados y reprogramados",
+      "Detalhes do compromisso": "Detalles de la cita",
+      "Fechar detalhes": "Cerrar detalles",
+      "Próximos compromissos": "Próximas citas",
+      "Abrir agenda": "Abrir agenda",
+      "Controle manual dos valores recebidos fora do Monolith": "Control manual de importes recibidos fuera de Monolith",
+      "O Monolith não processa pagamentos. Esta área registra valores que o personal recebeu externamente.": "Monolith no procesa pagos. Esta área registra importes que el entrenador recibió externamente.",
+      "Preparar cobranças": "Preparar cobros",
+      "Configuração padrão": "Configuración predeterminada",
+      "Aplicada quando o aluno não possui ajuste individual": "Se aplica cuando el alumno no tiene un ajuste individual",
+      "Valor padrão": "Importe predeterminado",
+      "Moeda": "Moneda",
+      "Tipo": "Tipo",
+      "Sessões do pacote": "Sesiones del paquete",
+      "Descrição padrão": "Descripción predeterminada",
+      "Salvar configuração": "Guardar configuración",
+      "Competência": "Mes de referencia",
+      "Configurar aluno": "Configurar alumno",
+      "Buscar": "Buscar",
+      "Nome ou e-mail do aluno": "Nombre o correo del alumno",
+      "Todos": "Todos",
+      "Todas": "Todas",
+      "Pago": "Pagado",
+      "Pendente": "Pendiente",
+      "Parcial": "Parcial",
+      "Atrasado": "Atrasado",
+      "Isento": "Exento",
+      "Bloqueio particular": "Bloqueo privado",
+      "Treino presencial": "Entrenamiento presencial",
+      "Treino online": "Entrenamiento en línea",
+      "Avaliação física": "Evaluación física",
+      "Reunião": "Reunión",
+      "Data": "Fecha",
+      "Horário": "Hora",
+      "Duração em minutos": "Duración en minutos",
+      "Fuso horário": "Zona horaria",
+      "Localização": "Ubicación",
+      "Link": "Enlace",
+      "Instruções para o aluno": "Instrucciones para el alumno",
+      "Notas privadas do personal": "Notas privadas del entrenador",
+      "Repetir semanalmente": "Repetir semanalmente",
+      "Dias da semana": "Días de la semana",
+      "Repetir até": "Repetir hasta",
+      "Máximo de ocorrências": "Máximo de ocurrencias",
+      "Aplicar alteração": "Aplicar cambio",
+      "Somente este compromisso": "Solo esta cita",
+      "Este e os próximos": "Esta y las siguientes",
+      "Toda a série": "Toda la serie",
+      "Salvar compromisso": "Guardar cita",
+      "Pedir remarcação": "Solicitar cambio de horario",
+      "Motivo": "Motivo",
+      "Primeira sugestão": "Primera sugerencia",
+      "Segunda sugestão": "Segunda sugerencia",
+      "Terceira sugestão": "Tercera sugerencia",
+      "Enviar pedido": "Enviar solicitud",
+      "Configurar cobrança do aluno": "Configurar cobro del alumno",
+      "Gerar cobranças para este aluno": "Generar cobros para este alumno",
+      "Valor individual": "Importe individual",
+      "Vazio usa o padrão": "Vacío usa el valor predeterminado",
+      "Moeda individual": "Moneda individual",
+      "Usar padrão": "Usar predeterminado",
+      "Tipo individual": "Tipo individual",
+      "Sessões": "Sesiones",
+      "Dia inicial do ciclo": "Día inicial del ciclo",
+      "Data do vínculo": "Fecha del vínculo",
+      "Ajuste do vencimento em dias": "Ajuste del vencimiento en días",
+      "Descrição individual": "Descripción individual",
+      "Revisar cobranças": "Revisar cobros",
+      "Revise os alunos e valores antes de criar os registros deste ciclo.": "Revisa los alumnos e importes antes de crear los registros del ciclo.",
+      "Criar cobranças selecionadas": "Crear cobros seleccionados",
+      "Registrar recebimento": "Registrar pago",
+      "Valor recebido": "Importe recibido",
+      "Data do recebimento": "Fecha del pago",
+      "Forma de pagamento": "Forma de pago",
+      "Dinheiro": "Efectivo",
+      "Transferência bancária": "Transferencia bancaria",
+      "Cartão recebido externamente": "Tarjeta recibida externamente",
+      "Descreva a forma": "Describe la forma",
+      "Observações privadas": "Observaciones privadas",
+      "Confirmar recebimento": "Confirmar pago",
+      "Editar cobrança": "Editar cobro",
+      "Vencimento": "Vencimiento",
+      "Descrição": "Descripción",
+      "Motivo do ajuste": "Motivo del ajuste",
+      "Salvar ajuste": "Guardar ajuste",
+      "Aguardando confirmação": "Esperando confirmación",
+      "Confirmado": "Confirmado",
+      "Concluído": "Completado",
+      "Cancelado": "Cancelado",
+      "Remarcado": "Reprogramado",
+      "Ausência": "Ausencia",
+      "Confirmar presença": "Confirmar asistencia",
+      "Remarcar": "Reprogramar",
+      "Concluir": "Completar",
+      "Registrar ausência": "Registrar ausencia",
+      "Editar": "Editar",
+      "Aluno particular": "Tiempo privado",
+      "Nenhum compromisso neste período.": "No hay citas en este período.",
+      "Nenhum compromisso próximo.": "No hay próximas citas.",
+      "Nenhuma pendência na agenda.": "No hay pendientes en la agenda.",
+      "Mensalidade": "Mensualidad",
+      "Pacote de sessões": "Paquete de sesiones",
+      "Recebido": "Recibido",
+      "Em aberto": "Pendiente",
+      "Saldo": "Saldo",
+      "Período": "Período",
+      "Registrar pagamento": "Registrar pago",
+      "Tornar isento": "Marcar exento",
+      "Remover isenção": "Quitar exención",
+      "Estornar": "Revertir",
+      "Nenhuma cobrança encontrada.": "No se encontraron cobros.",
+      "Nenhum recebimento registrado.": "No hay pagos registrados.",
+      "Cobrança isenta": "Cobro exento",
+      "Recebimento estornado": "Pago revertido",
+      "Configuração financeira salva.": "Configuración financiera guardada.",
+      "Cobranças criadas.": "Cobros creados.",
+      "Compromisso salvo.": "Cita guardada.",
+      "Presença confirmada.": "Asistencia confirmada.",
+      "Pedido de remarcação enviado.": "Solicitud de cambio enviada.",
+      "Esta função precisa das etapas 32 e 33 do banco de dados.": "Esta función necesita los pasos 32 y 33 de la base de datos.",
+      "Detalhes": "Detalles",
+      "Pedido de remarcação": "Solicitud de cambio",
+      "Editar compromisso": "Editar cita",
+      "Aceitar remarcação": "Aceptar cambio",
+      "Recusar pedido": "Rechazar solicitud",
+      "Confirmar": "Confirmar",
+      "Escolha os dias da semana e a data final da recorrência.": "Elige los días de la semana y la fecha final de la recurrencia.",
+      "Não foi possível carregar os dados agora.": "No fue posible cargar los datos ahora.",
+      "Aplicar à recorrência": "Aplicar a la recurrencia",
+      "Escolha quais compromissos serão alterados.": "Elige qué citas serán modificadas.",
+      "O compromisso original será mantido.": "La cita original se mantendrá.",
+      "Carregando...": "Cargando...",
+      "Valor": "Importe",
+      "Histórico": "Historial",
+      "Tentar novamente": "Intentar de nuevo",
+      "Informe um valor padrão maior que zero.": "Introduce un importe predeterminado mayor que cero.",
+      "Informe a quantidade de sessões do pacote.": "Introduce la cantidad de sesiones del paquete.",
+      "Selecione um aluno vinculado.": "Selecciona un alumno vinculado.",
+      "Informe um valor válido.": "Introduce un importe válido.",
+      "Configuração do aluno salva.": "Configuración del alumno guardada.",
+      "Salve a configuração padrão antes de preparar cobranças.": "Guarda la configuración predeterminada antes de preparar cobros.",
+      "Já criada": "Ya creada",
+      "Nenhum aluno disponível para cobrança.": "No hay alumnos disponibles para cobrar.",
+      "Selecione ao menos um aluno.": "Selecciona al menos un alumno.",
+      "O valor deve ser positivo e não pode superar o saldo.": "El importe debe ser positivo y no puede superar el saldo.",
+      "Descreva a forma de pagamento.": "Describe la forma de pago.",
+      "Recebimento registrado.": "Pago registrado.",
+      "O valor não pode ser menor que o total já recebido.": "El importe no puede ser menor que el total ya recibido.",
+      "Cobrança atualizada.": "Cobro actualizado.",
+      "Tornar cobrança isenta": "Marcar cobro exento",
+      "O saldo deixará de aparecer como pendente.": "El saldo dejará de aparecer como pendiente.",
+      "Motivo da isenção": "Motivo de la exención",
+      "Confirmar isenção": "Confirmar exención",
+      "Remover isenção": "Quitar exención",
+      "A cobrança voltará a ficar em aberto.": "El cobro volverá a quedar pendiente.",
+      "Estornar recebimento": "Revertir pago",
+      "O registro será mantido no histórico como estornado.": "El registro se conservará en el historial como revertido.",
+      "Motivo do estorno": "Motivo de la reversión"
+      ,"Salvar alterações": "Guardar cambios"
+      ,"Seg": "Lun"
+      ,"Ter": "Mar"
+      ,"Qua": "Mié"
+      ,"Qui": "Jue"
+      ,"Sex": "Vie"
+      ,"Sáb": "Sáb"
+      ,"Dom": "Dom"
+      ,"Conflito de horário": "Conflicto de horario"
+      ,"Já existe um compromisso neste horário. Deseja manter a sobreposição?": "Ya existe una cita a esta hora. ¿Deseas mantener la superposición?"
+      ,"Compromisso existente": "Cita existente"
+      ,"Manter os dois": "Mantener ambos"
+      ,"Escolha um dos horários sugeridos pelo aluno. Você poderá ajustar os detalhes antes de salvar.": "Elige uno de los horarios sugeridos por el alumno. Podrás ajustar los detalles antes de guardar."
+      ,"Horário sugerido": "Horario sugerido"
+      ,"Usar este horário": "Usar este horario"
+      ,"Fuso horário inválido.": "Zona horaria no válida."
+    });
+
     function t(key, language = localStorage.getItem("monolith.language") || "pt") {
       return language === "pt" ? key : translations[language]?.[key] || key;
     }
@@ -16575,6 +17330,9 @@ if (location.hash.toLowerCase() === "#leads") history.replaceState(null, "", `${
       window.dispatchEvent(new CustomEvent("monolith-weight-unit-change", { detail: { previousUnit, nextUnit } }));
     }
 
+    const onboardingHomeHydrationStates = new Map();
+    const onboardingHomeHydrationRequests = new Map();
+
     function applyLanguage(language) {
       language = ["pt", "en", "es"].includes(language) ? language : "pt";
       clearTransientToast();
@@ -16671,6 +17429,9 @@ if (location.hash.toLowerCase() === "#leads") history.replaceState(null, "", `${
       if (document.getElementById("timeline")?.classList.contains("active")) window.monolithRenderTimeline?.();
       if (document.getElementById("onboarding")?.classList.contains("active")) window.monolithRenderOnboarding?.();
       if (document.getElementById("space")?.classList.contains("active")) window.monolithRenderSpace?.();
+      if (document.getElementById("schedule")?.classList.contains("active")) window.monolithRenderSchedule?.();
+      if (document.getElementById("payments")?.classList.contains("active")) window.monolithRenderBilling?.();
+      if (document.getElementById("home")?.classList.contains("active")) window.monolithRefreshHomeSchedule?.();
     }
 
     async function persistLanguagePreference(language) {
@@ -19875,6 +20636,8 @@ ${photoSections}
       const hashes = {
         home: "#inicio",
         clients: "#alunos",
+        schedule: "#agenda",
+        payments: "#pagamentos",
         workouts: "#treinos",
         nutrition: "#dietas",
         checkin: "#checkins",
@@ -19897,6 +20660,8 @@ ${photoSections}
       const screens = {
         "#inicio": "home",
         "#alunos": "clients",
+        "#agenda": "schedule",
+        "#pagamentos": "payments",
         "#treinos": "workouts",
         "#dietas": "nutrition",
         "#checkins": "checkin",
@@ -20022,6 +20787,7 @@ ${photoSections}
       if (id === "home") refreshPersonalHome().catch(error => {
         logAppError("trainer-dashboard", "refresh", error, { trainerId: currentAccount()?.id, screen: "home" });
       });
+      if (id === "home") window.monolithRefreshHomeSchedule?.();
       if (id === "home" && currentAccount()?.role === "student") {
         if (isRealSupabaseAccount(currentAccount())) setRemoteDataState("workouts", currentAccount().id, "loading");
         renderStudentDashboard();
@@ -20030,6 +20796,8 @@ ${photoSections}
         refreshDailyCheckinForTarget().catch(error => logAppError("checkins", "student-home", error, { studentId: currentAccount()?.id, date: todayKey() }));
       }
       if (id === "clients") renderClientList();
+      if (id === "schedule") window.monolithRenderSchedule?.();
+      if (id === "payments") window.monolithRenderBilling?.();
       if (id === "profile") renderProfile();
       if (id === "workouts" && typeof renderWorkoutStudentSelect === "function") {
         renderWorkoutStudentSelect().then(() => {
@@ -20156,7 +20924,14 @@ ${photoSections}
         closePhotoLightbox();
         closeTrainerMapProfile();
         closeStudentActionMenus();
+        ["appointmentModal", "rescheduleRequestModal", "billingProfileModal", "billingPreviewModal", "paymentReceiptModal", "chargeEditModal"].forEach(id => document.getElementById(id)?.classList.remove("active"));
       }
+    });
+
+    ["appointmentModal", "rescheduleRequestModal", "billingProfileModal", "billingPreviewModal", "paymentReceiptModal", "chargeEditModal"].forEach(id => {
+      document.getElementById(id)?.addEventListener("click", event => {
+        if (event.target === event.currentTarget) event.currentTarget.classList.remove("active");
+      });
     });
 
     document.addEventListener("click", event => {
@@ -21949,9 +22724,6 @@ ${photoSections}
       if (metrics.activeDietPlan) completed.add("diet");
       return completed;
     }
-
-    const onboardingHomeHydrationStates = new Map();
-    const onboardingHomeHydrationRequests = new Map();
 
     function anamnesisRecordProgress(record = null) {
       if (!record) return 0;
@@ -26792,6 +27564,1450 @@ ${photoSections}
         updateNumericSubmitStates();
       });
 
+    })();
+
+    (() => {
+      const scheduleCacheKey = "monolith.appointments";
+      const requestCacheKey = "monolith.appointmentRequests";
+      const inactiveAppointmentStatuses = new Set(["cancelled", "rescheduled"]);
+      const appointmentStatusLabels = {
+        awaiting_confirmation: "Aguardando confirmação",
+        confirmed: "Confirmado",
+        completed: "Concluído",
+        cancelled: "Cancelado",
+        rescheduled: "Remarcado",
+        no_show: "Ausência"
+      };
+      const appointmentTypeLabels = {
+        in_person_training: "Treino presencial",
+        online_training: "Treino online",
+        anamnesis: "Anamnese",
+        physical_assessment: "Avaliação física",
+        meeting: "Reunião",
+        other: "Outro",
+        private_block: "Bloqueio particular"
+      };
+      const scheduleState = {
+        view: sessionStorage.getItem("monolith.scheduleView") || "week",
+        anchor: todayKey(),
+        appointments: [],
+        requests: [],
+        loading: false,
+        loaded: false
+      };
+
+      function setScheduleText(id, value) {
+        const element = document.getElementById(id);
+        if (element) element.textContent = value;
+      }
+
+      function readMemoryList(key) {
+        try { return JSON.parse(localStorage.getItem(key) || "[]"); } catch { return []; }
+      }
+
+      function writeMemoryList(key, value) {
+        localStorage.setItem(key, JSON.stringify(value));
+      }
+
+      function accountTimezone(user = currentAccount()) {
+        return user?.timezone || Intl.DateTimeFormat().resolvedOptions().timeZone || "UTC";
+      }
+
+      function dateKeyFromDate(date) {
+        return date.toISOString().slice(0, 10);
+      }
+
+      function addCivilDays(key, amount) {
+        const date = new Date(`${key}T12:00:00Z`);
+        date.setUTCDate(date.getUTCDate() + amount);
+        return dateKeyFromDate(date);
+      }
+
+      function civilDayOfWeek(key) {
+        const day = new Date(`${key}T12:00:00Z`).getUTCDay();
+        return day === 0 ? 7 : day;
+      }
+
+      function startOfCivilWeek(key) {
+        return addCivilDays(key, 1 - civilDayOfWeek(key));
+      }
+
+      function civilMonthStart(key) {
+        return `${String(key).slice(0, 7)}-01`;
+      }
+
+      function shiftCivilMonth(key, amount) {
+        const date = new Date(`${civilMonthStart(key)}T12:00:00Z`);
+        date.setUTCMonth(date.getUTCMonth() + amount);
+        return dateKeyFromDate(date);
+      }
+
+      function civilPartsInZone(iso, timezone = accountTimezone()) {
+        const date = new Date(iso);
+        if (!Number.isFinite(date.getTime())) return { date: "", time: "" };
+        const parts = new Intl.DateTimeFormat("en-CA", {
+          timeZone: timezone,
+          year: "numeric",
+          month: "2-digit",
+          day: "2-digit",
+          hour: "2-digit",
+          minute: "2-digit",
+          hourCycle: "h23"
+        }).formatToParts(date).reduce((result, part) => ({ ...result, [part.type]: part.value }), {});
+        return { date: `${parts.year}-${parts.month}-${parts.day}`, time: `${parts.hour}:${parts.minute}` };
+      }
+
+      function appointmentViewerTimezone() {
+        const user = currentAccount();
+        return user?.role === "personal" ? accountTimezone(user) : Intl.DateTimeFormat().resolvedOptions().timeZone || accountTimezone(user);
+      }
+
+      function validAppointmentTimezone(timezone) {
+        try {
+          new Intl.DateTimeFormat("en", { timeZone: timezone }).format();
+          return true;
+        } catch {
+          return false;
+        }
+      }
+
+      function appointmentDateKey(appointment) {
+        return civilPartsInZone(appointment.startsAt, appointmentViewerTimezone()).date;
+      }
+
+      function appointmentTimeLabel(appointment) {
+        const timezone = appointmentViewerTimezone();
+        const start = new Date(appointment.startsAt);
+        const end = new Date(appointment.endsAt);
+        const formatter = new Intl.DateTimeFormat(currentLocale(), { hour: "2-digit", minute: "2-digit", timeZone: timezone });
+        return `${formatter.format(start)}–${formatter.format(end)}`;
+      }
+
+      function appointmentDateLabel(appointment, options = {}) {
+        return new Intl.DateTimeFormat(currentLocale(), {
+          weekday: options.short ? "short" : "long",
+          day: "2-digit",
+          month: options.short ? "short" : "long",
+          year: options.year === false ? undefined : "numeric",
+          timeZone: appointmentViewerTimezone()
+        }).format(new Date(appointment.startsAt));
+      }
+
+      function rescheduleSlotLabel(slot) {
+        const date = new Date(slot);
+        if (!Number.isFinite(date.getTime())) return String(slot || "");
+        return new Intl.DateTimeFormat(currentLocale(), {
+          dateStyle: "medium",
+          timeStyle: "short",
+          timeZone: appointmentViewerTimezone()
+        }).format(date);
+      }
+
+      function normalizeAppointment(row = {}) {
+        return {
+          id: row.id,
+          seriesId: row.series_id || row.seriesId || "",
+          rescheduledFromId: row.rescheduled_from_id || row.rescheduledFromId || "",
+          trainerId: row.trainer_id || row.trainerId,
+          studentId: row.student_id || row.studentId || "",
+          type: row.appointment_type || row.type || "other",
+          startsAt: row.starts_at || row.startsAt,
+          endsAt: row.ends_at || row.endsAt,
+          timezone: row.timezone || "UTC",
+          location: row.location || "",
+          meetingUrl: row.meeting_url || row.meetingUrl || "",
+          sharedNotes: row.shared_notes || row.sharedNotes || "",
+          privateNote: row.privateNote || "",
+          status: row.status || "awaiting_confirmation",
+          createdAt: row.created_at || row.createdAt || new Date().toISOString()
+        };
+      }
+
+      function normalizeRescheduleRequest(row = {}) {
+        return {
+          id: row.id,
+          appointmentId: row.appointment_id || row.appointmentId,
+          trainerId: row.trainer_id || row.trainerId,
+          studentId: row.student_id || row.studentId,
+          reason: row.reason || "",
+          proposedSlots: row.proposed_slots || row.proposedSlots || [],
+          status: row.status || "pending",
+          replacementAppointmentId: row.replacement_appointment_id || row.replacementAppointmentId || "",
+          createdAt: row.created_at || row.createdAt || new Date().toISOString()
+        };
+      }
+
+      function scheduleRange() {
+        if (scheduleState.view === "day") return { start: scheduleState.anchor, end: addCivilDays(scheduleState.anchor, 1) };
+        if (scheduleState.view === "week") {
+          const start = startOfCivilWeek(scheduleState.anchor);
+          return { start, end: addCivilDays(start, 7) };
+        }
+        const monthStart = civilMonthStart(scheduleState.anchor);
+        const gridStart = startOfCivilWeek(monthStart);
+        return { start: gridStart, end: addCivilDays(gridStart, 42), monthStart };
+      }
+
+      function dateRangeIso(range) {
+        return {
+          start: new Date(`${range.start}T00:00:00Z`).toISOString(),
+          end: new Date(`${range.end}T23:59:59Z`).toISOString()
+        };
+      }
+
+      function appointmentStudentName(appointment) {
+        if (!appointment.studentId) return t("Aluno particular");
+        return accountNameForTarget(appointment.studentId) || t("Aluno");
+      }
+
+      function scheduleDatabaseMissing(error) {
+        const detail = supabaseErrorText(error).toLowerCase();
+        return detail.includes("appointments") || detail.includes("appointment_") || detail.includes("pgrst205") || detail.includes("schema cache");
+      }
+
+      async function loadScheduleData({ silent = false } = {}) {
+        const user = currentAccount();
+        if (!user) return [];
+        if (!silent) scheduleState.loading = true;
+        if (user.role === "personal") await ensureLinkedStudentsForPersonal(user.id);
+        if (!isRealSupabaseAccount(user) || !monolithSupabase) {
+          scheduleState.appointments = readMemoryList(scheduleCacheKey).map(normalizeAppointment).filter(item => item.trainerId === user.id || item.studentId === user.id);
+          scheduleState.requests = readMemoryList(requestCacheKey).map(normalizeRescheduleRequest).filter(item => item.trainerId === user.id || item.studentId === user.id);
+          scheduleState.loading = false;
+          scheduleState.loaded = true;
+          return scheduleState.appointments;
+        }
+        const range = scheduleRange();
+        const broadStart = addCivilDays(range.start, -7);
+        const broadEnd = addCivilDays(range.end, 35);
+        const iso = dateRangeIso({ start: broadStart, end: broadEnd });
+        let query = monolithSupabase.from("appointments").select("*").gte("starts_at", iso.start).lte("starts_at", iso.end).order("starts_at");
+        query = user.role === "personal" ? query.eq("trainer_id", user.id) : query.eq("student_id", user.id);
+        try {
+          const [{ data, error }, requestResult] = await Promise.all([
+            query,
+            (user.role === "personal"
+              ? monolithSupabase.from("appointment_reschedule_requests").select("*").eq("trainer_id", user.id).order("created_at", { ascending: false })
+              : monolithSupabase.from("appointment_reschedule_requests").select("*").eq("student_id", user.id).order("created_at", { ascending: false }))
+          ]);
+          if (error) throw error;
+          if (requestResult.error) throw requestResult.error;
+          const appointments = (data || []).map(normalizeAppointment);
+          if (user.role === "personal" && appointments.length) {
+            const ids = appointments.map(item => item.id);
+            const { data: notes, error: notesError } = await monolithSupabase.from("appointment_private_notes").select("appointment_id,note").in("appointment_id", ids);
+            if (notesError) throw notesError;
+            const noteMap = new Map((notes || []).map(note => [note.appointment_id, note.note || ""]));
+            appointments.forEach(item => { item.privateNote = noteMap.get(item.id) || ""; });
+          }
+          scheduleState.appointments = appointments;
+          scheduleState.requests = (requestResult.data || []).map(normalizeRescheduleRequest);
+          scheduleState.loaded = true;
+          scheduleState.loading = false;
+          const status = document.getElementById("scheduleRemoteStatus");
+          if (status) status.hidden = true;
+          return appointments;
+        } catch (error) {
+          scheduleState.loading = false;
+          logAppError("schedule", "load", error, { userId: user.id });
+          const status = document.getElementById("scheduleRemoteStatus");
+          if (status) {
+            status.hidden = false;
+            status.textContent = t(scheduleDatabaseMissing(error) ? "Esta função precisa das etapas 32 e 33 do banco de dados." : "Não foi possível carregar os dados agora.");
+          }
+          return scheduleState.appointments;
+        }
+      }
+
+      function scheduleEventsForDate(key) {
+        const showInactive = document.getElementById("scheduleShowInactive")?.checked;
+        return scheduleState.appointments
+          .filter(item => appointmentDateKey(item) === key)
+          .filter(item => showInactive || !inactiveAppointmentStatuses.has(item.status))
+          .sort((a, b) => new Date(a.startsAt) - new Date(b.startsAt));
+      }
+
+      function appointmentEventHTML(appointment) {
+        return `<button class="schedule-event ${escapeHTML(appointment.status)}" type="button" data-appointment-id="${escapeHTML(appointment.id)}">
+          <span class="schedule-event-time">${escapeHTML(appointmentTimeLabel(appointment))}</span>
+          <span class="schedule-event-title">${escapeHTML(t(appointmentTypeLabels[appointment.type] || "Outro"))}</span>
+          <span class="schedule-event-title">${escapeHTML(appointmentStudentName(appointment))}</span>
+          <span class="schedule-event-status">${escapeHTML(t(appointmentStatusLabels[appointment.status] || appointment.status))}</span>
+        </button>`;
+      }
+
+      function scheduleEmptyHTML() {
+        return `<div class="empty-state"><span aria-hidden="true">✓</span><p>${escapeHTML(t("Nenhum compromisso neste período."))}</p></div>`;
+      }
+
+      function renderScheduleCalendar() {
+        const container = document.getElementById("scheduleCalendar");
+        const title = document.getElementById("scheduleRangeTitle");
+        const heading = document.getElementById("scheduleCalendarTitle");
+        if (!container || !title || !heading) return;
+        const range = scheduleRange();
+        document.querySelectorAll("[data-schedule-view]").forEach(button => button.classList.toggle("active", button.dataset.scheduleView === scheduleState.view));
+        heading.textContent = t(scheduleState.view === "day" ? "Dia" : scheduleState.view === "week" ? "Semana" : "Mês");
+        if (scheduleState.view === "day") {
+          title.textContent = new Intl.DateTimeFormat(currentLocale(), { weekday: "long", day: "numeric", month: "long", year: "numeric", timeZone: "UTC" }).format(new Date(`${range.start}T12:00:00Z`));
+          const events = scheduleEventsForDate(range.start);
+          container.innerHTML = `<div class="schedule-day-list">${events.length ? events.map(appointmentEventHTML).join("") : scheduleEmptyHTML()}</div>`;
+          return;
+        }
+        if (scheduleState.view === "week") {
+          const weekEnd = addCivilDays(range.start, 6);
+          title.textContent = `${localDateLabel(range.start)} – ${localDateLabel(weekEnd)}`;
+          container.innerHTML = `<div class="schedule-week">${Array.from({ length: 7 }, (_, index) => {
+            const key = addCivilDays(range.start, index);
+            const events = scheduleEventsForDate(key);
+            const label = new Intl.DateTimeFormat(currentLocale(), { weekday: "short", timeZone: "UTC" }).format(new Date(`${key}T12:00:00Z`));
+            return `<div class="schedule-day-column ${key === todayKey() ? "today" : ""}"><div class="schedule-day-heading"><strong>${escapeHTML(label)}</strong><b>${Number(key.slice(-2))}</b></div><div class="schedule-events">${events.map(appointmentEventHTML).join("")}</div></div>`;
+          }).join("")}</div>`;
+          return;
+        }
+        const monthKey = civilMonthStart(scheduleState.anchor);
+        title.textContent = new Intl.DateTimeFormat(currentLocale(), { month: "long", year: "numeric", timeZone: "UTC" }).format(new Date(`${monthKey}T12:00:00Z`));
+        const weekdayLabels = Array.from({ length: 7 }, (_, index) => new Intl.DateTimeFormat(currentLocale(), { weekday: "short", timeZone: "UTC" }).format(new Date(`${addCivilDays("2026-09-07", index)}T12:00:00Z`)));
+        container.innerHTML = `<div class="schedule-month">${weekdayLabels.map(label => `<div class="schedule-month-weekday">${escapeHTML(label)}</div>`).join("")}${Array.from({ length: 42 }, (_, index) => {
+          const key = addCivilDays(range.start, index);
+          const events = scheduleEventsForDate(key);
+          return `<div class="schedule-month-day ${key.slice(0, 7) !== monthKey.slice(0, 7) ? "outside" : ""} ${key === todayKey() ? "today" : ""}"><div class="schedule-day-heading"><b>${Number(key.slice(-2))}</b></div><div class="schedule-events">${events.slice(0, 4).map(appointmentEventHTML).join("")}${events.length > 4 ? `<span class="date">+${events.length - 4}</span>` : ""}</div></div>`;
+        }).join("")}</div>`;
+      }
+
+      function upcomingAppointments() {
+        const now = Date.now();
+        return scheduleState.appointments
+          .filter(item => new Date(item.endsAt).getTime() >= now && !inactiveAppointmentStatuses.has(item.status) && item.status !== "no_show")
+          .sort((a, b) => new Date(a.startsAt) - new Date(b.startsAt));
+      }
+
+      function compactAppointmentHTML(appointment) {
+        return `<div class="appointment-row"><div class="appointment-row-head"><div><strong>${escapeHTML(t(appointmentTypeLabels[appointment.type] || "Outro"))}</strong><div class="date">${escapeHTML(appointmentStudentName(appointment))}</div></div><span class="status-chip ${escapeHTML(appointment.status)}">${escapeHTML(t(appointmentStatusLabels[appointment.status]))}</span></div><div class="appointment-meta"><span>${escapeHTML(appointmentDateLabel(appointment, { short: true }))}</span><span>${escapeHTML(appointmentTimeLabel(appointment))}</span></div><div class="action-row"><button class="ghost" type="button" data-appointment-id="${escapeHTML(appointment.id)}">${escapeHTML(t("Detalhes"))}</button></div></div>`;
+      }
+
+      function pendingScheduleItems() {
+        const user = currentAccount();
+        const now = Date.now();
+        const items = [];
+        if (user?.role === "personal") {
+          scheduleState.requests.filter(request => request.status === "pending").forEach(request => items.push({ kind: "request", request, appointment: scheduleState.appointments.find(item => item.id === request.appointmentId) }));
+          scheduleState.appointments.filter(item => new Date(item.endsAt).getTime() < now && ["awaiting_confirmation", "confirmed"].includes(item.status)).forEach(appointment => items.push({ kind: "close", appointment }));
+        } else {
+          scheduleState.appointments.filter(item => item.status === "awaiting_confirmation" && new Date(item.endsAt).getTime() >= now).forEach(appointment => items.push({ kind: "confirm", appointment }));
+        }
+        return items;
+      }
+
+      function renderScheduleSummary() {
+        const today = todayKey();
+        const upcoming = upcomingAppointments();
+        const pending = pendingScheduleItems();
+        const nextWeek = Date.now() + 7 * 86400000;
+        const todayCount = scheduleState.appointments.filter(item => appointmentDateKey(item) === today && !inactiveAppointmentStatuses.has(item.status)).length;
+        const upcomingCount = upcoming.filter(item => new Date(item.startsAt).getTime() <= nextWeek).length;
+        setScheduleText("scheduleTodayCount", String(todayCount));
+        setScheduleText("scheduleUpcomingCount", String(upcomingCount));
+        setScheduleText("schedulePendingCount", String(pending.length));
+        const panel = document.getElementById("schedulePendingPanel");
+        const list = document.getElementById("schedulePendingList");
+        if (!panel || !list) return;
+        panel.hidden = pending.length === 0;
+        list.innerHTML = pending.map(item => {
+          const appointment = item.appointment;
+          if (!appointment) return "";
+          const requestText = item.request ? `<p>${escapeHTML(item.request.reason)}</p>` : "";
+          return `<div class="appointment-row"><div class="appointment-row-head"><div><strong>${escapeHTML(t(appointmentTypeLabels[appointment.type]))}</strong><div class="date">${escapeHTML(appointmentStudentName(appointment))} · ${escapeHTML(appointmentDateLabel(appointment, { short: true }))} · ${escapeHTML(appointmentTimeLabel(appointment))}</div></div></div>${requestText}<div class="action-row"><button class="ghost" type="button" data-appointment-id="${escapeHTML(appointment.id)}">${escapeHTML(t("Detalhes"))}</button></div></div>`;
+        }).join("");
+      }
+
+      async function renderHomeAppointments() {
+        const container = document.getElementById("homeUpcomingAppointments");
+        if (!container || !currentAccount()) return;
+        await loadScheduleData({ silent: true });
+        const upcoming = upcomingAppointments().slice(0, 3);
+        container.innerHTML = upcoming.length ? upcoming.map(compactAppointmentHTML).join("") : scheduleEmptyHTML().replace(t("Nenhum compromisso neste período."), t("Nenhum compromisso próximo."));
+      }
+
+      async function renderSchedule() {
+        const user = currentAccount();
+        if (!user) return;
+        const detailsPanel = document.getElementById("appointmentDetailsPanel");
+        const detailsContent = document.getElementById("appointmentDetails");
+        if (detailsPanel) detailsPanel.hidden = true;
+        if (detailsContent) detailsContent.replaceChildren();
+        setScheduleText("scheduleSubtitle", t(user.role === "student" ? "Meus compromissos e solicitações" : "Organize compromissos, confirmações e remarcações"));
+        const createButton = document.getElementById("newAppointmentButton");
+        if (createButton) createButton.hidden = user.role !== "personal";
+        const calendar = document.getElementById("scheduleCalendar");
+        if (calendar) calendar.innerHTML = remoteStateHTML("loading");
+        await loadScheduleData();
+        renderScheduleCalendar();
+        renderScheduleSummary();
+      }
+
+      function appointmentRequestFor(id) {
+        return scheduleState.requests.find(request => request.appointmentId === id && request.status === "pending") || null;
+      }
+
+      function appointmentDetailsHTML(appointment) {
+        const user = currentAccount();
+        const request = appointmentRequestFor(appointment.id);
+        const shared = appointment.sharedNotes ? `<div class="appointment-detail"><span>${escapeHTML(t("Instruções para o aluno"))}</span>${escapeHTML(appointment.sharedNotes)}</div>` : "";
+        const privateNote = user?.role === "personal" && appointment.privateNote ? `<div class="appointment-detail"><span>${escapeHTML(t("Notas privadas do personal"))}</span>${escapeHTML(appointment.privateNote)}</div>` : "";
+        const requestBlock = request ? `<div class="appointment-row"><strong>${escapeHTML(t("Pedido de remarcação"))}</strong><p>${escapeHTML(request.reason)}</p><div class="appointment-meta">${request.proposedSlots.map(slot => `<span>${escapeHTML(rescheduleSlotLabel(slot))}</span>`).join("")}</div></div>` : "";
+        let actions = "";
+        if (user?.role === "student") {
+          if (appointment.status === "awaiting_confirmation") actions += `<button class="action" type="button" data-appointment-action="confirm" data-appointment-id="${escapeHTML(appointment.id)}">${escapeHTML(t("Confirmar presença"))}</button>`;
+          if (["awaiting_confirmation", "confirmed"].includes(appointment.status) && !request) actions += `<button class="ghost" type="button" data-appointment-action="request-reschedule" data-appointment-id="${escapeHTML(appointment.id)}">${escapeHTML(t("Pedir remarcação"))}</button>`;
+        } else if (user?.role === "personal" && !inactiveAppointmentStatuses.has(appointment.status)) {
+          actions += `<button class="ghost" type="button" data-appointment-action="edit" data-appointment-id="${escapeHTML(appointment.id)}">${escapeHTML(t("Editar"))}</button>`;
+          actions += `<button class="ghost" type="button" data-appointment-action="reschedule" data-appointment-id="${escapeHTML(appointment.id)}">${escapeHTML(t("Remarcar"))}</button>`;
+          if (appointment.status === "awaiting_confirmation") actions += `<button class="ghost" type="button" data-appointment-action="status" data-status="confirmed" data-appointment-id="${escapeHTML(appointment.id)}">${escapeHTML(t("Confirmar"))}</button>`;
+          if (["awaiting_confirmation", "confirmed"].includes(appointment.status)) actions += `<button class="ghost" type="button" data-appointment-action="status" data-status="completed" data-appointment-id="${escapeHTML(appointment.id)}">${escapeHTML(t("Concluir"))}</button><button class="ghost danger" type="button" data-appointment-action="status" data-status="no_show" data-appointment-id="${escapeHTML(appointment.id)}">${escapeHTML(t("Registrar ausência"))}</button>`;
+          actions += `<button class="ghost danger" type="button" data-appointment-action="status" data-status="cancelled" data-appointment-id="${escapeHTML(appointment.id)}">${escapeHTML(t("Cancelar"))}</button>`;
+          if (request) actions += `<button class="action" type="button" data-appointment-action="accept-request" data-request-id="${escapeHTML(request.id)}" data-appointment-id="${escapeHTML(appointment.id)}">${escapeHTML(t("Aceitar remarcação"))}</button><button class="ghost" type="button" data-appointment-action="reject-request" data-request-id="${escapeHTML(request.id)}">${escapeHTML(t("Recusar pedido"))}</button>`;
+        }
+        return `<div class="appointment-row"><div class="appointment-row-head"><div><strong>${escapeHTML(t(appointmentTypeLabels[appointment.type] || "Outro"))}</strong><div class="date">${escapeHTML(appointmentStudentName(appointment))}</div></div><span class="status-chip ${escapeHTML(appointment.status)}">${escapeHTML(t(appointmentStatusLabels[appointment.status]))}</span></div><div class="appointment-details-grid"><div class="appointment-detail"><span>${escapeHTML(t("Data"))}</span>${escapeHTML(appointmentDateLabel(appointment))}</div><div class="appointment-detail"><span>${escapeHTML(t("Horário"))}</span>${escapeHTML(appointmentTimeLabel(appointment))}</div>${appointment.location ? `<div class="appointment-detail"><span>${escapeHTML(t("Localização"))}</span>${escapeHTML(appointment.location)}</div>` : ""}${appointment.meetingUrl ? `<div class="appointment-detail"><span>${escapeHTML(t("Link"))}</span><a href="${escapeHTML(appointment.meetingUrl)}" target="_blank" rel="noopener">${escapeHTML(appointment.meetingUrl)}</a></div>` : ""}${shared}${privateNote}</div>${requestBlock}<div class="action-row">${actions}</div></div>`;
+      }
+
+      function openAppointmentDetails(id) {
+        const appointment = scheduleState.appointments.find(item => item.id === id);
+        const panel = document.getElementById("appointmentDetailsPanel");
+        const content = document.getElementById("appointmentDetails");
+        if (!appointment || !panel || !content) return;
+        content.innerHTML = appointmentDetailsHTML(appointment);
+        panel.hidden = false;
+        panel.scrollIntoView({ behavior: "smooth", block: "nearest" });
+      }
+
+      function setAppointmentModalOpen(open) {
+        document.getElementById("appointmentModal")?.classList.toggle("active", open);
+      }
+
+      function populateAppointmentStudents(selected = "") {
+        const select = document.getElementById("appointmentStudent");
+        const user = currentAccount();
+        if (!select || user?.role !== "personal") return;
+        select.innerHTML = `<option value="">${escapeHTML(t("Bloqueio particular"))}</option>${studentsForPersonal(user.id).map(student => `<option value="${escapeHTML(student.id)}">${escapeHTML(student.name)} · ${escapeHTML(student.email)}</option>`).join("")}`;
+        select.value = selected || "";
+      }
+
+      function defaultAppointmentTime() {
+        const date = new Date();
+        date.setMinutes(0, 0, 0);
+        date.setHours(date.getHours() + 1);
+        return `${String(date.getHours()).padStart(2, "0")}:00`;
+      }
+
+      function openAppointmentForm(mode = "create", appointment = null, requestId = "", suggestedSlot = "") {
+        const user = currentAccount();
+        if (user?.role !== "personal") return;
+        const form = document.getElementById("appointmentForm");
+        form?.reset();
+        const timezone = appointment?.timezone || accountTimezone(user);
+        const parts = suggestedSlot
+          ? civilPartsInZone(suggestedSlot, timezone)
+          : appointment
+            ? civilPartsInZone(appointment.startsAt, timezone)
+            : { date: scheduleState.anchor || todayKey(), time: defaultAppointmentTime() };
+        populateAppointmentStudents(appointment?.studentId || selectedStudentForPersonal() || "");
+        document.getElementById("appointmentId").value = appointment?.id || requestId || "";
+        document.getElementById("appointmentMode").value = mode;
+        document.getElementById("appointmentDate").value = parts.date;
+        document.getElementById("appointmentTime").value = parts.time;
+        document.getElementById("appointmentDuration").value = appointment ? Math.max(5, Math.round((new Date(appointment.endsAt) - new Date(appointment.startsAt)) / 60000)) : 60;
+        document.getElementById("appointmentTimezone").value = timezone;
+        document.getElementById("appointmentType").value = appointment?.type === "private_block" ? "other" : appointment?.type || "in_person_training";
+        document.getElementById("appointmentLocation").value = appointment?.location || "";
+        document.getElementById("appointmentLink").value = appointment?.meetingUrl || "";
+        document.getElementById("appointmentSharedNotes").value = appointment?.sharedNotes || "";
+        document.getElementById("appointmentPrivateNotes").value = appointment?.privateNote || "";
+        document.getElementById("appointmentRecurring").checked = false;
+        document.getElementById("appointmentRecurrenceFields").hidden = true;
+        document.getElementById("appointmentRecurringOption").hidden = mode !== "create";
+        document.getElementById("appointmentEditScopeField").hidden = mode !== "edit" || !appointment?.seriesId;
+        document.getElementById("appointmentModalTitle").textContent = t(mode === "create" ? "Novo compromisso" : mode === "edit" ? "Editar compromisso" : "Remarcar");
+        document.getElementById("saveAppointmentButton").textContent = t(mode === "create" ? "Salvar compromisso" : mode === "edit" ? "Salvar alterações" : mode.startsWith("request:") ? "Aceitar remarcação" : "Remarcar");
+        const weekday = civilDayOfWeek(parts.date);
+        document.querySelectorAll("#appointmentWeekdays input").forEach(input => { input.checked = Number(input.value) === weekday; });
+        document.getElementById("appointmentRecurrenceEnd").min = parts.date;
+        document.getElementById("appointmentRecurrenceEnd").max = addCivilDays(parts.date, 366);
+        document.getElementById("appointmentRecurrenceEnd").value = addCivilDays(parts.date, 84);
+        setAppointmentModalOpen(true);
+        document.getElementById("appointmentStudent")?.focus();
+      }
+
+      function appointmentCandidateDates(payload) {
+        if (!payload.recurring) return [payload.date];
+        const dates = [];
+        for (let key = payload.date; key <= payload.endDate && dates.length < payload.limit; key = addCivilDays(key, 1)) {
+          if (payload.weekdays.includes(civilDayOfWeek(key))) dates.push(key);
+        }
+        return dates;
+      }
+
+      function wallClockInterval(appointment, timezone) {
+        const start = civilPartsInZone(appointment.startsAt, timezone);
+        const end = civilPartsInZone(appointment.endsAt, timezone);
+        return {
+          start: Date.parse(`${start.date}T${start.time}:00Z`),
+          end: Date.parse(`${end.date}T${end.time}:00Z`)
+        };
+      }
+
+      async function conflictAppointments(payload) {
+        const user = currentAccount();
+        if (!isRealSupabaseAccount(user) || !monolithSupabase) return scheduleState.appointments;
+        const endDate = payload.recurring ? payload.endDate : payload.date;
+        const startBoundary = `${addCivilDays(payload.date, -2)}T00:00:00Z`;
+        const endBoundary = `${addCivilDays(endDate, 3)}T00:00:00Z`;
+        const { data, error } = await monolithSupabase
+          .from("appointments")
+          .select("id,series_id,trainer_id,student_id,appointment_type,starts_at,ends_at,timezone,status")
+          .eq("trainer_id", user.id)
+          .gte("starts_at", startBoundary)
+          .lt("starts_at", endBoundary)
+          .order("starts_at");
+        if (error) {
+          logAppError("schedule", "conflict-check", error);
+          return scheduleState.appointments;
+        }
+        return (data || []).map(normalizeAppointment);
+      }
+
+      async function appointmentConflictApproved(payload, excludeId = "") {
+        const candidates = appointmentCandidateDates(payload).map(date => {
+          const start = Date.parse(`${date}T${payload.time}:00Z`);
+          return { start, end: start + payload.duration * 60000 };
+        });
+        const appointments = await conflictAppointments(payload);
+        const conflict = appointments.find(item => {
+          if (item.id === excludeId || inactiveAppointmentStatuses.has(item.status)) return false;
+          const interval = wallClockInterval(item, payload.timezone);
+          return candidates.some(candidate => interval.start < candidate.end && interval.end > candidate.start);
+        });
+        if (!conflict) return true;
+        return confirmAction({
+          title: "Conflito de horário",
+          message: "Já existe um compromisso neste horário. Deseja manter a sobreposição?",
+          contextLabel: "Compromisso existente",
+          contextValue: `${appointmentStudentName(conflict)} · ${appointmentTimeLabel(conflict)}`,
+          confirmLabel: "Manter os dois"
+        });
+      }
+
+      function localCreateAppointments(payload) {
+        const user = currentAccount();
+        const current = readMemoryList(scheduleCacheKey).map(normalizeAppointment);
+        const dates = [];
+        if (payload.recurring) {
+          for (let key = payload.date; key <= payload.endDate && dates.length < payload.limit; key = addCivilDays(key, 1)) {
+            if (payload.weekdays.includes(civilDayOfWeek(key))) dates.push(key);
+          }
+        } else dates.push(payload.date);
+        dates.forEach((key, index) => {
+          const start = new Date(`${key}T${payload.time}:00`).toISOString();
+          const end = new Date(new Date(start).getTime() + payload.duration * 60000).toISOString();
+          current.push(normalizeAppointment({
+            id: createClientRequestId("appointment"),
+            seriesId: payload.recurring ? payload.clientRequestId : "",
+            trainerId: user.id,
+            studentId: payload.studentId,
+            type: payload.studentId ? payload.type : "private_block",
+            startsAt: start,
+            endsAt: end,
+            timezone: payload.timezone,
+            location: payload.location,
+            meetingUrl: payload.link,
+            sharedNotes: payload.sharedNotes,
+            privateNote: payload.privateNotes,
+            status: payload.studentId ? "awaiting_confirmation" : "confirmed",
+            createdAt: new Date(Date.now() + index).toISOString()
+          }));
+        });
+        writeMemoryList(scheduleCacheKey, current);
+      }
+
+      async function submitAppointmentForm(event) {
+        event.preventDefault();
+        const user = currentAccount();
+        if (user?.role !== "personal") return;
+        const mode = document.getElementById("appointmentMode").value;
+        const id = document.getElementById("appointmentId").value;
+        const payload = {
+          studentId: document.getElementById("appointmentStudent").value || null,
+          type: document.getElementById("appointmentType").value,
+          date: document.getElementById("appointmentDate").value,
+          time: document.getElementById("appointmentTime").value,
+          duration: Number(document.getElementById("appointmentDuration").value),
+          timezone: document.getElementById("appointmentTimezone").value.trim(),
+          location: document.getElementById("appointmentLocation").value.trim(),
+          link: document.getElementById("appointmentLink").value.trim(),
+          sharedNotes: document.getElementById("appointmentSharedNotes").value.trim(),
+          privateNotes: document.getElementById("appointmentPrivateNotes").value.trim(),
+          recurring: document.getElementById("appointmentRecurring").checked,
+          weekdays: [...document.querySelectorAll("#appointmentWeekdays input:checked")].map(input => Number(input.value)),
+          endDate: document.getElementById("appointmentRecurrenceEnd").value,
+          limit: Number(document.getElementById("appointmentOccurrenceLimit").value || 100),
+          clientRequestId: createClientRequestId("appointment")
+        };
+        if (payload.recurring && (!payload.weekdays.length || !payload.endDate)) {
+          showToast("Escolha os dias da semana e a data final da recorrência.");
+          return;
+        }
+        if (!validAppointmentTimezone(payload.timezone)) {
+          showToast("Fuso horário inválido.");
+          return;
+        }
+        const excludeId = mode === "edit" || mode === "reschedule" || mode.startsWith("request:") ? id : "";
+        if (!await appointmentConflictApproved(payload, excludeId)) return;
+        try {
+          await runPendingOperation(`appointment:${mode}:${id || payload.clientRequestId}`, "#saveAppointmentButton", async clientRequestId => {
+            if (!isRealSupabaseAccount(user) || !monolithSupabase) {
+              if (mode === "create") localCreateAppointments({ ...payload, clientRequestId });
+              else {
+                const list = readMemoryList(scheduleCacheKey).map(normalizeAppointment);
+                const target = list.find(item => item.id === id);
+                if (!target) return;
+                if (mode === "reschedule" || mode.startsWith("request:")) {
+                  target.status = "rescheduled";
+                  writeMemoryList(scheduleCacheKey, list);
+                  localCreateAppointments({ ...payload, studentId: target.studentId, type: target.type, recurring: false, clientRequestId });
+                  if (mode.startsWith("request:")) {
+                    const requests = readMemoryList(requestCacheKey).map(normalizeRescheduleRequest);
+                    const request = requests.find(item => item.id === mode.split(":")[1]);
+                    if (request) request.status = "accepted";
+                    writeMemoryList(requestCacheKey, requests);
+                  }
+                } else {
+                  const originalStart = new Date(target.startsAt).getTime();
+                  const nextStart = new Date(`${payload.date}T${payload.time}:00`).getTime();
+                  const delta = nextStart - originalStart;
+                  const scope = document.getElementById("appointmentEditScope").value;
+                  list.filter(item => item.id === target.id || (target.seriesId && item.seriesId === target.seriesId && (scope === "all" || (scope === "future" && new Date(item.startsAt) >= new Date(target.startsAt))))).forEach(item => {
+                    item.startsAt = new Date(new Date(item.startsAt).getTime() + delta).toISOString();
+                    item.endsAt = new Date(new Date(item.startsAt).getTime() + payload.duration * 60000).toISOString();
+                    item.type = item.studentId ? payload.type : "private_block";
+                    item.location = payload.location;
+                    item.meetingUrl = payload.link;
+                    item.sharedNotes = payload.sharedNotes;
+                    item.privateNote = payload.privateNotes;
+                  });
+                  writeMemoryList(scheduleCacheKey, list);
+                }
+              }
+              return;
+            }
+            if (mode.startsWith("request:")) {
+              const requestId = mode.split(":")[1];
+              const { error } = await monolithSupabase.rpc("resolve_monolith_reschedule_request", { p_request_id: requestId, p_action: "accept", p_start_date: payload.date, p_start_time: payload.time, p_duration_minutes: payload.duration, p_timezone: payload.timezone });
+              if (error) throw error;
+            } else if (mode === "reschedule") {
+              const { error } = await monolithSupabase.rpc("reschedule_monolith_appointment", { p_appointment_id: id, p_start_date: payload.date, p_start_time: payload.time, p_duration_minutes: payload.duration, p_timezone: payload.timezone, p_client_request_id: clientRequestId });
+              if (error) throw error;
+            } else if (mode === "edit") {
+              const { error } = await monolithSupabase.rpc("update_monolith_appointment_scope", { p_appointment_id: id, p_scope: document.getElementById("appointmentEditScope").value, p_start_date: payload.date, p_start_time: payload.time, p_duration_minutes: payload.duration, p_timezone: payload.timezone, p_appointment_type: payload.type, p_location: payload.location, p_meeting_url: payload.link, p_shared_notes: payload.sharedNotes, p_private_notes: payload.privateNotes });
+              if (error) throw error;
+            } else if (payload.recurring) {
+              const { error } = await monolithSupabase.rpc("create_monolith_appointment_series", { p_student_id: payload.studentId, p_appointment_type: payload.type, p_start_date: payload.date, p_start_time: payload.time, p_duration_minutes: payload.duration, p_timezone: payload.timezone, p_weekdays: payload.weekdays, p_end_date: payload.endDate, p_occurrence_limit: Math.min(100, payload.limit), p_location: payload.location, p_meeting_url: payload.link, p_shared_notes: payload.sharedNotes, p_private_notes: payload.privateNotes, p_client_request_id: clientRequestId });
+              if (error) throw error;
+            } else {
+              const { error } = await monolithSupabase.rpc("create_monolith_appointment", { p_student_id: payload.studentId, p_appointment_type: payload.type, p_start_date: payload.date, p_start_time: payload.time, p_duration_minutes: payload.duration, p_timezone: payload.timezone, p_location: payload.location, p_meeting_url: payload.link, p_shared_notes: payload.sharedNotes, p_private_notes: payload.privateNotes, p_client_request_id: clientRequestId });
+              if (error) throw error;
+            }
+            if (payload.timezone !== accountTimezone(user)) {
+              await monolithSupabase.from("profiles").update({ timezone: payload.timezone }).eq("id", user.id);
+              user.timezone = payload.timezone;
+              saveAccounts([user, ...loadAccounts().filter(account => account.id !== user.id)]);
+            }
+          }, { loadingText: "Salvando..." });
+          setAppointmentModalOpen(false);
+          showToast("Compromisso salvo.");
+          await renderSchedule();
+          renderHomeAppointments();
+        } catch (error) {
+          logAppError("schedule", "save", error);
+          showToast(scheduleDatabaseMissing(error) ? "Esta função precisa das etapas 32 e 33 do banco de dados." : supabaseErrorText(error));
+        }
+      }
+
+      async function setAppointmentStatus(appointment, status) {
+        const scope = appointment.seriesId && ["cancelled"].includes(status)
+          ? await promptAction({ title: "Aplicar à recorrência", message: "Escolha quais compromissos serão alterados.", fieldType: "select", fieldOptions: [{ value: "this", label: t("Somente este compromisso") }, { value: "future", label: t("Este e os próximos") }, { value: "all", label: t("Toda a série") }], fieldValue: "this", returnFieldValue: true })
+          : "this";
+        if (!scope) return;
+        const confirmed = await confirmAction({ title: "Confirmar ação", message: `Alterar o compromisso para ${t(appointmentStatusLabels[status]).toLowerCase()}?`, contextValue: `${appointmentStudentName(appointment)} · ${appointmentDateLabel(appointment, { short: true })}`, confirmLabel: "Confirmar", danger: ["cancelled", "no_show"].includes(status) });
+        if (!confirmed) return;
+        const user = currentAccount();
+        try {
+          if (isRealSupabaseAccount(user) && monolithSupabase) {
+            const { error } = await monolithSupabase.rpc("set_monolith_appointment_status", { p_appointment_id: appointment.id, p_status: status, p_scope: scope });
+            if (error) throw error;
+          } else {
+            const list = readMemoryList(scheduleCacheKey).map(normalizeAppointment);
+            const target = list.find(item => item.id === appointment.id);
+            list.filter(item => item.id === appointment.id || (target?.seriesId && item.seriesId === target.seriesId && (scope === "all" || (scope === "future" && new Date(item.startsAt) >= new Date(target.startsAt))))).forEach(item => { item.status = status; });
+            writeMemoryList(scheduleCacheKey, list);
+          }
+          await renderSchedule();
+          document.getElementById("appointmentDetailsPanel").hidden = true;
+        } catch (error) { showToast(supabaseErrorText(error)); }
+      }
+
+      async function confirmStudentAppointment(appointment) {
+        const user = currentAccount();
+        try {
+          if (isRealSupabaseAccount(user) && monolithSupabase) {
+            const { error } = await monolithSupabase.rpc("confirm_monolith_appointment", { p_appointment_id: appointment.id });
+            if (error) throw error;
+          } else {
+            const list = readMemoryList(scheduleCacheKey).map(normalizeAppointment);
+            const target = list.find(item => item.id === appointment.id && item.studentId === user.id);
+            if (target) target.status = "confirmed";
+            writeMemoryList(scheduleCacheKey, list);
+          }
+          showToast("Presença confirmada.");
+          await renderSchedule();
+          openAppointmentDetails(appointment.id);
+        } catch (error) { showToast(supabaseErrorText(error)); }
+      }
+
+      function setRescheduleModalOpen(open, appointmentId = "") {
+        const modal = document.getElementById("rescheduleRequestModal");
+        modal?.classList.toggle("active", open);
+        if (!open) return;
+        document.getElementById("rescheduleRequestForm")?.reset();
+        document.getElementById("rescheduleAppointmentId").value = appointmentId;
+        const appointment = scheduleState.appointments.find(item => item.id === appointmentId);
+        const base = appointment ? new Date(appointment.startsAt) : new Date();
+        base.setDate(base.getDate() + 1);
+        const local = new Date(base.getTime() - base.getTimezoneOffset() * 60000).toISOString().slice(0, 16);
+        document.getElementById("rescheduleSlot1").value = local;
+      }
+
+      async function submitRescheduleRequest(event) {
+        event.preventDefault();
+        const user = currentAccount();
+        const appointmentId = document.getElementById("rescheduleAppointmentId").value;
+        const reason = document.getElementById("rescheduleReason").value.trim();
+        const proposedSlots = ["rescheduleSlot1", "rescheduleSlot2", "rescheduleSlot3"]
+          .map(id => document.getElementById(id).value)
+          .filter(Boolean)
+          .map(value => new Date(value).toISOString());
+        try {
+          if (isRealSupabaseAccount(user) && monolithSupabase) {
+            const { error } = await monolithSupabase.rpc("request_monolith_appointment_reschedule", { p_appointment_id: appointmentId, p_reason: reason, p_proposed_slots: proposedSlots, p_client_request_id: createClientRequestId("reschedule-request") });
+            if (error) throw error;
+          } else {
+            const requests = readMemoryList(requestCacheKey);
+            const appointment = scheduleState.appointments.find(item => item.id === appointmentId);
+            requests.push({ id: createClientRequestId("request"), appointmentId, trainerId: appointment.trainerId, studentId: user.id, reason, proposedSlots, status: "pending", createdAt: new Date().toISOString() });
+            writeMemoryList(requestCacheKey, requests);
+          }
+          setRescheduleModalOpen(false);
+          showToast("Pedido de remarcação enviado.");
+          await renderSchedule();
+          openAppointmentDetails(appointmentId);
+        } catch (error) { showToast(supabaseErrorText(error)); }
+      }
+
+      async function rejectRescheduleRequest(requestId) {
+        if (!await confirmAction({ title: "Recusar pedido", message: "O compromisso original será mantido.", confirmLabel: "Recusar" })) return;
+        const user = currentAccount();
+        try {
+          if (isRealSupabaseAccount(user) && monolithSupabase) {
+            const { error } = await monolithSupabase.rpc("resolve_monolith_reschedule_request", { p_request_id: requestId, p_action: "reject" });
+            if (error) throw error;
+          } else {
+            const requests = readMemoryList(requestCacheKey);
+            const target = requests.find(item => item.id === requestId);
+            if (target) target.status = "rejected";
+            writeMemoryList(requestCacheKey, requests);
+          }
+          await renderSchedule();
+        } catch (error) { showToast(supabaseErrorText(error)); }
+      }
+
+      async function beginAcceptRescheduleRequest(appointment, requestId) {
+        const request = scheduleState.requests.find(item => item.id === requestId && item.status === "pending");
+        if (!request?.proposedSlots?.length) return;
+        const selectedSlot = await promptAction({
+          title: "Aceitar remarcação",
+          message: "Escolha um dos horários sugeridos pelo aluno. Você poderá ajustar os detalhes antes de salvar.",
+          fieldType: "select",
+          fieldLabel: "Horário sugerido",
+          fieldOptions: request.proposedSlots.map(slot => ({ value: slot, label: rescheduleSlotLabel(slot) })),
+          fieldValue: request.proposedSlots[0],
+          confirmLabel: "Usar este horário"
+        });
+        if (!selectedSlot) return;
+        openAppointmentForm(`request:${requestId}`, appointment, requestId, selectedSlot);
+      }
+
+      function shiftSchedule(direction) {
+        if (scheduleState.view === "day") scheduleState.anchor = addCivilDays(scheduleState.anchor, direction);
+        else if (scheduleState.view === "week") scheduleState.anchor = addCivilDays(scheduleState.anchor, direction * 7);
+        else scheduleState.anchor = shiftCivilMonth(scheduleState.anchor, direction);
+        renderSchedule();
+      }
+
+      document.getElementById("newAppointmentButton")?.addEventListener("click", () => openAppointmentForm());
+      document.getElementById("appointmentForm")?.addEventListener("submit", submitAppointmentForm);
+      document.getElementById("closeAppointmentModal")?.addEventListener("click", () => setAppointmentModalOpen(false));
+      document.getElementById("cancelAppointment")?.addEventListener("click", () => setAppointmentModalOpen(false));
+      document.getElementById("appointmentRecurring")?.addEventListener("change", event => { document.getElementById("appointmentRecurrenceFields").hidden = !event.target.checked; });
+      document.getElementById("appointmentStudent")?.addEventListener("change", event => {
+        const type = document.getElementById("appointmentType");
+        type.disabled = !event.target.value;
+        if (!event.target.value) type.value = "other";
+      });
+      document.getElementById("scheduleViewControl")?.addEventListener("click", event => {
+        const button = event.target.closest("[data-schedule-view]");
+        if (!button) return;
+        scheduleState.view = button.dataset.scheduleView;
+        sessionStorage.setItem("monolith.scheduleView", scheduleState.view);
+        renderSchedule();
+      });
+      document.getElementById("schedulePrevious")?.addEventListener("click", () => shiftSchedule(-1));
+      document.getElementById("scheduleNext")?.addEventListener("click", () => shiftSchedule(1));
+      document.getElementById("scheduleToday")?.addEventListener("click", () => { scheduleState.anchor = todayKey(); renderSchedule(); });
+      document.getElementById("scheduleShowInactive")?.addEventListener("change", renderScheduleCalendar);
+      document.getElementById("scheduleCalendar")?.addEventListener("click", event => {
+        const target = event.target.closest("[data-appointment-id]");
+        if (target) openAppointmentDetails(target.dataset.appointmentId);
+      });
+      document.getElementById("schedulePendingList")?.addEventListener("click", event => {
+        const target = event.target.closest("[data-appointment-id]");
+        if (target) openAppointmentDetails(target.dataset.appointmentId);
+      });
+      document.getElementById("homeUpcomingAppointments")?.addEventListener("click", event => {
+        const target = event.target.closest("[data-appointment-id]");
+        if (!target) return;
+        showScreen("schedule", { historyMode: "push" });
+        window.setTimeout(() => openAppointmentDetails(target.dataset.appointmentId), 120);
+      });
+      document.getElementById("closeAppointmentDetails")?.addEventListener("click", () => { document.getElementById("appointmentDetailsPanel").hidden = true; });
+      document.getElementById("appointmentDetails")?.addEventListener("click", event => {
+        const button = event.target.closest("[data-appointment-action]");
+        if (!button) return;
+        const appointment = scheduleState.appointments.find(item => item.id === button.dataset.appointmentId);
+        if (button.dataset.appointmentAction === "confirm" && appointment) confirmStudentAppointment(appointment);
+        if (button.dataset.appointmentAction === "request-reschedule" && appointment) setRescheduleModalOpen(true, appointment.id);
+        if (button.dataset.appointmentAction === "edit" && appointment) openAppointmentForm("edit", appointment);
+        if (button.dataset.appointmentAction === "reschedule" && appointment) openAppointmentForm("reschedule", appointment);
+        if (button.dataset.appointmentAction === "status" && appointment) setAppointmentStatus(appointment, button.dataset.status);
+        if (button.dataset.appointmentAction === "accept-request" && appointment) beginAcceptRescheduleRequest(appointment, button.dataset.requestId);
+        if (button.dataset.appointmentAction === "reject-request") rejectRescheduleRequest(button.dataset.requestId);
+      });
+      document.getElementById("rescheduleRequestForm")?.addEventListener("submit", submitRescheduleRequest);
+      document.getElementById("closeRescheduleRequestModal")?.addEventListener("click", () => setRescheduleModalOpen(false));
+      document.getElementById("cancelRescheduleRequest")?.addEventListener("click", () => setRescheduleModalOpen(false));
+
+      window.monolithRenderSchedule = renderSchedule;
+      window.monolithRefreshHomeSchedule = renderHomeAppointments;
+      window.monolithScheduleTest = { state: scheduleState };
+      if (currentAccount() && document.getElementById("home")?.classList.contains("active")) renderHomeAppointments();
+    })();
+
+    (() => {
+      const settingsCacheKey = "monolith.billingSettings";
+      const profileCacheKey = "monolith.billingProfiles";
+      const chargeCacheKey = "monolith.studentCharges";
+      const receiptCacheKey = "monolith.paymentReceipts";
+      const billingState = {
+        settings: null,
+        profiles: [],
+        charges: [],
+        receipts: [],
+        loading: false,
+        loaded: false
+      };
+      const billingStatusLabels = { paid: "Pago", pending: "Pendente", partial: "Parcial", late: "Atrasado", exempt: "Isento", voided: "Cancelado" };
+      const paymentMethodLabels = { cash: "Dinheiro", bank_transfer: "Transferência bancária", pix: "Pix", zelle: "Zelle", external_card: "Cartão recebido externamente", other: "Outro" };
+
+      function readBillingCache(key, fallback) {
+        try { return JSON.parse(localStorage.getItem(key) || JSON.stringify(fallback)); } catch { return fallback; }
+      }
+
+      function writeBillingCache(key, value) {
+        localStorage.setItem(key, JSON.stringify(value));
+      }
+
+      function normalizeBillingSettings(row = {}) {
+        return {
+          trainerId: row.trainer_id || row.trainerId,
+          amountMinor: Number(row.default_amount_minor ?? row.amountMinor ?? 0),
+          currency: row.default_currency || row.currency || "USD",
+          chargeType: row.default_charge_type || row.chargeType || "monthly",
+          description: row.default_description || row.description || "",
+          packageSessions: Number(row.default_package_sessions ?? row.packageSessions ?? 0) || null,
+          dueOffsetDays: Number(row.default_due_offset_days ?? row.dueOffsetDays ?? 0)
+        };
+      }
+
+      function normalizeBillingProfile(row = {}) {
+        return {
+          id: row.id,
+          trainerId: row.trainer_id || row.trainerId,
+          studentId: row.student_id || row.studentId,
+          enabled: row.billing_enabled ?? row.enabled ?? true,
+          amountMinor: row.amount_minor === null || row.amountMinor === null || row.amount_minor === undefined && row.amountMinor === undefined ? null : Number(row.amount_minor ?? row.amountMinor),
+          currency: row.currency || "",
+          chargeType: row.charge_type || row.chargeType || "",
+          description: row.description || "",
+          packageSessions: Number(row.package_sessions ?? row.packageSessions ?? 0) || null,
+          cycleAnchorDay: Number(row.cycle_anchor_day ?? row.cycleAnchorDay ?? 0) || null,
+          dueOffsetDays: row.due_offset_days === null || row.dueOffsetDays === null || row.due_offset_days === undefined && row.dueOffsetDays === undefined ? null : Number(row.due_offset_days ?? row.dueOffsetDays)
+        };
+      }
+
+      function normalizeCharge(row = {}) {
+        return {
+          id: row.id,
+          trainerId: row.trainer_id || row.trainerId,
+          studentId: row.student_id || row.studentId,
+          billingProfileId: row.billing_profile_id || row.billingProfileId || "",
+          competencyMonth: String(row.competency_month || row.competencyMonth || "").slice(0, 10),
+          periodStart: String(row.period_start || row.periodStart || "").slice(0, 10),
+          periodEnd: String(row.period_end || row.periodEnd || "").slice(0, 10),
+          dueDate: String(row.due_date || row.dueDate || "").slice(0, 10),
+          chargeType: row.charge_type || row.chargeType || "monthly",
+          description: row.description || "",
+          packageSessions: Number(row.package_sessions ?? row.packageSessions ?? 0) || null,
+          amountMinor: Number(row.amount_minor ?? row.amountMinor ?? 0),
+          currency: row.currency || "USD",
+          lifecycleStatus: row.lifecycle_status || row.lifecycleStatus || "open",
+          exemptReason: row.exempt_reason || row.exemptReason || "",
+          privateNote: row.privateNote || "",
+          createdAt: row.created_at || row.createdAt || new Date().toISOString()
+        };
+      }
+
+      function normalizeReceipt(row = {}) {
+        return {
+          id: row.id,
+          chargeId: row.charge_id || row.chargeId,
+          trainerId: row.trainer_id || row.trainerId,
+          studentId: row.student_id || row.studentId,
+          amountMinor: Number(row.amount_minor ?? row.amountMinor ?? 0),
+          paidAt: row.paid_at || row.paidAt,
+          status: row.status || "posted",
+          reversedAt: row.reversed_at || row.reversedAt || "",
+          reversalReason: row.reversal_reason || row.reversalReason || "",
+          paymentMethod: row.paymentMethod || "",
+          otherMethod: row.otherMethod || "",
+          privateNotes: row.privateNotes || "",
+          createdAt: row.created_at || row.createdAt || new Date().toISOString()
+        };
+      }
+
+      function billingMonthKey() {
+        return document.getElementById("billingMonth")?.value || currentMonthKey();
+      }
+
+      function monthFirstDate(month = billingMonthKey()) {
+        return `${month}-01`;
+      }
+
+      function parseMoneyMinor(value) {
+        let text = String(value ?? "").trim().replace(/\s/g, "");
+        if (!text || text.startsWith("-") || !/^[\d.,]+$/.test(text)) return null;
+        const comma = text.lastIndexOf(",");
+        const dot = text.lastIndexOf(".");
+        if (comma >= 0 && dot >= 0) {
+          const decimal = comma > dot ? "," : ".";
+          const grouping = decimal === "," ? /\./g : /,/g;
+          text = text.replace(grouping, "").replace(decimal, ".");
+        } else if (comma >= 0) {
+          const parts = text.split(",");
+          text = parts.length === 2 && parts[1].length <= 2 ? `${parts[0]}.${parts[1]}` : parts.join("");
+        } else if ((text.match(/\./g) || []).length > 1) {
+          text = text.replace(/\./g, "");
+        }
+        const amount = Number(text);
+        return Number.isFinite(amount) ? Math.round(amount * 100) : null;
+      }
+
+      function moneyInputValue(minor) {
+        return Number.isFinite(Number(minor)) ? (Number(minor) / 100).toFixed(2) : "";
+      }
+
+      function formatBillingMoney(minor, currency = "USD") {
+        try {
+          return new Intl.NumberFormat(currentLocale(), { style: "currency", currency, minimumFractionDigits: 2 }).format(Number(minor || 0) / 100);
+        } catch {
+          return `${currency} ${(Number(minor || 0) / 100).toFixed(2)}`;
+        }
+      }
+
+      function postedReceipts(chargeId) {
+        return billingState.receipts.filter(receipt => receipt.chargeId === chargeId && receipt.status === "posted");
+      }
+
+      function paidMinorForCharge(chargeId) {
+        return postedReceipts(chargeId).reduce((sum, receipt) => sum + receipt.amountMinor, 0);
+      }
+
+      function billingStatus(charge) {
+        if (charge.lifecycleStatus === "exempt") return "exempt";
+        if (charge.lifecycleStatus === "voided") return "voided";
+        const paid = paidMinorForCharge(charge.id);
+        if (paid >= charge.amountMinor) return "paid";
+        if (charge.dueDate && charge.dueDate < todayKey()) return "late";
+        if (paid > 0) return "partial";
+        return "pending";
+      }
+
+      function billingDatabaseMissing(error) {
+        const detail = supabaseErrorText(error).toLowerCase();
+        return detail.includes("student_charges") || detail.includes("trainer_billing_settings") || detail.includes("pgrst205") || detail.includes("schema cache");
+      }
+
+      async function loadBillingData() {
+        const user = currentAccount();
+        if (!user) return;
+        billingState.loading = true;
+        if (user.role === "personal") await ensureLinkedStudentsForPersonal(user.id);
+        if (!isRealSupabaseAccount(user) || !monolithSupabase) {
+          const settingsMap = readBillingCache(settingsCacheKey, {});
+          billingState.settings = settingsMap[user.role === "personal" ? user.id : user.trainerId] ? normalizeBillingSettings(settingsMap[user.role === "personal" ? user.id : user.trainerId]) : null;
+          billingState.profiles = readBillingCache(profileCacheKey, []).map(normalizeBillingProfile).filter(item => user.role === "personal" && item.trainerId === user.id);
+          billingState.charges = readBillingCache(chargeCacheKey, []).map(normalizeCharge).filter(item => (user.role === "personal" ? item.trainerId === user.id : item.studentId === user.id) && item.competencyMonth === monthFirstDate());
+          const ids = new Set(billingState.charges.map(item => item.id));
+          billingState.receipts = readBillingCache(receiptCacheKey, []).map(normalizeReceipt).filter(item => ids.has(item.chargeId));
+          billingState.loading = false;
+          billingState.loaded = true;
+          return;
+        }
+        try {
+          billingState.settings = null;
+          billingState.profiles = [];
+          if (user.role === "personal") {
+            const [settingsResult, profilesResult] = await Promise.all([
+              monolithSupabase.from("trainer_billing_settings").select("*").eq("trainer_id", user.id).maybeSingle(),
+              monolithSupabase.from("student_billing_profiles").select("*").eq("trainer_id", user.id)
+            ]);
+            if (settingsResult.error) throw settingsResult.error;
+            if (profilesResult.error) throw profilesResult.error;
+            billingState.settings = settingsResult.data ? normalizeBillingSettings(settingsResult.data) : null;
+            billingState.profiles = (profilesResult.data || []).map(normalizeBillingProfile);
+          }
+          let chargeQuery = monolithSupabase.from("student_charges").select("*").eq("competency_month", monthFirstDate()).order("due_date", { ascending: true });
+          chargeQuery = user.role === "personal" ? chargeQuery.eq("trainer_id", user.id) : chargeQuery.eq("student_id", user.id);
+          const { data: chargeRows, error: chargeError } = await chargeQuery;
+          if (chargeError) throw chargeError;
+          billingState.charges = (chargeRows || []).map(normalizeCharge);
+          const chargeIds = billingState.charges.map(item => item.id);
+          billingState.receipts = [];
+          if (chargeIds.length) {
+            const { data: receiptRows, error: receiptError } = await monolithSupabase.from("student_payment_receipts").select("*").in("charge_id", chargeIds).order("paid_at", { ascending: false });
+            if (receiptError) throw receiptError;
+            billingState.receipts = (receiptRows || []).map(normalizeReceipt);
+            if (user.role === "personal") {
+              const [notesResult, detailsResult] = await Promise.all([
+                monolithSupabase.from("student_charge_private_notes").select("*").in("charge_id", chargeIds),
+                billingState.receipts.length ? monolithSupabase.from("student_payment_private_details").select("*").in("receipt_id", billingState.receipts.map(item => item.id)) : Promise.resolve({ data: [], error: null })
+              ]);
+              if (notesResult.error) throw notesResult.error;
+              if (detailsResult.error) throw detailsResult.error;
+              const noteMap = new Map((notesResult.data || []).map(item => [item.charge_id, item.note || ""]));
+              const detailMap = new Map((detailsResult.data || []).map(item => [item.receipt_id, item]));
+              billingState.charges.forEach(item => { item.privateNote = noteMap.get(item.id) || ""; });
+              billingState.receipts.forEach(item => {
+                const detail = detailMap.get(item.id);
+                item.paymentMethod = detail?.payment_method || "";
+                item.otherMethod = detail?.other_method || "";
+                item.privateNotes = detail?.private_notes || "";
+              });
+            }
+          }
+          document.getElementById("billingRemoteStatus").hidden = true;
+        } catch (error) {
+          const status = document.getElementById("billingRemoteStatus");
+          status.hidden = false;
+          status.innerHTML = billingDatabaseMissing(error)
+            ? `${escapeHTML(t("Esta função precisa das etapas 32 e 33 do banco de dados."))}`
+            : `${escapeHTML(supabaseErrorText(error))} <button class="ghost" type="button" data-billing-action="retry">${escapeHTML(t("Tentar novamente"))}</button>`;
+          billingState.charges = [];
+          billingState.receipts = [];
+        } finally {
+          billingState.loading = false;
+          billingState.loaded = true;
+        }
+      }
+
+      function effectiveBillingProfile(student) {
+        const override = billingState.profiles.find(item => item.studentId === student.id);
+        const defaults = billingState.settings;
+        return {
+          enabled: override?.enabled ?? true,
+          amountMinor: override?.amountMinor ?? defaults?.amountMinor ?? 0,
+          currency: override?.currency || defaults?.currency || "USD",
+          chargeType: override?.chargeType || defaults?.chargeType || "monthly",
+          description: override?.description || defaults?.description || (override?.chargeType === "session_package" ? "Pacote de sessões" : "Mensalidade"),
+          packageSessions: override?.packageSessions ?? defaults?.packageSessions ?? null,
+          cycleAnchorDay: override?.cycleAnchorDay || Math.max(1, Math.min(31, Number(String(student.trainerLinkedAt || "").slice(8, 10)) || 1)),
+          dueOffsetDays: override?.dueOffsetDays ?? defaults?.dueOffsetDays ?? 0
+        };
+      }
+
+      function anchorDateForMonth(month, day) {
+        const [year, monthNumber] = month.split("-").map(Number);
+        const lastDay = new Date(Date.UTC(year, monthNumber, 0)).getUTCDate();
+        return `${month}-${String(Math.min(Math.max(day, 1), lastDay)).padStart(2, "0")}`;
+      }
+
+      function addDaysToKey(key, days) {
+        const date = new Date(`${key}T12:00:00Z`);
+        date.setUTCDate(date.getUTCDate() + Number(days || 0));
+        return date.toISOString().slice(0, 10);
+      }
+
+      function nextMonthKey(month) {
+        const date = new Date(`${month}-01T12:00:00Z`);
+        date.setUTCMonth(date.getUTCMonth() + 1);
+        return date.toISOString().slice(0, 7);
+      }
+
+      function billingPreviewEntries() {
+        const user = currentAccount();
+        if (user?.role !== "personal" || !billingState.settings) return [];
+        return studentsForPersonal(user.id).map(student => {
+          const profile = effectiveBillingProfile(student);
+          const periodStart = anchorDateForMonth(billingMonthKey(), profile.cycleAnchorDay);
+          const alreadyExists = billingState.charges.some(charge => charge.studentId === student.id && charge.periodStart === periodStart);
+          return { student, profile, periodStart, periodEnd: anchorDateForMonth(nextMonthKey(billingMonthKey()), profile.cycleAnchorDay), dueDate: addDaysToKey(periodStart, profile.dueOffsetDays), alreadyExists };
+        }).filter(item => item.profile.enabled);
+      }
+
+      function renderBillingDefaults() {
+        const settings = billingState.settings;
+        document.getElementById("billingDefaultAmount").value = settings ? moneyInputValue(settings.amountMinor) : "";
+        document.getElementById("billingDefaultCurrency").value = settings?.currency || "USD";
+        document.getElementById("billingDefaultType").value = settings?.chargeType || "monthly";
+        document.getElementById("billingDefaultSessions").value = settings?.packageSessions || "";
+        document.getElementById("billingDefaultDescription").value = settings?.description || "";
+        document.getElementById("billingDefaultSessions").closest(".field").hidden = document.getElementById("billingDefaultType").value !== "session_package";
+      }
+
+      function renderBillingSummary(charges) {
+        const container = document.getElementById("billingSummary");
+        const groups = new Map();
+        charges.filter(charge => charge.lifecycleStatus !== "voided").forEach(charge => {
+          const group = groups.get(charge.currency) || { billed: 0, received: 0, outstanding: 0 };
+          const paid = paidMinorForCharge(charge.id);
+          group.billed += charge.lifecycleStatus === "exempt" ? 0 : charge.amountMinor;
+          group.received += paid;
+          group.outstanding += charge.lifecycleStatus === "open" ? Math.max(0, charge.amountMinor - paid) : 0;
+          groups.set(charge.currency, group);
+        });
+        container.innerHTML = groups.size ? [...groups.entries()].map(([currency, group]) => `<div class="metric"><span>${escapeHTML(currency)}</span><b>${escapeHTML(formatBillingMoney(group.received, currency))}</b><small>${escapeHTML(t("Recebido"))}</small><div class="billing-balance">${escapeHTML(t("Em aberto"))}: ${escapeHTML(formatBillingMoney(group.outstanding, currency))}</div></div>`).join("") : `<div class="panel empty-state"><strong>${escapeHTML(t("Nenhuma cobrança encontrada."))}</strong></div>`;
+      }
+
+      function billingReceiptHTML(receipt, charge, trainerView) {
+        const reversed = receipt.status === "reversed";
+        const method = trainerView && receipt.paymentMethod ? (receipt.paymentMethod === "other" ? receipt.otherMethod : t(paymentMethodLabels[receipt.paymentMethod] || receipt.paymentMethod)) : "";
+        return `<div class="billing-receipt ${reversed ? "reversed" : ""}"><div class="billing-receipt-head"><div><strong>${escapeHTML(formatBillingMoney(receipt.amountMinor, charge.currency))}</strong><div class="date">${escapeHTML(localDateLabel(receipt.paidAt))}${method ? ` · ${escapeHTML(method)}` : ""}</div></div><span class="status-chip ${reversed ? "cancelled" : "completed"}">${escapeHTML(t(reversed ? "Recebimento estornado" : "Recebido"))}</span></div>${reversed ? `<p>${escapeHTML(receipt.reversalReason)}</p>` : ""}${trainerView && !reversed ? `<div class="action-row"><button class="ghost danger" type="button" data-billing-action="reverse" data-receipt-id="${escapeHTML(receipt.id)}">${escapeHTML(t("Estornar"))}</button></div>` : ""}</div>`;
+      }
+
+      function billingChargeHTML(charge) {
+        const user = currentAccount();
+        const trainerView = user?.role === "personal";
+        const paid = paidMinorForCharge(charge.id);
+        const balance = Math.max(0, charge.amountMinor - paid);
+        const status = billingStatus(charge);
+        const studentName = trainerView ? accountNameForTarget(charge.studentId) || t("Aluno") : user?.name || t("Aluno");
+        const receipts = billingState.receipts.filter(receipt => receipt.chargeId === charge.id);
+        const actions = trainerView ? `<div class="action-row">${charge.lifecycleStatus === "open" && balance > 0 ? `<button class="action" type="button" data-billing-action="payment" data-charge-id="${escapeHTML(charge.id)}">${escapeHTML(t("Registrar pagamento"))}</button>` : ""}<button class="ghost" type="button" data-billing-action="edit" data-charge-id="${escapeHTML(charge.id)}">${escapeHTML(t("Editar"))}</button><button class="ghost ${charge.lifecycleStatus === "open" ? "danger" : ""}" type="button" data-billing-action="exempt" data-charge-id="${escapeHTML(charge.id)}">${escapeHTML(t(charge.lifecycleStatus === "exempt" ? "Remover isenção" : "Tornar isento"))}</button></div>` : "";
+        return `<article class="billing-row" data-charge-id="${escapeHTML(charge.id)}"><div class="billing-row-head"><div><strong>${escapeHTML(studentName)}</strong><div class="date">${escapeHTML(charge.description || t(charge.chargeType === "session_package" ? "Pacote de sessões" : "Mensalidade"))}</div></div><span class="status-chip ${escapeHTML(status)}">${escapeHTML(t(billingStatusLabels[status]))}</span></div><div class="billing-meta"><span>${escapeHTML(t("Período"))}: ${escapeHTML(localDateLabel(charge.periodStart))}–${escapeHTML(localDateLabel(addDaysToKey(charge.periodEnd, -1)))}</span><span>${escapeHTML(t("Vencimento"))}: ${escapeHTML(localDateLabel(charge.dueDate))}</span>${charge.packageSessions ? `<span>${charge.packageSessions} ${escapeHTML(t("Sessões"))}</span>` : ""}</div><div class="billing-money-grid"><div><span>${escapeHTML(t("Valor"))}</span><strong>${escapeHTML(formatBillingMoney(charge.amountMinor, charge.currency))}</strong></div><div><span>${escapeHTML(t("Recebido"))}</span><strong>${escapeHTML(formatBillingMoney(paid, charge.currency))}</strong></div><div><span>${escapeHTML(t("Saldo"))}</span><strong>${escapeHTML(formatBillingMoney(balance, charge.currency))}</strong></div></div>${charge.lifecycleStatus === "exempt" ? `<div class="auth-warning">${escapeHTML(t("Cobrança isenta"))}: ${escapeHTML(charge.exemptReason)}</div>` : ""}${trainerView && charge.privateNote ? `<p class="date">${escapeHTML(charge.privateNote)}</p>` : ""}${actions}<details class="billing-history"><summary>${escapeHTML(t("Histórico"))} · ${receipts.length}</summary><div class="billing-receipt-list">${receipts.length ? receipts.map(receipt => billingReceiptHTML(receipt, charge, trainerView)).join("") : `<div class="empty-state">${escapeHTML(t("Nenhum recebimento registrado."))}</div>`}</div></details></article>`;
+      }
+
+      function filteredBillingCharges() {
+        const search = document.getElementById("billingSearch")?.value.trim().toLowerCase() || "";
+        const status = document.getElementById("billingStatusFilter")?.value || "";
+        const currency = document.getElementById("billingCurrencyFilter")?.value || "";
+        return billingState.charges.filter(charge => {
+          const student = `${accountNameForTarget(charge.studentId)} ${loadAccounts().find(item => item.id === charge.studentId)?.email || ""}`.toLowerCase();
+          return (!search || student.includes(search)) && (!status || billingStatus(charge) === status) && (!currency || charge.currency === currency);
+        });
+      }
+
+      function renderBillingList() {
+        const charges = filteredBillingCharges();
+        renderBillingSummary(billingState.charges);
+        const container = document.getElementById("billingList");
+        container.innerHTML = charges.length ? charges.map(billingChargeHTML).join("") : `<div class="panel empty-state"><strong>${escapeHTML(t("Nenhuma cobrança encontrada."))}</strong></div>`;
+      }
+
+      async function renderBilling() {
+        const monthInput = document.getElementById("billingMonth");
+        if (!monthInput.value) monthInput.value = currentMonthKey();
+        document.getElementById("billingList").innerHTML = `<div class="panel empty-state">${escapeHTML(t("Carregando..."))}</div>`;
+        await loadBillingData();
+        if (currentAccount()?.role === "personal") renderBillingDefaults();
+        renderBillingList();
+      }
+
+      async function saveBillingDefaults(event) {
+        event.preventDefault();
+        const user = currentAccount();
+        if (user?.role !== "personal") return;
+        const amountMinor = parseMoneyMinor(document.getElementById("billingDefaultAmount").value);
+        const type = document.getElementById("billingDefaultType").value;
+        const sessions = Number(document.getElementById("billingDefaultSessions").value || 0) || null;
+        if (!amountMinor || amountMinor < 1) return showToast("Informe um valor padrão maior que zero.");
+        if (type === "session_package" && !sessions) return showToast("Informe a quantidade de sessões do pacote.");
+        const settings = normalizeBillingSettings({ trainerId: user.id, amountMinor, currency: document.getElementById("billingDefaultCurrency").value, chargeType: type, description: document.getElementById("billingDefaultDescription").value.trim(), packageSessions: type === "session_package" ? sessions : null, dueOffsetDays: 0 });
+        try {
+          if (isRealSupabaseAccount(user) && monolithSupabase) {
+            const { error } = await monolithSupabase.from("trainer_billing_settings").upsert({ trainer_id: user.id, default_amount_minor: settings.amountMinor, default_currency: settings.currency, default_charge_type: settings.chargeType, default_description: settings.description || null, default_package_sessions: settings.packageSessions, default_due_offset_days: settings.dueOffsetDays }, { onConflict: "trainer_id" });
+            if (error) throw error;
+          } else {
+            const map = readBillingCache(settingsCacheKey, {});
+            map[user.id] = settings;
+            writeBillingCache(settingsCacheKey, map);
+          }
+          billingState.settings = settings;
+          showToast("Configuração financeira salva.");
+          renderBillingDefaults();
+        } catch (error) { showToast(supabaseErrorText(error)); }
+      }
+
+      function setBillingProfileModal(open, studentId = "") {
+        const modal = document.getElementById("billingProfileModal");
+        modal.classList.toggle("active", open);
+        if (!open) return;
+        const select = document.getElementById("billingProfileStudent");
+        const students = studentsForPersonal(currentAccount()?.id);
+        select.innerHTML = `<option value="">${escapeHTML(t("Selecione um aluno"))}</option>${students.map(student => `<option value="${escapeHTML(student.id)}">${escapeHTML(student.name)} · ${escapeHTML(student.email || "")}</option>`).join("")}`;
+        document.getElementById("billingProfileForm").reset();
+        document.getElementById("billingProfileEnabled").checked = true;
+        select.value = students.some(item => item.id === studentId) ? studentId : "";
+        fillBillingProfileForm(select.value);
+      }
+
+      function fillBillingProfileForm(studentId) {
+        const profile = billingState.profiles.find(item => item.studentId === studentId);
+        document.getElementById("billingProfileEnabled").checked = profile?.enabled ?? true;
+        document.getElementById("billingProfileAmount").value = profile?.amountMinor === null || profile?.amountMinor === undefined ? "" : moneyInputValue(profile.amountMinor);
+        document.getElementById("billingProfileCurrency").value = profile?.currency || "";
+        document.getElementById("billingProfileType").value = profile?.chargeType || "";
+        document.getElementById("billingProfileSessions").value = profile?.packageSessions || "";
+        document.getElementById("billingProfileAnchor").value = profile?.cycleAnchorDay || "";
+        document.getElementById("billingProfileDueOffset").value = profile?.dueOffsetDays ?? "";
+        document.getElementById("billingProfileDescription").value = profile?.description || "";
+      }
+
+      async function saveBillingProfile(event) {
+        event.preventDefault();
+        const user = currentAccount();
+        const studentId = document.getElementById("billingProfileStudent").value;
+        if (user?.role !== "personal" || !isLinkedStudentForPersonal(studentId, user)) return showToast("Selecione um aluno vinculado.");
+        const amountText = document.getElementById("billingProfileAmount").value.trim();
+        const amountMinor = amountText ? parseMoneyMinor(amountText) : null;
+        if (amountText && (amountMinor === null || amountMinor < 1)) return showToast("Informe um valor válido.");
+        const profile = normalizeBillingProfile({ trainerId: user.id, studentId, enabled: document.getElementById("billingProfileEnabled").checked, amountMinor, currency: document.getElementById("billingProfileCurrency").value, chargeType: document.getElementById("billingProfileType").value, packageSessions: Number(document.getElementById("billingProfileSessions").value || 0) || null, cycleAnchorDay: Number(document.getElementById("billingProfileAnchor").value || 0) || null, dueOffsetDays: document.getElementById("billingProfileDueOffset").value === "" ? null : Number(document.getElementById("billingProfileDueOffset").value), description: document.getElementById("billingProfileDescription").value.trim() });
+        try {
+          if (isRealSupabaseAccount(user) && monolithSupabase) {
+            const payload = { trainer_id: user.id, student_id: studentId, billing_enabled: profile.enabled, amount_minor: profile.amountMinor, currency: profile.currency || null, charge_type: profile.chargeType || null, description: profile.description || null, package_sessions: profile.packageSessions, cycle_anchor_day: profile.cycleAnchorDay, due_offset_days: profile.dueOffsetDays };
+            const { data, error } = await monolithSupabase.from("student_billing_profiles").upsert(payload, { onConflict: "trainer_id,student_id" }).select("*").single();
+            if (error) throw error;
+            profile.id = data.id;
+          } else {
+            const list = readBillingCache(profileCacheKey, []).map(normalizeBillingProfile).filter(item => !(item.trainerId === user.id && item.studentId === studentId));
+            profile.id = profile.id || createClientRequestId("billing-profile");
+            writeBillingCache(profileCacheKey, [...list, profile]);
+          }
+          billingState.profiles = billingState.profiles.filter(item => item.studentId !== studentId).concat(profile);
+          setBillingProfileModal(false);
+          showToast("Configuração do aluno salva.");
+        } catch (error) { showToast(supabaseErrorText(error)); }
+      }
+
+      function openBillingPreview() {
+        if (!billingState.settings?.amountMinor) return showToast("Salve a configuração padrão antes de preparar cobranças.");
+        const entries = billingPreviewEntries();
+        const list = document.getElementById("billingPreviewList");
+        list.innerHTML = entries.length ? entries.map(entry => `<label class="billing-preview-item"><input type="checkbox" value="${escapeHTML(entry.student.id)}" ${entry.alreadyExists ? "disabled" : "checked"} /><span><strong>${escapeHTML(entry.student.name)}</strong><span class="date">${escapeHTML(localDateLabel(entry.periodStart))}–${escapeHTML(localDateLabel(addDaysToKey(entry.periodEnd, -1)))} · ${escapeHTML(t("Vencimento"))} ${escapeHTML(localDateLabel(entry.dueDate))}${entry.alreadyExists ? ` · ${escapeHTML(t("Já criada"))}` : ""}</span></span><strong>${escapeHTML(formatBillingMoney(entry.profile.amountMinor, entry.profile.currency))}</strong></label>`).join("") : `<div class="empty-state">${escapeHTML(t("Nenhum aluno disponível para cobrança."))}</div>`;
+        document.getElementById("confirmBillingPreview").disabled = !entries.some(item => !item.alreadyExists);
+        document.getElementById("billingPreviewModal").classList.add("active");
+      }
+
+      async function confirmBillingPreview() {
+        const user = currentAccount();
+        const studentIds = [...document.querySelectorAll("#billingPreviewList input:checked")].map(input => input.value);
+        if (!studentIds.length) return showToast("Selecione ao menos um aluno.");
+        try {
+          if (isRealSupabaseAccount(user) && monolithSupabase) {
+            const { error } = await monolithSupabase.rpc("generate_monolith_student_charges", { p_competency_month: monthFirstDate(), p_student_ids: studentIds, p_client_request_id: createClientRequestId("charges") });
+            if (error) throw error;
+          } else {
+            const allCharges = readBillingCache(chargeCacheKey, []).map(normalizeCharge);
+            const entries = billingPreviewEntries().filter(entry => studentIds.includes(entry.student.id) && !entry.alreadyExists);
+            entries.forEach(entry => allCharges.push(normalizeCharge({ id: createClientRequestId("charge"), trainerId: user.id, studentId: entry.student.id, competencyMonth: monthFirstDate(), periodStart: entry.periodStart, periodEnd: entry.periodEnd, dueDate: entry.dueDate, chargeType: entry.profile.chargeType, description: entry.profile.description, packageSessions: entry.profile.packageSessions, amountMinor: entry.profile.amountMinor, currency: entry.profile.currency, lifecycleStatus: "open" })));
+            writeBillingCache(chargeCacheKey, allCharges);
+          }
+          document.getElementById("billingPreviewModal").classList.remove("active");
+          showToast("Cobranças criadas.");
+          await renderBilling();
+        } catch (error) { showToast(supabaseErrorText(error)); }
+      }
+
+      function openPaymentModal(chargeId) {
+        const charge = billingState.charges.find(item => item.id === chargeId);
+        if (!charge) return;
+        document.getElementById("paymentReceiptForm").reset();
+        document.getElementById("paymentChargeId").value = chargeId;
+        document.getElementById("paymentAmount").value = moneyInputValue(Math.max(0, charge.amountMinor - paidMinorForCharge(charge.id)));
+        document.getElementById("paymentDate").value = todayKey();
+        document.getElementById("paymentOtherMethodField").hidden = true;
+        document.getElementById("paymentReceiptTitle").textContent = `${t("Registrar recebimento")} · ${accountNameForTarget(charge.studentId)}`;
+        document.getElementById("paymentReceiptModal").classList.add("active");
+      }
+
+      async function savePaymentReceipt(event) {
+        event.preventDefault();
+        const user = currentAccount();
+        const charge = billingState.charges.find(item => item.id === document.getElementById("paymentChargeId").value);
+        const amountMinor = parseMoneyMinor(document.getElementById("paymentAmount").value);
+        const remaining = charge ? charge.amountMinor - paidMinorForCharge(charge.id) : 0;
+        if (!charge || !amountMinor || amountMinor > remaining) return showToast("O valor deve ser positivo e não pode superar o saldo.");
+        const method = document.getElementById("paymentMethod").value;
+        const other = document.getElementById("paymentOtherMethod").value.trim();
+        if (method === "other" && !other) return showToast("Descreva a forma de pagamento.");
+        const paidAt = `${document.getElementById("paymentDate").value}T12:00:00Z`;
+        try {
+          if (isRealSupabaseAccount(user) && monolithSupabase) {
+            const { error } = await monolithSupabase.rpc("record_monolith_student_payment", { p_charge_id: charge.id, p_amount_minor: amountMinor, p_paid_at: paidAt, p_payment_method: method, p_other_method: other || null, p_private_notes: document.getElementById("paymentPrivateNotes").value.trim() || null, p_client_request_id: createClientRequestId("payment") });
+            if (error) throw error;
+          } else {
+            const receipts = readBillingCache(receiptCacheKey, []).map(normalizeReceipt);
+            receipts.push(normalizeReceipt({ id: createClientRequestId("receipt"), chargeId: charge.id, trainerId: user.id, studentId: charge.studentId, amountMinor, paidAt, status: "posted", paymentMethod: method, otherMethod: other, privateNotes: document.getElementById("paymentPrivateNotes").value.trim() }));
+            writeBillingCache(receiptCacheKey, receipts);
+          }
+          document.getElementById("paymentReceiptModal").classList.remove("active");
+          showToast("Recebimento registrado.");
+          await renderBilling();
+        } catch (error) { showToast(supabaseErrorText(error)); }
+      }
+
+      function openChargeEdit(chargeId) {
+        const charge = billingState.charges.find(item => item.id === chargeId);
+        if (!charge) return;
+        document.getElementById("chargeEditForm").reset();
+        document.getElementById("chargeEditId").value = charge.id;
+        document.getElementById("chargeEditAmount").value = moneyInputValue(charge.amountMinor);
+        document.getElementById("chargeEditDueDate").value = charge.dueDate;
+        document.getElementById("chargeEditDescription").value = charge.description;
+        document.getElementById("chargeEditPrivateNotes").value = charge.privateNote;
+        document.getElementById("chargeEditReasonField").hidden = !postedReceipts(charge.id).length;
+        document.getElementById("chargeEditReason").required = Boolean(postedReceipts(charge.id).length);
+        document.getElementById("chargeEditModal").classList.add("active");
+      }
+
+      async function saveChargeEdit(event) {
+        event.preventDefault();
+        const user = currentAccount();
+        const charge = billingState.charges.find(item => item.id === document.getElementById("chargeEditId").value);
+        const amountMinor = parseMoneyMinor(document.getElementById("chargeEditAmount").value);
+        const paid = charge ? paidMinorForCharge(charge.id) : 0;
+        if (!charge || amountMinor === null || amountMinor < 1) return showToast("Informe um valor válido.");
+        if (amountMinor < paid) return showToast("O valor não pode ser menor que o total já recebido.");
+        const patch = { amountMinor, dueDate: document.getElementById("chargeEditDueDate").value, description: document.getElementById("chargeEditDescription").value.trim(), privateNote: document.getElementById("chargeEditPrivateNotes").value.trim() };
+        const reason = document.getElementById("chargeEditReason").value.trim();
+        try {
+          if (isRealSupabaseAccount(user) && monolithSupabase) {
+            const { error } = await monolithSupabase.rpc("update_monolith_student_charge", { p_charge_id: charge.id, p_amount_minor: patch.amountMinor, p_due_date: patch.dueDate, p_description: patch.description || null, p_private_notes: patch.privateNote || null, p_reason: reason || null });
+            if (error) throw error;
+          } else {
+            const charges = readBillingCache(chargeCacheKey, []).map(normalizeCharge);
+            Object.assign(charges.find(item => item.id === charge.id), patch);
+            writeBillingCache(chargeCacheKey, charges);
+          }
+          document.getElementById("chargeEditModal").classList.remove("active");
+          showToast("Cobrança atualizada.");
+          await renderBilling();
+        } catch (error) { showToast(supabaseErrorText(error)); }
+      }
+
+      async function toggleChargeExempt(charge) {
+        const exempt = charge.lifecycleStatus !== "exempt";
+        let reason = "";
+        if (exempt) {
+          reason = await promptAction({ title: "Tornar cobrança isenta", message: "O saldo deixará de aparecer como pendente.", fieldType: "text", fieldLabel: "Motivo da isenção", fieldPlaceholder: "Ex: cortesia", fieldRequired: true, returnFieldValue: true, confirmLabel: "Confirmar isenção" });
+          if (!reason) return;
+        } else if (!await confirmAction({ title: "Remover isenção", message: "A cobrança voltará a ficar em aberto.", confirmLabel: "Remover isenção" })) return;
+        const user = currentAccount();
+        try {
+          if (isRealSupabaseAccount(user) && monolithSupabase) {
+            const { error } = await monolithSupabase.rpc("set_monolith_student_charge_exempt", { p_charge_id: charge.id, p_exempt: exempt, p_reason: reason || null });
+            if (error) throw error;
+          } else {
+            const charges = readBillingCache(chargeCacheKey, []).map(normalizeCharge);
+            const target = charges.find(item => item.id === charge.id);
+            target.lifecycleStatus = exempt ? "exempt" : "open";
+            target.exemptReason = exempt ? reason : "";
+            writeBillingCache(chargeCacheKey, charges);
+          }
+          await renderBilling();
+        } catch (error) { showToast(supabaseErrorText(error)); }
+      }
+
+      async function reverseReceipt(receiptId) {
+        const reason = await promptAction({ title: "Estornar recebimento", message: "O registro será mantido no histórico como estornado.", fieldType: "text", fieldLabel: "Motivo do estorno", fieldRequired: true, returnFieldValue: true, confirmLabel: "Estornar", danger: true });
+        if (!reason) return;
+        const user = currentAccount();
+        try {
+          if (isRealSupabaseAccount(user) && monolithSupabase) {
+            const { error } = await monolithSupabase.rpc("reverse_monolith_student_payment", { p_receipt_id: receiptId, p_reason: reason });
+            if (error) throw error;
+          } else {
+            const receipts = readBillingCache(receiptCacheKey, []).map(normalizeReceipt);
+            const receipt = receipts.find(item => item.id === receiptId);
+            receipt.status = "reversed";
+            receipt.reversedAt = new Date().toISOString();
+            receipt.reversalReason = reason;
+            writeBillingCache(receiptCacheKey, receipts);
+          }
+          await renderBilling();
+        } catch (error) { showToast(supabaseErrorText(error)); }
+      }
+
+      document.getElementById("billingDefaultsForm")?.addEventListener("submit", saveBillingDefaults);
+      document.getElementById("billingDefaultType")?.addEventListener("change", event => { document.getElementById("billingDefaultSessions").closest(".field").hidden = event.target.value !== "session_package"; });
+      document.getElementById("billingMonth")?.addEventListener("change", renderBilling);
+      document.getElementById("refreshBillingButton")?.addEventListener("click", renderBilling);
+      document.getElementById("billingSearch")?.addEventListener("input", renderBillingList);
+      document.getElementById("billingStatusFilter")?.addEventListener("change", renderBillingList);
+      document.getElementById("billingCurrencyFilter")?.addEventListener("change", renderBillingList);
+      document.getElementById("prepareChargesButton")?.addEventListener("click", openBillingPreview);
+      document.getElementById("configureStudentBillingButton")?.addEventListener("click", () => setBillingProfileModal(true));
+      document.getElementById("billingProfileStudent")?.addEventListener("change", event => fillBillingProfileForm(event.target.value));
+      document.getElementById("billingProfileForm")?.addEventListener("submit", saveBillingProfile);
+      document.getElementById("confirmBillingPreview")?.addEventListener("click", confirmBillingPreview);
+      document.getElementById("paymentReceiptForm")?.addEventListener("submit", savePaymentReceipt);
+      document.getElementById("paymentMethod")?.addEventListener("change", event => { document.getElementById("paymentOtherMethodField").hidden = event.target.value !== "other"; });
+      document.getElementById("chargeEditForm")?.addEventListener("submit", saveChargeEdit);
+      document.getElementById("billingList")?.addEventListener("click", event => {
+        const button = event.target.closest("[data-billing-action]");
+        if (!button) return;
+        const charge = billingState.charges.find(item => item.id === button.dataset.chargeId);
+        if (button.dataset.billingAction === "retry") renderBilling();
+        if (button.dataset.billingAction === "payment") openPaymentModal(button.dataset.chargeId);
+        if (button.dataset.billingAction === "edit") openChargeEdit(button.dataset.chargeId);
+        if (button.dataset.billingAction === "exempt" && charge) toggleChargeExempt(charge);
+        if (button.dataset.billingAction === "reverse") reverseReceipt(button.dataset.receiptId);
+      });
+      [
+        ["closeBillingProfileModal", "billingProfileModal"], ["cancelBillingProfile", "billingProfileModal"],
+        ["closeBillingPreviewModal", "billingPreviewModal"], ["cancelBillingPreview", "billingPreviewModal"],
+        ["closePaymentReceiptModal", "paymentReceiptModal"], ["cancelPaymentReceipt", "paymentReceiptModal"],
+        ["closeChargeEditModal", "chargeEditModal"], ["cancelChargeEdit", "chargeEditModal"]
+      ].forEach(([buttonId, modalId]) => document.getElementById(buttonId)?.addEventListener("click", () => document.getElementById(modalId).classList.remove("active")));
+
+      window.monolithRenderBilling = renderBilling;
+      window.monolithBillingTest = { parseMoneyMinor, billingStatus, formatBillingMoney, state: billingState };
     })();
   </script>
 </body>
