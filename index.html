@@ -14,8 +14,8 @@
   <link rel="manifest" href="manifest.webmanifest" />
   <link rel="icon" href="monolith-icon.svg" />
   <script>
-window.MONOLITH_BUILD = "monolith-v103-calendar-billing";
-window.MONOLITH_VERSION_LABEL = "Monolith v103 · 10/09/2026";
+window.MONOLITH_BUILD = "monolith-v104-final-qa-fixes";
+window.MONOLITH_VERSION_LABEL = "Monolith v104 · 10/09/2026";
     (function clearOldAppCaches() {
       if ("serviceWorker" in navigator) {
         navigator.serviceWorker.getRegistrations?.()
@@ -5256,7 +5256,7 @@ window.MONOLITH_VERSION_LABEL = "Monolith v103 · 10/09/2026";
           <button class="action" id="loginButton" type="submit">Entrar</button>
           <div class="auth-tools">
             <button class="auth-secondary" id="clearDeviceSessionButton" type="button">Limpar sessão/cache deste aparelho</button>
-            <div class="build-version" id="buildVersionLabel">Versão do app: Monolith v103 · 10/09/2026</div>
+            <div class="build-version" id="buildVersionLabel">Versão do app: Monolith v104 · 10/09/2026</div>
           </div>
         </form>
       </div>
@@ -7269,8 +7269,8 @@ window.MONOLITH_VERSION_LABEL = "Monolith v103 · 10/09/2026";
   <script>
     const MONOLITH_SUPABASE_URL = "https://jhxasnxuvmkhntbwepau.supabase.co";
     const MONOLITH_SUPABASE_KEY = "sb_publishable_lDtAXIOtkMwgwsAZyghBdg_gyLHGwpH";
-const MONOLITH_BUILD = window.MONOLITH_BUILD || "monolith-v103-calendar-billing";
-const MONOLITH_VERSION_LABEL = window.MONOLITH_VERSION_LABEL || "Monolith v103 · 10/09/2026";
+const MONOLITH_BUILD = window.MONOLITH_BUILD || "monolith-v104-final-qa-fixes";
+const MONOLITH_VERSION_LABEL = window.MONOLITH_VERSION_LABEL || "Monolith v104 · 10/09/2026";
     const onboardingStepDefinitions = [
       ["welcome", "Boas-vindas", "Conheça o fluxo do seu acompanhamento.", "home"],
       ["terms", "Termos", "Revise consentimentos e informações da conta.", "profile"],
@@ -10776,8 +10776,16 @@ if (location.hash.toLowerCase() === "#leads") history.replaceState(null, "", `${
 
     function normalizeLocalizedTimePunctuation(value, language = localStorage.getItem("monolith.language") || "pt") {
       const text = String(value || "");
-      if (language !== "es") return text;
-      return text.replace(/([ap])\.\s*m\.(?:\.)*/gi, "$1. m.");
+      const normalized = language === "es"
+        ? text.replace(/([ap])\.\s*m\.(?:\.)*/gi, "$1. m.")
+        : text;
+      return normalized.replace(/([!?])\1+$/g, "$1").replace(/\.{2,}$/g, ".");
+    }
+
+    function localizedSentence(value, language = localStorage.getItem("monolith.language") || "pt") {
+      const normalized = normalizeLocalizedTimePunctuation(value, language).trim();
+      if (!normalized) return "";
+      return /[.!?…]$/.test(normalized) ? normalized : `${normalized}.`;
     }
 
     function localDateTimeLabel(value, language = localStorage.getItem("monolith.language") || "pt") {
@@ -17429,6 +17437,13 @@ if (location.hash.toLowerCase() === "#leads") history.replaceState(null, "", `${
       if (document.getElementById("timeline")?.classList.contains("active")) window.monolithRenderTimeline?.();
       if (document.getElementById("onboarding")?.classList.contains("active")) window.monolithRenderOnboarding?.();
       if (document.getElementById("space")?.classList.contains("active")) window.monolithRenderSpace?.();
+      if (document.getElementById("programs")?.classList.contains("active")) {
+        renderProgramRemoteState("loading");
+        Promise.resolve(window.monolithRenderPrograms?.()).catch(error => {
+          logAppError("programs", "language-refresh", error, { language });
+          renderProgramRemoteState("error");
+        });
+      }
       if (document.getElementById("schedule")?.classList.contains("active")) window.monolithRenderSchedule?.();
       if (document.getElementById("payments")?.classList.contains("active")) window.monolithRenderBilling?.();
       if (document.getElementById("home")?.classList.contains("active")) window.monolithRefreshHomeSchedule?.();
@@ -18795,7 +18810,7 @@ if (location.hash.toLowerCase() === "#leads") history.replaceState(null, "", `${
       }).join("");
       const missedPreview = report.missedDays.slice(-7).map(day => escapeHTML(day)).join(", ");
       const alertLevel = report.missedDays.length >= 5 ? "drop" : "gain";
-      return `<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><title>Relatório mensal MONOLITH</title><style>body{font-family:Arial,sans-serif;margin:32px;color:#111}h1{margin-bottom:4px}table{width:100%;border-collapse:collapse;margin:18px 0}th,td{border:1px solid #ccc;padding:8px;text-align:left;vertical-align:top}th{background:#eee}.muted{color:#666}.gain{color:#137333;font-weight:700}.drop{color:#b3261e;font-weight:700}.alert{border-left:4px solid #b8911f;background:#f6f3eb;padding:12px;margin:14px 0}.weight-chart{height:140px;display:flex;align-items:end;gap:8px;border:1px solid #ccc;padding:12px;margin:12px 0}.wbar{min-width:54px;background:#b8911f;display:flex;flex-direction:column;justify-content:space-between;color:#111;padding:4px;font-size:10px}.wbar span{writing-mode:vertical-rl;transform:rotate(180deg);opacity:.7}@media print{button{display:none}}</style></head><body><button onclick="window.print()">Salvar como PDF</button><h1>Relatório mensal MONOLITH</h1><p class="muted">Gerado em ${escapeHTML(report.generatedAt)}. Use o botão do navegador para salvar como PDF.</p><h2>Alerta de check-in para o personal</h2><div class="alert"><strong class="${alertLevel}">${report.missedDays.length} dias sem check-in nos últimos 30 dias.</strong><br>${report.missedDays.length ? `Dias recentes sem registro: ${missedPreview}` : "Aluno manteve check-in completo no período."}</div><h2>Evolução de peso</h2>${weightBars ? `<div class="weight-chart">${weightBars}</div>` : `<p class="muted">Ainda não há pesos salvos no check-in diário.</p>`}<h2>Top 5 maiores evoluções</h2><table><thead><tr><th>Exercício</th><th>Base</th><th>Primeiro registro</th><th>Atual</th><th>Último registro</th><th>Delta</th></tr></thead><tbody>${gainRows || `<tr><td colspan="6">Ainda precisa de pelo menos duas sessões salvas do mesmo exercício.</td></tr>`}</tbody></table><h2>Top 5 maiores quedas</h2><table><thead><tr><th>Exercício</th><th>Base</th><th>Primeiro registro</th><th>Atual</th><th>Último registro</th><th>Delta</th></tr></thead><tbody>${dropRows || `<tr><td colspan="6">Nenhuma queda relevante detectada.</td></tr>`}</tbody></table><h2>Frequência dos últimos 30 dias</h2><table><thead><tr><th>Item</th><th>Concluído</th><th>Aderência</th></tr></thead><tbody>${statsRows || `<tr><td colspan="3">Sem check-ins salvos.</td></tr>`}</tbody></table><h2>Dia a dia</h2><table><thead><tr><th>Dia</th><th>Peso</th><th>Score</th><th>%</th><th>Itens</th></tr></thead><tbody>${dayRows || `<tr><td colspan="5">Sem check-ins salvos.</td></tr>`}</tbody></table><h2>Treinos concluídos</h2><table><thead><tr><th>Data</th><th>Treino</th><th>Séries</th></tr></thead><tbody>${workoutRows || `<tr><td colspan="3">Sem treinos concluídos salvos.</td></tr>`}</tbody></table></body></html>`;
+      return `<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><title>Relatório mensal MONOLITH</title><style>body{font-family:Arial,sans-serif;margin:32px;color:#111}h1{margin-bottom:4px}table{width:100%;border-collapse:collapse;margin:18px 0}th,td{border:1px solid #ccc;padding:8px;text-align:left;vertical-align:top}th{background:#eee}.muted{color:#666}.gain{color:#137333;font-weight:700}.drop{color:#b3261e;font-weight:700}.alert{border-left:4px solid #b8911f;background:#f6f3eb;padding:12px;margin:14px 0}.weight-chart{height:140px;display:flex;align-items:end;gap:8px;border:1px solid #ccc;padding:12px;margin:12px 0}.wbar{min-width:54px;background:#b8911f;display:flex;flex-direction:column;justify-content:space-between;color:#111;padding:4px;font-size:10px}.wbar span{writing-mode:vertical-rl;transform:rotate(180deg);opacity:.7}@media print{button{display:none}}</style></head><body><button onclick="window.print()">Salvar como PDF</button><h1>Relatório mensal MONOLITH</h1><p class="muted">Gerado em ${escapeHTML(localizedSentence(report.generatedAt, "pt"))} Use o botão do navegador para salvar como PDF.</p><h2>Alerta de check-in para o personal</h2><div class="alert"><strong class="${alertLevel}">${report.missedDays.length} dias sem check-in nos últimos 30 dias.</strong><br>${report.missedDays.length ? `Dias recentes sem registro: ${missedPreview}` : "Aluno manteve check-in completo no período."}</div><h2>Evolução de peso</h2>${weightBars ? `<div class="weight-chart">${weightBars}</div>` : `<p class="muted">Ainda não há pesos salvos no check-in diário.</p>`}<h2>Top 5 maiores evoluções</h2><table><thead><tr><th>Exercício</th><th>Base</th><th>Primeiro registro</th><th>Atual</th><th>Último registro</th><th>Delta</th></tr></thead><tbody>${gainRows || `<tr><td colspan="6">Ainda precisa de pelo menos duas sessões salvas do mesmo exercício.</td></tr>`}</tbody></table><h2>Top 5 maiores quedas</h2><table><thead><tr><th>Exercício</th><th>Base</th><th>Primeiro registro</th><th>Atual</th><th>Último registro</th><th>Delta</th></tr></thead><tbody>${dropRows || `<tr><td colspan="6">Nenhuma queda relevante detectada.</td></tr>`}</tbody></table><h2>Frequência dos últimos 30 dias</h2><table><thead><tr><th>Item</th><th>Concluído</th><th>Aderência</th></tr></thead><tbody>${statsRows || `<tr><td colspan="3">Sem check-ins salvos.</td></tr>`}</tbody></table><h2>Dia a dia</h2><table><thead><tr><th>Dia</th><th>Peso</th><th>Score</th><th>%</th><th>Itens</th></tr></thead><tbody>${dayRows || `<tr><td colspan="5">Sem check-ins salvos.</td></tr>`}</tbody></table><h2>Treinos concluídos</h2><table><thead><tr><th>Data</th><th>Treino</th><th>Séries</th></tr></thead><tbody>${workoutRows || `<tr><td colspan="3">Sem treinos concluídos salvos.</td></tr>`}</tbody></table></body></html>`;
     }
 
     function reportChartBars(series, suffix = "") {
@@ -19123,7 +19138,7 @@ table,.chart,.photo-report-grid,.alert{break-inside:avoid}.print-button{margin:0
 <main class="report-content">
 <p><strong>${rt("Aluno")}:</strong> ${escapeHTML(studentName)}${studentEmail ? ` · ${escapeHTML(studentEmail)}` : ""}</p>
 <p><strong>${rt("Período do aluno")}:</strong> ${escapeHTML(periodLabel)}${report.period.linkedAt ? ` · ${rt("Vínculo iniciado em")}: ${escapeHTML(reportDateLabel(report.period.linkedAt, language))}` : ""}</p>
-<p class="muted">${rt("Gerado em")} ${escapeHTML(report.generatedAt)}. ${rt("Use o botão do navegador para salvar como PDF.")}</p>
+<p class="muted">${rt("Gerado em")} ${escapeHTML(localizedSentence(report.generatedAt, language))} ${rt("Use o botão do navegador para salvar como PDF.")}</p>
 <p class="muted">${rt("Conteúdo escrito pelo personal é exibido no idioma original.")}</p>
 <h2>${rt("Anamnese do aluno")}</h2>
 ${report.anamnesis ? `<div class="alert"><strong class="${report.anamnesis.medicalClearanceRecommended ? "drop" : "gain"}">${escapeHTML(anamnesisSafety)}</strong></div><table><thead><tr><th>${rt("Item")}</th><th>${rt("Resposta")}</th></tr></thead><tbody>${anamnesisRows}</tbody></table>` : `<p class="muted">${rt("Anamnese ainda não preenchida.")}</p>`}
@@ -19201,12 +19216,12 @@ ${photoSections}
         link.style.width = "1px";
         link.style.height = "1px";
         link.setAttribute("aria-hidden", "true");
-        let delivered = false;
-        link.addEventListener("click", () => { delivered = true; }, { once: true });
+        let clickEvent = null;
+        link.addEventListener("click", event => { clickEvent = event; }, { once: true });
         document.body.appendChild(link);
         link.click();
-        if (!delivered) throw new Error("download-click-not-delivered");
-        window.setTimeout(() => link.remove(), 1000);
+        if (!clickEvent || clickEvent.defaultPrevented) throw new Error("download-click-not-delivered");
+        window.setTimeout(() => link.remove(), 1500);
         window.setTimeout(() => releaseDownloadUrl(objectUrl), 60000);
         return true;
       } catch (error) {
@@ -19244,6 +19259,30 @@ ${photoSections}
         .replace(/^-+|-+$/g, "") || "aluno";
       const [year, month] = currentMonthKey().split("-");
       return `monolith-relatorio-${name}-${year}-${month}-${language}.html`;
+    }
+
+    function downloadMonthlyReportFile(student = null) {
+      const user = currentAccount();
+      const target = student || (user?.role === "student" ? user : reportStudentFromId(activeDataStudentId()));
+      if (!target?.id || (user?.role === "personal" && !activeDataStudentId())) {
+        showToast("Selecione um aluno para gerar relatório.");
+        return false;
+      }
+      try {
+        const language = reportLanguage();
+        const period = reportPeriodForStudent(target);
+        const report = monthlyReportData(target, { period, language });
+        const html = verifiedMonthlyReportHTML(target, { report, period, language });
+        if (!html) throw new Error("report-html-empty");
+        const downloaded = downloadTextFile(reportFilename(target, language), "text/html;charset=utf-8", html);
+        if (!downloaded) throw new Error("report-download-not-delivered");
+        showToast("Relatório HTML baixado.");
+        return true;
+      } catch (error) {
+        logAppError("report", "download-html", error, { studentId: target.id });
+        showToast("Não foi possível baixar o relatório agora.");
+        return false;
+      }
     }
 
     function setReportControlsState(state = "ready", message = "") {
@@ -19594,6 +19633,7 @@ ${photoSections}
       saveWorkoutPrograms([program, ...programs]);
     }
     async function downloadExport(type) {
+      if (type === "report" || type === "pdf") return downloadMonthlyReportFile();
       const payload = {
         app: "MONOLITH",
         exportedAt: new Date().toISOString(),
@@ -19607,13 +19647,6 @@ ${photoSections}
         dietPlans: Object.fromEntries(Object.entries(loadDietPlans()).filter(([, plan]) => canAccessStudentData(plan.studentId))),
         foodLogs: currentAccount()?.role === "student" ? { [currentAccount().id]: loadFoodLogs()[currentAccount().id] || [] } : {}
       };
-      if (type === "report" || type === "pdf") {
-        const prepared = await prepareMonthlyReportHTML();
-        if (!prepared.html) return false;
-        const downloaded = downloadTextFile("monolith-relatorio-mensal.html", "text/html;charset=utf-8", prepared.html);
-        if (downloaded) showToast("Relatório mensal criado. Abra e salve como PDF pelo navegador.");
-        return downloaded;
-      }
       const config = {
         excel: ["monolith-export.xls", "application/vnd.ms-excel", "MONOLITH\tExport\nScore\t" + payload.dailyScore],
         csv: ["monolith-export.csv", "text/csv", "campo,valor\nscore," + payload.dailyScore + "\ncoach," + payload.selectedCoach],
@@ -21413,22 +21446,13 @@ ${photoSections}
         return;
       }
       const student = currentAccount()?.role === "student" ? currentAccount() : reportStudentFromId(activeDataStudentId());
-      const language = reportLanguage();
       const reportState = getRemoteDataState("report", student?.id || "").status;
       if (isRealSupabaseAccount(currentAccount()) && ["loading", "error"].includes(reportState)) {
         setReportControlsState(reportState, reportState === "loading" ? "Carregando relatório..." : "Não foi possível gerar o relatório");
         return;
       }
-      const period = reportPeriodForStudent(student);
-      const report = monthlyReportData(student, { period, language });
-      const html = verifiedMonthlyReportHTML(student, { report, period, language });
-      if (!html) {
-        setReportControlsState("error", "Não foi possível gerar o relatório");
-        return;
-      }
-      const downloaded = downloadTextFile(reportFilename(student, language), "text/html;charset=utf-8", html);
+      const downloaded = downloadMonthlyReportFile(student);
       setReportControlsState(downloaded ? "ready" : "error", downloaded ? "" : "Não foi possível gerar o relatório");
-      showToast(downloaded ? "Relatório HTML baixado." : "Não foi possível gerar o relatório.");
     });
     document.addEventListener("change", async event => {
       const input = event.target.closest(".photo-card input[type='file']");
@@ -23638,6 +23662,7 @@ ${photoSections}
       "Não foi possível carregar todos os dados do relatório. Tente novamente.": "Not all report data could be loaded. Try again.",
       "O navegador bloqueou a nova janela. Permita pop-ups e tente novamente.": "The browser blocked the new window. Allow pop-ups and try again.",
       "Relatório HTML baixado.": "HTML report downloaded.",
+      "Não foi possível baixar o relatório agora.": "The report could not be downloaded right now.",
       "Desligado": "Off",
       "Toque no microfone para ativar.": "Tap the microphone to activate.",
       "Solicitando acesso ao microfone": "Requesting microphone access",
@@ -23759,6 +23784,7 @@ ${photoSections}
       "Não foi possível carregar todos os dados do relatório. Tente novamente.": "No se pudieron cargar todos los datos del informe. Inténtalo de nuevo.",
       "O navegador bloqueou a nova janela. Permita pop-ups e tente novamente.": "El navegador bloqueó la nueva ventana. Permite las ventanas emergentes e inténtalo de nuevo.",
       "Relatório HTML baixado.": "Informe HTML descargado.",
+      "Não foi possível baixar o relatório agora.": "No se pudo descargar el informe en este momento.",
       "Desligado": "Desactivado",
       "Toque no microfone para ativar.": "Toca el micrófono para activarlo.",
       "Solicitando acesso ao microfone": "Solicitando acceso al micrófono",
