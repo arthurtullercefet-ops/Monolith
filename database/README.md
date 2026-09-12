@@ -80,7 +80,9 @@ Official docs:
    This adds the trainer calendar, private blocks, weekly recurrence, student confirmation/rescheduling, private trainer notes and an immutable appointment event trail.
 33. Paste and run `monolith-production-step-33-student-billing.sql`.
    This adds manual student billing control for money received outside Monolith, including cycle-based charges anchored to the current link date, partial receipts, exemptions, reversals and audited corrections. It does not process money.
-34. Confirm these tables exist:
+34. Paste and run `monolith-production-step-34-diet-publication-measure-ownership-invites.sql`.
+   This persists draft/published diet status without rewriting legacy diets, restricts student measure edits by record authorship and repairs invite token generation without `gen_random_bytes`.
+35. Confirm these tables exist:
    - `profiles`
    - `trainer_students`
    - `trainer_invites`
@@ -127,7 +129,7 @@ Official docs:
    - `student_payment_private_details`
    - `student_charge_private_notes`
    - `student_billing_events`
-35. Confirm these functions exist:
+36. Confirm these functions exist:
    - `create_trainer_invite`
    - `create_trainer_invite_idempotent`
    - `accept_trainer_invite`
@@ -148,11 +150,11 @@ Official docs:
    - `reverse_monolith_student_payment`
    - `update_monolith_student_charge`
    - `set_monolith_student_charge_exempt`
-36. Confirm Storage has private buckets called `progress-photos` and `space-assets`.
+37. Confirm Storage has private buckets called `progress-photos` and `space-assets`.
 
-All step files are additive and idempotent. Run them in numerical order through step 33. Do not reset the database or delete QA records before running a step.
+All step files are additive and idempotent. Run them in numerical order through step 34. Do not reset the database or delete QA records before running a step.
 
-For an existing Monolith project that already completed step 12, run only steps 13 through 33 in order. Re-running any of those files is safe; they contain no bulk deletion, table reset or QA cleanup.
+For an existing Monolith project that already completed step 33, run only step 34. Re-running the file is safe; it contains no data deletion, bulk update, table reset or QA cleanup.
 
 ### Repair for PGRST205 in Programs or Monolith Voice
 
@@ -224,7 +226,7 @@ Before public launch:
 
 ## Release verification
 
-After steps 13 through 33 are installed, test with fictitious accounts:
+After steps 13 through 34 are installed, test with fictitious accounts:
 
 - A student cannot read another student's workouts, diet, measures, photos, anamnesis, feedback or timeline.
 - A student can execute an assigned workout but cannot insert, update or delete `workout_templates` or `checkin_factors` through the API.

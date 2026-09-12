@@ -14,8 +14,8 @@
   <link rel="manifest" href="manifest.webmanifest" />
   <link rel="icon" href="monolith-icon.svg" />
   <script>
-window.MONOLITH_BUILD = "monolith-v105-workout-idempotency";
-window.MONOLITH_VERSION_LABEL = "Monolith v105 · 11/09/2026";
+window.MONOLITH_BUILD = "monolith-v106-flow-corrections";
+window.MONOLITH_VERSION_LABEL = "Monolith v106 · 12/09/2026";
     (function clearOldAppCaches() {
       if ("serviceWorker" in navigator) {
         navigator.serviceWorker.getRegistrations?.()
@@ -67,6 +67,8 @@ window.MONOLITH_VERSION_LABEL = "Monolith v105 · 11/09/2026";
         "monolith.selectedDietStudentId",
         "monolith.selectedWorkoutStudentId",
         "monolith.selectedCheckinStudentId",
+        "monolith.selectedWorkoutImportStudentId",
+        "monolith.selectedDietImportStudentId",
         "monolith.selectedStudentScopeExplicit",
         "monolith.trainerProfileRequired"
       ]);
@@ -92,6 +94,7 @@ window.MONOLITH_VERSION_LABEL = "Monolith v105 · 11/09/2026";
         return sessionOnlyKeys.has(safeKey)
           || safeKey.startsWith("monolith.pendingTrainerInvite:")
           || safeKey.startsWith("monolith.pendingInfluencerCode:")
+          || safeKey.startsWith("monolith.selectedStudentScope:")
           || safeKey.startsWith("sb-jhxasnxuvmkhntbwepau")
           || safeKey === "supabase.auth.token"
           || safeKey === "monolith.supabase.session";
@@ -5256,7 +5259,7 @@ window.MONOLITH_VERSION_LABEL = "Monolith v105 · 11/09/2026";
           <button class="action" id="loginButton" type="submit">Entrar</button>
           <div class="auth-tools">
             <button class="auth-secondary" id="clearDeviceSessionButton" type="button">Limpar sessão/cache deste aparelho</button>
-            <div class="build-version" id="buildVersionLabel">Versão do app: Monolith v105 · 11/09/2026</div>
+            <div class="build-version" id="buildVersionLabel">Versão do app: Monolith v106 · 12/09/2026</div>
           </div>
         </form>
       </div>
@@ -5705,7 +5708,7 @@ window.MONOLITH_VERSION_LABEL = "Monolith v105 · 11/09/2026";
               <h3>Conectar ao personal</h3>
               <span>Código de convite</span>
             </div>
-            <div class="report-line">Já tem um código do personal? Cole aqui para vincular sua conta mesmo depois do cadastro.</div>
+            <div class="report-line" id="trainerLinkHelp">Já tem um código do personal? Cole aqui para vincular sua conta mesmo depois do cadastro.</div>
             <form class="factor-form" id="trainerLinkForm">
               <div class="form-field">
                 <label for="trainerInviteCode">Código do personal</label>
@@ -5992,7 +5995,7 @@ window.MONOLITH_VERSION_LABEL = "Monolith v105 · 11/09/2026";
           </div>
           <div class="action-row">
             <button class="action" type="button" data-click-target="newWorkoutButton">Criar treino</button>
-            <button class="ghost" type="button" data-focus-target="workoutList">Usar modelo</button>
+            <button class="ghost" type="button" id="useWorkoutTemplateButton">Usar modelo</button>
             <button class="ghost" type="button" data-open-details="workoutCsvPanel">Importar CSV</button>
           </div>
         </div>
@@ -6526,7 +6529,7 @@ window.MONOLITH_VERSION_LABEL = "Monolith v105 · 11/09/2026";
             <p>Atualize nome profissional, serviços, preços, localização, especialidades e autorização de exibição no mapa.</p>
             <div class="settings-actions">
               <button class="action" type="button" id="editTrainerProfileButton">Editar perfil público</button>
-              <button class="ghost" type="button" data-screen-jump="trainerMap">Ver aparência no mapa</button>
+              <button class="ghost" type="button" id="viewTrainerMapAppearanceButton">Ver aparência no mapa</button>
             </div>
           </div>
 
@@ -7269,8 +7272,8 @@ window.MONOLITH_VERSION_LABEL = "Monolith v105 · 11/09/2026";
   <script>
     const MONOLITH_SUPABASE_URL = "https://jhxasnxuvmkhntbwepau.supabase.co";
     const MONOLITH_SUPABASE_KEY = "sb_publishable_lDtAXIOtkMwgwsAZyghBdg_gyLHGwpH";
-const MONOLITH_BUILD = window.MONOLITH_BUILD || "monolith-v105-workout-idempotency";
-const MONOLITH_VERSION_LABEL = window.MONOLITH_VERSION_LABEL || "Monolith v105 · 11/09/2026";
+const MONOLITH_BUILD = window.MONOLITH_BUILD || "monolith-v106-flow-corrections";
+const MONOLITH_VERSION_LABEL = window.MONOLITH_VERSION_LABEL || "Monolith v106 · 12/09/2026";
     const onboardingStepDefinitions = [
       ["welcome", "Boas-vindas", "Conheça o fluxo do seu acompanhamento.", "home"],
       ["terms", "Termos", "Revise consentimentos e informações da conta.", "profile"],
@@ -8828,55 +8831,14 @@ if (location.hash.toLowerCase() === "#leads") history.replaceState(null, "", `${
     async function createTrainerInviteCode(personal = currentAccount(), clientRequestId = createClientRequestId("invite")) {
       if (!personal || personal.role !== "personal") return "";
       if (monolithSupabase && isRealSupabaseAccount(personal)) {
-        let rpcResult = await monolithSupabase.rpc("create_trainer_invite_idempotent", {
+        const rpcResult = await monolithSupabase.rpc("create_trainer_invite_idempotent", {
           p_client_request_id: clientRequestId,
           p_expires_days: 30,
           p_max_uses: null
         });
-        if (rpcResult.error && /function|schema cache|pgrst202/i.test(supabaseErrorText(rpcResult.error))) {
-          rpcResult = await monolithSupabase.rpc("create_trainer_invite", {
-            p_expires_days: 30,
-            p_max_uses: null
-          });
-        }
         if (!rpcResult.error && rpcResult.data) return rpcResult.data;
-
-      logAppError("invites", "create-rpc", rpcResult.error, { trainerId: personal.id });
-        const fallbackCode = inviteCodeForPersonal(personal);
-        const directResult = await monolithSupabase
-          .from("trainer_invites")
-          .insert({
-            trainer_id: personal.id,
-            code: fallbackCode,
-            max_uses: null,
-            expires_at: null,
-            status: "active",
-            client_request_id: clientRequestId
-          })
-          .select("code")
-          .single();
-
-        if (!directResult.error) return directResult.data?.code || fallbackCode;
-        if (clientRequestSchemaUnavailable(directResult.error)) {
-          const legacyResult = await monolithSupabase
-            .from("trainer_invites")
-            .insert(withoutClientRequestId({
-              trainer_id: personal.id,
-              code: fallbackCode,
-              max_uses: null,
-              expires_at: null,
-              status: "active",
-              client_request_id: clientRequestId
-            }))
-            .select("code")
-            .single();
-          if (!legacyResult.error || legacyResult.error?.code === "23505") return legacyResult.data?.code || fallbackCode;
-        }
-        if (directResult.error.code === "23505") return fallbackCode;
-
-        logAppError("invites", "create-fallback", directResult.error, { trainerId: personal.id });
-        authMessage("Convite alternativo criado. Se o aluno não conseguir vincular, rode a query de convites no Supabase.");
-        return fallbackCode;
+        logAppError("invites", "create-rpc", rpcResult.error, { trainerId: personal.id });
+        throw new Error(t("Não consegui confirmar o convite no Supabase. Aplique a etapa 34 do banco e tente novamente."));
       }
       return inviteCodeForPersonal(personal);
     }
@@ -9151,6 +9113,37 @@ if (location.hash.toLowerCase() === "#leads") history.replaceState(null, "", `${
       }
     }
 
+    function remoteAssignedWorkoutEntryFromRow(row) {
+      return {
+        id: row.id,
+        ownerId: row.owner_id,
+        assignedStudentId: row.assigned_student_id || "",
+        name: row.name || "Treino",
+        goal: row.goal || "",
+        tag: row.tag || "Supabase",
+        exercises: Array.isArray(row.exercises) ? row.exercises : [],
+        clientRequestId: row.client_request_id || "",
+        source: "supabase",
+        syncStatus: "synced",
+        createdBy: row.created_by || "",
+        updatedBy: row.updated_by || "",
+        createdAt: row.created_at || "",
+        updatedAt: row.updated_at || row.created_at || ""
+      };
+    }
+
+    function cacheRemoteAssignedWorkoutsForTrainer(entries = [], trainerId = "", studentIds = []) {
+      if (!trainerId) return;
+      const linkedIds = new Set(studentIds);
+      const retained = loadAssignedWorkoutEntries().filter(item => {
+        const ownerId = item.ownerId || item.owner_id || "";
+        const assignedStudentId = item.assignedStudentId || item.assigned_student_id || "";
+        return !(item.source === "supabase" && ownerId === trainerId && linkedIds.has(assignedStudentId));
+      });
+      const merged = mergeByKey(retained, entries, item => item.id || item.clientRequestId);
+      localStorage.setItem("monolith.workouts", JSON.stringify(merged));
+    }
+
     function loadWorkoutPrograms(studentId = "") {
       try {
         const programs = JSON.parse(localStorage.getItem("monolith.workoutPrograms") || "[]");
@@ -9283,8 +9276,8 @@ if (location.hash.toLowerCase() === "#leads") history.replaceState(null, "", `${
       const start = requestedStart < programStart ? programStart : requestedStart;
       const end = new Date(programStart);
       end.setUTCDate(end.getUTCDate() + Math.max(1, Number(program.durationWeeks || 1)) * 7);
-      const studentId = program.studentId || currentAccount()?.id || "";
-      const completed = loadCompletedWorkoutEntries().filter(session => !studentId || session.studentId === studentId || (!session.studentId && studentId === currentAccount()?.id));
+      const studentId = program.studentId || "";
+      const completed = completedWorkoutEntriesForStudent(studentId);
       for (let offset = 0; offset < 15; offset += 1) {
         const date = new Date(start);
         date.setUTCDate(date.getUTCDate() + offset);
@@ -9324,6 +9317,22 @@ if (location.hash.toLowerCase() === "#leads") history.replaceState(null, "", `${
       });
     }
 
+    function completedWorkoutEntriesForStudent(studentId) {
+      if (!studentId) return [];
+      return uniqueNewestEntries(
+        loadCompletedWorkoutEntries().filter(session => session.studentId === studentId),
+        session => session.id || session.clientRequestId || `${entryDateKey(session.completedAt || session.date)}:${session.workoutName}`
+      );
+    }
+
+    function assignedWorkoutEntriesForStudent(studentId) {
+      if (!studentId) return [];
+      return loadAssignedWorkoutEntries().filter(workout => {
+        const assignedStudentId = workout.assignedStudentId || workout.assigned_student_id || "";
+        return assignedStudentId === studentId;
+      });
+    }
+
     function rollingThirtyDayPeriod() {
       const dateKeys = lastThirtyDateKeys();
       const tomorrow = new Date();
@@ -9359,16 +9368,14 @@ if (location.hash.toLowerCase() === "#leads") history.replaceState(null, "", `${
         loadCheckins(studentId).filter(entry => dateKeyInPeriod(entry.date, period)),
         entry => entry.date
       ).sort((a, b) => String(b.date).localeCompare(String(a.date)));
-      const allCompleted = uniqueNewestEntries(
-        loadCompletedWorkoutEntries().filter(session => session.studentId === studentId || (!session.studentId && studentId === currentAccount()?.id)),
-        session => session.id || session.clientRequestId || `${entryDateKey(session.completedAt || session.date)}:${session.workoutName}`
-      );
+      const allCompleted = completedWorkoutEntriesForStudent(studentId);
       const completedWorkouts = allCompleted.filter(session => dateKeyInPeriod(session.completedAt || session.date, period));
-      const assignedWorkouts = loadAssignedWorkoutEntries().filter(workout => {
-        const assigned = workout.assignedStudentId || workout.assigned_student_id || "";
-        if (assigned) return assigned === studentId;
-        return workout.ownerId === studentId || workout.owner_id === studentId;
-      });
+      const assignedWorkouts = assignedWorkoutEntriesForStudent(studentId);
+      const user = currentAccount();
+      const assignmentStatus = user?.role === "personal" && isRealSupabaseAccount(user)
+        ? getRemoteDataState("trainer-assigned-workouts", user.id).status
+        : "loaded";
+      const assignmentsResolved = ["loaded", "empty", "offline-cache"].includes(assignmentStatus);
       const missedDays = missedCheckinDays(checkins, period.dateKeys);
       const adherence = checkins.length
         ? Math.round(checkins.reduce((total, entry) => total + (Number(entry.score) || 0), 0) / checkins.length)
@@ -9402,7 +9409,7 @@ if (location.hash.toLowerCase() === "#leads") history.replaceState(null, "", `${
         ? "Sem check-in"
         : daysSinceCheckin >= 7
           ? `${daysSinceCheckin} dias sem check-in`
-          : !assignedWorkouts.length
+          : assignmentsResolved && !assignedWorkouts.length
             ? "Sem treino atribuído"
             : !activeDietPlan
               ? "Dieta do mês pendente"
@@ -9572,19 +9579,31 @@ if (location.hash.toLowerCase() === "#leads") history.replaceState(null, "", `${
       }
     }
 
+    let personalHomeRefreshSequence = 0;
+
     async function refreshPersonalHome() {
       const user = currentAccount();
       if (user?.role !== "personal") return;
+      const requestId = ++personalHomeRefreshSequence;
       if (!isRealSupabaseAccount(user)) {
         renderPersonalHome();
         return;
       }
       renderPersonalHomeLoading();
       const result = await hydrateRemoteTrainerDashboard(user);
+      if (requestId !== personalHomeRefreshSequence || currentAccount()?.id !== user.id || result.status === "stale") return;
+      if (result.status === "error") {
+        const errorState = remoteStateHTML("error", { errorLabel: "Não foi possível atualizar o painel agora.", retryScreen: "home" });
+        ["trainerAttentionList", "trainerTodayList", "trainerResultsList"].forEach(id => {
+          const target = document.getElementById(id);
+          if (target) target.innerHTML = errorState;
+        });
+        return;
+      }
       renderPersonalHome();
-      if (result.status === "error" && !studentsForPersonal(user.id).length) {
+      if (result.status === "offline-cache") {
         const target = document.getElementById("trainerAttentionList");
-        if (target) target.innerHTML = remoteStateHTML("error", { errorLabel: "Não foi possível atualizar o painel agora.", retryScreen: "home" });
+        if (target) target.insertAdjacentHTML("afterbegin", remoteStateHTML("offline-cache"));
       }
     }
 
@@ -9777,11 +9796,12 @@ if (location.hash.toLowerCase() === "#leads") history.replaceState(null, "", `${
       const panel = document.getElementById("trainerLinkPanel");
       const status = document.getElementById("trainerLinkStatus");
       const form = document.getElementById("trainerLinkForm");
-      const helper = panel?.querySelector(".report-line");
+      const helper = document.getElementById("trainerLinkHelp");
       if (!panel || !status) return;
       const user = currentAccount();
       panel.hidden = !user || user.role !== "student";
       if (!user || user.role !== "student") return;
+      status.hidden = false;
       const initialState = studentTrainerLinkState(user);
       if (["idle", "loading"].includes(initialState.status)) {
         if (form) form.hidden = true;
@@ -10486,6 +10506,15 @@ if (location.hash.toLowerCase() === "#leads") history.replaceState(null, "", `${
       return meta[key];
     }
 
+    function dietPlanStatus(plan = null) {
+      const persistedStatus = String(plan?.status || "").toLowerCase();
+      if (["draft", "published", "archived", "legacy_published"].includes(persistedStatus)) return persistedStatus;
+      const meta = plan?.id ? dietPlanMetaForKey(plan.id) : {};
+      if (meta.archived || meta.status === "archived") return "archived";
+      if (meta.status === "draft") return "draft";
+      return plan?.source === "supabase" ? "legacy_published" : "published";
+    }
+
     function loadDietPlanHistory() {
       try {
         return JSON.parse(localStorage.getItem("monolith.dietPlanHistory") || "{}");
@@ -10613,7 +10642,31 @@ if (location.hash.toLowerCase() === "#leads") history.replaceState(null, "", `${
       return Boolean(personal?.role === "personal" && studentId && linkedStudentIdsForPersonal(personal.id).has(studentId));
     }
 
-    function clearSelectedStudentScope() {
+    function selectedStudentScopeStorageKey(personalId = currentAccount()?.id || "") {
+      return personalId ? `monolith.selectedStudentScope:${personalId}` : "";
+    }
+
+    function readSelectedStudentScope(personalId = currentAccount()?.id || "") {
+      const key = selectedStudentScopeStorageKey(personalId);
+      if (!key) return "";
+      try {
+        const value = JSON.parse(localStorage.getItem(key) || "null");
+        return typeof value?.studentId === "string" ? value.studentId : "";
+      } catch {
+        return "";
+      }
+    }
+
+    function writeSelectedStudentScope(personalId, studentId) {
+      const key = selectedStudentScopeStorageKey(personalId);
+      if (!key || !studentId) return false;
+      localStorage.setItem(key, JSON.stringify({ studentId, updatedAt: new Date().toISOString() }));
+      return true;
+    }
+
+    function clearSelectedStudentScope(personalId = currentAccount()?.id || "") {
+      const scopedKey = selectedStudentScopeStorageKey(personalId);
+      if (scopedKey) localStorage.removeItem(scopedKey);
       [
         "monolith.selectedStudentId",
         "monolith.selectedDietStudentId",
@@ -10649,12 +10702,14 @@ if (location.hash.toLowerCase() === "#leads") history.replaceState(null, "", `${
       const user = currentAccount();
       if (!user) return "";
       if (user.role !== "personal") return user.id;
+      const linkedState = getRemoteDataState("students", user.id).status;
+      const linksResolved = !isRealSupabaseAccount(user) || ["loaded", "empty"].includes(linkedState);
       const canUseStoredSelection = localStorage.getItem("monolith.selectedStudentScopeExplicit") === "true";
-      const storedSelection = canUseStoredSelection
-        ? localStorage.getItem("monolith.selectedStudentId") || ""
-        : "";
+      const scopedSelection = readSelectedStudentScope(user.id);
+      const legacySelection = canUseStoredSelection ? localStorage.getItem("monolith.selectedStudentId") || "" : "";
       const candidates = [
-        storedSelection,
+        scopedSelection,
+        legacySelection,
         document.getElementById("statsStudent")?.value,
         document.getElementById("dietStudent")?.value,
         document.getElementById("checkinStudent")?.value,
@@ -10666,8 +10721,11 @@ if (location.hash.toLowerCase() === "#leads") history.replaceState(null, "", `${
         ] : [])
       ].filter(Boolean);
       const selected = candidates.find(studentId => isLinkedStudentForPersonal(studentId, user));
-      if (selected) return selected;
-      if (!canUseStoredSelection) clearSelectedStudentScope();
+      if (selected) {
+        if (selected !== scopedSelection) writeSelectedStudentScope(user.id, selected);
+        return selected;
+      }
+      if (linksResolved && (scopedSelection || canUseStoredSelection)) clearSelectedStudentScope(user.id);
       return "";
     }
 
@@ -10675,9 +10733,11 @@ if (location.hash.toLowerCase() === "#leads") history.replaceState(null, "", `${
       const user = currentAccount();
       if (!studentId || !user || user.role !== "personal") return false;
       if (!isLinkedStudentForPersonal(studentId, user)) {
-        clearSelectedStudentScope();
+        const linksResolved = !isRealSupabaseAccount(user) || ["loaded", "empty"].includes(getRemoteDataState("students", user.id).status);
+        if (linksResolved) clearSelectedStudentScope(user.id);
         return false;
       }
+      writeSelectedStudentScope(user.id, studentId);
       localStorage.setItem("monolith.selectedStudentScopeExplicit", "true");
       localStorage.setItem("monolith.selectedStudentId", studentId);
       localStorage.setItem("monolith.selectedDietStudentId", studentId);
@@ -10696,22 +10756,41 @@ if (location.hash.toLowerCase() === "#leads") history.replaceState(null, "", `${
 
     function setSelectedCheckinStudentForPersonal(studentId) {
       if (!studentId || !isLinkedStudentForPersonal(studentId)) return;
+      const user = currentAccount();
+      if (user?.role === "personal") writeSelectedStudentScope(user.id, studentId);
       localStorage.setItem("monolith.selectedStudentScopeExplicit", "true");
       localStorage.setItem("monolith.selectedCheckinStudentId", studentId);
       localStorage.setItem("monolith.selectedStudentId", studentId);
       localStorage.setItem("monolith.selectedDietStudentId", studentId);
     }
 
+    const linkedStudentHydrationRequests = new Map();
+
     async function ensureLinkedStudentsForPersonal(personalId = currentAccount()?.id) {
       const personal = loadAccounts().find(account => account.id === personalId) || currentAccount();
       if (!personal || personal.role !== "personal" || !isRealSupabaseAccount(personal)) return studentsForPersonal(personalId);
-      try {
-        const remoteStudents = await loadRemoteLinkedStudents(personalId);
-        if (remoteStudents) saveRemoteStudentsToCache(remoteStudents, personalId);
-      } catch (error) {
-        logAppError("students", "refresh-linked", error, { trainerId: personalId });
-      }
-      return studentsForPersonal(personalId);
+      if (linkedStudentHydrationRequests.has(personalId)) return linkedStudentHydrationRequests.get(personalId);
+      const request = (async () => {
+        const cachedStudents = studentsForPersonal(personalId);
+        setRemoteDataState("students", personalId, "loading");
+        try {
+          const remoteStudents = await loadRemoteLinkedStudents(personalId);
+          if (currentAccount()?.id !== personalId) return [];
+          if (remoteStudents) saveRemoteStudentsToCache(remoteStudents, personalId);
+          const resolvedStudents = studentsForPersonal(personalId);
+          setRemoteDataState("students", personalId, resolvedStudents.length ? "loaded" : "empty", { count: resolvedStudents.length });
+          selectedStudentForPersonal();
+          return resolvedStudents;
+        } catch (error) {
+          logAppError("students", "refresh-linked", error, { trainerId: personalId });
+          setRemoteDataState("students", personalId, cachedStudents.length ? "offline-cache" : "error", { code: error?.code || "UNKNOWN" });
+          return cachedStudents;
+        } finally {
+          linkedStudentHydrationRequests.delete(personalId);
+        }
+      })();
+      linkedStudentHydrationRequests.set(personalId, request);
+      return request;
     }
 
     function selectedDietStudentId() {
@@ -10975,6 +11054,9 @@ if (location.hash.toLowerCase() === "#leads") history.replaceState(null, "", `${
         fat: row.fat || "",
         meals: row.meals || [],
         supplements: (row.supplements || []).map((item, index) => cloneDietSupplement(item, index, { freshId: false })),
+        status: row.publication_status || "legacy_published",
+        publishedAt: row.published_at || "",
+        publishedBy: row.published_by || "",
         savedAt: row.updated_at || row.created_at,
         updatedAt: row.updated_at || row.created_at,
         createdBy: row.created_by || "",
@@ -11165,6 +11247,8 @@ if (location.hash.toLowerCase() === "#leads") history.replaceState(null, "", `${
         leg_cm: entry.leg || null,
         hip_cm: entry.hip || null,
         notes: entry.notes || null,
+        created_by: entry.createdBy || user.id,
+        updated_by: user.id,
         client_request_id: entry.clientRequestId || createClientRequestId("measure")
       };
       let result;
@@ -11180,7 +11264,9 @@ if (location.hash.toLowerCase() === "#leads") history.replaceState(null, "", `${
       if (error && clientRequestSchemaUnavailable(error)) {
         const fallback = hasRemoteId
           ? await monolithSupabase.from("body_measurements").update(withoutClientRequestId(payload)).eq("id", entry.id).select("*").single()
-          : await monolithSupabase.from("body_measurements").insert(withoutClientRequestId(payload)).select("*").single();
+          : entry.originalDate
+            ? await monolithSupabase.from("body_measurements").update(withoutClientRequestId(payload)).eq("student_id", payload.student_id).eq("measurement_date", entry.originalDate).select("*").maybeSingle()
+            : await monolithSupabase.from("body_measurements").insert(withoutClientRequestId(payload)).select("*").single();
         data = fallback.data;
         error = fallback.error;
       }
@@ -11377,6 +11463,7 @@ if (location.hash.toLowerCase() === "#leads") history.replaceState(null, "", `${
       const user = currentAccount();
       if (!monolithSupabase || !isRealSupabaseAccount(user) || user.role !== "personal") return false;
       if (!canAccessStudentData(plan.studentId)) return false;
+      const normalizedStatus = dietPlanStatus(plan);
       const payload = {
         trainer_id: user.id,
         student_id: plan.studentId,
@@ -11387,6 +11474,7 @@ if (location.hash.toLowerCase() === "#leads") history.replaceState(null, "", `${
         fat: plan.fat || null,
         meals: plan.meals || [],
         supplements: (plan.supplements || []).map((item, index) => cloneDietSupplement(item, index)),
+        publication_status: normalizedStatus === "legacy_published" ? null : normalizedStatus,
         client_request_id: plan.clientRequestId || createClientRequestId("diet")
       };
       let { data, error } = await monolithSupabase
@@ -11394,9 +11482,14 @@ if (location.hash.toLowerCase() === "#leads") history.replaceState(null, "", `${
         .upsert(payload, { onConflict: "student_id,month_key" })
         .select("*")
         .single();
+      if (error && /publication_status|published_at|published_by/i.test(supabaseErrorText(error))) {
+        throw new Error(t("Aplique a migration de publicação das dietas antes de salvar."));
+      }
       if (error && clientRequestSchemaUnavailable(error)) {
-        const legacyPayload = withoutClientRequestId(payload);
-        delete legacyPayload.supplements;
+        const legacyPayload = { ...payload };
+        const errorDetail = supabaseErrorText(error).toLowerCase();
+        if (errorDetail.includes("client_request_id")) delete legacyPayload.client_request_id;
+        if (errorDetail.includes("supplements")) delete legacyPayload.supplements;
         ({ data, error } = await monolithSupabase
           .from("diet_plans")
           .upsert(legacyPayload, { onConflict: "student_id,month_key" })
@@ -11406,6 +11499,36 @@ if (location.hash.toLowerCase() === "#leads") history.replaceState(null, "", `${
       if (error) throw error;
       if (data) cacheDietPlan(remoteDietPlanFromRow(data));
       return true;
+    }
+
+    async function saveRemoteDietPlans(plans = []) {
+      const user = currentAccount();
+      if (!monolithSupabase || !isRealSupabaseAccount(user) || user.role !== "personal") return [];
+      if (!plans.length || plans.some(plan => !isLinkedStudentForPersonal(plan.studentId, user))) throw new Error(t("Destino da importação não é mais válido."));
+      const payloads = plans.map(plan => ({
+        trainer_id: user.id,
+        student_id: plan.studentId,
+        month_key: plan.month,
+        calories: plan.calories,
+        protein: plan.protein,
+        carbs: plan.carbs,
+        fat: plan.fat,
+        meals: plan.meals || [],
+        supplements: (plan.supplements || []).map((item, index) => cloneDietSupplement(item, index)),
+        publication_status: "draft",
+        client_request_id: plan.clientRequestId || createClientRequestId("diet-import")
+      }));
+      const { data, error } = await monolithSupabase
+        .from("diet_plans")
+        .upsert(payloads, { onConflict: "student_id,month_key" })
+        .select("*");
+      if (error && /publication_status|published_at|published_by/i.test(supabaseErrorText(error))) {
+        throw new Error(t("Aplique a migration de publicação das dietas antes de importar."));
+      }
+      if (error) throw error;
+      const saved = (data || []).map(remoteDietPlanFromRow);
+      saved.forEach(cacheDietPlan);
+      return saved;
     }
 
     async function deleteRemoteDietPlan(studentId, month = currentMonthKey()) {
@@ -11501,16 +11624,23 @@ if (location.hash.toLowerCase() === "#leads") history.replaceState(null, "", `${
       return { status: reportStatus, results };
     }
 
+    let trainerDashboardHydrationSequence = 0;
+
     async function hydrateRemoteTrainerDashboard(user = currentAccount()) {
       if (!user || user.role !== "personal" || !isRealSupabaseAccount(user) || !monolithSupabase) return { status: "local" };
+      const requestId = ++trainerDashboardHydrationSequence;
+      const trainerId = user.id;
+      const isCurrentRequest = () => requestId === trainerDashboardHydrationSequence && currentAccount()?.id === trainerId;
       setRemoteDataState("trainer-dashboard", user.id, "loading");
       const studentsResult = await loadRemoteModule("students", user.id, () => loadRemoteLinkedStudents(user.id), {
         hasCache: studentsForPersonal(user.id).length > 0
       });
       if (!studentsResult.ok) {
+        if (!isCurrentRequest()) return { status: "stale" };
         setRemoteDataState("trainer-dashboard", user.id, studentsResult.status);
         return { status: studentsResult.status };
       }
+      if (!isCurrentRequest()) return { status: "stale" };
       const students = studentsResult.data || [];
       saveRemoteStudentsToCache(students, user.id);
       const studentIds = students.map(student => student.id);
@@ -11528,7 +11658,7 @@ if (location.hash.toLowerCase() === "#leads") history.replaceState(null, "", `${
           .order("checkin_date", { ascending: false });
         if (error) throw error;
         const rows = (data || []).map(remoteCheckinFromRow);
-        studentIds.forEach(studentId => cacheRemoteCheckins(rows.filter(entry => entry.studentId === studentId), studentId));
+        if (isCurrentRequest()) studentIds.forEach(studentId => cacheRemoteCheckins(rows.filter(entry => entry.studentId === studentId), studentId));
         return rows;
       }, { hasCache: studentIds.some(studentId => loadCheckins(studentId).length) });
       const workoutResult = await loadRemoteModule("trainer-completed-workouts", user.id, async () => {
@@ -11540,7 +11670,7 @@ if (location.hash.toLowerCase() === "#leads") history.replaceState(null, "", `${
           .order("completed_at", { ascending: false });
         if (error) throw error;
         const rows = (data || []).map(remoteCompletedWorkoutFromRow);
-        studentIds.forEach(studentId => cacheRemoteCompletedWorkouts(rows.filter(entry => entry.studentId === studentId), studentId));
+        if (isCurrentRequest()) studentIds.forEach(studentId => cacheRemoteCompletedWorkouts(rows.filter(entry => entry.studentId === studentId), studentId));
         return rows;
       }, { hasCache: studentIds.some(studentId => loadCompletedWorkoutEntries().some(entry => entry.studentId === studentId)) });
       const dietResult = await loadRemoteModule("trainer-diets", user.id, async () => {
@@ -11552,22 +11682,42 @@ if (location.hash.toLowerCase() === "#leads") history.replaceState(null, "", `${
         if (error) throw error;
         const rows = (data || []).map(remoteDietPlanFromRow);
         const studentsWithDiet = new Set(rows.map(plan => plan.studentId));
-        rows.forEach(cacheDietPlan);
-        studentIds.filter(studentId => !studentsWithDiet.has(studentId)).forEach(studentId => removeCachedDietPlan(studentId, currentMonthKey()));
+        if (isCurrentRequest()) {
+          rows.forEach(cacheDietPlan);
+          studentIds.filter(studentId => !studentsWithDiet.has(studentId)).forEach(studentId => removeCachedDietPlan(studentId, currentMonthKey()));
+        }
         return rows;
       }, { hasCache: studentIds.some(studentId => Boolean(storedDietPlanForStudent(studentId, currentMonthKey()))) });
-      const results = [checkinResult, workoutResult, dietResult];
+      const assignedWorkoutResult = await loadRemoteModule("trainer-assigned-workouts", user.id, async () => {
+        const { data, error } = await monolithSupabase
+          .from("workout_templates")
+          .select("*")
+          .eq("owner_id", user.id)
+          .in("assigned_student_id", studentIds)
+          .order("created_at", { ascending: false });
+        if (error) throw error;
+        const rows = (data || []).map(remoteAssignedWorkoutEntryFromRow);
+        if (isCurrentRequest()) cacheRemoteAssignedWorkoutsForTrainer(rows, user.id, studentIds);
+        return rows;
+      }, { hasCache: studentIds.some(studentId => assignedWorkoutEntriesForStudent(studentId).length > 0) });
+      if (!isCurrentRequest()) return { status: "stale" };
+      const results = [checkinResult, workoutResult, dietResult, assignedWorkoutResult];
       const failures = results.filter(result => !result.ok);
-      const status = failures.length ? (failures.some(result => result.status === "offline-cache") ? "offline-cache" : "error") : "loaded";
+      const status = failures.some(result => result.status === "error")
+        ? "error"
+        : failures.length
+          ? "offline-cache"
+          : "loaded";
       setRemoteDataState("trainer-dashboard", user.id, status, { count: students.length });
       return { status, students, results };
     }
 
     function activeDietForStudent(studentId, month = currentMonthKey()) {
-      const key = dietPlanKey(studentId, month);
       const plan = storedDietPlanForStudent(studentId, month);
-      const meta = dietPlanMetaForKey(key);
-      return meta.archived || meta.status === "archived" ? null : plan;
+      if (!plan) return null;
+      const status = dietPlanStatus(plan);
+      if (currentAccount()?.role === "student") return ["published", "legacy_published"].includes(status) ? plan : null;
+      return status === "archived" ? null : plan;
     }
 
     const anamnesisRiskFields = [
@@ -12371,6 +12521,8 @@ if (location.hash.toLowerCase() === "#leads") history.replaceState(null, "", `${
     }
 
     function applyDietPlanToForm(plan) {
+      const form = document.getElementById("dietPlanForm");
+      if (form) form.dataset.planStatus = plan?.id ? dietPlanStatus(plan) : (plan?.status || "draft");
       const mealCount = document.getElementById("dietMealCount");
       if (mealCount) mealCount.value = String(Math.max(1, Math.min(10, plan?.meals?.length || 5)));
       ["dietCalories", "dietProtein", "dietCarbs", "dietFat"].forEach(id => {
@@ -12381,6 +12533,24 @@ if (location.hash.toLowerCase() === "#leads") history.replaceState(null, "", `${
       renderDietMealBuilder(plan?.meals || Array.from({ length: Number(mealCount?.value || 5) }, (_, index) => defaultMeal(index)));
       renderDietSupplementBuilder(plan?.supplements || []);
       renderDietPlan("dietPreview", plan || null);
+    }
+
+    function dietDraftCopy(sourcePlan, { studentId = sourcePlan?.studentId || "", month = sourcePlan?.month || currentMonthKey() } = {}) {
+      const {
+        remoteId, publishedAt, publishedBy, createdAt, updatedAt, savedAt,
+        createdBy, updatedBy, syncStatus, syncError, clientRequestId,
+        ...content
+      } = sourcePlan || {};
+      return {
+        ...content,
+        id: dietPlanKey(studentId, month),
+        studentId,
+        trainerId: currentAccount()?.id || sourcePlan?.trainerId || "",
+        month,
+        status: "draft",
+        meals: (sourcePlan?.meals || []).map(meal => ({ ...meal })),
+        supplements: (sourcePlan?.supplements || []).map((item, index) => cloneDietSupplement(item, index, { freshId: true }))
+      };
     }
 
     async function copyPreviousDietMonth() {
@@ -12409,29 +12579,40 @@ if (location.hash.toLowerCase() === "#leads") history.replaceState(null, "", `${
         confirmLabel: "Copiar dieta",
         danger: true
       })) return;
-      const copiedPlan = {
-        ...sourcePlan,
-        id: dietPlanKey(studentId, month),
-        studentId,
-        month,
-        meals: (sourcePlan.meals || []).map(meal => ({ ...meal })),
-        supplements: (sourcePlan.supplements || []).map((item, index) => cloneDietSupplement(item, index, { freshId: true }))
-      };
+      const copiedPlan = dietDraftCopy(sourcePlan, { studentId, month });
       applyDietPlanToForm(copiedPlan);
       markDirty("diet");
       showToast("Dieta do mês anterior copiada.");
     }
 
-    function setCurrentDietStatus(nextStatus = "published") {
+    async function setCurrentDietStatus(nextStatus = "published") {
       const { plan, key } = currentDietPlanSelection();
       if (!plan) {
         showToast("Selecione uma dieta salva primeiro.");
         return;
       }
-      rememberDietPlanVersion(plan, "status");
-      updateDietPlanMeta(key, { status: nextStatus, archived: nextStatus === "archived" });
-      renderDietPlan("dietPreview", plan);
-      showToast(nextStatus === "draft" ? "Dieta marcada como rascunho." : nextStatus === "archived" ? "Dieta arquivada." : "Dieta publicada.");
+      if (nextStatus === "published" && !await confirmAction({
+        title: "Publicar dieta?",
+        message: "A dieta ficará visível para o aluno vinculado.",
+        contextLabel: "Destino",
+        contextValue: `${accountNameForTarget(plan.studentId)} · ${localizedMonthLabel(plan.month)}`,
+        confirmLabel: "Publicar",
+        danger: false
+      })) return;
+      await runPendingOperation(`diet-status:${key}:${nextStatus}`, nextStatus === "archived" ? "#archiveDietButton" : "#publishDietButton", async clientRequestId => {
+        const updatedPlan = {
+          ...plan,
+          status: nextStatus,
+          clientRequestId: plan.clientRequestId || clientRequestId
+        };
+        rememberDietPlanVersion(plan, "status");
+        if (isRealSupabaseAccount(currentAccount())) await saveRemoteDietPlan(updatedPlan);
+        else cacheDietPlan(updatedPlan);
+        updateDietPlanMeta(key, { status: nextStatus, archived: nextStatus === "archived" });
+        const authoritative = storedDietPlanForStudent(plan.studentId, plan.month) || updatedPlan;
+        applyDietPlanToForm(authoritative);
+        showToast(nextStatus === "draft" ? "Dieta marcada como rascunho." : nextStatus === "archived" ? "Dieta arquivada." : "Dieta publicada.");
+      }, { loadingText: nextStatus === "published" ? "Publicando dieta..." : "Atualizando dieta..." });
     }
 
     async function deleteCurrentDietPlan() {
@@ -12485,14 +12666,7 @@ if (location.hash.toLowerCase() === "#leads") history.replaceState(null, "", `${
         showToast("Use o formato AAAA-MM.");
         return;
       }
-      const copy = {
-        ...plan,
-        id: dietPlanKey(plan.studentId, targetMonth),
-        month: targetMonth,
-        meals: (plan.meals || []).map(meal => ({ ...meal })),
-        supplements: (plan.supplements || []).map((item, index) => cloneDietSupplement(item, index, { freshId: true })),
-        savedAt: new Date().toISOString()
-      };
+      const copy = dietDraftCopy(plan, { studentId: plan.studentId, month: targetMonth });
       const plans = loadDietPlans();
       if (plans[copy.id] && !await confirmAction({
         title: "Substituir dieta existente?",
@@ -12505,15 +12679,9 @@ if (location.hash.toLowerCase() === "#leads") history.replaceState(null, "", `${
       await runPendingOperation(`diet-duplicate:${copy.id}`, "#duplicateDietButton", async clientRequestId => {
         copy.clientRequestId = clientRequestId;
         if (plans[copy.id]) rememberDietPlanVersion(plans[copy.id], "duplicate_replace");
-        plans[copy.id] = copy;
-        saveDietPlans(plans);
+        if (isRealSupabaseAccount(currentAccount())) await saveRemoteDietPlan(copy);
+        else cacheDietPlan(copy);
         updateDietPlanMeta(copy.id, { status: "draft", archived: false });
-        try {
-          await saveRemoteDietPlan(copy);
-        } catch (error) {
-          logAppError("diet", "duplicate", error, { studentId: copy.studentId, month: copy.month });
-          showToast("Dieta duplicada localmente. Não consegui sincronizar agora.");
-        }
         const monthInput = document.getElementById("dietMonth");
         if (monthInput) monthInput.value = targetMonth;
         renderNutrition();
@@ -12539,16 +12707,11 @@ if (location.hash.toLowerCase() === "#leads") history.replaceState(null, "", `${
       await runPendingOperation(`diet-restore:${key}`, "#restoreDietVersionButton", async clientRequestId => {
         const plans = loadDietPlans();
         if (plans[key]) rememberDietPlanVersion(plans[key], "before_restore");
-        const restored = { ...version.plan, clientRequestId, meals: (version.plan.meals || []).map(meal => ({ ...meal })), supplements: (version.plan.supplements || []).map((item, index) => cloneDietSupplement(item, index)) };
-        plans[key] = restored;
-        saveDietPlans(plans);
-        updateDietPlanMeta(key, { ...(version.meta || {}), archived: version.meta?.archived === true || version.meta?.status === "archived", status: version.meta?.status || "published" });
-        try {
-          await saveRemoteDietPlan(restored);
-        } catch (error) {
-          logAppError("diet", "restore-version", error, { studentId: restored.studentId, month: restored.month });
-          showToast("Versão restaurada localmente. Não consegui sincronizar agora.");
-        }
+        const restored = dietDraftCopy(version.plan, { studentId: version.plan.studentId, month: version.plan.month });
+        restored.clientRequestId = clientRequestId;
+        if (isRealSupabaseAccount(currentAccount())) await saveRemoteDietPlan(restored);
+        else cacheDietPlan(restored);
+        updateDietPlanMeta(key, { status: "draft", archived: false });
         renderNutrition();
         showToast("Versão da dieta restaurada.");
       }, { loadingText: "Restaurando dieta..." });
@@ -12559,7 +12722,10 @@ if (location.hash.toLowerCase() === "#leads") history.replaceState(null, "", `${
       const month = document.getElementById("dietMonth")?.value || currentMonthKey();
       const meals = readDietMealBuilderEntries();
       const supplements = readDietSupplementBuilderEntries().filter(supplementHasUserContent).map((item, index) => cloneDietSupplement(item, index));
+      const existing = storedDietPlanForStudent(studentId, month);
+      const formStatus = document.getElementById("dietPlanForm")?.dataset.planStatus || "";
       return {
+        ...(existing || {}),
         id: dietPlanKey(studentId, month),
         studentId,
         trainerId: currentAccount()?.id || "personal-demo",
@@ -12569,7 +12735,8 @@ if (location.hash.toLowerCase() === "#leads") history.replaceState(null, "", `${
         carbs: document.getElementById("dietCarbs").value.trim(),
         fat: document.getElementById("dietFat").value.trim(),
         meals,
-        supplements
+        supplements,
+        status: formStatus || (existing ? dietPlanStatus(existing) : "draft")
       };
     }
 
@@ -12582,9 +12749,9 @@ if (location.hash.toLowerCase() === "#leads") history.replaceState(null, "", `${
 
     function dietPlanStatusLabel(plan) {
       if (!plan?.id) return "Rascunho";
-      const meta = dietPlanMetaForKey(plan.id);
-      if (meta.archived || meta.status === "archived") return "Arquivada";
-      return meta.status === "draft" ? "Rascunho" : "Publicada";
+      const status = dietPlanStatus(plan);
+      if (status === "archived") return "Arquivada";
+      return status === "draft" ? "Rascunho" : "Publicada";
     }
 
     function updateDietManagementActions(plan = null) {
@@ -12596,18 +12763,18 @@ if (location.hash.toLowerCase() === "#leads") history.replaceState(null, "", `${
       const canRestore = currentAccount()?.role === "personal" && Boolean(latestDietPlanVersion(key));
       actions.hidden = !canManage && !canRestore;
       if (actions.hidden) return;
-      const meta = plan?.id ? dietPlanMetaForKey(plan.id) : {};
+      const status = plan?.id ? dietPlanStatus(plan) : "draft";
       const statusButton = document.getElementById("publishDietButton");
       const archiveButton = document.getElementById("archiveDietButton");
       const duplicateButton = document.getElementById("duplicateDietButton");
       const deleteButton = document.getElementById("deleteDietButton");
       const restoreButton = document.getElementById("restoreDietVersionButton");
       if (statusButton) {
-        statusButton.textContent = t(meta.status === "draft" ? "Publicar" : "Marcar rascunho");
+        statusButton.textContent = t(status === "draft" ? "Publicar" : "Marcar rascunho");
         statusButton.disabled = !canManage;
       }
       if (archiveButton) {
-        archiveButton.textContent = t(meta.archived || meta.status === "archived" ? "Reativar" : "Arquivar");
+        archiveButton.textContent = t(status === "archived" ? "Reativar" : "Arquivar");
         archiveButton.disabled = !canManage;
       }
       if (duplicateButton) duplicateButton.disabled = !canManage;
@@ -12748,6 +12915,7 @@ if (location.hash.toLowerCase() === "#leads") history.replaceState(null, "", `${
           value += char;
         }
       }
+      if (quoted) throw new Error(t("CSV inválido: aspas não foram fechadas."));
       row.push(value.trim());
       if (row.some(cell => cell !== "")) rows.push(row);
       return rows;
@@ -12762,28 +12930,29 @@ if (location.hash.toLowerCase() === "#leads") history.replaceState(null, "", `${
         .replace(/^_+|_+$/g, "");
     }
 
+    const dietCsvSchema = [
+      { key: "studentName", labels: ["aluno", "student", "alumno"], aliases: ["student_name", "nome_aluno", "nombre_alumno", "email", "email_aluno", "email_alumno", "student_email"] },
+      { key: "month", labels: ["mes", "month", "mes"], aliases: ["competencia", "month_key"], requiredValue: true },
+      { key: "mealName", labels: ["refeicao", "meal", "comida"], aliases: ["nome_refeicao", "nombre_comida", "meal_name"], requiredValue: true },
+      { key: "items", labels: ["alimentos", "foods", "alimentos"], aliases: ["items", "alimentos_e_quantidades", "foods_and_amounts"], requiredValue: true },
+      { key: "calories", labels: ["calorias", "calories", "calorias"], aliases: ["kcal"], requiredValue: true, numeric: true },
+      { key: "protein", labels: ["proteina", "protein", "proteina"], aliases: [], requiredValue: true, numeric: true },
+      { key: "carbs", labels: ["carbo", "carbs", "carbo"], aliases: ["carboidrato", "carboidratos"], requiredValue: true, numeric: true },
+      { key: "fat", labels: ["gordura", "fat", "grasa"], aliases: [], requiredValue: true, numeric: true },
+      { key: "micros", labels: ["micros", "micros", "micros"], aliases: ["micro", "observacoes", "observaciones", "observacoes_nutricionais", "observaciones_nutricionales", "nutrition_notes"] },
+      { key: "substitutions", labels: ["substituicoes", "substitutions", "sustituciones"], aliases: ["sustituiciones", "trocas"] },
+      { key: "notes", labels: ["texto_personal", "trainer_note", "nota_entrenador"], aliases: ["personal", "nota", "notas", "note"] },
+      { key: "targetCalories", labels: ["meta_calorias", "target_calories", "meta_calorias"], aliases: ["calorias_meta"], numeric: true },
+      { key: "targetProtein", labels: ["meta_proteina", "target_protein", "meta_proteina"], aliases: ["proteina_meta"], numeric: true },
+      { key: "targetCarbs", labels: ["meta_carbo", "target_carbs", "meta_carbo"], aliases: ["carbo_meta"], numeric: true },
+      { key: "targetFat", labels: ["meta_gordura", "target_fat", "meta_grasa"], aliases: ["gordura_meta", "grasa_meta"], numeric: true }
+    ];
+
     function dietCsvHeaderIndexes(header = []) {
-      const aliases = {
-        studentName: ["aluno", "alumno", "student", "student_name", "nome_aluno", "nombre_alumno", "email", "email_aluno", "email_alumno", "student_email"],
-        month: ["mes", "month", "competencia", "month_key"],
-        mealName: ["refeicao", "refeicao", "comida", "meal", "nome_refeicao", "nombre_comida", "meal_name"],
-        items: ["alimentos", "foods", "items", "alimentos_e_quantidades", "foods_and_amounts"],
-        calories: ["calorias", "calories", "calorias", "kcal"],
-        protein: ["proteina", "protein"],
-        carbs: ["carbo", "carbs", "carboidrato", "carboidratos"],
-        fat: ["gordura", "grasa", "fat"],
-        micros: ["micros", "micro", "observacoes", "observaciones", "observacoes_nutricionais", "observaciones_nutricionales", "nutrition_notes"],
-        substitutions: ["substituicoes", "sustituciones", "sustituiciones", "substitutions", "trocas"],
-        notes: ["texto_personal", "nota_entrenador", "personal", "nota", "notas", "trainer_note", "note"],
-        targetCalories: ["meta_calorias", "target_calories", "calorias_meta"],
-        targetProtein: ["meta_proteina", "target_protein", "proteina_meta"],
-        targetCarbs: ["meta_carbo", "target_carbs", "carbo_meta"],
-        targetFat: ["meta_gordura", "meta_grasa", "target_fat", "gordura_meta", "grasa_meta"]
-      };
       const normalized = header.map(normalizeDietCsvKey);
-      return Object.fromEntries(Object.entries(aliases).map(([field, names]) => [
-        field,
-        normalized.findIndex(item => names.includes(item))
+      return Object.fromEntries(dietCsvSchema.map(column => [
+        column.key,
+        normalized.findIndex(item => [...column.labels, ...column.aliases].map(normalizeDietCsvKey).includes(item))
       ]));
     }
 
@@ -12795,7 +12964,7 @@ if (location.hash.toLowerCase() === "#leads") history.replaceState(null, "", `${
     function dietCsvStudentAssignment(value = "", fallbackStudentId = undefined, linkedStudents = []) {
       const raw = String(value || "").trim();
       if (!raw) {
-        if (fallbackStudentId !== undefined && fallbackStudentId && isLinkedStudentForPersonal(fallbackStudentId)) return fallbackStudentId;
+        if (fallbackStudentId !== undefined && fallbackStudentId && linkedStudents.some(student => student.id === fallbackStudentId)) return fallbackStudentId;
         throw new Error(t("Linha sem aluno no CSV."));
       }
       const normalized = raw.toLowerCase();
@@ -12816,23 +12985,8 @@ if (location.hash.toLowerCase() === "#leads") history.replaceState(null, "", `${
     }
 
     function dietCsvHeader() {
-      return [
-        csvLocaleValue("aluno", "student", "alumno"),
-        csvLocaleValue("mes", "month", "mes"),
-        csvLocaleValue("refeicao", "meal", "comida"),
-        csvLocaleValue("alimentos", "foods", "alimentos"),
-        csvLocaleValue("calorias", "calories", "calorias"),
-        csvLocaleValue("proteina", "protein", "proteina"),
-        csvLocaleValue("carbo", "carbs", "carbo"),
-        csvLocaleValue("gordura", "fat", "grasa"),
-        "micros",
-        csvLocaleValue("substituicoes", "substitutions", "sustituciones"),
-        csvLocaleValue("texto_personal", "trainer_note", "nota_entrenador"),
-        csvLocaleValue("meta_calorias", "target_calories", "meta_calorias"),
-        csvLocaleValue("meta_proteina", "target_protein", "meta_proteina"),
-        csvLocaleValue("meta_carbo", "target_carbs", "meta_carbo"),
-        csvLocaleValue("meta_gordura", "target_fat", "meta_grasa")
-      ];
+      const languageIndex = { pt: 0, en: 1, es: 2 }[localStorage.getItem("monolith.language") || "pt"] ?? 0;
+      return dietCsvSchema.map(column => column.labels[languageIndex]);
     }
 
     function csvEscapeDiet(value, delimiter = ";") {
@@ -12867,7 +13021,7 @@ if (location.hash.toLowerCase() === "#leads") history.replaceState(null, "", `${
         return;
       }
       const rows = previewRows.slice(0, 30).map(row => `
-        <tr class="${row.status === "error" || row.status === "missing" ? "error" : row.status === "fallback" ? "warning" : ""}">
+        <tr class="${row.status === "error" || row.status === "missing" ? "error" : ["fallback", "warning"].includes(row.status) ? "warning" : ""}">
           <td>${escapeHTML(String(row.line))}</td>
           <td>${escapeHTML(row.studentLabel || "-")}</td>
           <td>${escapeHTML(row.item || "-")}</td>
@@ -12904,83 +13058,115 @@ if (location.hash.toLowerCase() === "#leads") history.replaceState(null, "", `${
       });
     }
 
-    function parseDietCsvPlans(text, fallbackStudentId = undefined, linkedStudents = []) {
-      const rows = parseDietCsvRows(text);
-      if (!rows.length) throw new Error(t("Arquivo CSV vazio."));
+    function parseDietCsvNumber(value, label, { required = false } = {}) {
+      const raw = String(value ?? "").trim();
+      if (!raw) {
+        if (required) throw new Error(`${t("Valor obrigatório ausente")}: ${t(label)}`);
+        return null;
+      }
+      const normalized = raw.toLowerCase().replace(/\s+/g, "").replace(/(kcal|g)$/i, "").replace(",", ".");
+      if (!/^\d+(?:\.\d+)?$/.test(normalized)) throw new Error(`${t("Valor numérico inválido")}: ${t(label)}`);
+      const number = Number(normalized);
+      if (!Number.isFinite(number) || number < 0) throw new Error(`${t("Valor numérico inválido")}: ${t(label)}`);
+      return number;
+    }
+
+    function validateDietCsv(text, fallbackStudentId = undefined, linkedStudents = []) {
+      let rows;
+      try {
+        rows = parseDietCsvRows(text);
+      } catch (error) {
+        return { preview: [{ line: 1, status: "error", studentLabel: "-", item: "CSV", message: error?.message || "CSV inválido." }], plans: [], valid: false };
+      }
+      if (!rows.length) return { preview: [{ line: 1, status: "error", studentLabel: "-", item: "CSV", message: "Arquivo CSV vazio." }], plans: [], valid: false };
       const indexes = dietCsvHeaderIndexes(rows[0]);
-      const hasHeader = Object.values(indexes).some(index => index >= 0);
-      const dataRows = hasHeader ? rows.slice(1) : rows;
-      const fallback = hasHeader ? {
-        studentName: -1,
-        month: -1,
-        mealName: -1,
-        items: -1,
-        calories: -1,
-        protein: -1,
-        carbs: -1,
-        fat: -1,
-        micros: -1,
-        substitutions: -1,
-        notes: -1,
-        targetCalories: -1,
-        targetProtein: -1,
-        targetCarbs: -1,
-        targetFat: -1
-      } : {
-        studentName: 0,
-        month: 1,
-        mealName: 2,
-        items: 3,
-        calories: 4,
-        protein: 5,
-        carbs: 6,
-        fat: 7,
-        micros: 8,
-        substitutions: 9,
-        notes: 10,
-        targetCalories: 11,
-        targetProtein: 12,
-        targetCarbs: 13,
-        targetFat: 14
-      };
-      const plans = new Map();
-      dataRows.forEach(row => {
-        const studentId = dietCsvStudentAssignment(dietCsvValue(row, indexes, "studentName", fallback.studentName), fallbackStudentId, linkedStudents);
-        const month = dietCsvValue(row, indexes, "month", fallback.month) || currentMonthKey();
-        const meal = {
-          name: dietCsvValue(row, indexes, "mealName", fallback.mealName) || t("Refeição"),
-          items: dietCsvValue(row, indexes, "items", fallback.items),
-          calories: dietCsvValue(row, indexes, "calories", fallback.calories),
-          protein: dietCsvValue(row, indexes, "protein", fallback.protein),
-          carbs: dietCsvValue(row, indexes, "carbs", fallback.carbs),
-          fat: dietCsvValue(row, indexes, "fat", fallback.fat),
-          micros: dietCsvValue(row, indexes, "micros", fallback.micros),
-          substitutions: dietCsvValue(row, indexes, "substitutions", fallback.substitutions),
-          notes: dietCsvValue(row, indexes, "notes", fallback.notes)
+      const missingHeaders = dietCsvSchema.filter(column => indexes[column.key] < 0).map(column => column.labels[0]);
+      if (missingHeaders.length) {
+        return {
+          preview: [{ line: 1, status: "error", studentLabel: "-", item: "Cabeçalho", message: `${t("Colunas obrigatórias ausentes")}: ${missingHeaders.join(", ")}` }],
+          plans: [],
+          valid: false
         };
-        if (!meal.name && !meal.items) return;
-        const key = dietPlanKey(studentId, month);
-        if (!plans.has(key)) {
-          plans.set(key, {
+      }
+      const dataRows = rows.slice(1);
+      if (!dataRows.length) return { preview: [{ line: 2, status: "error", studentLabel: "-", item: "CSV", message: "Nenhuma linha de dados encontrada." }], plans: [], valid: false };
+      const preview = [];
+      const plans = new Map();
+      dataRows.forEach((row, index) => {
+        const line = index + 2;
+        const rawStudent = dietCsvValue(row, indexes, "studentName");
+        const item = dietCsvValue(row, indexes, "mealName") || t("Refeição");
+        try {
+          const studentId = dietCsvStudentAssignment(rawStudent, fallbackStudentId, linkedStudents);
+          const month = dietCsvValue(row, indexes, "month");
+          if (!/^\d{4}-(0[1-9]|1[0-2])$/.test(month)) throw new Error(t("Mês inválido. Use AAAA-MM."));
+          for (const column of dietCsvSchema.filter(column => column.requiredValue && !column.numeric)) {
+            if (!dietCsvValue(row, indexes, column.key)) throw new Error(`${t("Valor obrigatório ausente")}: ${column.labels[0]}`);
+          }
+          const meal = {
+            name: dietCsvValue(row, indexes, "mealName"),
+            items: dietCsvValue(row, indexes, "items"),
+            calories: parseDietCsvNumber(dietCsvValue(row, indexes, "calories"), "Calorias", { required: true }),
+            protein: parseDietCsvNumber(dietCsvValue(row, indexes, "protein"), "Proteína", { required: true }),
+            carbs: parseDietCsvNumber(dietCsvValue(row, indexes, "carbs"), "Carbo", { required: true }),
+            fat: parseDietCsvNumber(dietCsvValue(row, indexes, "fat"), "Gordura", { required: true }),
+            micros: dietCsvValue(row, indexes, "micros"),
+            substitutions: dietCsvValue(row, indexes, "substitutions"),
+            notes: dietCsvValue(row, indexes, "notes")
+          };
+          const targets = {
+            calories: parseDietCsvNumber(dietCsvValue(row, indexes, "targetCalories"), "Meta de calorias"),
+            protein: parseDietCsvNumber(dietCsvValue(row, indexes, "targetProtein"), "Meta de proteína"),
+            carbs: parseDietCsvNumber(dietCsvValue(row, indexes, "targetCarbs"), "Meta de carboidratos"),
+            fat: parseDietCsvNumber(dietCsvValue(row, indexes, "targetFat"), "Meta de gordura")
+          };
+          const key = dietPlanKey(studentId, month);
+          if (!plans.has(key)) plans.set(key, {
             id: key,
             studentId,
             trainerId: currentAccount()?.id || "",
             month,
-            calories: "",
-            protein: "",
-            carbs: "",
-            fat: "",
-            meals: []
+            status: "draft",
+            targets: {},
+            meals: [],
+            supplements: []
           });
+          const plan = plans.get(key);
+          Object.entries(targets).forEach(([target, value]) => {
+            if (value === null) return;
+            if (plan.targets[target] !== undefined && plan.targets[target] !== value) throw new Error(`${t("Metas divergentes no mesmo plano")}: ${target}`);
+            plan.targets[target] = value;
+          });
+          plan.meals.push(meal);
+          preview.push({ line, status: rawStudent ? "ok" : "fallback", studentLabel: studentDisplayName(studentId, linkedStudents), item, message: rawStudent ? "OK" : "Destino escolhido para linha sem aluno." });
+        } catch (error) {
+          preview.push({ line, status: "error", studentLabel: rawStudent || t("Sem aluno"), item, message: error?.message || "Erro" });
         }
-        const plan = plans.get(key);
-        plan.calories = plan.calories || dietCsvValue(row, indexes, "targetCalories", fallback.targetCalories);
-        plan.protein = plan.protein || dietCsvValue(row, indexes, "targetProtein", fallback.targetProtein);
-        plan.carbs = plan.carbs || dietCsvValue(row, indexes, "targetCarbs", fallback.targetCarbs);
-        plan.fat = plan.fat || dietCsvValue(row, indexes, "targetFat", fallback.targetFat);
-        plan.meals.push(meal);
       });
-      return [...plans.values()].filter(plan => plan.studentId && plan.meals.length);
+      const valid = !blockedCsvRows(preview).length;
+      const normalizedPlans = valid ? [...plans.values()].map(plan => {
+        const sums = plan.meals.reduce((total, meal) => ({
+          calories: total.calories + meal.calories,
+          protein: total.protein + meal.protein,
+          carbs: total.carbs + meal.carbs,
+          fat: total.fat + meal.fat
+        }), { calories: 0, protein: 0, carbs: 0, fat: 0 });
+        const { targets, ...storedPlan } = plan;
+        return {
+          ...storedPlan,
+          calories: targets.calories ?? sums.calories,
+          protein: targets.protein ?? sums.protein,
+          carbs: targets.carbs ?? sums.carbs,
+          fat: targets.fat ?? sums.fat
+        };
+      }) : [];
+      return { preview, plans: normalizedPlans, valid };
+    }
+
+    function parseDietCsvPlans(text, fallbackStudentId = undefined, linkedStudents = []) {
+      const validation = validateDietCsv(text, fallbackStudentId, linkedStudents);
+      if (!validation.valid) throw new Error(blockedCsvRows(validation.preview)[0]?.message || t("Não consegui importar o CSV."));
+      return validation.plans;
     }
 
     async function downloadDietCsvTemplate() {
@@ -12993,9 +13179,15 @@ if (location.hash.toLowerCase() === "#leads") history.replaceState(null, "", `${
         [sampleStudent, currentMonthKey(), csvLocaleValue("Almoço", "Lunch", "Almuerzo"), csvLocaleValue("Arroz, frango, salada", "Rice, chicken, salad", "Arroz, pollo, ensalada"), "680", "52g", "72g", "20g", csvLocaleValue("Vegetais", "Vegetables", "Vegetales"), csvLocaleValue("Frango por peixe", "Chicken for fish", "Pollo por pescado"), csvLocaleValue("Manter água junto", "Keep water with the meal", "Mantener agua junto a la comida"), "2400", "150g", "260g", "70g"]
       ];
       const content = rows.map(row => row.map(csvEscapeDiet).join(";")).join("\n");
-      downloadTextFile("monolith-modelo-dieta.csv", "text/csv;charset=utf-8", content);
+      if (!downloadTextFile("monolith-modelo-dieta.csv", "text/csv;charset=utf-8", content)) {
+        const message = t("Não consegui iniciar o download do modelo CSV.");
+        setDietCsvStatus(message, true);
+        showToast(message);
+        return false;
+      }
       setDietCsvStatus("Modelo de dieta CSV baixado.");
       showToast("Modelo de dieta CSV baixado.");
+      return true;
     }
 
     async function exportDietCsv() {
@@ -13026,61 +13218,43 @@ if (location.hash.toLowerCase() === "#leads") history.replaceState(null, "", `${
         ]));
       });
       const content = rows.map(row => row.map(csvEscapeDiet).join(";")).join("\n");
-      downloadTextFile("monolith-dietas.csv", "text/csv;charset=utf-8", content);
+      if (!downloadTextFile(`monolith-dietas-${todayKey()}.csv`, "text/csv;charset=utf-8", content)) {
+        const message = t("Não consegui iniciar o download das dietas.");
+        setDietCsvStatus(message, true);
+        showToast(message);
+        return false;
+      }
       setDietCsvStatus("Dietas exportadas em CSV.");
       showToast("Dietas exportadas em CSV.");
+      return true;
     }
 
     function previewDietCsv(text, fallbackStudentId = undefined, linkedStudents = []) {
-      const rows = parseDietCsvRows(text);
-      if (!rows.length) return [];
-      const indexes = dietCsvHeaderIndexes(rows[0]);
-      const hasHeader = Object.values(indexes).some(index => index >= 0);
-      const dataRows = hasHeader ? rows.slice(1) : rows;
-      const lineOffset = hasHeader ? 2 : 1;
-      const fallback = hasHeader ? {
-        studentName: -1,
-        month: -1,
-        mealName: -1,
-        items: -1
-      } : {
-        studentName: 0,
-        month: 1,
-        mealName: 2,
-        items: 3
-      };
-      return dataRows.map((row, index) => {
-        const rawStudent = dietCsvValue(row, indexes, "studentName", fallback.studentName);
-        const item = dietCsvValue(row, indexes, "mealName", fallback.mealName) || dietCsvValue(row, indexes, "items", fallback.items) || t("Refeição");
-        if (!rawStudent && fallbackStudentId === undefined) {
-          return { line: index + lineOffset, status: "missing", studentLabel: t("Sem aluno"), item, message: "Escolha um destino para linhas sem aluno." };
-        }
-        try {
-          const studentId = dietCsvStudentAssignment(rawStudent, fallbackStudentId, linkedStudents);
-          return {
-            line: index + lineOffset,
-            status: rawStudent ? "ok" : "fallback",
-            studentLabel: studentDisplayName(studentId, linkedStudents),
-            item,
-            message: rawStudent ? "OK" : "Destino escolhido para linha sem aluno."
-          };
-        } catch (error) {
-          return { line: index + lineOffset, status: "error", studentLabel: rawStudent || t("Sem aluno"), item, message: error?.message || "Erro" };
-        }
-      });
+      return validateDietCsv(text, fallbackStudentId, linkedStudents).preview;
     }
 
     async function importDietCsvFile(file) {
       const user = currentAccount();
       if (!file || !user || user.role !== "personal") return;
+      if (!/\.csv$/i.test(file.name || "")) {
+        const message = t("Selecione um arquivo CSV válido.");
+        setDietCsvStatus(message, true);
+        showToast(message);
+        return false;
+      }
       const importLabel = document.querySelector('label[for="dietCsvInput"]');
       return runPendingOperation("diet-csv-import", importLabel, async () => {
         try {
+          const trainerId = user.id;
+          const fallbackStudentId = document.getElementById("dietImportStudent")?.value || undefined;
           setDietCsvStatus("Preparando prévia do CSV...");
           const text = await file.text();
           const linkedStudents = await ensureLinkedStudentsForPersonal(user.id);
-          const fallbackStudentId = document.getElementById("dietImportStudent")?.value || undefined;
-          const previewRows = previewDietCsv(text, fallbackStudentId, linkedStudents);
+          if (currentAccount()?.id !== trainerId || (fallbackStudentId && document.getElementById("dietImportStudent")?.value !== fallbackStudentId)) {
+            throw new Error(t("O destino mudou durante a validação. Selecione o aluno e tente novamente."));
+          }
+          const validation = validateDietCsv(text, fallbackStudentId, linkedStudents);
+          const previewRows = validation.preview;
           renderCsvPreview("dietCsvPreview", previewRows);
           const blocked = blockedCsvRows(previewRows);
           if (blocked.length) {
@@ -13091,25 +13265,21 @@ if (location.hash.toLowerCase() === "#leads") history.replaceState(null, "", `${
             setDietCsvStatus("Importação cancelada.");
             return;
           }
-          setDietCsvStatus("Importando CSV...");
-          const plans = parseDietCsvPlans(text, fallbackStudentId, linkedStudents);
-          if (!plans.length) throw new Error(t("Nenhuma dieta válida encontrada no CSV."));
-          let failedSync = 0;
-          for (const plan of plans) {
-            cacheDietPlan(plan);
-            try {
-              const synced = await saveRemoteDietPlan(plan);
-              if (!synced) failedSync += 1;
-            } catch (error) {
-              failedSync += 1;
-              logAppError("diet", "csv-save", error, { studentId: plan.studentId, month: plan.month });
-            }
+          if (currentAccount()?.id !== trainerId || (fallbackStudentId && document.getElementById("dietImportStudent")?.value !== fallbackStudentId)) {
+            throw new Error(t("O destino mudou antes da importação. Revise e tente novamente."));
           }
+          setDietCsvStatus("Importando CSV...");
+          const plans = validation.plans;
+          if (!plans.length) throw new Error(t("Nenhuma dieta válida encontrada no CSV."));
+          plans.forEach(plan => { plan.clientRequestId = createClientRequestId("diet-import"); });
+          if (isRealSupabaseAccount(user)) await saveRemoteDietPlans(plans);
+          else plans.forEach(cacheDietPlan);
+          plans.forEach(plan => updateDietPlanMeta(plan.id, { status: "draft", archived: false }));
           await renderNutrition();
           const message = `${plans.length} ${t(plans.length === 1 ? "dieta importada." : "dietas importadas.")}`;
           const summary = csvPreviewSummary(previewRows);
-          setDietCsvStatus(failedSync ? `${message} ${t("Revise a sincronização com o Supabase.")} ${summary}` : `${message} ${summary}`, true);
-          showToast(failedSync ? "CSV importado, mas revise a sincronização." : "Dieta importada por CSV.");
+          setDietCsvStatus(`${message} ${summary}`, true);
+          showToast("Dieta importada por CSV.");
         } catch (error) {
           logAppError("diet", "csv-import", error);
           const message = error?.message || t("Não consegui importar o CSV.");
@@ -13159,6 +13329,7 @@ if (location.hash.toLowerCase() === "#leads") history.replaceState(null, "", `${
     function emptyDietDraft(mealCount = 5) {
       const count = Math.max(1, Math.min(10, Number(mealCount) || 5));
       return {
+        status: "draft",
         trainerId: currentAccount()?.id || "",
         studentId: selectedDietStudentId(),
         month: document.getElementById("dietMonth")?.value || currentMonthKey(),
@@ -13203,7 +13374,7 @@ if (location.hash.toLowerCase() === "#leads") history.replaceState(null, "", `${
       }
       if (isPersonal) {
         const select = document.getElementById("dietStudent");
-        const requestedStudentId = scopedStudentId(select?.value || selectedStudentForPersonal());
+        const requestedStudentId = select?.value || selectedStudentForPersonal() || readSelectedStudentScope(user.id);
         setDietRemoteState("loading");
         applyDietPlanToForm(emptyDietDraft(requestedMealCount));
         const loadingTarget = document.getElementById("dietPreview");
@@ -16253,7 +16424,8 @@ if (location.hash.toLowerCase() === "#leads") history.replaceState(null, "", `${
       "Não foi possível atualizar o painel agora.": "The dashboard could not be refreshed right now.",
       "Carregando evolução...": "Loading progress...",
       "Carregando treinos...": "Loading workouts...",
-      "Não foi possível carregar os treinos. Tente novamente.": "The workouts could not be loaded. Try again."
+      "Não foi possível carregar os treinos. Tente novamente.": "The workouts could not be loaded. Try again.",
+      "Sem conexão agora. Não foi possível confirmar os treinos atribuídos.": "Offline. Assigned workouts could not be confirmed."
       ,"Peso do exercício": "Exercise weight"
       ,"valor abaixo do limite permitido.": "value below the allowed limit."
       ,"Somente o aluno pode responder e salvar o check-in.": "Only the student can answer and save the check-in."
@@ -16275,7 +16447,8 @@ if (location.hash.toLowerCase() === "#leads") history.replaceState(null, "", `${
       "Não foi possível atualizar o painel agora.": "No se pudo actualizar el panel en este momento.",
       "Carregando evolução...": "Cargando evolución...",
       "Carregando treinos...": "Cargando entrenamientos...",
-      "Não foi possível carregar os treinos. Tente novamente.": "No se pudieron cargar los entrenamientos. Inténtalo de nuevo."
+      "Não foi possível carregar os treinos. Tente novamente.": "No se pudieron cargar los entrenamientos. Inténtalo de nuevo.",
+      "Sem conexão agora. Não foi possível confirmar os treinos atribuídos.": "Sin conexión. No se pudieron confirmar los entrenamientos asignados."
       ,"Peso do exercício": "Peso del ejercicio"
       ,"valor abaixo do limite permitido.": "valor por debajo del límite permitido."
       ,"Somente o aluno pode responder e salvar o check-in.": "Solo el alumno puede responder y guardar el check-in."
@@ -16812,6 +16985,24 @@ if (location.hash.toLowerCase() === "#leads") history.replaceState(null, "", `${
       ,"Horário sugerido": "Suggested time"
       ,"Usar este horário": "Use this time"
       ,"Fuso horário inválido.": "Invalid time zone."
+      ,"Data, horário ou fuso horário inválido.": "Invalid date, time, or time zone."
+      ,"Este horário não existe no fuso selecionado.": "This time does not exist in the selected time zone."
+      ,"Use o comando em texto ou tente novamente manualmente.": "Use the text command or try again manually."
+      ,"dia sem check-in no período.": "day without check-in"
+      ,"dias sem check-in no período.": "days without check-in"
+      ,"Usar modelo de treino": "Use workout template"
+      ,"Escolha um modelo para abrir no editor. Você poderá revisar tudo antes de salvar.": "Choose a template to open in the editor. You can review everything before saving."
+      ,"Modelo": "Template"
+      ,"Aplicar modelo": "Apply template"
+      ,"O modelo selecionado não está disponível.": "The selected template is unavailable."
+      ,"A conta mudou antes da aplicação do modelo.": "The account changed before the template was applied."
+      ,"Modelo de treino aplicado. Revise e salve quando estiver pronto.": "Workout template applied. Review it and save when ready."
+      ,"Não consegui aplicar o modelo de treino.": "I could not apply the workout template."
+      ,"Aplicando modelo...": "Applying template..."
+      ,"O perfil público ainda não está disponível. Salve o perfil antes de abrir a prévia.": "The public profile is not available yet. Save it before opening the preview."
+      ,"Não consegui abrir a prévia do perfil público.": "I could not open the public profile preview."
+      ,"Abrindo prévia...": "Opening preview..."
+      ,"Não consegui confirmar o convite no Supabase. Aplique a etapa 34 do banco e tente novamente.": "I could not confirm the invite in Supabase. Apply database step 34 and try again."
     });
 
     Object.assign(translations.es, {
@@ -17004,6 +17195,24 @@ if (location.hash.toLowerCase() === "#leads") history.replaceState(null, "", `${
       ,"Horário sugerido": "Horario sugerido"
       ,"Usar este horário": "Usar este horario"
       ,"Fuso horário inválido.": "Zona horaria no válida."
+      ,"Data, horário ou fuso horário inválido.": "Fecha, hora o zona horaria no válidas."
+      ,"Este horário não existe no fuso selecionado.": "Esta hora no existe en la zona horaria seleccionada."
+      ,"Use o comando em texto ou tente novamente manualmente.": "Usa el comando de texto o inténtalo de nuevo manualmente."
+      ,"dia sem check-in no período.": "día sin check-in"
+      ,"dias sem check-in no período.": "días sin check-in"
+      ,"Usar modelo de treino": "Usar plantilla de entrenamiento"
+      ,"Escolha um modelo para abrir no editor. Você poderá revisar tudo antes de salvar.": "Elige una plantilla para abrirla en el editor. Podrás revisar todo antes de guardar."
+      ,"Modelo": "Plantilla"
+      ,"Aplicar modelo": "Aplicar plantilla"
+      ,"O modelo selecionado não está disponível.": "La plantilla seleccionada no está disponible."
+      ,"A conta mudou antes da aplicação do modelo.": "La cuenta cambió antes de aplicar la plantilla."
+      ,"Modelo de treino aplicado. Revise e salve quando estiver pronto.": "Plantilla de entrenamiento aplicada. Revísala y guarda cuando esté lista."
+      ,"Não consegui aplicar o modelo de treino.": "No pude aplicar la plantilla de entrenamiento."
+      ,"Aplicando modelo...": "Aplicando plantilla..."
+      ,"O perfil público ainda não está disponível. Salve o perfil antes de abrir a prévia.": "El perfil público aún no está disponible. Guárdalo antes de abrir la vista previa."
+      ,"Não consegui abrir a prévia do perfil público.": "No pude abrir la vista previa del perfil público."
+      ,"Abrindo prévia...": "Abriendo vista previa..."
+      ,"Não consegui confirmar o convite no Supabase. Aplique a etapa 34 do banco e tente novamente.": "No pude confirmar la invitación en Supabase. Aplica el paso 34 de la base de datos e inténtalo de nuevo."
     });
 
     function t(key, language = localStorage.getItem("monolith.language") || "pt") {
@@ -17905,6 +18114,7 @@ if (location.hash.toLowerCase() === "#leads") history.replaceState(null, "", `${
       workoutForm.reset();
       delete workoutForm.dataset.clientRequestId;
       delete workoutForm.dataset.saving;
+      delete workoutForm.dataset.templateId;
       window.monolithResetWorkoutBuilder?.();
       clearDirty("workout");
     }
@@ -18280,13 +18490,14 @@ if (location.hash.toLowerCase() === "#leads") history.replaceState(null, "", `${
         const visibleEntries = loadAllBodyMeasuresRaw()
           .filter(entry => {
             if (!options.includeArchived && entry.archivedAt) return false;
+            if (!entry.studentId) return !isRealSupabaseAccount(user) && Boolean(studentId) && studentId === user?.id;
             if (!studentId) {
-              if (user?.role === "student") return !entry.studentId || entry.studentId === user.id;
-              if (user?.role === "personal") return !entry.studentId || entry.studentId === user.id || canAccessStudentData(entry.studentId, { allowPersonalSelf: true });
+              if (user?.role === "student") return entry.studentId === user.id;
+              if (user?.role === "personal") return entry.studentId === user.id || canAccessStudentData(entry.studentId, { allowPersonalSelf: true });
               return false;
             }
             if (!canAccessStudentData(studentId, { allowPersonalSelf: true })) return false;
-            return !entry.studentId || entry.studentId === studentId;
+            return entry.studentId === studentId;
           });
         return uniqueBodyMeasuresForDisplay(visibleEntries)
           .sort((a, b) => String(b.date || "").localeCompare(String(a.date || "")));
@@ -18297,6 +18508,18 @@ if (location.hash.toLowerCase() === "#leads") history.replaceState(null, "", `${
 
     function saveBodyMeasures(entries) {
       localStorage.setItem("monolith.bodyMeasures", JSON.stringify(entries.slice(0, 365)));
+    }
+
+    function canModifyBodyMeasure(entry, user = currentAccount()) {
+      if (!entry || !user || !entry.studentId) return false;
+      if (user.role === "personal") {
+        if (entry.studentId !== user.id) return isLinkedStudentForPersonal(entry.studentId, user);
+        return entry.createdBy === user.id || (!isRealSupabaseAccount(user) && !entry.createdBy);
+      }
+      if (user.role === "student") {
+        return entry.studentId === user.id && (entry.createdBy === user.id || (!isRealSupabaseAccount(user) && !entry.createdBy));
+      }
+      return false;
     }
 
     function filteredBodyMeasureEntries(entries = loadBodyMeasures()) {
@@ -18401,7 +18624,10 @@ if (location.hash.toLowerCase() === "#leads") history.replaceState(null, "", `${
           const archived = entry.archivedAt ? `<span class="pill">${escapeHTML(t("Arquivado"))}</span>` : "";
           const archiveLabel = entry.archivedAt ? "Restaurar" : "Arquivar";
           const authorship = [author ? `${t("Registrado por")}: ${author.name}` : "", correctionAuthor ? `${t("Corrigido por")}: ${correctionAuthor.name}` : "", entry.correctionReason ? `${t("Motivo")}: ${entry.correctionReason}` : ""].filter(Boolean).join(" · ");
-          return `<article class="measure-entry ${suspicion.suspicious ? "suspicious-record" : ""} ${entry.archivedAt ? "archived-record" : ""}" data-measure-id="${escapeHTML(entry.id || "")}" data-measure-date="${escapeHTML(entry.date || "")}"><header><strong>${escapeHTML(localDateLabel(entry.date))}</strong><span data-no-i18n="true">${escapeHTML(entry.notes || "")}</span>${suspicious}${archived}</header><div class="measure-tags">${tags}</div>${authorship ? `<div class="date" data-no-i18n="true">${escapeHTML(authorship)}</div>` : ""}<div class="measure-entry-actions"><button class="ghost edit-measure" type="button">${escapeHTML(t("Editar"))}</button><button class="ghost archive-measure" type="button">${escapeHTML(t(archiveLabel))}</button><button class="ghost delete-measure" type="button">${escapeHTML(t("Excluir"))}</button></div></article>`;
+          const actions = canModifyBodyMeasure(entry, user)
+            ? `<div class="measure-entry-actions"><button class="ghost edit-measure" type="button">${escapeHTML(t("Editar"))}</button><button class="ghost archive-measure" type="button">${escapeHTML(t(archiveLabel))}</button><button class="ghost delete-measure" type="button">${escapeHTML(t("Excluir"))}</button></div>`
+            : `<div class="measure-entry-actions"><span class="pill">${escapeHTML(t("Somente leitura"))}</span></div>`;
+          return `<article class="measure-entry ${suspicion.suspicious ? "suspicious-record" : ""} ${entry.archivedAt ? "archived-record" : ""}" data-measure-id="${escapeHTML(entry.id || "")}" data-measure-date="${escapeHTML(entry.date || "")}"><header><strong>${escapeHTML(localDateLabel(entry.date))}</strong><span data-no-i18n="true">${escapeHTML(entry.notes || "")}</span>${suspicious}${archived}</header><div class="measure-tags">${tags}</div>${authorship ? `<div class="date" data-no-i18n="true">${escapeHTML(authorship)}</div>` : ""}${actions}</article>`;
         }).join("") || `<div class="report-line">${t("Nenhum registro físico salvo ainda.")}</div>`;
       }
     }
@@ -18413,7 +18639,10 @@ if (location.hash.toLowerCase() === "#leads") history.replaceState(null, "", `${
     }
 
     function populateBodyMeasureForm(entry) {
-      if (!entry) return;
+      if (!entry || !canModifyBodyMeasure(entry)) {
+        showToast(t("Este registro é somente leitura."));
+        return;
+      }
       bodyMeasureEditingId = entry.id || "";
       document.getElementById("measureDate").value = entry.date || todayKey();
       document.getElementById("measureWeight").value = weightInputValue(entry.weight);
@@ -18431,26 +18660,30 @@ if (location.hash.toLowerCase() === "#leads") history.replaceState(null, "", `${
     }
 
     async function toggleBodyMeasureArchive(entry) {
+      if (!canModifyBodyMeasure(entry)) throw new Error(t("Você não pode alterar esta medida."));
       const archived = !entry.archivedAt;
       const updated = { ...entry, archivedAt: archived ? new Date().toISOString() : "", archivedBy: archived ? currentAccount()?.id || "" : "" };
-      replaceBodyMeasureLocally(updated);
       try {
-        await archiveRemoteBodyMeasure(entry, archived);
+        if (isRealSupabaseAccount(currentAccount())) await archiveRemoteBodyMeasure(entry, archived);
+        replaceBodyMeasureLocally(updated);
       } catch (error) {
         logAppError("measures", archived ? "archive" : "restore", error, { measureId: entry.id });
-        showToast(t("Alteração salva neste dispositivo, mas ainda não sincronizada."));
+        showToast(t("Não consegui alterar esta medida."));
+        return false;
       }
       renderBodyMeasures();
       showToast(t(archived ? "Medida arquivada." : "Medida restaurada."));
     }
 
     async function removeBodyMeasure(entry) {
-      saveBodyMeasures(loadAllBodyMeasuresRaw().filter(item => item.id !== entry.id));
+      if (!canModifyBodyMeasure(entry)) throw new Error(t("Você não pode excluir esta medida."));
       try {
-        await deleteRemoteBodyMeasure(entry);
+        if (isRealSupabaseAccount(currentAccount())) await deleteRemoteBodyMeasure(entry);
+        saveBodyMeasures(loadAllBodyMeasuresRaw().filter(item => item.id !== entry.id));
       } catch (error) {
         logAppError("measures", "delete", error, { measureId: entry.id });
-        showToast(t("Medida removida neste dispositivo, mas a sincronização falhou."));
+        showToast(t("Não consegui excluir esta medida."));
+        return false;
       }
       renderBodyMeasures();
       showToast(t("Medida excluída."));
@@ -18460,13 +18693,16 @@ if (location.hash.toLowerCase() === "#leads") history.replaceState(null, "", `${
       const date = document.getElementById("measureDate").value || todayKey();
       const existing = bodyMeasureEditingId ? findBodyMeasureEntry(bodyMeasureEditingId, "") : null;
       const entry = {
+        ...(existing || {}),
         id: existing?.id || `measure-${date}`,
         studentId: selectedMeasureTargetId(),
         date,
         originalDate: existing?.date || "",
         weight: parseWeightInput(document.getElementById("measureWeight").value),
         bodyFat: parseMeasureValue(document.getElementById("measureBodyFat").value),
-        notes: document.getElementById("measureNotes").value.trim()
+        notes: document.getElementById("measureNotes").value.trim(),
+        createdBy: existing?.createdBy || currentAccount()?.id || "",
+        updatedBy: currentAccount()?.id || existing?.updatedBy || ""
       };
       bodyMeasureFields.forEach(field => {
         entry[field.key] = parseMeasureValue(document.getElementById(field.input).value);
@@ -18489,40 +18725,31 @@ if (location.hash.toLowerCase() === "#leads") history.replaceState(null, "", `${
     async function upsertBodyMeasure(entry) {
       const requiresRemoteCommit = isRealSupabaseAccount(currentAccount());
       entry.syncStatus = requiresRemoteCommit ? "pending" : "local";
-      const allEntries = loadAllBodyMeasuresRaw().filter(item => item.id !== entry.id && `${item.studentId || ""}:${item.date}` !== `${entry.studentId || ""}:${entry.originalDate || entry.date}`);
-      const entries = [entry, ...allEntries].sort((a, b) => String(b.date).localeCompare(String(a.date)));
-      saveBodyMeasures(entries);
       let synced = false;
       try {
-        synced = await saveRemoteBodyMeasure(entry);
+        if (requiresRemoteCommit) synced = await saveRemoteBodyMeasure(entry);
         entry.syncStatus = synced ? "synced" : entry.syncStatus;
       } catch (error) {
-        entry.syncStatus = "failed";
         logAppError("measures", "save", error, { studentId: entry.studentId, date: entry.date });
         if (requiresRemoteCommit) {
-          const rolledBack = loadAllBodyMeasuresRaw().filter(item => item.id !== entry.id && `${item.studentId || ""}:${item.date}` !== `${entry.studentId || ""}:${entry.date}`);
-          saveBodyMeasures(rolledBack);
-          renderBodyMeasures();
-          renderTrainerSummary();
           showToast("Não consegui salvar as medidas no Supabase. Tente novamente.");
           return false;
         }
-        showToast("Medidas salvas neste aparelho. Não consegui sincronizar agora.");
       }
       const refreshed = loadAllBodyMeasuresRaw().filter(item => item.id !== entry.id && `${item.studentId || ""}:${item.date}` !== `${entry.studentId || ""}:${entry.originalDate || entry.date}`);
       saveBodyMeasures([entry, ...refreshed].sort((a, b) => String(b.date).localeCompare(String(a.date))));
       renderBodyMeasures();
       renderTrainerSummary();
-      return Boolean(synced);
+      return requiresRemoteCommit ? Boolean(synced) : true;
     }
 
     function renderStats() {
       const container = document.getElementById("frequencyBars");
       if (!container) return;
       const studentId = activeDataStudentId();
-      if (isRealSupabaseAccount(currentAccount())) {
+      if (studentId && isRealSupabaseAccount(currentAccount())) {
         const reportState = getRemoteDataState("report", studentId).status;
-        if (reportState === "loading") {
+        if (["idle", "loading"].includes(reportState)) {
           renderStatsLoadingState();
           return;
         }
@@ -19105,6 +19332,7 @@ if (location.hash.toLowerCase() === "#leads") history.replaceState(null, "", `${
       }).join("");
       const missedPreview = report.missedDays.slice(-7).map(day => escapeHTML(reportDateLabel(day, language))).join(", ");
       const alertLevel = report.missedDays.length >= 5 ? "drop" : "gain";
+      const missedPeriodLabel = rt(report.missedDays.length === 1 ? "dia sem check-in no período." : "dias sem check-in no período.");
       return `<!doctype html>
 <html lang="${htmlLang}">
 <head>
@@ -19145,7 +19373,7 @@ table,.chart,.photo-report-grid,.alert{break-inside:avoid}.print-button{margin:0
 <h2>${rt("Anamnese do aluno")}</h2>
 ${report.anamnesis ? `<div class="alert"><strong class="${report.anamnesis.medicalClearanceRecommended ? "drop" : "gain"}">${escapeHTML(anamnesisSafety)}</strong></div><table><thead><tr><th>${rt("Item")}</th><th>${rt("Resposta")}</th></tr></thead><tbody>${anamnesisRows}</tbody></table>` : `<p class="muted">${rt("Anamnese ainda não preenchida.")}</p>`}
 <h2>${rt("Alerta de check-in para o personal")}</h2>
-<div class="alert"><strong class="${alertLevel}">${report.missedDays.length} ${rt("dias sem check-in no período.")}</strong><br>${report.missedDays.length ? `${rt("Dias recentes sem registro")}: ${missedPreview}` : rt("Aluno manteve check-in completo no período.")}</div>
+<div class="alert"><strong class="${alertLevel}">${report.missedDays.length} ${missedPeriodLabel}</strong><br>${report.missedDays.length ? `${rt("Dias recentes sem registro")}: ${missedPreview}` : rt("Aluno manteve check-in completo no período.")}</div>
 <h2>${rt("Evolução de peso corporal")}</h2>
 ${weightBars ? `<div class="chart">${weightBars}</div>` : `<p class="muted">${rt("Ainda não há pesos salvos no check-in ou nas medidas corporais.")}</p>`}
 <h2>${rt("Percentual de gordura corporal")}</h2>
@@ -19224,7 +19452,7 @@ ${photoSections}
         link.click();
         if (!clickEvent || clickEvent.defaultPrevented) throw new Error("download-click-not-delivered");
         window.setTimeout(() => link.remove(), 1500);
-        window.setTimeout(() => releaseDownloadUrl(objectUrl), 60000);
+        window.setTimeout(() => releaseDownloadUrl(objectUrl), 2000);
         return true;
       } catch (error) {
         link?.remove();
@@ -19234,13 +19462,27 @@ ${photoSections}
       }
     }
 
+    let reportExportSequence = 0;
+
     async function prepareMonthlyReportHTML(student = null) {
+      const requestId = ++reportExportSequence;
       const requestedStudentId = activeDataStudentId(student);
       const requestedLanguage = reportLanguage();
       const requestedPeriod = reportPeriodForStudent(student || reportStudentFromId(requestedStudentId));
+      const requestedPeriodSignature = JSON.stringify(requestedPeriod);
+      const requestedScreen = document.querySelector(".screen.active")?.id || "";
       const hydration = await hydrateRemoteReportData(student);
       const currentTargetId = currentAccount()?.role === "student" ? currentAccount()?.id : activeDataStudentId();
-      if (requestedStudentId !== currentTargetId || requestedLanguage !== reportLanguage()) {
+      const currentStudent = currentAccount()?.role === "student" ? currentAccount() : reportStudentFromId(currentTargetId);
+      const currentPeriodSignature = JSON.stringify(reportPeriodForStudent(currentStudent));
+      const currentScreen = document.querySelector(".screen.active")?.id || "";
+      if (
+        requestId !== reportExportSequence ||
+        requestedStudentId !== currentTargetId ||
+        requestedLanguage !== reportLanguage() ||
+        requestedPeriodSignature !== currentPeriodSignature ||
+        requestedScreen !== currentScreen
+      ) {
         return { html: "", status: "stale" };
       }
       if (hydration.status === "error") {
@@ -19263,7 +19505,7 @@ ${photoSections}
       return `monolith-relatorio-${name}-${year}-${month}-${language}.html`;
     }
 
-    function downloadMonthlyReportFile(student = null) {
+    async function downloadMonthlyReportFile(student = null) {
       const user = currentAccount();
       const target = student || (user?.role === "student" ? user : reportStudentFromId(activeDataStudentId()));
       if (!target?.id || (user?.role === "personal" && !activeDataStudentId())) {
@@ -19272,9 +19514,9 @@ ${photoSections}
       }
       try {
         const language = reportLanguage();
-        const period = reportPeriodForStudent(target);
-        const report = monthlyReportData(target, { period, language });
-        const html = verifiedMonthlyReportHTML(target, { report, period, language });
+        const prepared = await prepareMonthlyReportHTML(target);
+        if (prepared.status === "stale") return false;
+        const html = prepared.html;
         if (!html) throw new Error("report-html-empty");
         const downloaded = downloadTextFile(reportFilename(target, language), "text/html;charset=utf-8", html);
         if (!downloaded) throw new Error("report-download-not-delivered");
@@ -19318,6 +19560,10 @@ ${photoSections}
       reportWindow.document.write(`<!doctype html><html><head><meta charset="utf-8"><title>MONOLITH</title></head><body style="font-family:Arial,sans-serif;margin:32px">${t("Carregando relatório...")}</body></html>`);
       reportWindow.document.close();
       const prepared = await prepareMonthlyReportHTML(student);
+      if (prepared.status === "stale") {
+        reportWindow.close();
+        return false;
+      }
       const reportHtml = prepared.html;
       reportWindow.document.open();
       reportWindow.document.write(reportHtml || reportFailureDocument(student ? "openStatsMonthlyReport" : "openMonthlyReport"));
@@ -19434,12 +19680,17 @@ ${photoSections}
       const workout = metrics.nextWorkout;
       const workoutRemoteState = getRemoteDataState("workouts", user.id).status;
       const workoutsStillLoading = isRealSupabaseAccount(user) && !workout && ["idle", "loading"].includes(workoutRemoteState);
+      const workoutsUnavailable = isRealSupabaseAccount(user) && !workout && ["error", "offline-cache"].includes(workoutRemoteState);
       const nextLabel = assignment?.isToday ? t("Hoje") : assignment?.date ? localDateLabel(assignment.date) : "";
       const setText = (id, value) => {
         const node = document.getElementById(id);
         if (node) node.textContent = value;
       };
-      setText("studentNextWorkout", workoutsStillLoading ? t("Carregando treino...") : workout?.name || (programScheduleForDate(metrics.activeProgram)?.kind === "rest" ? t("Descanso") : t("Sem treino")));
+      setText("studentNextWorkout", workoutsStillLoading
+        ? t("Carregando treino...")
+        : workoutsUnavailable
+          ? t("Falha ao carregar")
+          : workout?.name || (programScheduleForDate(metrics.activeProgram)?.kind === "rest" ? t("Descanso") : t("Sem treino")));
       setText("studentStreak", `${metrics.streak} ${t(metrics.streak === 1 ? "dia" : "dias")}`);
       setText("studentProgramWeek", metrics.activeProgram ? `${workoutProgramWeek(metrics.activeProgram)} / ${metrics.activeProgram.durationWeeks}` : "--");
       setText("studentWeeklyVolume", `${localizedNumber(metrics.weeklyVolume, { maximumFractionDigits: 0 })} kg`);
@@ -19448,6 +19699,14 @@ ${photoSections}
       panel.hidden = false;
       if (workoutsStillLoading) {
         panel.innerHTML = remoteStateHTML("loading", { loadingLabel: "Carregando treino..." });
+        return;
+      }
+      if (workoutsUnavailable) {
+        panel.innerHTML = remoteStateHTML(workoutRemoteState, {
+          errorLabel: "Não foi possível carregar os treinos. Tente novamente.",
+          cacheLabel: "Sem conexão agora. Não foi possível confirmar os treinos atribuídos.",
+          retryScreen: "home"
+        });
         return;
       }
       if (!workout) {
@@ -19893,15 +20152,15 @@ ${photoSections}
         loadingText: "Carregando dieta..."
       });
     });
-    document.getElementById("publishDietButton")?.addEventListener("click", () => {
+    document.getElementById("publishDietButton")?.addEventListener("click", async () => {
       const { plan } = currentDietPlanSelection();
-      const meta = plan?.id ? dietPlanMetaForKey(plan.id) : {};
-      setCurrentDietStatus(meta.status === "draft" ? "published" : "draft");
+      const status = plan ? dietPlanStatus(plan) : "draft";
+      await setCurrentDietStatus(status === "draft" ? "published" : "draft");
     });
     document.getElementById("archiveDietButton")?.addEventListener("click", async () => {
       const { plan } = currentDietPlanSelection();
-      const meta = plan?.id ? dietPlanMetaForKey(plan.id) : {};
-      if (!meta.archived && meta.status !== "archived") {
+      const status = plan ? dietPlanStatus(plan) : "draft";
+      if (status !== "archived") {
         if (!await confirmAction({
           title: "Arquivar dieta?",
           message: "A dieta deixará de aparecer como ativa para este período.",
@@ -19911,7 +20170,7 @@ ${photoSections}
           danger: true
         })) return;
       }
-      setCurrentDietStatus(meta.archived || meta.status === "archived" ? "published" : "archived");
+      await setCurrentDietStatus(status === "archived" ? "draft" : "archived");
     });
     document.getElementById("duplicateDietButton")?.addEventListener("click", duplicateCurrentDietPlan);
     document.getElementById("restoreDietVersionButton")?.addEventListener("click", restoreCurrentDietVersion);
@@ -19968,6 +20227,26 @@ ${photoSections}
     document.getElementById("backToTrainerMap")?.addEventListener("click", closeTrainerMapProfile);
     document.getElementById("trainerMapProfileModal")?.addEventListener("click", event => {
       if (event.target === event.currentTarget) closeTrainerMapProfile();
+    });
+    document.getElementById("viewTrainerMapAppearanceButton")?.addEventListener("click", async event => {
+      const user = currentAccount();
+      if (user?.role !== "personal") return;
+      try {
+        await runPendingOperation(`trainer-map-preview:${user.id}`, event.currentTarget, async () => {
+          const profile = await loadTrainerPublicProfile(user);
+          if (!profile || currentAccount()?.id !== user.id) {
+            throw new Error(t("O perfil público ainda não está disponível. Salve o perfil antes de abrir a prévia."));
+          }
+          trainerMapVisibleProfiles = [profile];
+          openTrainerMapProfile(user.id);
+          if (!document.getElementById("trainerMapProfileModal")?.classList.contains("active")) {
+            throw new Error(t("Não consegui abrir a prévia do perfil público."));
+          }
+        }, { loadingText: "Abrindo prévia..." });
+      } catch (error) {
+        logAppError("trainer-profile", "map-preview", error, { trainerId: user.id });
+        showToast(error?.message || t("Não consegui abrir a prévia do perfil público."));
+      }
     });
     document.getElementById("dietMonth")?.addEventListener("change", renderNutrition);
     document.getElementById("studentDietMonth")?.addEventListener("change", renderNutrition);
@@ -20072,28 +20351,24 @@ ${photoSections}
         plan.syncStatus = isRealSupabaseAccount(currentAccount()) ? "pending" : "local";
         const plans = loadDietPlans();
         if (plans[plan.id]) rememberDietPlanVersion(plans[plan.id], "save");
-        plans[plan.id] = plan;
-        saveDietPlans(plans);
-        const existingMeta = dietPlanMetaForKey(plan.id);
-        updateDietPlanMeta(plan.id, { status: existingMeta.status || "published", archived: false });
-        let synced = false;
         try {
-          synced = await saveRemoteDietPlan(plan);
-          plan.syncStatus = synced ? "synced" : plan.syncStatus;
+          if (isRealSupabaseAccount(currentAccount())) await saveRemoteDietPlan(plan);
+          else cacheDietPlan(plan);
         } catch (error) {
-          plan.syncStatus = "failed";
           logAppError("diet", "save", error, { studentId: plan.studentId, month: plan.month });
-          showToast("Dieta salva localmente. Não consegui sincronizar agora.");
+          authMessage(error?.message || "Não consegui salvar a dieta no Supabase. Tente novamente.");
+          return;
         }
-        plan.supplements = (plan.supplements || []).map((item, index) => cloneDietSupplement({ ...item, saved: true }, index));
+        const authoritative = storedDietPlanForStudent(plan.studentId, plan.month) || plan;
+        authoritative.syncStatus = isRealSupabaseAccount(currentAccount()) ? "synced" : "local";
+        authoritative.supplements = (authoritative.supplements || []).map((item, index) => cloneDietSupplement({ ...item, saved: true }, index));
+        cacheDietPlan(authoritative);
+        updateDietPlanMeta(plan.id, { status: dietPlanStatus(authoritative), archived: dietPlanStatus(authoritative) === "archived" });
         window.monolithLastRemovedSupplement = null;
-        const refreshedPlans = loadDietPlans();
-        refreshedPlans[plan.id] = plan;
-        saveDietPlans(refreshedPlans);
-        renderDietSupplementBuilder(plan.supplements || []);
-        renderDietPlan("dietPreview", plan);
+        renderDietSupplementBuilder(authoritative.supplements || []);
+        renderDietPlan("dietPreview", authoritative);
         setDirtyBaseline("diet");
-        authMessage(synced ? "Dieta do aluno salva no Supabase." : "Dieta salva localmente. Não consegui sincronizar agora.");
+        authMessage(isRealSupabaseAccount(currentAccount()) ? "Dieta do aluno salva no Supabase." : "Dieta salva.");
       }, { loadingText: "Salvando dieta..." });
     });
     document.getElementById("foodMealCount")?.addEventListener("change", renderFoodLogMeals);
@@ -21347,6 +21622,10 @@ ${photoSections}
       if (!card) return;
       const entry = findBodyMeasureEntry(card.dataset.measureId, card.dataset.measureDate);
       if (!entry) return;
+      if (!canModifyBodyMeasure(entry)) {
+        showToast(t("Este registro é somente leitura."));
+        return;
+      }
       if (event.target.closest(".edit-measure")) {
         populateBodyMeasureForm(entry);
         return;
@@ -21381,6 +21660,11 @@ ${photoSections}
       const user = currentAccount();
       if (user?.role !== "student" && user?.role !== "personal") {
         authMessage("Entre para salvar suas medidas.");
+        return;
+      }
+      const editingEntry = bodyMeasureEditingId ? findBodyMeasureEntry(bodyMeasureEditingId, "") : null;
+      if (editingEntry && !canModifyBodyMeasure(editingEntry, user)) {
+        showToast(t("Você não pode alterar esta medida."));
         return;
       }
       if (!validateVisibleNumericInputs(event.target, { sanitize: true })) {
@@ -21453,7 +21737,7 @@ ${photoSections}
         setReportControlsState(reportState, reportState === "loading" ? "Carregando relatório..." : "Não foi possível gerar o relatório");
         return;
       }
-      const downloaded = downloadMonthlyReportFile(student);
+      const downloaded = await downloadMonthlyReportFile(student);
       setReportControlsState(downloaded ? "ready" : "error", downloaded ? "" : "Não foi possível gerar o relatório");
     });
     document.addEventListener("change", async event => {
@@ -22333,11 +22617,7 @@ ${photoSections}
         .order("month_key", { ascending: false })
         .limit(240);
       if (error) throw error;
-      (data || []).map(remoteDietPlanFromRow).forEach(plan => {
-        cacheDietPlan(plan);
-        const meta = dietPlanMetaForKey(plan.id);
-        if (!meta.status) updateDietPlanMeta(plan.id, { status: "published", archived: false });
-      });
+      (data || []).map(remoteDietPlanFromRow).forEach(cacheDietPlan);
       return data || [];
     }
 
@@ -22463,7 +22743,7 @@ ${photoSections}
     function derivedTimelineEvents(studentId) {
       if (!studentId) return [];
       const events = [];
-      const completedWorkouts = loadCompletedWorkoutEntries().filter(item => (item.studentId || currentAccount()?.id) === studentId);
+      const completedWorkouts = completedWorkoutEntriesForStudent(studentId);
       completedWorkouts.forEach(item => events.push({ id: `workout:${item.id || item.clientRequestId}`, studentId, type: "workout", title: item.workoutName || "Treino concluído", details: { sets: item.completedSets, volume: completedWorkoutVolume(item) }, occurredAt: item.completedAt || item.date }));
       const personalBests = new Map();
       [...completedWorkouts]
@@ -22492,11 +22772,8 @@ ${photoSections}
       loadBodyMeasures(studentId).forEach(item => events.push({ id: `measure:${item.id || item.date}`, studentId, type: "measurement", title: "Medidas registradas", details: { weight: item.weight, bodyFat: item.bodyFat }, occurredAt: `${item.date}T12:00:00` }));
       Object.values(loadDietPlans())
         .filter(item => item.studentId === studentId)
-        .filter(item => {
-          const meta = dietPlanMetaForKey(item.id || dietPlanKey(studentId, item.month));
-          return meta.status !== "draft" && meta.status !== "archived" && meta.archived !== true;
-        })
-        .forEach(item => events.push({ id: `diet:${item.id || `${studentId}:${item.month}`}`, studentId, type: "diet", title: "Dieta publicada", details: { month: item.month, calories: item.calories }, occurredAt: item.updatedAt || item.savedAt || `${item.month}-01T12:00:00` }));
+        .filter(item => dietPlanStatus(item) === "published" && Boolean(item.publishedAt))
+        .forEach(item => events.push({ id: `diet-published:${item.remoteId || item.id}:${item.publishedAt}`, studentId, type: "diet", title: "Dieta publicada", details: { month: item.month, calories: item.calories }, occurredAt: item.publishedAt }));
       loadWorkoutPrograms(studentId).forEach(item => events.push({ id: `program:${item.id}`, studentId, type: "program", title: item.name || "Programa criado", details: { durationWeeks: item.durationWeeks, status: item.status }, occurredAt: item.createdAt || `${item.startDate}T12:00:00` }));
       const remotePhotos = timelinePhotoSummaries.get(studentId);
       if (remotePhotos) {
@@ -26068,6 +26345,44 @@ ${photoSections}
         return localWorkout;
       }
 
+      async function saveImportedWorkoutsV2(workouts = []) {
+        const user = currentAccount();
+        if (!user || user.role !== "personal") throw new Error(textV2("Somente o personal pode importar treinos."));
+        if (!workouts.length) throw new Error(textV2("Nenhum treino válido encontrado no CSV."));
+        if (workouts.some(workout => workout.assignedStudentId && !isLinkedStudentForPersonal(workout.assignedStudentId, user))) {
+          throw new Error(textV2("Destino da importação não é mais válido."));
+        }
+        const normalized = workouts.map(workout => normalizeWorkoutV2({
+          ...workout,
+          ownerId: user.id,
+          source: isRealSupabaseAccount(user) ? "supabase" : "custom",
+          clientRequestId: workout.clientRequestId || createClientRequestId("workout-import")
+        }));
+        let saved = normalized;
+        if (monolithSupabase && isRealSupabaseAccount(user)) {
+          const payloads = normalized.map(workout => ({
+            owner_id: user.id,
+            assigned_student_id: workout.assignedStudentId || null,
+            name: workout.name,
+            goal: workout.goal,
+            tag: workout.tag || "CSV",
+            exercises: workout.exercises || [],
+            is_library: false,
+            client_request_id: workout.clientRequestId
+          }));
+          const { data, error } = await monolithSupabase
+            .from("workout_templates")
+            .upsert(payloads, { onConflict: "client_request_id" })
+            .select("*");
+          if (error) throw error;
+          saved = (data || []).map(workoutFromRemoteV2);
+          if (saved.length !== normalized.length) throw new Error(textV2("O Supabase não confirmou todos os treinos da importação."));
+        }
+        const merged = saved.reduce((list, workout) => upsertWorkoutByStableIdV2(list, workout, { prepend: true }), loadWorkoutsV2());
+        saveWorkoutsV2(merged);
+        return saved;
+      }
+
       function duplicateWorkoutDraftV2(workout, assignedStudentId = "") {
         return normalizeWorkoutV2({
           id: `custom-duplicate-${Date.now()}`,
@@ -26231,6 +26546,7 @@ ${photoSections}
             field += char;
           }
         }
+        if (quoted) throw new Error(textV2("CSV inválido: aspas não foram fechadas."));
         row.push(field);
         if (row.some(cell => String(cell).trim()) && !String(row[0] || "").trim().toLowerCase().startsWith("sep=")) rows.push(row);
         return rows;
@@ -26245,25 +26561,26 @@ ${photoSections}
           .replace(/^_+|_+$/g, "");
       }
 
+      const workoutCsvSchemaV2 = [
+        { key: "studentName", labels: ["aluno", "student", "alumno"], aliases: ["nome_aluno", "nombre_alumno", "student_name", "student_email", "email_aluno", "email_alumno", "email_do_aluno"] },
+        { key: "workoutName", labels: ["treino", "workout", "entreno"], aliases: ["nome_treino", "nombre_entreno", "workout_name", "name"], requiredValue: true },
+        { key: "goal", labels: ["objetivo", "goal", "objetivo"], aliases: ["description", "descricao", "descripcion"] },
+        { key: "tag", labels: ["tag", "tag", "etiqueta"], aliases: ["grupo", "category", "categoria"] },
+        { key: "exerciseName", labels: ["exercicio", "exercise", "ejercicio"], aliases: ["exercise_name", "nome_exercicio", "nombre_ejercicio"], requiredValue: true },
+        { key: "set", labels: ["serie", "set", "serie"], aliases: ["set_number", "numero_serie", "n_serie"], requiredValue: true },
+        { key: "reps", labels: ["repeticoes", "reps", "repeticiones"], aliases: ["rep"], requiredValue: true },
+        { key: "weight", labels: ["peso_kg", "weight_kg", "peso_kg"], aliases: ["peso", "weight", "load", "carga", "load_kg", "carga_kg", "peso_lb", "weight_lb", "load_lb", "carga_lb"] },
+        { key: "rest", labels: ["descanso", "rest", "descanso"], aliases: ["rest_seconds", "rest_s"], requiredValue: true },
+        { key: "type", labels: ["tipo", "type", "tipo"], aliases: ["tecnica", "set_type"], requiredValue: true }
+      ];
+
       function csvHeaderIndexesV2(header = []) {
-        const aliases = {
-          studentName: ["aluno", "alumno", "nome_aluno", "nombre_alumno", "student", "student_name", "student_email", "email_aluno", "email_alumno", "email_do_aluno"],
-          workoutName: ["treino", "entreno", "nome_treino", "nombre_entreno", "workout", "workout_name", "name"],
-          goal: ["objetivo", "goal", "description", "descricao", "descrição", "descripcion"],
-          tag: ["tag", "etiqueta", "grupo", "category", "categoria"],
-          exerciseName: ["exercicio", "exercício", "ejercicio", "exercise", "exercise_name", "nome_exercicio", "nome_exercício", "nombre_ejercicio"],
-          set: ["serie", "série", "set", "set_number", "numero_serie", "n_serie"],
-          reps: ["repeticoes", "repetições", "repeticiones", "reps", "rep"],
-          weight: ["peso", "weight", "load", "carga", "peso_kg", "weight_kg", "load_kg", "carga_kg", "peso_lb", "weight_lb", "load_lb", "carga_lb"],
-          rest: ["descanso", "rest", "rest_seconds", "rest_s"],
-          type: ["tipo", "type", "tecnica", "técnica", "set_type"]
-        };
         const normalizedHeader = header.map(normalizeCsvKeyV2);
-        return Object.fromEntries(Object.entries(aliases).map(([field, names]) => {
-          const accepted = names.map(normalizeCsvKeyV2);
+        return Object.fromEntries(workoutCsvSchemaV2.map(column => {
+          const accepted = [...column.labels, ...column.aliases].map(normalizeCsvKeyV2);
           const found = normalizedHeader.findIndex(name => accepted.includes(name));
-          return [field, found];
-        }).filter(([, index]) => index >= 0));
+          return [column.key, found];
+        }));
       }
 
       function csvValueV2(row, indexes, field, fallbackIndex) {
@@ -26272,12 +26589,21 @@ ${photoSections}
       }
 
       function normalizeSetTypeV2(value = "") {
-        return canonicalSetTypeV2(value);
+        const raw = String(value || "").trim();
+        if (!raw) throw new Error(textV2("Tipo de série ausente no CSV."));
+        const normalized = normalizeCsvKeyV2(raw);
+        const accepted = new Set([
+          ...setTypes.map(normalizeCsvKeyV2),
+          ...Object.values(setTypeLabelsV2).flatMap(labels => Object.values(labels)).map(normalizeCsvKeyV2),
+          "normal", "working", "falha", "failure", "drop", "bi_set"
+        ]);
+        if (!accepted.has(normalized)) throw new Error(`${textV2("Tipo de série inválido no CSV")}: ${raw}`);
+        return canonicalSetTypeV2(raw);
       }
 
       function normalizeRestValueV2(value = "") {
         const text = String(value || "").trim();
-        if (!text) return "90";
+        if (!text) throw new Error(textV2("Descanso ausente no CSV."));
         if (!/^\d{1,3}$/.test(text) || Number(text) < 0 || Number(text) > 900) throw new Error(textV2("Descanso inválido no CSV."));
         return String(Number(text));
       }
@@ -26307,7 +26633,8 @@ ${photoSections}
         if (user?.role !== "personal") return "";
         const raw = String(value || "").trim();
         if (!raw) {
-          if (fallbackStudentId !== undefined) return fallbackStudentId;
+          if (fallbackStudentId === "") return "";
+          if (fallbackStudentId && linkedStudents.some(student => student.id === fallbackStudentId)) return fallbackStudentId;
           throw new Error(textV2("Linha sem aluno no CSV."));
         }
         const normalized = normalizeCsvKeyV2(raw);
@@ -26325,30 +26652,52 @@ ${photoSections}
         return student.id;
       }
 
-      function parseWorkoutCsvV2(text, assignedStudentId = undefined, linkedStudents = []) {
-        const rows = parseCsvRowsV2(text);
-        if (!rows.length) throw new Error("Arquivo CSV vazio.");
-        const headerIndexes = csvHeaderIndexesV2(rows[0]);
-        const hasHeader = headerIndexes.exerciseName !== undefined && (headerIndexes.workoutName !== undefined || headerIndexes.reps !== undefined || headerIndexes.weight !== undefined);
-        const indexes = hasHeader ? headerIndexes : {};
-        const csvWeightUnit = workoutCsvWeightUnitV2(rows[0], indexes, hasHeader);
-        const dataRows = hasHeader ? rows.slice(1) : rows;
-        const fallback = { studentName: -1, workoutName: 0, goal: 1, tag: 2, exerciseName: 3, set: 4, reps: 5, weight: 6, rest: 7, type: 8 };
+      function validateWorkoutCsvV2(text, fallbackStudentId = undefined, linkedStudents = []) {
+        let rows;
+        try {
+          rows = parseCsvRowsV2(text);
+        } catch (error) {
+          return { preview: [{ line: 1, status: "error", studentLabel: "-", item: "CSV", message: error?.message || "CSV inválido." }], workouts: [], valid: false };
+        }
+        if (!rows.length) return { preview: [{ line: 1, status: "error", studentLabel: "-", item: "CSV", message: textV2("Arquivo CSV vazio.") }], workouts: [], valid: false };
+        const indexes = csvHeaderIndexesV2(rows[0]);
+        const missingHeaders = workoutCsvSchemaV2.filter(column => indexes[column.key] < 0).map(column => column.labels[0]);
+        if (missingHeaders.length) {
+          return {
+            preview: [{ line: 1, status: "error", studentLabel: "-", item: "Cabeçalho", message: `${textV2("Colunas obrigatórias ausentes")}: ${missingHeaders.join(", ")}` }],
+            workouts: [],
+            valid: false
+          };
+        }
+        const dataRows = rows.slice(1);
+        if (!dataRows.length) return { preview: [{ line: 2, status: "error", studentLabel: "-", item: "CSV", message: textV2("Nenhuma linha de dados encontrada.") }], workouts: [], valid: false };
+        const csvWeightUnit = workoutCsvWeightUnitV2(rows[0], indexes, true);
         const workoutMap = new Map();
         const processedRows = new Set();
-        dataRows.forEach(row => {
+        const preview = [];
+        dataRows.forEach((row, index) => {
+          const line = index + 2;
           const rowSignature = JSON.stringify(row.map(value => String(value ?? "").trim()));
-          if (processedRows.has(rowSignature)) return;
+          const rawStudent = csvValueV2(row, indexes, "studentName", -1);
+          const item = csvValueV2(row, indexes, "workoutName", -1) || csvValueV2(row, indexes, "exerciseName", -1) || textV2("Treino importado");
+          if (processedRows.has(rowSignature)) {
+            preview.push({ line, status: "warning", studentLabel: rawStudent || textV2("Destino padrão"), item, message: textV2("Linha duplicada ignorada nesta importação.") });
+            return;
+          }
           processedRows.add(rowSignature);
-          const exerciseName = csvValueV2(row, indexes, "exerciseName", fallback.exerciseName);
-          if (!exerciseName) return;
-          const rowAssignedStudentId = csvStudentAssignmentV2(csvValueV2(row, indexes, "studentName", fallback.studentName), assignedStudentId, linkedStudents);
-          const workoutName = csvValueV2(row, indexes, "workoutName", fallback.workoutName) || "Treino importado";
-          const goal = csvValueV2(row, indexes, "goal", fallback.goal) || "Treino importado por CSV.";
-          const tag = csvValueV2(row, indexes, "tag", fallback.tag) || "CSV";
-          const workoutKey = `${rowAssignedStudentId}\u0001${workoutName}\u0001${goal}\u0001${tag}`;
-          if (!workoutMap.has(workoutKey)) {
-            workoutMap.set(workoutKey, {
+          try {
+            for (const column of workoutCsvSchemaV2.filter(column => column.requiredValue)) {
+              if (!csvValueV2(row, indexes, column.key, -1)) throw new Error(`${textV2("Valor obrigatório ausente")}: ${column.labels[0]}`);
+            }
+            const rowAssignedStudentId = csvStudentAssignmentV2(rawStudent, fallbackStudentId, linkedStudents);
+            const workoutName = csvValueV2(row, indexes, "workoutName", -1);
+            const goal = csvValueV2(row, indexes, "goal", -1) || textV2("Treino importado por CSV.");
+            const tag = csvValueV2(row, indexes, "tag", -1) || "CSV";
+            const exerciseName = csvValueV2(row, indexes, "exerciseName", -1);
+            const setText = csvValueV2(row, indexes, "set", -1);
+            if (!/^\d+$/.test(setText) || Number(setText) < 1 || Number(setText) > 999) throw new Error(textV2("Número da série inválido no CSV."));
+            const workoutKey = `${rowAssignedStudentId}\u0001${workoutName}\u0001${goal}\u0001${tag}`;
+            if (!workoutMap.has(workoutKey)) workoutMap.set(workoutKey, {
               id: `custom-csv-${Date.now()}-${workoutMap.size}`,
               ownerId: currentAccount()?.id || "",
               assignedStudentId: rowAssignedStudentId,
@@ -26359,63 +26708,51 @@ ${photoSections}
               exercises: [],
               exerciseLookup: new Map()
             });
+            const workout = workoutMap.get(workoutKey);
+            const exerciseKey = normalizeExerciseNameV2(exerciseName);
+            if (!workout.exerciseLookup.has(exerciseKey)) {
+              const exercise = { name: exerciseName, sets: [], setNumbers: new Set() };
+              workout.exerciseLookup.set(exerciseKey, exercise);
+              workout.exercises.push(exercise);
+            }
+            const exercise = workout.exerciseLookup.get(exerciseKey);
+            const setNumber = Number(setText);
+            if (exercise.setNumbers.has(setNumber)) throw new Error(textV2("Número de série repetido no mesmo exercício."));
+            exercise.setNumbers.add(setNumber);
+            exercise.sets.push({
+              setNumber,
+              weight: parseWorkoutCsvWeightV2(csvValueV2(row, indexes, "weight", -1), csvWeightUnit),
+              reps: normalizeRepsValueV2(csvValueV2(row, indexes, "reps", -1)),
+              type: normalizeSetTypeV2(csvValueV2(row, indexes, "type", -1)),
+              rest: normalizeRestValueV2(csvValueV2(row, indexes, "rest", -1))
+            });
+            preview.push({ line, status: rawStudent ? "ok" : "fallback", studentLabel: studentDisplayName(rowAssignedStudentId, linkedStudents), item, message: rawStudent ? "OK" : "Destino escolhido para linha sem aluno." });
+          } catch (error) {
+            preview.push({ line, status: "error", studentLabel: rawStudent || textV2("Sem aluno"), item, message: error?.message || "Erro" });
           }
-          const workout = workoutMap.get(workoutKey);
-          const exerciseKey = normalizeExerciseNameV2(exerciseName);
-          if (!workout.exerciseLookup.has(exerciseKey)) {
-            const exercise = { name: exerciseName, sets: [] };
-            workout.exerciseLookup.set(exerciseKey, exercise);
-            workout.exercises.push(exercise);
-          }
-          const exercise = workout.exerciseLookup.get(exerciseKey);
-          const weightText = csvValueV2(row, indexes, "weight", fallback.weight);
-          exercise.sets.push({
-            weight: parseWorkoutCsvWeightV2(weightText, csvWeightUnit),
-            reps: normalizeRepsValueV2(csvValueV2(row, indexes, "reps", fallback.reps)),
-            type: normalizeSetTypeV2(csvValueV2(row, indexes, "type", fallback.type)),
-            rest: normalizeRestValueV2(csvValueV2(row, indexes, "rest", fallback.rest))
-          });
         });
-        const workouts = [...workoutMap.values()].map(workout => {
+        const valid = !blockedCsvRows(preview).length;
+        const workouts = valid ? [...workoutMap.values()].map(workout => {
           delete workout.exerciseLookup;
-          workout.exercises = workout.exercises.map(exercise => ({
-            ...exercise,
-            sets: exercise.sets.length ? exercise.sets : [{ weight: "", reps: "", type: "working_set", rest: "90" }]
-          }));
+          workout.exercises = workout.exercises.map(exercise => {
+            delete exercise.setNumbers;
+            exercise.sets.sort((a, b) => a.setNumber - b.setNumber);
+            exercise.sets.forEach(set => { delete set.setNumber; });
+            return exercise;
+          });
           return normalizeWorkoutV2(workout);
-        });
-        if (!workouts.length) throw new Error("Nenhum treino válido encontrado no CSV.");
-        return workouts;
+        }) : [];
+        return { preview, workouts, valid };
+      }
+
+      function parseWorkoutCsvV2(text, assignedStudentId = undefined, linkedStudents = []) {
+        const validation = validateWorkoutCsvV2(text, assignedStudentId, linkedStudents);
+        if (!validation.valid) throw new Error(blockedCsvRows(validation.preview)[0]?.message || textV2("Não consegui importar o CSV."));
+        return validation.workouts;
       }
 
       function previewWorkoutCsvV2(text, fallbackStudentId = undefined, linkedStudents = []) {
-        const rows = parseCsvRowsV2(text);
-        if (!rows.length) return [];
-        const headerIndexes = csvHeaderIndexesV2(rows[0]);
-        const hasHeader = headerIndexes.exerciseName !== undefined && (headerIndexes.workoutName !== undefined || headerIndexes.reps !== undefined || headerIndexes.weight !== undefined);
-        const indexes = hasHeader ? headerIndexes : {};
-        const dataRows = hasHeader ? rows.slice(1) : rows;
-        const lineOffset = hasHeader ? 2 : 1;
-        const fallback = { studentName: -1, workoutName: 0, exerciseName: 3 };
-        return dataRows.map((row, index) => {
-          const rawStudent = csvValueV2(row, indexes, "studentName", fallback.studentName);
-          const item = csvValueV2(row, indexes, "workoutName", fallback.workoutName) || csvValueV2(row, indexes, "exerciseName", fallback.exerciseName) || textV2("Treino importado");
-          if (!rawStudent && fallbackStudentId === undefined) {
-            return { line: index + lineOffset, status: "missing", studentLabel: textV2("Sem aluno"), item, message: "Escolha um destino para linhas sem aluno." };
-          }
-          try {
-            const studentId = csvStudentAssignmentV2(rawStudent, fallbackStudentId, linkedStudents);
-            return {
-              line: index + lineOffset,
-              status: rawStudent ? "ok" : "fallback",
-              studentLabel: studentDisplayName(studentId, linkedStudents),
-              item,
-              message: rawStudent ? "OK" : "Destino escolhido para linha sem aluno."
-            };
-          } catch (error) {
-            return { line: index + lineOffset, status: "error", studentLabel: rawStudent || textV2("Sem aluno"), item, message: error?.message || "Erro" };
-          }
-        });
+        return validateWorkoutCsvV2(text, fallbackStudentId, linkedStudents).preview;
       }
 
       function csvEscapeV2(value, delimiter = ";") {
@@ -26424,18 +26761,8 @@ ${photoSections}
       }
 
       function workoutCsvHeaderV2() {
-        return [
-          csvLocaleValue("aluno", "student", "alumno"),
-          csvLocaleValue("treino", "workout", "entreno"),
-          csvLocaleValue("objetivo", "goal", "objetivo"),
-          csvLocaleValue("tag", "tag", "etiqueta"),
-          csvLocaleValue("exercicio", "exercise", "ejercicio"),
-          csvLocaleValue("serie", "set", "serie"),
-          csvLocaleValue("repeticoes", "reps", "repeticiones"),
-          csvLocaleValue("peso_kg", "weight_kg", "peso_kg"),
-          csvLocaleValue("descanso", "rest", "descanso"),
-          csvLocaleValue("tipo", "type", "tipo")
-        ];
+        const languageIndex = { pt: 0, en: 1, es: 2 }[localStorage.getItem("monolith.language") || "pt"] ?? 0;
+        return workoutCsvSchemaV2.map(column => column.labels[languageIndex]);
       }
 
       function downloadWorkoutCsvTemplateV2() {
@@ -26451,8 +26778,15 @@ ${photoSections}
           ["Gusfraba", csvLocaleValue("Pernas A", "Legs A", "Piernas A"), csvLocaleValue("Forca e amplitude", "Strength and range", "Fuerza y amplitud"), csvLocaleValue("Importado", "Imported", "Importado"), csvLocaleValue("Leg press", "Leg press", "Prensa"), "1", "12", "120", "120", "Normal"]
         ];
         const content = rows.map(row => row.map(csvEscapeV2).join(";")).join("\n");
-        downloadTextFile("monolith-modelo-treino.csv", "text/csv;charset=utf-8", content);
+        if (!downloadTextFile("monolith-modelo-treino.csv", "text/csv;charset=utf-8", content)) {
+          const message = textV2("Não consegui iniciar o download do modelo CSV.");
+          setWorkoutCsvStatusV2(message);
+          toastV2(message);
+          return false;
+        }
         setWorkoutCsvStatusV2("Modelo CSV baixado.");
+        toastV2(textV2("Modelo CSV baixado."));
+        return true;
       }
 
       function exportWorkoutCsvV2() {
@@ -26489,9 +26823,15 @@ ${photoSections}
           });
         });
         const content = rows.map(row => row.map(csvEscapeV2).join(";")).join("\n");
-        downloadTextFile("monolith-treinos.csv", "text/csv;charset=utf-8", content);
+        if (!downloadTextFile(`monolith-treinos-${todayKey()}.csv`, "text/csv;charset=utf-8", content)) {
+          const message = textV2("Não consegui iniciar o download dos treinos.");
+          setWorkoutCsvStatusV2(message);
+          toastV2(message);
+          return false;
+        }
         setWorkoutCsvStatusV2("Treinos exportados em CSV.");
         toastV2(textV2("Treinos exportados em CSV."));
+        return true;
       }
 
       async function importWorkoutCsvFileV2(file) {
@@ -26502,6 +26842,13 @@ ${photoSections}
           if (workoutCsvInput) workoutCsvInput.value = "";
           return;
         }
+        if (!/\.csv$/i.test(file.name || "")) {
+          const message = textV2("Selecione um arquivo CSV válido.");
+          setWorkoutCsvStatusV2(message);
+          toastV2(message);
+          if (workoutCsvInput) workoutCsvInput.value = "";
+          return false;
+        }
         const importLabel = document.querySelector('label[for="workoutCsvInput"]');
         workoutCsvImportSavingV2 = true;
         try {
@@ -26509,10 +26856,13 @@ ${photoSections}
             setWorkoutCsvStatusV2("Preparando prévia do CSV...");
             const user = currentAccount();
             const target = selectedWorkoutImportTargetV2();
+            const trainerId = user?.id || "";
             const content = await file.text();
             const linkedStudents = user?.role === "personal" ? await ensureLinkedStudentsForPersonal(user.id) : [];
             const assignedStudentId = user?.role === "personal" && target !== selfWorkoutTarget ? target : target === selfWorkoutTarget ? "" : undefined;
-            const previewRows = previewWorkoutCsvV2(content, assignedStudentId, linkedStudents);
+            if (currentAccount()?.id !== trainerId || selectedWorkoutImportTargetV2() !== target) throw new Error(textV2("O destino mudou durante a validação. Selecione o aluno e tente novamente."));
+            const validation = validateWorkoutCsvV2(content, assignedStudentId, linkedStudents);
+            const previewRows = validation.preview;
             renderCsvPreview("workoutCsvPreview", previewRows);
             const blocked = blockedCsvRows(previewRows);
             if (blocked.length) {
@@ -26523,20 +26873,18 @@ ${photoSections}
               setWorkoutCsvStatusV2("Importação cancelada.");
               return;
             }
+            if (currentAccount()?.id !== trainerId || selectedWorkoutImportTargetV2() !== target) throw new Error(textV2("O destino mudou antes da importação. Revise e tente novamente."));
             setWorkoutCsvStatusV2("Importando CSV...");
-            const importedWorkouts = parseWorkoutCsvV2(content, assignedStudentId, linkedStudents);
-            let failedAssignments = 0;
+            const importedWorkouts = validation.workouts;
             for (const [index, workout] of importedWorkouts.entries()) {
               workout.clientRequestId = `${importRequestId}:workout:${index + 1}`;
-              const saved = await saveCustomWorkoutV2(workout);
-              if (saved.assignedStudentId && user?.role === "personal") setSelectedStudentForPersonal(saved.assignedStudentId);
-              if (saved.syncStatus === "failed" && saved.assignedStudentId) failedAssignments += 1;
             }
+            await saveImportedWorkoutsV2(importedWorkouts);
             await refreshWorkoutsV2();
             const message = `${importedWorkouts.length} ${textV2(importedWorkouts.length === 1 ? "treino importado." : "treinos importados.")}`;
             const summary = csvPreviewSummary(previewRows);
-            setWorkoutCsvStatusV2(failedAssignments ? `${message} ${textV2("Alguns treinos não foram enviados ao aluno.")} ${summary}` : `${message} ${summary}`, true);
-            toastV2(failedAssignments ? textV2("CSV importado, mas revise os envios ao aluno.") : message);
+            setWorkoutCsvStatusV2(`${message} ${summary}`, true);
+            toastV2(message);
           }, { loadingText: "Importando..." });
         } catch (error) {
           logAppError("workout", "csv-import", error);
@@ -26574,6 +26922,7 @@ ${photoSections}
           merged
         );
         saveWorkoutsV2(workoutsV2);
+        if (user?.role === "student" && document.getElementById("home")?.classList.contains("active")) renderStudentDashboard();
         if (!remoteResult.ok && !workoutsV2.length) {
           workoutListV2.innerHTML = remoteStateHTML("error", { errorLabel: "Não foi possível carregar os treinos. Tente novamente.", retryScreen: "workouts" });
           activeWorkoutV2 = null;
@@ -26646,7 +26995,7 @@ ${photoSections}
         try {
           const studentId = activeDataStudentId();
           return JSON.parse(localStorage.getItem("monolith.completedWorkouts") || "[]")
-            .filter(session => !studentId || !session.studentId || session.studentId === studentId);
+            .filter(session => Boolean(studentId) && session.studentId === studentId);
         } catch {
           return [];
         }
@@ -27269,12 +27618,53 @@ ${photoSections}
         }
       }, true);
 
+      document.getElementById("useWorkoutTemplateButton")?.addEventListener("click", async event => {
+        const user = currentAccount();
+        if (user?.role !== "personal") {
+          toastV2(textV2("Somente o personal pode criar ou alterar prescrições de treino."));
+          return;
+        }
+        const templateId = await promptAction({
+          title: "Usar modelo de treino",
+          message: "Escolha um modelo para abrir no editor. Você poderá revisar tudo antes de salvar.",
+          fieldType: "select",
+          fieldLabel: "Modelo",
+          fieldOptions: defaultWorkoutsV2.map(template => ({ value: template.id, label: textV2(template.name) })),
+          fieldValue: defaultWorkoutsV2[0]?.id || "",
+          confirmLabel: "Aplicar modelo"
+        });
+        if (!templateId) return;
+        try {
+          await runPendingOperation(`workout-template:${templateId}`, event.currentTarget, async () => {
+            const template = defaultWorkoutsV2.find(item => item.id === templateId);
+            if (!template) throw new Error(textV2("O modelo selecionado não está disponível."));
+            const target = selectedWorkoutTarget();
+            formV2.reset();
+            resetBuilderV2();
+            await openWorkoutModal();
+            if (currentAccount()?.id !== user.id) throw new Error(textV2("A conta mudou antes da aplicação do modelo."));
+            if (target) setSelectedWorkoutTarget(target);
+            document.getElementById("workoutName").value = textV2(template.name);
+            document.getElementById("workoutGoal").value = textV2(template.goal);
+            builder.innerHTML = "";
+            template.exercises.forEach(exercise => addExerciseEditorV2(exercise));
+            formV2.dataset.templateId = template.id;
+            markDirty("workout");
+            updateNumericSubmitStates();
+            document.getElementById("workoutName")?.focus();
+            toastV2(textV2("Modelo de treino aplicado. Revise e salve quando estiver pronto."));
+          }, { loadingText: "Aplicando modelo..." });
+        } catch (error) {
+          logAppError("workout", "template-apply", error, { templateId });
+          toastV2(error?.message || textV2("Não consegui aplicar o modelo de treino."));
+        }
+      });
+
       downloadWorkoutCsvTemplateButton?.addEventListener("click", downloadWorkoutCsvTemplateV2);
       exportWorkoutCsvButton?.addEventListener("click", exportWorkoutCsvV2);
       workoutCsvInput?.addEventListener("change", event => importWorkoutCsvFileV2(event.target.files?.[0]));
       workoutImportStudent?.addEventListener("change", async () => {
         localStorage.setItem("monolith.selectedWorkoutImportStudentId", workoutImportStudent.value || "");
-        if (workoutImportStudent.value && workoutImportStudent.value !== selfWorkoutTarget) setSelectedStudentForPersonal(workoutImportStudent.value);
         setWorkoutCsvStatusV2(workoutImportStudent.value ? "Destino da importação atualizado." : "Linhas sem aluno precisarão de destino antes da importação.");
       });
 
@@ -27707,6 +28097,7 @@ ${photoSections}
         loading: false,
         loaded: false
       };
+      let scheduleLoadSequence = 0;
 
       function setScheduleText(id, value) {
         const element = document.getElementById(id);
@@ -27769,11 +28160,6 @@ ${photoSections}
         return { date: `${parts.year}-${parts.month}-${parts.day}`, time: `${parts.hour}:${parts.minute}` };
       }
 
-      function appointmentViewerTimezone() {
-        const user = currentAccount();
-        return user?.role === "personal" ? accountTimezone(user) : Intl.DateTimeFormat().resolvedOptions().timeZone || accountTimezone(user);
-      }
-
       function validAppointmentTimezone(timezone) {
         try {
           new Intl.DateTimeFormat("en", { timeZone: timezone }).format();
@@ -27783,12 +28169,38 @@ ${photoSections}
         }
       }
 
+      function appointmentTimezone(appointment) {
+        const timezone = String(appointment?.timezone || "").trim();
+        return validAppointmentTimezone(timezone) ? timezone : accountTimezone();
+      }
+
+      function civilDateTimeToIso(dateKey, timeValue, timezone) {
+        if (!/^\d{4}-\d{2}-\d{2}$/.test(String(dateKey || "")) || !/^\d{2}:\d{2}$/.test(String(timeValue || "")) || !validAppointmentTimezone(timezone)) {
+          throw new Error(t("Data, horário ou fuso horário inválido."));
+        }
+        const [year, month, day] = dateKey.split("-").map(Number);
+        const [hour, minute] = timeValue.split(":").map(Number);
+        const civilUtc = Date.UTC(year, month - 1, day, hour, minute, 0, 0);
+        let instant = civilUtc;
+        for (let attempt = 0; attempt < 4; attempt += 1) {
+          const rendered = civilPartsInZone(new Date(instant).toISOString(), timezone);
+          const [renderedYear, renderedMonth, renderedDay] = rendered.date.split("-").map(Number);
+          const [renderedHour, renderedMinute] = rendered.time.split(":").map(Number);
+          const renderedUtc = Date.UTC(renderedYear, renderedMonth - 1, renderedDay, renderedHour, renderedMinute, 0, 0);
+          instant += civilUtc - renderedUtc;
+        }
+        const iso = new Date(instant).toISOString();
+        const verified = civilPartsInZone(iso, timezone);
+        if (verified.date !== dateKey || verified.time !== timeValue) throw new Error(t("Este horário não existe no fuso selecionado."));
+        return iso;
+      }
+
       function appointmentDateKey(appointment) {
-        return civilPartsInZone(appointment.startsAt, appointmentViewerTimezone()).date;
+        return civilPartsInZone(appointment.startsAt, appointmentTimezone(appointment)).date;
       }
 
       function appointmentTimeLabel(appointment) {
-        const timezone = appointmentViewerTimezone();
+        const timezone = appointmentTimezone(appointment);
         const start = new Date(appointment.startsAt);
         const end = new Date(appointment.endsAt);
         const formatter = new Intl.DateTimeFormat(currentLocale(), { hour: "2-digit", minute: "2-digit", timeZone: timezone });
@@ -27801,17 +28213,17 @@ ${photoSections}
           day: "2-digit",
           month: options.short ? "short" : "long",
           year: options.year === false ? undefined : "numeric",
-          timeZone: appointmentViewerTimezone()
+          timeZone: appointmentTimezone(appointment)
         }).format(new Date(appointment.startsAt));
       }
 
-      function rescheduleSlotLabel(slot) {
+      function rescheduleSlotLabel(slot, appointment = null) {
         const date = new Date(slot);
         if (!Number.isFinite(date.getTime())) return String(slot || "");
         return new Intl.DateTimeFormat(currentLocale(), {
           dateStyle: "medium",
           timeStyle: "short",
-          timeZone: appointmentViewerTimezone()
+          timeZone: appointmentTimezone(appointment)
         }).format(date);
       }
 
@@ -27880,8 +28292,11 @@ ${photoSections}
       async function loadScheduleData({ silent = false } = {}) {
         const user = currentAccount();
         if (!user) return [];
+        const requestId = ++scheduleLoadSequence;
+        const accountId = user.id;
         if (!silent) scheduleState.loading = true;
         if (user.role === "personal") await ensureLinkedStudentsForPersonal(user.id);
+        if (requestId !== scheduleLoadSequence || currentAccount()?.id !== accountId) return scheduleState.appointments;
         if (!isRealSupabaseAccount(user) || !monolithSupabase) {
           scheduleState.appointments = readMemoryList(scheduleCacheKey).map(normalizeAppointment).filter(item => item.trainerId === user.id || item.studentId === user.id);
           scheduleState.requests = readMemoryList(requestCacheKey).map(normalizeRescheduleRequest).filter(item => item.trainerId === user.id || item.studentId === user.id);
@@ -27904,11 +28319,13 @@ ${photoSections}
           ]);
           if (error) throw error;
           if (requestResult.error) throw requestResult.error;
+          if (requestId !== scheduleLoadSequence || currentAccount()?.id !== accountId) return scheduleState.appointments;
           const appointments = (data || []).map(normalizeAppointment);
           if (user.role === "personal" && appointments.length) {
             const ids = appointments.map(item => item.id);
             const { data: notes, error: notesError } = await monolithSupabase.from("appointment_private_notes").select("appointment_id,note").in("appointment_id", ids);
             if (notesError) throw notesError;
+            if (requestId !== scheduleLoadSequence || currentAccount()?.id !== accountId) return scheduleState.appointments;
             const noteMap = new Map((notes || []).map(note => [note.appointment_id, note.note || ""]));
             appointments.forEach(item => { item.privateNote = noteMap.get(item.id) || ""; });
           }
@@ -27920,6 +28337,7 @@ ${photoSections}
           if (status) status.hidden = true;
           return appointments;
         } catch (error) {
+          if (requestId !== scheduleLoadSequence || currentAccount()?.id !== accountId) return scheduleState.appointments;
           scheduleState.loading = false;
           logAppError("schedule", "load", error, { userId: user.id });
           const status = document.getElementById("scheduleRemoteStatus");
@@ -28036,7 +28454,10 @@ ${photoSections}
       async function renderHomeAppointments() {
         const container = document.getElementById("homeUpcomingAppointments");
         if (!container || !currentAccount()) return;
+        const accountId = currentAccount().id;
+        const requestId = scheduleLoadSequence + 1;
         await loadScheduleData({ silent: true });
+        if (requestId !== scheduleLoadSequence || currentAccount()?.id !== accountId) return;
         const upcoming = upcomingAppointments().slice(0, 3);
         container.innerHTML = upcoming.length ? upcoming.map(compactAppointmentHTML).join("") : scheduleEmptyHTML().replace(t("Nenhum compromisso neste período."), t("Nenhum compromisso próximo."));
       }
@@ -28044,6 +28465,9 @@ ${photoSections}
       async function renderSchedule() {
         const user = currentAccount();
         if (!user) return;
+        const requestId = scheduleLoadSequence + 1;
+        const requestedView = scheduleState.view;
+        const requestedAnchor = scheduleState.anchor;
         const detailsPanel = document.getElementById("appointmentDetailsPanel");
         const detailsContent = document.getElementById("appointmentDetails");
         if (detailsPanel) detailsPanel.hidden = true;
@@ -28054,6 +28478,12 @@ ${photoSections}
         const calendar = document.getElementById("scheduleCalendar");
         if (calendar) calendar.innerHTML = remoteStateHTML("loading");
         await loadScheduleData();
+        if (
+          requestId !== scheduleLoadSequence ||
+          currentAccount()?.id !== user.id ||
+          scheduleState.view !== requestedView ||
+          scheduleState.anchor !== requestedAnchor
+        ) return;
         renderScheduleCalendar();
         renderScheduleSummary();
       }
@@ -28067,7 +28497,7 @@ ${photoSections}
         const request = appointmentRequestFor(appointment.id);
         const shared = appointment.sharedNotes ? `<div class="appointment-detail"><span>${escapeHTML(t("Instruções para o aluno"))}</span>${escapeHTML(appointment.sharedNotes)}</div>` : "";
         const privateNote = user?.role === "personal" && appointment.privateNote ? `<div class="appointment-detail"><span>${escapeHTML(t("Notas privadas do personal"))}</span>${escapeHTML(appointment.privateNote)}</div>` : "";
-        const requestBlock = request ? `<div class="appointment-row"><strong>${escapeHTML(t("Pedido de remarcação"))}</strong><p>${escapeHTML(request.reason)}</p><div class="appointment-meta">${request.proposedSlots.map(slot => `<span>${escapeHTML(rescheduleSlotLabel(slot))}</span>`).join("")}</div></div>` : "";
+        const requestBlock = request ? `<div class="appointment-row"><strong>${escapeHTML(t("Pedido de remarcação"))}</strong><p>${escapeHTML(request.reason)}</p><div class="appointment-meta">${request.proposedSlots.map(slot => `<span>${escapeHTML(rescheduleSlotLabel(slot, appointment))}</span>`).join("")}</div></div>` : "";
         let actions = "";
         if (user?.role === "student") {
           if (appointment.status === "awaiting_confirmation") actions += `<button class="action" type="button" data-appointment-action="confirm" data-appointment-id="${escapeHTML(appointment.id)}">${escapeHTML(t("Confirmar presença"))}</button>`;
@@ -28105,11 +28535,9 @@ ${photoSections}
         select.value = selected || "";
       }
 
-      function defaultAppointmentTime() {
-        const date = new Date();
-        date.setMinutes(0, 0, 0);
-        date.setHours(date.getHours() + 1);
-        return `${String(date.getHours()).padStart(2, "0")}:00`;
+      function defaultAppointmentTime(timezone = accountTimezone()) {
+        const nextHour = civilPartsInZone(new Date(Date.now() + 3600000).toISOString(), timezone).time.slice(0, 2);
+        return `${nextHour}:00`;
       }
 
       function openAppointmentForm(mode = "create", appointment = null, requestId = "", suggestedSlot = "") {
@@ -28122,7 +28550,7 @@ ${photoSections}
           ? civilPartsInZone(suggestedSlot, timezone)
           : appointment
             ? civilPartsInZone(appointment.startsAt, timezone)
-            : { date: scheduleState.anchor || todayKey(), time: defaultAppointmentTime() };
+            : { date: scheduleState.anchor || todayKey(), time: defaultAppointmentTime(timezone) };
         populateAppointmentStudents(appointment?.studentId || selectedStudentForPersonal() || "");
         document.getElementById("appointmentId").value = appointment?.id || requestId || "";
         document.getElementById("appointmentMode").value = mode;
@@ -28219,7 +28647,7 @@ ${photoSections}
           }
         } else dates.push(payload.date);
         dates.forEach((key, index) => {
-          const start = new Date(`${key}T${payload.time}:00`).toISOString();
+          const start = civilDateTimeToIso(key, payload.time, payload.timezone);
           const end = new Date(new Date(start).getTime() + payload.duration * 60000).toISOString();
           current.push(normalizeAppointment({
             id: createClientRequestId("appointment"),
@@ -28294,7 +28722,7 @@ ${photoSections}
                   }
                 } else {
                   const originalStart = new Date(target.startsAt).getTime();
-                  const nextStart = new Date(`${payload.date}T${payload.time}:00`).getTime();
+                  const nextStart = new Date(civilDateTimeToIso(payload.date, payload.time, payload.timezone)).getTime();
                   const delta = nextStart - originalStart;
                   const scope = document.getElementById("appointmentEditScope").value;
                   list.filter(item => item.id === target.id || (target.seriesId && item.seriesId === target.seriesId && (scope === "all" || (scope === "future" && new Date(item.startsAt) >= new Date(target.startsAt))))).forEach(item => {
@@ -28392,10 +28820,9 @@ ${photoSections}
         document.getElementById("rescheduleRequestForm")?.reset();
         document.getElementById("rescheduleAppointmentId").value = appointmentId;
         const appointment = scheduleState.appointments.find(item => item.id === appointmentId);
-        const base = appointment ? new Date(appointment.startsAt) : new Date();
-        base.setDate(base.getDate() + 1);
-        const local = new Date(base.getTime() - base.getTimezoneOffset() * 60000).toISOString().slice(0, 16);
-        document.getElementById("rescheduleSlot1").value = local;
+        const timezone = appointmentTimezone(appointment);
+        const base = civilPartsInZone(appointment?.startsAt || new Date().toISOString(), timezone);
+        document.getElementById("rescheduleSlot1").value = `${addCivilDays(base.date, 1)}T${base.time}`;
       }
 
       async function submitRescheduleRequest(event) {
@@ -28403,17 +28830,27 @@ ${photoSections}
         const user = currentAccount();
         const appointmentId = document.getElementById("rescheduleAppointmentId").value;
         const reason = document.getElementById("rescheduleReason").value.trim();
-        const proposedSlots = ["rescheduleSlot1", "rescheduleSlot2", "rescheduleSlot3"]
-          .map(id => document.getElementById(id).value)
-          .filter(Boolean)
-          .map(value => new Date(value).toISOString());
+        const appointment = scheduleState.appointments.find(item => item.id === appointmentId);
+        const timezone = appointmentTimezone(appointment);
+        let proposedSlots;
+        try {
+          proposedSlots = ["rescheduleSlot1", "rescheduleSlot2", "rescheduleSlot3"]
+            .map(id => document.getElementById(id).value)
+            .filter(Boolean)
+            .map(value => {
+              const [date, time] = value.split("T");
+              return civilDateTimeToIso(date, time, timezone);
+            });
+        } catch (error) {
+          showToast(error?.message || t("Data, horário ou fuso horário inválido."));
+          return;
+        }
         try {
           if (isRealSupabaseAccount(user) && monolithSupabase) {
             const { error } = await monolithSupabase.rpc("request_monolith_appointment_reschedule", { p_appointment_id: appointmentId, p_reason: reason, p_proposed_slots: proposedSlots, p_client_request_id: createClientRequestId("reschedule-request") });
             if (error) throw error;
           } else {
             const requests = readMemoryList(requestCacheKey);
-            const appointment = scheduleState.appointments.find(item => item.id === appointmentId);
             requests.push({ id: createClientRequestId("request"), appointmentId, trainerId: appointment.trainerId, studentId: user.id, reason, proposedSlots, status: "pending", createdAt: new Date().toISOString() });
             writeMemoryList(requestCacheKey, requests);
           }
@@ -28449,7 +28886,7 @@ ${photoSections}
           message: "Escolha um dos horários sugeridos pelo aluno. Você poderá ajustar os detalhes antes de salvar.",
           fieldType: "select",
           fieldLabel: "Horário sugerido",
-          fieldOptions: request.proposedSlots.map(slot => ({ value: slot, label: rescheduleSlotLabel(slot) })),
+          fieldOptions: request.proposedSlots.map(slot => ({ value: slot, label: rescheduleSlotLabel(slot, appointment) })),
           fieldValue: request.proposedSlots[0],
           confirmLabel: "Usar este horário"
         });

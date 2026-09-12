@@ -1,4 +1,4 @@
-const CACHE_NAME = "monolith-v105-workout-idempotency";
+const CACHE_NAME = "monolith-v106-flow-corrections";
 
 self.addEventListener("install", event => {
   self.skipWaiting();
