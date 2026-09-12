@@ -15,7 +15,7 @@ async function launchBrowser() {
 }
 
 async function loginDemo(page, role) {
-  await page.goto(`${baseUrl}?qa=monolith-v104`, { waitUntil: "domcontentloaded" });
+  await page.goto(`${baseUrl}?qa=monolith-v105`, { waitUntil: "domcontentloaded" });
   await page.locator("#loginEmail").fill(`${role}@monolith.app`);
   await page.locator("#loginPassword").fill("123456");
   await page.locator("#loginButton").click();
@@ -38,7 +38,7 @@ async function main() {
       scheduleHook: typeof window.monolithRenderSchedule,
       billingHook: typeof window.monolithRenderBilling
     }));
-    assert.equal(hooks.build, "monolith-v104-final-qa-fixes");
+    assert.equal(hooks.build, "monolith-v105-workout-idempotency");
     assert.deepEqual(hooks.money, [15000, 123456, 123456, null, null]);
     assert.equal(hooks.scheduleHook, "function");
     assert.equal(hooks.billingHook, "function");

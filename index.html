@@ -14,8 +14,8 @@
   <link rel="manifest" href="manifest.webmanifest" />
   <link rel="icon" href="monolith-icon.svg" />
   <script>
-window.MONOLITH_BUILD = "monolith-v104-final-qa-fixes";
-window.MONOLITH_VERSION_LABEL = "Monolith v104 · 10/09/2026";
+window.MONOLITH_BUILD = "monolith-v105-workout-idempotency";
+window.MONOLITH_VERSION_LABEL = "Monolith v105 · 11/09/2026";
     (function clearOldAppCaches() {
       if ("serviceWorker" in navigator) {
         navigator.serviceWorker.getRegistrations?.()
@@ -5256,7 +5256,7 @@ window.MONOLITH_VERSION_LABEL = "Monolith v104 · 10/09/2026";
           <button class="action" id="loginButton" type="submit">Entrar</button>
           <div class="auth-tools">
             <button class="auth-secondary" id="clearDeviceSessionButton" type="button">Limpar sessão/cache deste aparelho</button>
-            <div class="build-version" id="buildVersionLabel">Versão do app: Monolith v104 · 10/09/2026</div>
+            <div class="build-version" id="buildVersionLabel">Versão do app: Monolith v105 · 11/09/2026</div>
           </div>
         </form>
       </div>
@@ -7269,8 +7269,8 @@ window.MONOLITH_VERSION_LABEL = "Monolith v104 · 10/09/2026";
   <script>
     const MONOLITH_SUPABASE_URL = "https://jhxasnxuvmkhntbwepau.supabase.co";
     const MONOLITH_SUPABASE_KEY = "sb_publishable_lDtAXIOtkMwgwsAZyghBdg_gyLHGwpH";
-const MONOLITH_BUILD = window.MONOLITH_BUILD || "monolith-v104-final-qa-fixes";
-const MONOLITH_VERSION_LABEL = window.MONOLITH_VERSION_LABEL || "Monolith v104 · 10/09/2026";
+const MONOLITH_BUILD = window.MONOLITH_BUILD || "monolith-v105-workout-idempotency";
+const MONOLITH_VERSION_LABEL = window.MONOLITH_VERSION_LABEL || "Monolith v105 · 11/09/2026";
     const onboardingStepDefinitions = [
       ["welcome", "Boas-vindas", "Conheça o fluxo do seu acompanhamento.", "home"],
       ["terms", "Termos", "Revise consentimentos e informações da conta.", "profile"],
@@ -17285,7 +17285,7 @@ if (location.hash.toLowerCase() === "#leads") history.replaceState(null, "", `${
       const workoutFormEl = document.getElementById("workoutForm");
       const saveWorkout = document.getElementById("saveWorkoutButton");
       const missingWorkoutTarget = currentAccount()?.role === "personal" && !selectedWorkoutTarget();
-      if (workoutFormEl && saveWorkout) saveWorkout.disabled = missingWorkoutTarget || !validateVisibleNumericInputs(workoutFormEl);
+      if (workoutFormEl && saveWorkout) saveWorkout.disabled = workoutFormEl.dataset.saving === "true" || missingWorkoutTarget || !validateVisibleNumericInputs(workoutFormEl);
       const saveCheckin = document.getElementById("saveCheckin");
       if (saveCheckin) {
         const canRespond = canRespondToCheckin();
@@ -17903,6 +17903,8 @@ if (location.hash.toLowerCase() === "#leads") history.replaceState(null, "", `${
       }
       workoutModal.classList.remove("active");
       workoutForm.reset();
+      delete workoutForm.dataset.clientRequestId;
+      delete workoutForm.dataset.saving;
       window.monolithResetWorkoutBuilder?.();
       clearDirty("workout");
     }
@@ -23972,6 +23974,8 @@ ${photoSections}
   </script>
   <script>
     (() => {
+      if (window.monolithWorkoutModuleInitialized) return;
+      window.monolithWorkoutModuleInitialized = true;
       const setTypes = ["working_set", "warmup", "failure", "drop_set", "rest_pause", "superset", "top_set", "backoff_set", "personal_record"];
       const setTypeLabelsV2 = {
         working_set: { pt: "Série válida", en: "Working set", es: "Serie efectiva" },
@@ -24324,6 +24328,10 @@ ${photoSections}
       const workoutCsvStatus = document.getElementById("workoutCsvStatus");
       const downloadWorkoutCsvTemplateButton = document.getElementById("downloadWorkoutCsvTemplate");
       const exportWorkoutCsvButton = document.getElementById("exportWorkoutCsv");
+      const workoutSaveRequestsV2 = new Map();
+      let workoutCreateSavingV2 = false;
+      let workoutCsvImportSavingV2 = false;
+      let workoutRefreshSequenceV2 = 0;
       let workoutsV2 = loadWorkoutsV2();
       let activeWorkoutV2 = workoutsV2[0];
       let restTimersV2 = new Map();
@@ -25839,6 +25847,8 @@ ${photoSections}
             syncError: workout.syncError || "",
             createdBy: workout.createdBy || workout.created_by || "",
             updatedBy: workout.updatedBy || workout.updated_by || "",
+            createdAt: workout.createdAt || workout.created_at || "",
+            updatedAt: workout.updatedAt || workout.updated_at || workout.createdAt || workout.created_at || "",
             isSuspicious: workout.isSuspicious === true || workout.is_suspicious === true,
             suspiciousReason: workout.suspiciousReason || workout.suspicious_reason || "",
             exercises: workout.exercises.map(normalizeExerciseV2)
@@ -25858,6 +25868,8 @@ ${photoSections}
           syncError: workout.syncError || "",
           createdBy: workout.createdBy || workout.created_by || "",
           updatedBy: workout.updatedBy || workout.updated_by || "",
+          createdAt: workout.createdAt || workout.created_at || "",
+          updatedAt: workout.updatedAt || workout.updated_at || workout.createdAt || workout.created_at || "",
           isSuspicious: workout.isSuspicious === true || workout.is_suspicious === true,
           suspiciousReason: workout.suspiciousReason || workout.suspicious_reason || "",
           exercises: names.map(name => normalizeExerciseV2({
@@ -25880,17 +25892,53 @@ ${photoSections}
       }
 
       function uniqueWorkoutsByStableIdV2(workouts = []) {
-        const seen = new Set();
-        return (workouts || []).filter(workout => {
-          const stableKey = workout.id
-            ? `id:${workout.id}`
-            : workout.clientRequestId
-              ? `request:${workout.clientRequestId}`
-              : "";
-          if (stableKey && seen.has(stableKey)) return false;
-          if (stableKey) seen.add(stableKey);
-          return true;
+        return (workouts || []).reduce((result, workout) => upsertWorkoutByStableIdV2(result, workout), []);
+      }
+
+      function isDatabaseWorkoutIdV2(value = "") {
+        return /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(String(value));
+      }
+
+      function sameWorkoutIdentityV2(current = {}, incoming = {}) {
+        const currentId = String(current.id || "");
+        const incomingId = String(incoming.id || "");
+        if (currentId && incomingId && currentId === incomingId) return true;
+        if (isDatabaseWorkoutIdV2(currentId) && isDatabaseWorkoutIdV2(incomingId)) return false;
+        const currentRequestId = String(current.clientRequestId || "");
+        const incomingRequestId = String(incoming.clientRequestId || "");
+        return Boolean(currentRequestId && incomingRequestId && currentRequestId === incomingRequestId);
+      }
+
+      function mergeWorkoutVersionV2(current, incoming) {
+        const currentHasDatabaseId = isDatabaseWorkoutIdV2(current?.id);
+        const incomingHasDatabaseId = isDatabaseWorkoutIdV2(incoming?.id);
+        if (currentHasDatabaseId !== incomingHasDatabaseId) {
+          return currentHasDatabaseId
+            ? normalizeWorkoutV2({ ...incoming, ...current })
+            : normalizeWorkoutV2({ ...current, ...incoming });
+        }
+        const currentUpdated = Date.parse(current?.updatedAt || current?.createdAt || "") || 0;
+        const incomingUpdated = Date.parse(incoming?.updatedAt || incoming?.createdAt || "") || 0;
+        return incomingUpdated >= currentUpdated
+          ? normalizeWorkoutV2({ ...current, ...incoming })
+          : normalizeWorkoutV2({ ...incoming, ...current });
+      }
+
+      function upsertWorkoutByStableIdV2(workouts = [], workout = {}, options = {}) {
+        const normalized = normalizeWorkoutV2(workout);
+        const matches = [];
+        workouts.forEach((item, index) => {
+          if (sameWorkoutIdentityV2(item, normalized)) matches.push(index);
         });
+        if (!matches.length) return options.prepend ? [normalized, ...workouts] : [...workouts, normalized];
+        let merged = normalized;
+        matches.forEach(index => {
+          merged = mergeWorkoutVersionV2(workouts[index], merged);
+        });
+        const insertionIndex = options.prepend ? 0 : matches[0];
+        const retained = workouts.filter((_, index) => !matches.includes(index));
+        retained.splice(Math.min(insertionIndex, retained.length), 0, merged);
+        return retained;
       }
 
       function deletedLibraryWorkoutsV2() {
@@ -25964,6 +26012,18 @@ ${photoSections}
       window.monolithUpdateWorkoutCreateAccess = updateWorkoutCreateAccessV2;
 
       async function saveCustomWorkoutV2(workout) {
+        const clientRequestId = workout.clientRequestId || createClientRequestId("workout");
+        if (workoutSaveRequestsV2.has(clientRequestId)) return workoutSaveRequestsV2.get(clientRequestId);
+        const request = saveCustomWorkoutRecordV2({ ...workout, clientRequestId });
+        workoutSaveRequestsV2.set(clientRequestId, request);
+        try {
+          return await request;
+        } finally {
+          if (workoutSaveRequestsV2.get(clientRequestId) === request) workoutSaveRequestsV2.delete(clientRequestId);
+        }
+      }
+
+      async function saveCustomWorkoutRecordV2(workout) {
         const user = currentAccount();
         if (user?.role !== "personal") {
           throw new Error(textV2("Somente o personal pode criar ou alterar prescrições de treino."));
@@ -25985,31 +26045,26 @@ ${photoSections}
             is_library: false,
             client_request_id: localWorkout.clientRequestId
           };
-          let { data, error } = await monolithSupabase
-            .from("workout_templates")
-            .upsert(payload, { onConflict: "client_request_id" })
-            .select("*")
-            .single();
-          if (error && clientRequestSchemaUnavailable(error)) {
-            ({ data, error } = await monolithSupabase
+          try {
+            const { data, error } = await monolithSupabase
               .from("workout_templates")
-              .insert(withoutClientRequestId(payload))
+              .upsert(payload, { onConflict: "client_request_id" })
               .select("*")
-              .single());
-          }
-          if (error) {
+              .single();
+            if (error) remoteError = error;
+            else if (data) Object.assign(localWorkout, workoutFromRemoteV2(data));
+          } catch (error) {
             remoteError = error;
-            logAppError("workout", "save", error, { studentId: localWorkout.studentId, workoutId: localWorkout.id });
-          } else if (data) {
-            Object.assign(localWorkout, workoutFromRemoteV2(data));
           }
+          if (remoteError) logAppError("workout", clientRequestSchemaUnavailable(remoteError) ? "idempotency-unavailable" : "save", remoteError, {
+            studentId: localWorkout.assignedStudentId,
+            workoutId: localWorkout.id,
+            clientRequestId: localWorkout.clientRequestId
+          });
         }
         localWorkout.syncStatus = shouldSyncRemote ? (remoteError ? "failed" : "synced") : "local";
         localWorkout.syncError = remoteError?.message || "";
-        const saved = loadWorkoutsV2();
-        const withoutDuplicate = saved.filter(item => item.id !== localWorkout.id && item.clientRequestId !== localWorkout.clientRequestId);
-        withoutDuplicate.unshift(localWorkout);
-        localStorage.setItem("monolith.workouts", JSON.stringify(withoutDuplicate));
+        saveWorkoutsV2(upsertWorkoutByStableIdV2(loadWorkoutsV2(), localWorkout, { prepend: true }));
         return localWorkout;
       }
 
@@ -26280,7 +26335,11 @@ ${photoSections}
         const dataRows = hasHeader ? rows.slice(1) : rows;
         const fallback = { studentName: -1, workoutName: 0, goal: 1, tag: 2, exerciseName: 3, set: 4, reps: 5, weight: 6, rest: 7, type: 8 };
         const workoutMap = new Map();
+        const processedRows = new Set();
         dataRows.forEach(row => {
+          const rowSignature = JSON.stringify(row.map(value => String(value ?? "").trim()));
+          if (processedRows.has(rowSignature)) return;
+          processedRows.add(rowSignature);
           const exerciseName = csvValueV2(row, indexes, "exerciseName", fallback.exerciseName);
           if (!exerciseName) return;
           const rowAssignedStudentId = csvStudentAssignmentV2(csvValueV2(row, indexes, "studentName", fallback.studentName), assignedStudentId, linkedStudents);
@@ -26437,14 +26496,16 @@ ${photoSections}
 
       async function importWorkoutCsvFileV2(file) {
         if (!file) return;
+        if (workoutCsvImportSavingV2) return false;
         if (currentAccount()?.role !== "personal") {
           toastV2(textV2("Somente o personal pode importar ou exportar treinos."));
           if (workoutCsvInput) workoutCsvInput.value = "";
           return;
         }
         const importLabel = document.querySelector('label[for="workoutCsvInput"]');
-        return runPendingOperation("workout-csv-import", importLabel, async () => {
-          try {
+        workoutCsvImportSavingV2 = true;
+        try {
+          return await runPendingOperation("workout-csv-import", importLabel, async importRequestId => {
             setWorkoutCsvStatusV2("Preparando prévia do CSV...");
             const user = currentAccount();
             const target = selectedWorkoutImportTargetV2();
@@ -26465,7 +26526,8 @@ ${photoSections}
             setWorkoutCsvStatusV2("Importando CSV...");
             const importedWorkouts = parseWorkoutCsvV2(content, assignedStudentId, linkedStudents);
             let failedAssignments = 0;
-            for (const workout of importedWorkouts) {
+            for (const [index, workout] of importedWorkouts.entries()) {
+              workout.clientRequestId = `${importRequestId}:workout:${index + 1}`;
               const saved = await saveCustomWorkoutV2(workout);
               if (saved.assignedStudentId && user?.role === "personal") setSelectedStudentForPersonal(saved.assignedStudentId);
               if (saved.syncStatus === "failed" && saved.assignedStudentId) failedAssignments += 1;
@@ -26475,51 +26537,60 @@ ${photoSections}
             const summary = csvPreviewSummary(previewRows);
             setWorkoutCsvStatusV2(failedAssignments ? `${message} ${textV2("Alguns treinos não foram enviados ao aluno.")} ${summary}` : `${message} ${summary}`, true);
             toastV2(failedAssignments ? textV2("CSV importado, mas revise os envios ao aluno.") : message);
-          } catch (error) {
-            logAppError("workout", "csv-import", error);
-            const message = error?.message || "Não consegui importar o CSV.";
-            setWorkoutCsvStatusV2(message);
-            toastV2(textV2(message));
-          } finally {
-            if (workoutCsvInput) workoutCsvInput.value = "";
-          }
-        }, { loadingText: "Importando..." });
+          }, { loadingText: "Importando..." });
+        } catch (error) {
+          logAppError("workout", "csv-import", error);
+          const message = error?.message || "Não consegui importar o CSV.";
+          setWorkoutCsvStatusV2(message);
+          toastV2(textV2(message));
+        } finally {
+          workoutCsvImportSavingV2 = false;
+          if (workoutCsvInput) workoutCsvInput.value = "";
+        }
       }
 
       async function refreshWorkoutsV2() {
+        const refreshId = ++workoutRefreshSequenceV2;
         await updateWorkoutCreateAccessV2();
         const user = currentAccount();
+        const accountId = user?.id || "";
+        const targetId = selectedWorkoutTarget();
         const cached = loadWorkoutsV2();
         if (isRealSupabaseAccount(user)) workoutListV2.innerHTML = remoteStateHTML("loading", { loadingLabel: "Carregando treinos..." });
         const remoteResult = isRealSupabaseAccount(user)
           ? await loadRemoteModule("workouts", user.id, loadRemoteWorkoutsV2, { hasCache: cached.length > 0 })
           : { ok: true, data: [], status: "local" };
+        if (refreshId !== workoutRefreshSequenceV2 || (currentAccount()?.id || "") !== accountId || selectedWorkoutTarget() !== targetId) return false;
         await refreshCompletedWorkoutHistoryV2();
+        if (refreshId !== workoutRefreshSequenceV2 || (currentAccount()?.id || "") !== accountId || selectedWorkoutTarget() !== targetId) return false;
         const local = loadWorkoutsV2();
         const remote = remoteResult.ok ? remoteResult.data : [];
         const retainedLocal = isRealSupabaseAccount(user)
           ? local.filter(workout => workout.syncStatus === "failed")
           : local;
-        const merged = remoteResult.ok ? [...remote] : [...local];
-        retainedLocal.forEach(workout => {
-          if (!merged.some(item => item.id === workout.id || (item.clientRequestId && item.clientRequestId === workout.clientRequestId))) merged.push(workout);
-        });
-        workoutsV2 = uniqueWorkoutsByStableIdV2(merged);
+        const merged = uniqueWorkoutsByStableIdV2(remoteResult.ok ? remote : local);
+        workoutsV2 = retainedLocal.reduce(
+          (result, workout) => upsertWorkoutByStableIdV2(result, workout),
+          merged
+        );
         saveWorkoutsV2(workoutsV2);
         if (!remoteResult.ok && !workoutsV2.length) {
           workoutListV2.innerHTML = remoteStateHTML("error", { errorLabel: "Não foi possível carregar os treinos. Tente novamente.", retryScreen: "workouts" });
           activeWorkoutV2 = null;
           renderSessionV2(null);
-          return;
+          return false;
         }
         renderWorkoutListV2();
         const visible = workoutsForCurrentUserV2();
-        if (activeWorkoutV2 && visible.some(workout => workout.id === activeWorkoutV2.id)) {
+        const refreshedActiveWorkout = activeWorkoutV2 ? visible.find(workout => workout.id === activeWorkoutV2.id) : null;
+        if (refreshedActiveWorkout) {
+          activeWorkoutV2 = refreshedActiveWorkout;
           renderSessionV2(activeWorkoutV2);
-          return;
+          return true;
         }
         activeWorkoutV2 = visible[0] || null;
         renderSessionV2(activeWorkoutV2);
+        return true;
       }
 
       async function refreshCompletedWorkoutHistoryV2(studentId = "") {
@@ -26540,21 +26611,22 @@ ${photoSections}
 
       function workoutsForCurrentUserV2() {
         const user = currentAccount();
-        if (!user) return workoutsV2;
+        const uniqueWorkouts = uniqueWorkoutsByStableIdV2(workoutsV2);
+        if (!user) return uniqueWorkouts;
         if (user.role === "personal") {
           const selectedStudentId = selectedWorkoutStudentId();
-          return workoutsV2.filter(workout => selectedStudentId
+          return uniqueWorkouts.filter(workout => selectedStudentId
             ? workout.assignedStudentId === selectedStudentId && isLinkedStudentForPersonal(selectedStudentId, user)
             : workout.ownerId === user.id && !workout.assignedStudentId);
         }
         if (user.role === "student") {
-          return workoutsV2.filter(workout => {
+          return uniqueWorkouts.filter(workout => {
             if (workout.assignedStudentId === user.id) return workout.syncStatus !== "failed";
             if (workout.assignedStudentId) return false;
             return isRealSupabaseAccount(user) ? workout.ownerId === user.id : (!workout.ownerId || workout.ownerId === user.id);
           });
         }
-        return workoutsV2;
+        return uniqueWorkouts;
       }
 
       async function deleteRemoteWorkoutV2(id) {
@@ -26718,6 +26790,7 @@ ${photoSections}
           const canStartVoice = voiceWorkoutExecutableByCurrentUserV2(workout, user);
           const card = document.createElement("article");
           card.className = "workout";
+          card.dataset.workoutId = workout.id;
           card.innerHTML = `
             <div>
               <h3 data-no-i18n="true">${html(workout.name)}</h3>
@@ -27131,6 +27204,7 @@ ${photoSections}
       formV2.addEventListener("submit", async event => {
         event.preventDefault();
         event.stopImmediatePropagation();
+        if (workoutCreateSavingV2 || formV2.dataset.saving === "true") return;
         if (currentAccount()?.role !== "personal") {
           toastV2(textV2("Somente o personal pode criar ou alterar prescrições de treino."));
           document.getElementById("workoutModal").classList.remove("active");
@@ -27148,39 +27222,51 @@ ${photoSections}
           return;
         }
         const targetName = target === selfWorkoutTarget ? user?.name || "" : accountNameForTarget(target);
-        if (!await confirmAction({
-          title: "Confirmar treino",
-          message: "Revise o destino antes de criar o treino.",
-          contextLabel: "Destino",
-          contextValue: targetName,
-          confirmLabel: "Criar treino",
-          danger: false
-        })) return;
-        const draftWorkout = readWorkoutV2();
-        await runPendingOperation(`workout-create:${target}`, event.submitter || "#saveWorkoutButton", async clientRequestId => {
-          draftWorkout.clientRequestId = clientRequestId;
-          const workout = await saveCustomWorkoutV2(draftWorkout);
-          if (workout.assignedStudentId && currentAccount()?.role === "personal") {
-            setSelectedStudentForPersonal(workout.assignedStudentId);
-          }
-          await refreshWorkoutsV2();
-          setDirtyBaseline("workout");
-          document.getElementById("workoutModal").classList.remove("active");
-          formV2.reset();
-          resetBuilderV2();
-          const trainerAssignment = currentAccount()?.role === "personal" && workout.assignedStudentId;
-          if (workout.syncStatus === "failed" && trainerAssignment) {
-            toastV2(textV2("Treino ficou só neste aparelho. Não chegou ao aluno."));
-          } else if (workout.syncStatus === "failed") {
-            toastV2(textV2("Treino salvo neste aparelho. Não consegui sincronizar agora."));
-          } else if (workout.syncStatus === "synced" && trainerAssignment) {
-            toastV2(textV2("Treino enviado para o aluno."));
-          } else if (workout.syncStatus === "synced") {
-            toastV2(textV2("Treino salvo no Supabase."));
-          } else {
-            toastV2(textV2("Treino criado com exercícios, séries, peso e técnicas."));
-          }
-        }, { loadingText: "Criando treino..." });
+        workoutCreateSavingV2 = true;
+        formV2.dataset.saving = "true";
+        updateNumericSubmitStates();
+        try {
+          if (!await confirmAction({
+            title: "Confirmar treino",
+            message: "Revise o destino antes de criar o treino.",
+            contextLabel: "Destino",
+            contextValue: targetName,
+            confirmLabel: "Criar treino",
+            danger: false
+          })) return;
+          const draftWorkout = readWorkoutV2();
+          const clientRequestId = formV2.dataset.clientRequestId || createClientRequestId("workout-create");
+          formV2.dataset.clientRequestId = clientRequestId;
+          await runPendingOperation(`workout-create:${target}`, event.submitter || "#saveWorkoutButton", async operationId => {
+            draftWorkout.clientRequestId = operationId;
+            const workout = await saveCustomWorkoutV2(draftWorkout);
+            if (workout.assignedStudentId && currentAccount()?.role === "personal") {
+              setSelectedStudentForPersonal(workout.assignedStudentId);
+            }
+            await refreshWorkoutsV2();
+            setDirtyBaseline("workout");
+            document.getElementById("workoutModal").classList.remove("active");
+            formV2.reset();
+            resetBuilderV2();
+            delete formV2.dataset.clientRequestId;
+            const trainerAssignment = currentAccount()?.role === "personal" && workout.assignedStudentId;
+            if (workout.syncStatus === "failed" && trainerAssignment) {
+              toastV2(textV2("Treino ficou só neste aparelho. Não chegou ao aluno."));
+            } else if (workout.syncStatus === "failed") {
+              toastV2(textV2("Treino salvo neste aparelho. Não consegui sincronizar agora."));
+            } else if (workout.syncStatus === "synced" && trainerAssignment) {
+              toastV2(textV2("Treino enviado para o aluno."));
+            } else if (workout.syncStatus === "synced") {
+              toastV2(textV2("Treino salvo no Supabase."));
+            } else {
+              toastV2(textV2("Treino criado com exercícios, séries, peso e técnicas."));
+            }
+          }, { loadingText: "Criando treino...", clientRequestId });
+        } finally {
+          workoutCreateSavingV2 = false;
+          delete formV2.dataset.saving;
+          updateNumericSubmitStates();
+        }
       }, true);
 
       downloadWorkoutCsvTemplateButton?.addEventListener("click", downloadWorkoutCsvTemplateV2);
