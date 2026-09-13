@@ -14,8 +14,8 @@
   <link rel="manifest" href="manifest.webmanifest" />
   <link rel="icon" href="monolith-icon.svg" />
   <script>
-window.MONOLITH_BUILD = "monolith-v106-flow-corrections";
-window.MONOLITH_VERSION_LABEL = "Monolith v106 · 12/09/2026";
+window.MONOLITH_BUILD = "monolith-v108-voice-capture";
+window.MONOLITH_VERSION_LABEL = "Monolith v108 · 13/09/2026";
     (function clearOldAppCaches() {
       if ("serviceWorker" in navigator) {
         navigator.serviceWorker.getRegistrations?.()
@@ -213,6 +213,11 @@ window.MONOLITH_VERSION_LABEL = "Monolith v106 · 12/09/2026";
       display: none;
     }
 
+    body.auth-resolving .auth-screen,
+    body.auth-resolving .app {
+      display: none;
+    }
+
     .identity-hydration-shell {
       display: none;
       min-height: 100vh;
@@ -222,6 +227,10 @@ window.MONOLITH_VERSION_LABEL = "Monolith v106 · 12/09/2026";
     }
 
     body.authenticated.identity-hydrating .identity-hydration-shell {
+      display: grid;
+    }
+
+    body.auth-resolving .identity-hydration-shell {
       display: grid;
     }
 
@@ -4999,12 +5008,19 @@ window.MONOLITH_VERSION_LABEL = "Monolith v106 · 12/09/2026";
     .voice-live-status { display: grid; gap: 3px; margin: 14px 0; padding: 12px; border: 1px solid var(--line); border-radius: 12px; background: #151515; }
     .voice-live-status strong { color: var(--text); }
     .voice-live-status span, .voice-transcript, .voice-privacy { color: var(--muted); font-size: 12px; line-height: 1.45; }
+    .voice-transcript { display: grid; gap: 9px; padding: 10px; border: 1px solid var(--line); border-radius: 10px; background: #101010; }
+    .voice-transcript > div { display: grid; gap: 2px; }
+    .voice-transcript-label { color: var(--gold); font-size: 10px; font-weight: 800; text-transform: uppercase; }
+    .voice-transcript strong { color: var(--text); font-size: 13px; overflow-wrap: anywhere; }
     .voice-wave { display: flex; align-items: center; gap: 3px; min-width: 34px; height: 20px; }
     .voice-wave i { display: block; width: 3px; height: 5px; background: var(--gold); border-radius: 3px; }
+    .voice-panel[data-state="listening"] .voice-wave i,
     .voice-panel[data-state="detected"] .voice-wave i,
     .voice-panel[data-state="processing"] .voice-wave i { animation: voiceWave .65s ease-in-out infinite alternate; }
+    .voice-panel[data-state="listening"] .voice-wave i:nth-child(2),
     .voice-panel[data-state="detected"] .voice-wave i:nth-child(2),
     .voice-panel[data-state="processing"] .voice-wave i:nth-child(2) { animation-delay: .12s; }
+    .voice-panel[data-state="listening"] .voice-wave i:nth-child(3),
     .voice-panel[data-state="detected"] .voice-wave i:nth-child(3),
     .voice-panel[data-state="processing"] .voice-wave i:nth-child(3) { animation-delay: .24s; }
     @keyframes voiceWave { to { height: 18px; } }
@@ -5206,7 +5222,7 @@ window.MONOLITH_VERSION_LABEL = "Monolith v106 · 12/09/2026";
     }
   </style>
 </head>
-<body>
+<body class="auth-resolving" aria-busy="true">
   <a class="skip-link" href="#mainContent" data-i18n="Pular para o conteúdo principal">Pular para o conteúdo principal</a>
   <section class="auth-screen" id="authScreen">
     <div class="auth-hero">
@@ -5259,7 +5275,7 @@ window.MONOLITH_VERSION_LABEL = "Monolith v106 · 12/09/2026";
           <button class="action" id="loginButton" type="submit">Entrar</button>
           <div class="auth-tools">
             <button class="auth-secondary" id="clearDeviceSessionButton" type="button">Limpar sessão/cache deste aparelho</button>
-            <div class="build-version" id="buildVersionLabel">Versão do app: Monolith v106 · 12/09/2026</div>
+            <div class="build-version" id="buildVersionLabel">Versão do app: Monolith v108 · 13/09/2026</div>
           </div>
         </form>
       </div>
@@ -5341,7 +5357,7 @@ window.MONOLITH_VERSION_LABEL = "Monolith v106 · 12/09/2026";
     </div>
   </section>
 
-  <div class="identity-hydration-shell" id="identityHydrationShell" role="status" aria-live="polite" aria-label="Carregando conta" hidden>
+  <div class="identity-hydration-shell" id="identityHydrationShell" role="status" aria-live="polite" aria-label="Carregando conta">
     <div class="identity-hydration-card">
       <div class="identity-hydration-mark" aria-hidden="true">M</div>
       <div class="identity-hydration-lines" aria-hidden="true">
@@ -6084,7 +6100,10 @@ window.MONOLITH_VERSION_LABEL = "Monolith v106 · 12/09/2026";
             </div>
             <span id="voiceStatusMessage">Toque no microfone para ativar.</span>
           </div>
-          <div class="voice-transcript" id="voiceTranscript" aria-live="polite" aria-label="Respostas do Monolith Voice">“Hey Monolith” ou toque em Falar agora.</div>
+          <div class="voice-transcript" aria-live="polite">
+            <div><span class="voice-transcript-label" data-i18n="Transcrição">Transcrição</span><strong id="voiceTranscript" data-no-i18n="true" aria-label="Transcrição recebida">Nenhuma transcrição recebida.</strong></div>
+            <div><span class="voice-transcript-label" data-i18n="Resposta do Monolith">Resposta do Monolith</span><span id="voiceResponse" aria-label="Resposta do Monolith Voice">“Hey Monolith” ou toque em Falar agora.</span></div>
+          </div>
           <form class="voice-command-form" id="voiceManualCommandForm">
             <label class="sr-only" for="voiceManualCommand">Comando de voz em texto</label>
             <input id="voiceManualCommand" autocomplete="off" maxlength="240" placeholder="Ex: 80 quilos, 10 repetições" data-i18n-placeholder="Ex: 80 quilos, 10 repetições" />
@@ -7272,8 +7291,8 @@ window.MONOLITH_VERSION_LABEL = "Monolith v106 · 12/09/2026";
   <script>
     const MONOLITH_SUPABASE_URL = "https://jhxasnxuvmkhntbwepau.supabase.co";
     const MONOLITH_SUPABASE_KEY = "sb_publishable_lDtAXIOtkMwgwsAZyghBdg_gyLHGwpH";
-const MONOLITH_BUILD = window.MONOLITH_BUILD || "monolith-v106-flow-corrections";
-const MONOLITH_VERSION_LABEL = window.MONOLITH_VERSION_LABEL || "Monolith v106 · 12/09/2026";
+const MONOLITH_BUILD = window.MONOLITH_BUILD || "monolith-v108-voice-capture";
+const MONOLITH_VERSION_LABEL = window.MONOLITH_VERSION_LABEL || "Monolith v108 · 13/09/2026";
     const onboardingStepDefinitions = [
       ["welcome", "Boas-vindas", "Conheça o fluxo do seu acompanhamento.", "home"],
       ["terms", "Termos", "Revise consentimentos e informações da conta.", "profile"],
@@ -11048,10 +11067,10 @@ if (location.hash.toLowerCase() === "#leads") history.replaceState(null, "", `${
         studentId: row.student_id,
         trainerId: row.trainer_id,
         month: row.month_key,
-        calories: row.calories || "",
-        protein: row.protein || "",
-        carbs: row.carbs || "",
-        fat: row.fat || "",
+        calories: row.calories ?? "",
+        protein: row.protein ?? "",
+        carbs: row.carbs ?? "",
+        fat: row.fat ?? "",
         meals: row.meals || [],
         supplements: (row.supplements || []).map((item, index) => cloneDietSupplement(item, index, { freshId: false })),
         status: row.publication_status || "legacy_published",
@@ -11509,10 +11528,10 @@ if (location.hash.toLowerCase() === "#leads") history.replaceState(null, "", `${
         trainer_id: user.id,
         student_id: plan.studentId,
         month_key: plan.month,
-        calories: plan.calories,
-        protein: plan.protein,
-        carbs: plan.carbs,
-        fat: plan.fat,
+        calories: dietNumericValue(plan.calories),
+        protein: dietNumericValue(plan.protein),
+        carbs: dietNumericValue(plan.carbs),
+        fat: dietNumericValue(plan.fat),
         meals: plan.meals || [],
         supplements: (plan.supplements || []).map((item, index) => cloneDietSupplement(item, index)),
         publication_status: "draft",
@@ -12818,6 +12837,37 @@ if (location.hash.toLowerCase() === "#leads") history.replaceState(null, "", `${
       `;
     }
 
+    function dietNumericValue(value) {
+      if (value === null || value === undefined || String(value).trim() === "") return null;
+      const normalized = String(value).trim().replace(/\s+/g, "").replace(/(kcal|g)$/i, "").replace(",", ".");
+      const number = Number(normalized);
+      return Number.isFinite(number) && number >= 0 ? number : null;
+    }
+
+    function dietCalculatedMealTotals(plan = null) {
+      const meals = Array.isArray(plan?.meals) ? plan.meals : [];
+      return Object.fromEntries(["calories", "protein", "carbs", "fat"].map(key => {
+        const values = meals.map(meal => dietNumericValue(meal?.[key]));
+        const total = values.length && values.every(value => value !== null)
+          ? values.reduce((sum, value) => sum + value, 0)
+          : null;
+        return [key, total];
+      }));
+    }
+
+    function normalizedImportedDietTargets(targets = {}) {
+      return {
+        calories: targets.calories ?? "",
+        protein: targets.protein ?? "",
+        carbs: targets.carbs ?? "",
+        fat: targets.fat ?? ""
+      };
+    }
+
+    function dietHasPrescribedTargets(plan = null) {
+      return ["calories", "protein", "carbs", "fat"].some(key => dietNumericValue(plan?.[key]) !== null);
+    }
+
     function renderDietPlan(containerId, plan, emptyText = "Nenhuma dieta prescrita para este mês.") {
       const container = document.getElementById(containerId);
       if (!container) return;
@@ -12828,8 +12878,10 @@ if (location.hash.toLowerCase() === "#leads") history.replaceState(null, "", `${
       }
       const statusLabel = dietPlanStatusLabel(plan);
       const nutritionNumber = value => value === null || value === undefined || String(value).trim() === "" ? "--" : localizedNumber(value, { maximumFractionDigits: 2 });
+      const calculatedTotals = dietCalculatedMealTotals(plan);
+      const hasCalculatedTotals = Object.values(calculatedTotals).some(value => value !== null);
       container.innerHTML = `
-        <div class="metric"><span>${escapeHTML(t("Meta diária"))}</span><b>${escapeHTML(nutritionNumber(plan.calories))} kcal</b></div>
+        <div class="metric"><span>${escapeHTML(t("Meta diária prescrita"))}</span><b>${escapeHTML(nutritionNumber(plan.calories))} kcal</b></div>
         <div class="pill-row">
           <span class="pill">${escapeHTML(t(statusLabel))}</span>
           <span class="pill">${escapeHTML(t("Proteína"))}: ${escapeHTML(nutritionNumber(plan.protein))} g</span>
@@ -12837,6 +12889,16 @@ if (location.hash.toLowerCase() === "#leads") history.replaceState(null, "", `${
           <span class="pill">${escapeHTML(t("Gorduras"))}: ${escapeHTML(nutritionNumber(plan.fat))} g</span>
           <span class="pill">${escapeHTML(quantityLabel(plan.meals?.length || 0, "refeição", "refeições"))}</span>
         </div>
+        ${dietHasPrescribedTargets(plan) ? "" : `<div class="report-line">${escapeHTML(t("Metas prescritas não informadas para este plano."))}</div>`}
+        ${hasCalculatedTotals ? `
+          <div class="metric"><span>${escapeHTML(t("Totais calculados das refeições"))}</span><b>${escapeHTML(nutritionNumber(calculatedTotals.calories))} kcal</b></div>
+          <div class="pill-row">
+            <span class="pill">${escapeHTML(t("Proteína"))}: ${escapeHTML(nutritionNumber(calculatedTotals.protein))} g</span>
+            <span class="pill">${escapeHTML(t("Carboidratos"))}: ${escapeHTML(nutritionNumber(calculatedTotals.carbs))} g</span>
+            <span class="pill">${escapeHTML(t("Gorduras"))}: ${escapeHTML(nutritionNumber(calculatedTotals.fat))} g</span>
+          </div>
+          <div class="date">${escapeHTML(t("Calculado apenas para exibição; não é uma meta prescrita."))}</div>
+        ` : ""}
         ${(plan.meals || []).map((meal, index) => `
           <article class="meal-card">
             <header><h4 data-no-i18n="true">${escapeHTML(meal.name || `${t("Refeição")} ${index + 1}`)}</h4><span>${escapeHTML(nutritionNumber(meal.calories))} kcal</span></header>
@@ -13145,19 +13207,10 @@ if (location.hash.toLowerCase() === "#leads") history.replaceState(null, "", `${
       });
       const valid = !blockedCsvRows(preview).length;
       const normalizedPlans = valid ? [...plans.values()].map(plan => {
-        const sums = plan.meals.reduce((total, meal) => ({
-          calories: total.calories + meal.calories,
-          protein: total.protein + meal.protein,
-          carbs: total.carbs + meal.carbs,
-          fat: total.fat + meal.fat
-        }), { calories: 0, protein: 0, carbs: 0, fat: 0 });
         const { targets, ...storedPlan } = plan;
         return {
           ...storedPlan,
-          calories: targets.calories ?? sums.calories,
-          protein: targets.protein ?? sums.protein,
-          carbs: targets.carbs ?? sums.carbs,
-          fat: targets.fat ?? sums.fat
+          ...normalizedImportedDietTargets(targets)
         };
       }) : [];
       return { preview, plans: normalizedPlans, valid };
@@ -13907,6 +13960,10 @@ if (location.hash.toLowerCase() === "#leads") history.replaceState(null, "", `${
         "Nenhuma dieta prescrita para este mês.": "No diet prescribed for this month.",
         "Meta mensal": "Monthly target",
         "Meta diária": "Daily target",
+        "Meta diária prescrita": "Prescribed daily target",
+        "Metas prescritas não informadas para este plano.": "Prescribed targets were not provided for this plan.",
+        "Totais calculados das refeições": "Calculated meal totals",
+        "Calculado apenas para exibição; não é uma meta prescrita.": "Calculated for display only; this is not a prescribed target.",
         "Carboidratos": "Carbohydrates",
         "Gorduras": "Fats",
         "Plano de suplementação": "Supplement plan",
@@ -14696,6 +14753,8 @@ if (location.hash.toLowerCase() === "#leads") history.replaceState(null, "", `${
         "Registrar o primeiro check-in": "Record the first check-in",
         "Revisar a frequência recente": "Review recent frequency",
         "Criar o primeiro treino": "Create the first workout",
+        "Consultar treinos disponíveis": "Check available workouts",
+        "Abrir treinos": "Open workouts",
         "Publicar a dieta do mês": "Publish this month's diet",
         "Modalidade": "Service type",
         "Idiomas": "Languages",
@@ -15280,6 +15339,10 @@ if (location.hash.toLowerCase() === "#leads") history.replaceState(null, "", `${
         "Nenhuma dieta prescrita para este mês.": "No hay dieta prescrita para este mes.",
         "Meta mensal": "Meta mensual",
         "Meta diária": "Meta diaria",
+        "Meta diária prescrita": "Meta diaria prescrita",
+        "Metas prescritas não informadas para este plano.": "No se informaron metas prescritas para este plan.",
+        "Totais calculados das refeições": "Totales calculados de las comidas",
+        "Calculado apenas para exibição; não é uma meta prescrita.": "Calculado solo para visualización; no es una meta prescrita.",
         "Carboidratos": "Carbohidratos",
         "Gorduras": "Grasas",
         "Plano de suplementação": "Plan de suplementación",
@@ -16070,6 +16133,8 @@ if (location.hash.toLowerCase() === "#leads") history.replaceState(null, "", `${
         "Registrar o primeiro check-in": "Registrar el primer check-in",
         "Revisar a frequência recente": "Revisar la frecuencia reciente",
         "Criar o primeiro treino": "Crear el primer entreno",
+        "Consultar treinos disponíveis": "Consultar entrenos disponibles",
+        "Abrir treinos": "Abrir entrenos",
         "Publicar a dieta do mês": "Publicar la dieta del mes",
         "Modalidade": "Modalidad",
         "Idiomas": "Idiomas",
@@ -18372,8 +18437,11 @@ if (location.hash.toLowerCase() === "#leads") history.replaceState(null, "", `${
         let recommendation = { label: "Acompanhar evolução", action: "Abrir frequência", screen: "stats", section: "evolution" };
         if (!report.checkins.length) recommendation = { label: "Registrar o primeiro check-in", action: "Registrar check-in", screen: "checkin", section: "" };
         else if (report.missedDays.length >= 7) recommendation = { label: "Revisar a frequência recente", action: "Abrir frequência", screen: "stats", section: "evolution" };
-        else if (!loadAssignedWorkoutEntries().some(workout => (workout.assignedStudentId || workout.assigned_student_id) === targetStudentId)) recommendation = { label: "Criar o primeiro treino", action: "Criar treino", screen: "workouts", section: "" };
-        else if (!report.activeDietPlan) recommendation = { label: "Publicar a dieta do mês", action: "Criar dieta", screen: "nutrition", section: "" };
+        else if (!loadAssignedWorkoutEntries().some(workout => (workout.assignedStudentId || workout.assigned_student_id) === targetStudentId)) {
+          recommendation = user?.role === "student"
+            ? { label: "Consultar treinos disponíveis", action: "Abrir treinos", screen: "workouts", section: "" }
+            : { label: "Criar o primeiro treino", action: "Criar treino", screen: "workouts", section: "" };
+        }
         nextAction.innerHTML = `<div><span class="date">${escapeHTML(t("Próxima ação recomendada"))}</span><strong>${escapeHTML(t(recommendation.label))}</strong></div><button class="ghost" type="button" data-student-screen="${escapeHTML(recommendation.screen)}" data-student-section="${escapeHTML(recommendation.section)}" data-student-id="${escapeHTML(targetStudentId)}">${escapeHTML(t(recommendation.action))}</button>`;
       }
       if (training) {
@@ -19299,6 +19367,12 @@ if (location.hash.toLowerCase() === "#leads") history.replaceState(null, "", `${
       const bodyFatBars = reportChartBars(bodyMeasureSeries("bodyFat", report.bodyMeasures), "%");
       const measureRows = report.bodyMeasures.slice(0, 20).map(entry => `<tr><td>${escapeHTML(reportDateLabel(entry.date, language))}</td><td>${formatWeight(entry.weight, { language })}</td><td>${formatMeasureValue(entry.bodyFat, "%", language)}</td><td>${formatMeasureValue(entry.waist, "cm", language)}</td><td>${formatMeasureValue(entry.chest, "cm", language)}</td><td>${formatMeasureValue(entry.arm, "cm", language)}</td><td>${formatMeasureValue(entry.leg, "cm", language)}</td><td>${formatMeasureValue(entry.hip, "cm", language)}</td><td>${escapeHTML(entry.notes || "")}</td></tr>`).join("");
       const dietRows = report.activeDietPlan?.meals?.map((meal, index) => `<tr><td>${rn(index + 1, 0)}</td><td>${escapeHTML(meal.name || `${rt("Refeição")} ${rn(index + 1, 0)}`)}</td><td>${escapeHTML(meal.items || "")}</td><td>${escapeHTML([meal.calories ? `${rn(meal.calories)} kcal` : "", meal.protein ? `P ${rn(meal.protein)}` : "", meal.carbs ? `C ${rn(meal.carbs)}` : "", meal.fat ? `G ${rn(meal.fat)}` : ""].filter(Boolean).join(" / "))}</td><td>${escapeHTML(meal.substitutions || "")}</td><td>${escapeHTML(meal.notes || "")}</td></tr>`).join("") || "";
+      const reportDietNumber = value => {
+        const number = dietNumericValue(value);
+        return number === null ? "--" : rn(number);
+      };
+      const reportDietTotals = dietCalculatedMealTotals(report.activeDietPlan);
+      const hasReportDietTotals = Object.values(reportDietTotals).some(value => value !== null);
       const supplementRows = (report.activeDietPlan?.supplements || []).map((item, index) => cloneDietSupplement(item, index)).sort((a, b) => a.sortOrder - b.sortOrder).map(item => {
         const urlInfo = productUrlInfo(item.productUrl);
         const commercial = item.isSponsored ? `${rt(item.partnerName ? "Produto parceiro" : "Link patrocinado")}${item.partnerName ? ` · ${item.partnerName}` : ""}` : "";
@@ -19382,7 +19456,8 @@ ${bodyFatBars ? `<div class="chart">${bodyFatBars}</div>` : `<p class="muted">${
 <table><thead><tr><th>${rt("Medida")}</th><th>${rt("Primeiro registro")}</th><th>${rt("Atual")}</th><th>${rt("Delta")}</th></tr></thead><tbody>${measureDeltaRows}</tbody></table>
 <table><thead><tr><th>${rt("Data")}</th><th>${rt("Peso")}</th><th>${rt("Gordura")}</th><th>${rt("Cintura")}</th><th>${rt("Peito")}</th><th>${rt("Braço")}</th><th>${rt("Perna")}</th><th>${rt("Quadril")}</th><th>${rt("Obs.")}</th></tr></thead><tbody>${measureRows || `<tr><td colspan="9">${rt("Sem medidas corporais salvas.")}</td></tr>`}</tbody></table>
 <h2>${rt("Dieta ativa no período")}</h2>
-<p class="muted">${rt("Meta")}: ${report.activeDietPlan?.calories ? escapeHTML(rn(report.activeDietPlan.calories)) : "--"} kcal / P ${report.activeDietPlan?.protein ? escapeHTML(rn(report.activeDietPlan.protein)) : "--"} / C ${report.activeDietPlan?.carbs ? escapeHTML(rn(report.activeDietPlan.carbs)) : "--"} / G ${report.activeDietPlan?.fat ? escapeHTML(rn(report.activeDietPlan.fat)) : "--"}</p>
+<p class="muted">${rt("Meta diária prescrita")}: ${escapeHTML(reportDietNumber(report.activeDietPlan?.calories))} kcal / P ${escapeHTML(reportDietNumber(report.activeDietPlan?.protein))} / C ${escapeHTML(reportDietNumber(report.activeDietPlan?.carbs))} / G ${escapeHTML(reportDietNumber(report.activeDietPlan?.fat))}</p>
+${hasReportDietTotals ? `<p class="muted">${rt("Totais calculados das refeições")}: ${escapeHTML(reportDietNumber(reportDietTotals.calories))} kcal / P ${escapeHTML(reportDietNumber(reportDietTotals.protein))} / C ${escapeHTML(reportDietNumber(reportDietTotals.carbs))} / G ${escapeHTML(reportDietNumber(reportDietTotals.fat))}. ${rt("Calculado apenas para exibição; não é uma meta prescrita.")}</p>` : ""}
 <table><thead><tr><th>#</th><th>${rt("Refeição")}</th><th>${rt("Alimentos")}</th><th>${rt("Macros")}</th><th>${rt("Substituições")}</th><th>${rt("Observação")}</th></tr></thead><tbody>${dietRows || `<tr><td colspan="6">${rt("Nenhuma dieta ativa cadastrada para este mês.")}</td></tr>`}</tbody></table>
 <h2>${rt("Plano de suplementação")}</h2>
 <table><thead><tr><th>${rt("Nome")}</th><th>${rt("Marca")}</th><th>${rt("Dose")}</th><th>${rt("Frequência")}</th><th>${rt("Momento de uso")}</th><th>${rt("Instruções")}</th><th>${rt("Período")}</th><th>${rt("Produto")}</th></tr></thead><tbody>${supplementRows || `<tr><td colspan="8">${rt("Nenhuma orientação de suplementação foi adicionada ao seu plano.")}</td></tr>`}</tbody></table>
@@ -19405,6 +19480,7 @@ ${photoSections}
     }
 
     const activeDownloadUrls = new Set();
+    const DOWNLOAD_URL_RELEASE_DELAY_MS = 60000;
 
     function releaseDownloadUrl(objectUrl) {
       if (!activeDownloadUrls.has(objectUrl)) return;
@@ -19429,8 +19505,12 @@ ${photoSections}
       let link = null;
       try {
         const safeFilename = safeDownloadFilename(filename);
-        const utf8Content = String(type || "").toLowerCase().includes("text/") ? `\uFEFF${String(content)}` : content;
-        const blob = new Blob([utf8Content], { type: type || "application/octet-stream" });
+        const requestedType = String(type || "application/octet-stream");
+        const isText = requestedType.toLowerCase().startsWith("text/");
+        const mimeType = isText && !/charset=/i.test(requestedType) ? `${requestedType};charset=utf-8` : requestedType;
+        const serializedContent = String(content);
+        const utf8Content = isText && !serializedContent.startsWith("\uFEFF") ? `\uFEFF${serializedContent}` : serializedContent;
+        const blob = new Blob([utf8Content], { type: mimeType });
         if (!blob.size) return false;
         if (typeof navigator.msSaveOrOpenBlob === "function") return navigator.msSaveOrOpenBlob(blob, safeFilename) !== false;
         link = document.createElement("a");
@@ -19440,6 +19520,7 @@ ${photoSections}
         link.href = objectUrl;
         link.download = safeFilename;
         link.rel = "noopener";
+        link.dataset.monolithDownload = "true";
         link.style.position = "fixed";
         link.style.left = "-10000px";
         link.style.top = "0";
@@ -19451,8 +19532,8 @@ ${photoSections}
         document.body.appendChild(link);
         link.click();
         if (!clickEvent || clickEvent.defaultPrevented) throw new Error("download-click-not-delivered");
-        window.setTimeout(() => link.remove(), 1500);
-        window.setTimeout(() => releaseDownloadUrl(objectUrl), 2000);
+        window.setTimeout(() => link.remove(), 0);
+        window.setTimeout(() => releaseDownloadUrl(objectUrl), DOWNLOAD_URL_RELEASE_DELAY_MS);
         return true;
       } catch (error) {
         link?.remove();
@@ -19520,7 +19601,7 @@ ${photoSections}
         if (!html) throw new Error("report-html-empty");
         const downloaded = downloadTextFile(reportFilename(target, language), "text/html;charset=utf-8", html);
         if (!downloaded) throw new Error("report-download-not-delivered");
-        showToast("Relatório HTML baixado.");
+        showToast("Download do relatório HTML iniciado.");
         return true;
       } catch (error) {
         logAppError("report", "download-html", error, { studentId: target.id });
@@ -20856,6 +20937,13 @@ ${photoSections}
           historyMode: "replace"
         });
       }
+    }).catch(error => {
+      logAppError("auth", "restore-initial-session", error);
+      showLoginPanel("Não foi possível recuperar sua sessão. Entre novamente.");
+    }).finally(() => {
+      document.body.classList.remove("auth-resolving");
+      document.body.setAttribute("aria-busy", "false");
+      if (!currentAccount()) setIdentityHydrationVisible(false);
     });
 
     async function refreshRemoteStudentData({ stats = false, measures = false, photos = false, summary = false } = {}) {
@@ -21345,7 +21433,11 @@ ${photoSections}
       const studentScreenButton = event.target.closest("[data-student-screen]");
       if (studentScreenButton && !studentScreenButton.disabled) {
         const targetStudentId = studentScreenButton.dataset.studentId || "";
-        if (!setSelectedStudentForPersonal(targetStudentId)) {
+        const activeUser = currentAccount();
+        const canOpenStudentScreen = activeUser?.role === "personal"
+          ? setSelectedStudentForPersonal(targetStudentId)
+          : activeUser?.role === "student" && targetStudentId === activeUser.id;
+        if (!canOpenStudentScreen) {
           authMessage("Você não tem acesso aos dados deste aluno.");
           return;
         }
@@ -23941,11 +24033,17 @@ ${photoSections}
       "Não foi possível carregar todos os dados do relatório. Tente novamente.": "Not all report data could be loaded. Try again.",
       "O navegador bloqueou a nova janela. Permita pop-ups e tente novamente.": "The browser blocked the new window. Allow pop-ups and try again.",
       "Relatório HTML baixado.": "HTML report downloaded.",
+      "Download do relatório HTML iniciado.": "HTML report download started.",
       "Não foi possível baixar o relatório agora.": "The report could not be downloaded right now.",
+      "Não foi possível recuperar sua sessão. Entre novamente.": "Your session could not be restored. Please sign in again.",
       "Desligado": "Off",
       "Toque no microfone para ativar.": "Tap the microphone to activate.",
       "Solicitando acesso ao microfone": "Requesting microphone access",
       "Autorize o microfone no navegador.": "Allow microphone access in your browser.",
+      "Iniciando reconhecimento": "Starting speech recognition",
+      "Aguarde o microfone começar de verdade.": "Wait for the microphone to actually start.",
+      "Ouvindo": "Listening",
+      "Fale agora. Somente a transcrição final será aplicada.": "Speak now. Only the final transcript will be applied.",
       "Microfone ativo": "Microphone active",
       "Sessão de voz pronta": "Voice session ready",
       "Toque em Falar agora. O microfone está desligado enquanto espera.": "Tap Talk now. The microphone remains off while waiting.",
@@ -23953,8 +24051,23 @@ ${photoSections}
       "Diga “Hey Monolith” ou toque em Falar agora.": "Say “Hey Monolith” or tap Talk now.",
       "Comando detectado": "Command detected",
       "Ouvindo seu comando.": "Listening for your command.",
+      "Fala detectada": "Speech detected",
+      "Aguardando a transcrição final.": "Waiting for the final transcript.",
       "Interpretando comando": "Interpreting command",
       "Validando exercício e valores.": "Validating exercise and values.",
+      "Comando interpretado": "Command interpreted",
+      "Nenhuma alteração foi confirmada ainda.": "No change has been confirmed yet.",
+      "Validando os valores antes de alterar a sessão.": "Checking the values before changing the session.",
+      "Preparando a ação solicitada.": "Preparing the requested action.",
+      "Aplicado à sessão": "Applied to session",
+      "A alteração foi feita nesta sessão.": "The change was applied to this session.",
+      "Sincronizado": "Synchronized",
+      "A alteração da sessão foi sincronizada.": "The session change was synchronized.",
+      "A sincronização ainda não foi confirmada.": "Synchronization has not been confirmed yet.",
+      "Comando processado": "Command processed",
+      "O resultado foi processado nesta sessão.": "The result was processed in this session.",
+      "Nenhuma fala reconhecida": "No speech recognized",
+      "Toque em Falar agora para tentar novamente ou use o comando em texto.": "Tap Talk now to try again or use the text command.",
       "Comando salvo": "Command saved",
       "Registro aplicado ao treino atual.": "Entry applied to the current workout.",
       "Comando não compreendido": "Command not understood",
@@ -23980,6 +24093,15 @@ ${photoSections}
       "Ex: 80 quilos, 10 repetições": "Ex: 175 pounds, 10 reps",
       "Enviar": "Send",
       "Falar agora": "Talk now",
+      "Iniciando...": "Starting...",
+      "Ouvindo...": "Listening...",
+      "Tentar novamente": "Try again",
+      "Solicitando": "Requesting",
+      "Iniciando": "Starting",
+      "Interpretado": "Interpreted",
+      "Aplicado": "Applied",
+      "Processado": "Processed",
+      "Texto disponível": "Text available",
       "Pausar": "Pause",
       "Retomar": "Resume",
       "Desfazer": "Undo",
@@ -23998,6 +24120,11 @@ ${photoSections}
       "Últimas ações": "Recent actions",
       "Limpar": "Clear",
       "Nenhum comando nesta sessão.": "No commands in this session.",
+      "Transcrição": "Transcript",
+      "Transcrição recebida": "Received transcript",
+      "Nenhuma transcrição recebida.": "No transcript received.",
+      "Resposta do Monolith": "Monolith response",
+      "Resposta do Monolith Voice": "Monolith Voice response",
       "O Monolith não salva áudio bruto. A ativação contínua só funciona com reconhecimento local; caso contrário, o microfone liga apenas ao tocar em Falar agora e o navegador pode usar seu próprio serviço.": "Monolith does not store raw audio. Continuous wake mode only runs with on-device recognition; otherwise, the microphone turns on only after tapping Talk now and the browser may use its own service.",
       "Abra um treino como aluno antes de ativar o Monolith Voice.": "Open a workout as a student before activating Monolith Voice.",
       "Abra uma sessão do seu próprio treino antes de ativar o Monolith Voice.": "Open a session for your own workout before activating Monolith Voice.",
@@ -24006,6 +24133,9 @@ ${photoSections}
       "Permissão negada. Libere o microfone no navegador ou use o comando em texto.": "Permission denied. Allow the microphone in your browser or use the text command.",
       "Não encontrei um microfone disponível.": "No available microphone was found.",
       "Não consegui abrir o microfone. Use o comando em texto.": "The microphone could not be opened. Use the text command.",
+      "Não foi possível iniciar a escuta": "Listening could not be started",
+      "Não foi possível retomar a escuta": "Listening could not be resumed",
+      "Não foi possível ouvir": "Listening failed",
       "A página foi ocultada. Toque para retomar.": "The page was hidden. Tap to resume.",
       "Sessão de voz recuperada": "Voice session recovered",
       "Pode falar": "Go ahead",
@@ -24063,11 +24193,17 @@ ${photoSections}
       "Não foi possível carregar todos os dados do relatório. Tente novamente.": "No se pudieron cargar todos los datos del informe. Inténtalo de nuevo.",
       "O navegador bloqueou a nova janela. Permita pop-ups e tente novamente.": "El navegador bloqueó la nueva ventana. Permite las ventanas emergentes e inténtalo de nuevo.",
       "Relatório HTML baixado.": "Informe HTML descargado.",
+      "Download do relatório HTML iniciado.": "La descarga del informe HTML se inició.",
       "Não foi possível baixar o relatório agora.": "No se pudo descargar el informe en este momento.",
+      "Não foi possível recuperar sua sessão. Entre novamente.": "No se pudo recuperar tu sesión. Inicia sesión de nuevo.",
       "Desligado": "Desactivado",
       "Toque no microfone para ativar.": "Toca el micrófono para activarlo.",
       "Solicitando acesso ao microfone": "Solicitando acceso al micrófono",
       "Autorize o microfone no navegador.": "Autoriza el micrófono en el navegador.",
+      "Iniciando reconhecimento": "Iniciando el reconocimiento de voz",
+      "Aguarde o microfone começar de verdade.": "Espera a que el micrófono se inicie realmente.",
+      "Ouvindo": "Escuchando",
+      "Fale agora. Somente a transcrição final será aplicada.": "Habla ahora. Solo se aplicará la transcripción final.",
       "Microfone ativo": "Micrófono activo",
       "Sessão de voz pronta": "Sesión de voz lista",
       "Toque em Falar agora. O microfone está desligado enquanto espera.": "Toca Hablar ahora. El micrófono permanece apagado mientras espera.",
@@ -24075,8 +24211,23 @@ ${photoSections}
       "Diga “Hey Monolith” ou toque em Falar agora.": "Di “Hey Monolith” o toca Hablar ahora.",
       "Comando detectado": "Comando detectado",
       "Ouvindo seu comando.": "Escuchando tu comando.",
+      "Fala detectada": "Voz detectada",
+      "Aguardando a transcrição final.": "Esperando la transcripción final.",
       "Interpretando comando": "Interpretando comando",
       "Validando exercício e valores.": "Validando ejercicio y valores.",
+      "Comando interpretado": "Comando interpretado",
+      "Nenhuma alteração foi confirmada ainda.": "Todavía no se confirmó ningún cambio.",
+      "Validando os valores antes de alterar a sessão.": "Validando los valores antes de cambiar la sesión.",
+      "Preparando a ação solicitada.": "Preparando la acción solicitada.",
+      "Aplicado à sessão": "Aplicado a la sesión",
+      "A alteração foi feita nesta sessão.": "El cambio se aplicó en esta sesión.",
+      "Sincronizado": "Sincronizado",
+      "A alteração da sessão foi sincronizada.": "El cambio de la sesión fue sincronizado.",
+      "A sincronização ainda não foi confirmada.": "La sincronización todavía no fue confirmada.",
+      "Comando processado": "Comando procesado",
+      "O resultado foi processado nesta sessão.": "El resultado fue procesado en esta sesión.",
+      "Nenhuma fala reconhecida": "No se reconoció ninguna voz",
+      "Toque em Falar agora para tentar novamente ou use o comando em texto.": "Toca Hablar ahora para intentarlo de nuevo o usa el comando de texto.",
       "Comando salvo": "Comando guardado",
       "Registro aplicado ao treino atual.": "Registro aplicado al entrenamiento actual.",
       "Comando não compreendido": "Comando no comprendido",
@@ -24102,6 +24253,15 @@ ${photoSections}
       "Ex: 80 quilos, 10 repetições": "Ej: 80 kilos, 10 repeticiones",
       "Enviar": "Enviar",
       "Falar agora": "Hablar ahora",
+      "Iniciando...": "Iniciando...",
+      "Ouvindo...": "Escuchando...",
+      "Tentar novamente": "Intentar de nuevo",
+      "Solicitando": "Solicitando",
+      "Iniciando": "Iniciando",
+      "Interpretado": "Interpretado",
+      "Aplicado": "Aplicado",
+      "Processado": "Procesado",
+      "Texto disponível": "Texto disponible",
       "Pausar": "Pausar",
       "Retomar": "Reanudar",
       "Desfazer": "Deshacer",
@@ -24120,6 +24280,11 @@ ${photoSections}
       "Últimas ações": "Acciones recientes",
       "Limpar": "Limpiar",
       "Nenhum comando nesta sessão.": "No hay comandos en esta sesión.",
+      "Transcrição": "Transcripción",
+      "Transcrição recebida": "Transcripción recibida",
+      "Nenhuma transcrição recebida.": "No se recibió ninguna transcripción.",
+      "Resposta do Monolith": "Respuesta de Monolith",
+      "Resposta do Monolith Voice": "Respuesta de Monolith Voice",
       "O Monolith não salva áudio bruto. A ativação contínua só funciona com reconhecimento local; caso contrário, o microfone liga apenas ao tocar em Falar agora e o navegador pode usar seu próprio serviço.": "Monolith no guarda audio sin procesar. La activación continua solo funciona con reconocimiento local; de lo contrario, el micrófono se enciende únicamente al tocar Hablar ahora y el navegador puede usar su propio servicio.",
       "Abra um treino como aluno antes de ativar o Monolith Voice.": "Abre un entrenamiento como alumno antes de activar Monolith Voice.",
       "Abra uma sessão do seu próprio treino antes de ativar o Monolith Voice.": "Abre una sesión de tu propio entrenamiento antes de activar Monolith Voice.",
@@ -24128,6 +24293,9 @@ ${photoSections}
       "Permissão negada. Libere o microfone no navegador ou use o comando em texto.": "Permiso denegado. Autoriza el micrófono en el navegador o usa el comando de texto.",
       "Não encontrei um microfone disponível.": "No encontré un micrófono disponible.",
       "Não consegui abrir o microfone. Use o comando em texto.": "No se pudo abrir el micrófono. Usa el comando de texto.",
+      "Não foi possível iniciar a escuta": "No se pudo iniciar la escucha",
+      "Não foi possível retomar a escuta": "No se pudo reanudar la escucha",
+      "Não foi possível ouvir": "No se pudo escuchar",
       "A página foi ocultada. Toque para retomar.": "La página quedó oculta. Toca para reanudar.",
       "Sessão de voz recuperada": "Sesión de voz recuperada",
       "Pode falar": "Adelante",
@@ -24629,15 +24797,25 @@ ${photoSections}
         localWakeEnabled: false,
         captureOnce: false,
         captureTimer: null,
+        capturePromise: null,
+        captureResultReceived: false,
+        captureFinalReceived: false,
+        captureTimedOut: false,
         recognition: null,
-        mediaStream: null,
+        recognitionStarting: false,
+        recognitionListening: false,
+        recognitionStartOperation: null,
+        recognitionRestartRequested: false,
         ticker: null,
         restartTimer: null,
         transientTimer: null,
         syncTimer: null,
         speaking: false,
+        speechOperation: null,
         manuallyStopped: false,
         panelOpen: false,
+        lastTranscript: "",
+        lastResponse: "",
         history: [],
         commandIds: new Set(),
         commandSyncs: new Map(),
@@ -24920,16 +25098,23 @@ ${photoSections}
       const voiceStateCopyV2 = {
         off: ["Desligado", "Toque no microfone para ativar."],
         requesting: ["Solicitando acesso ao microfone", "Autorize o microfone no navegador."],
+        starting: ["Iniciando reconhecimento", "Aguarde o microfone começar de verdade."],
+        listening: ["Ouvindo", "Fale agora. Somente a transcrição final será aplicada."],
         active: ["Microfone ativo", "Diga “Hey Monolith” ou toque em Falar agora."],
         ready: ["Sessão de voz pronta", "Toque em Falar agora. O microfone está desligado enquanto espera."],
-        detected: ["Comando detectado", "Ouvindo seu comando."],
+        detected: ["Fala detectada", "Aguardando a transcrição final."],
         processing: ["Interpretando comando", "Validando exercício e valores."],
-        saved: ["Comando salvo", "Registro aplicado ao treino atual."],
+        interpreted: ["Comando interpretado", "Nenhuma alteração foi confirmada ainda."],
+        applied: ["Aplicado à sessão", "A alteração foi feita nesta sessão."],
+        synced: ["Sincronizado", "A alteração da sessão foi sincronizada."],
+        "sync-pending": ["Aplicado à sessão", "A sincronização ainda não foi confirmada."],
+        saved: ["Comando processado", "O resultado foi processado nesta sessão."],
+        "no-speech": ["Nenhuma fala reconhecida", "Toque em Falar agora para tentar novamente ou use o comando em texto."],
         misunderstood: ["Comando não compreendido", "Repita sem inventar valores."],
         error: ["Microfone indisponível", "Revise a permissão do navegador ou use o comando em texto."],
         paused: ["Monolith Voice pausado", "Toque para retomar o microfone."],
         denied: ["Permissão negada", "Libere o microfone no navegador ou use o comando em texto."],
-        unsupported: ["Navegador incompatível", "Reconhecimento de voz indisponível. Fallback por texto disponível."],
+        unsupported: ["Reconhecimento indisponível", "Reconhecimento de voz indisponível. Fallback por texto disponível."],
         "recognition-unavailable": ["Reconhecimento indisponível", "Fallback por texto disponível."],
         expired: ["Sessão encerrada", "O limite de duas horas foi atingido."],
         completed: ["Treino concluído", "O microfone foi desligado automaticamente."]
@@ -24938,21 +25123,45 @@ ${photoSections}
       function voiceButtonStateLabelV2(status = voiceStateV2.status) {
         const labels = {
           off: "Desligado",
-          requesting: "Ouvindo",
+          requesting: "Solicitando",
+          starting: "Iniciando",
+          listening: "Ouvindo",
           active: "Ouvindo",
           ready: "Pronto",
           detected: "Ouvindo",
           processing: "Interpretando",
-          saved: "Aplicado",
+          interpreted: "Interpretado",
+          applied: "Aplicado",
+          synced: "Sincronizado",
+          "sync-pending": "Aplicado",
+          saved: "Processado",
+          "no-speech": "Tentar novamente",
           misunderstood: "Não compreendido",
           error: "Erro",
           denied: "Erro",
-          unsupported: "Incompatível",
-          "recognition-unavailable": "Incompatível",
+          unsupported: "Texto disponível",
+          "recognition-unavailable": "Texto disponível",
           paused: "Pausado",
           completed: "Aplicado"
         };
         return labels[status] || "Desligado";
+      }
+
+      function updateVoiceTalkButtonV2() {
+        const button = document.getElementById("voiceTalkNow");
+        if (!button) return;
+        const busy = Boolean(voiceStateV2.capturePromise || voiceStateV2.recognitionStarting || voiceStateV2.recognitionListening || voiceStateV2.captureOnce);
+        button.disabled = busy;
+        button.setAttribute("aria-busy", String(busy));
+        const label = voiceStateV2.recognitionStarting
+          ? "Iniciando..."
+          : voiceStateV2.recognitionListening
+            ? "Ouvindo..."
+            : ["no-speech", "error", "misunderstood"].includes(voiceStateV2.status)
+              ? "Tentar novamente"
+              : "Falar agora";
+        const text = button.querySelector("span");
+        if (text) text.textContent = textV2(label);
       }
 
       function setVoiceVisualStateV2(status, title = "", message = "", transientMs = 0) {
@@ -24981,6 +25190,7 @@ ${photoSections}
           sessionButton.dataset.state = status;
           sessionButton.setAttribute("aria-label", `${textV2(voiceStateV2.panelOpen ? "Fechar Monolith Voice" : "Abrir Monolith Voice")}: ${textV2(buttonLabel)}`);
         }
+        updateVoiceTalkButtonV2();
         if (transientMs > 0) {
           voiceStateV2.transientTimer = setTimeout(() => {
             if (voiceStateV2.active) setVoiceVisualStateV2(voiceStateV2.visualOnly ? "unsupported" : voiceStateV2.paused ? "paused" : voiceStateV2.localWakeEnabled ? "active" : "ready");
@@ -24989,12 +25199,19 @@ ${photoSections}
       }
 
       function rerenderVoiceLocalizationV2() {
+        if (voiceStateV2.speaking) cancelVoiceSpeechV2();
         voiceSettingsToUIV2();
         setVoiceVisualStateV2(voiceStateV2.status || "off");
         const transcript = document.getElementById("voiceTranscript");
         if (transcript) {
-          transcript.setAttribute("aria-label", textV2("Respostas do Monolith Voice"));
-          if (!voiceStateV2.active && !voiceStateV2.history.length) transcript.textContent = textV2("“Hey Monolith” ou toque em Falar agora.");
+          transcript.setAttribute("aria-label", textV2("Transcrição recebida"));
+          if (!voiceStateV2.lastTranscript) transcript.textContent = textV2("Nenhuma transcrição recebida.");
+        }
+        const response = document.getElementById("voiceResponse");
+        if (response) {
+          response.setAttribute("aria-label", textV2("Resposta do Monolith Voice"));
+          voiceStateV2.lastResponse = "";
+          response.textContent = textV2("“Hey Monolith” ou toque em Falar agora.");
         }
         const accessibleLabels = {
           voiceResponsesEnabled: "Ativar respostas por voz",
@@ -25065,12 +25282,36 @@ ${photoSections}
         if (voiceSettingsV2.vibrationEnabled && navigator.vibrate) navigator.vibrate(pattern);
       }
 
+      function setVoiceTranscriptV2(value = "") {
+        voiceStateV2.lastTranscript = String(value || "").trim();
+        const transcript = document.getElementById("voiceTranscript");
+        if (transcript) transcript.textContent = voiceStateV2.lastTranscript || textV2("Nenhuma transcrição recebida.");
+      }
+
+      function setVoiceResponseV2(value = "") {
+        voiceStateV2.lastResponse = String(value || "").trim();
+        const response = document.getElementById("voiceResponse");
+        if (response) response.textContent = voiceStateV2.lastResponse || textV2("“Hey Monolith” ou toque em Falar agora.");
+      }
+
+      function cancelVoiceSpeechV2() {
+        const operation = voiceStateV2.speechOperation;
+        voiceStateV2.speechOperation = null;
+        voiceStateV2.speaking = false;
+        if (operation?.timer) clearTimeout(operation.timer);
+        try { window.speechSynthesis?.cancel(); } catch (error) { logAppError("voice", "speech-cancel", error); }
+        operation?.resolve(false);
+      }
+
       function speakVoiceV2(shortText, detailedText = shortText) {
         const spoken = voiceSettingsV2.responseDetail === "detailed" ? detailedText : shortText;
-        const transcript = document.getElementById("voiceTranscript");
-        if (transcript) transcript.textContent = spoken;
-        if (!voiceSettingsV2.responsesEnabled || !window.speechSynthesis || !window.SpeechSynthesisUtterance) return;
-        window.speechSynthesis.cancel();
+        setVoiceResponseV2(spoken);
+        cancelVoiceSpeechV2();
+        if (!voiceSettingsV2.responsesEnabled || !window.speechSynthesis || !window.SpeechSynthesisUtterance) return Promise.resolve(false);
+        if (voiceStateV2.localWakeEnabled && voiceStateV2.recognitionListening && !voiceStateV2.captureOnce) {
+          voiceStateV2.recognitionRestartRequested = true;
+          try { voiceStateV2.recognition?.abort(); } catch (error) { logAppError("voice", "recognition-pause-for-speech", error); }
+        }
         const utterance = new SpeechSynthesisUtterance(spoken);
         utterance.lang = voiceLanguageV2();
         utterance.volume = Number(voiceSettingsV2.volume);
@@ -25083,11 +25324,30 @@ ${photoSections}
         const preferredPattern = voiceSettingsV2.gender === "feminine" ? feminineNames : voiceSettingsV2.gender === "masculine" ? masculineNames : null;
         if (matchingVoices.length) utterance.voice = (preferredPattern && matchingVoices.find(voice => preferredPattern.test(voice.name))) || matchingVoices.find(voice => voice.localService) || matchingVoices[0];
         voiceStateV2.speaking = true;
-        utterance.onend = utterance.onerror = () => {
-          voiceStateV2.speaking = false;
-          if (voiceStateV2.localWakeEnabled && voiceStateV2.active && !voiceStateV2.paused && !document.hidden) scheduleRecognitionRestartV2();
-        };
-        window.speechSynthesis.speak(utterance);
+        return new Promise(resolve => {
+          const operation = { utterance, resolve, timer: null };
+          const finish = success => {
+            if (voiceStateV2.speechOperation !== operation) return;
+            clearTimeout(operation.timer);
+            voiceStateV2.speechOperation = null;
+            voiceStateV2.speaking = false;
+            resolve(success);
+            if ((voiceStateV2.recognitionRestartRequested || voiceStateV2.localWakeEnabled) && voiceStateV2.active && !voiceStateV2.paused && !voiceStateV2.captureOnce && !document.hidden) {
+              voiceStateV2.recognitionRestartRequested = false;
+              scheduleRecognitionRestartV2();
+            }
+          };
+          operation.timer = setTimeout(() => finish(false), 15000);
+          voiceStateV2.speechOperation = operation;
+          utterance.onend = () => finish(true);
+          utterance.onerror = () => finish(false);
+          try {
+            window.speechSynthesis.speak(utterance);
+          } catch (error) {
+            logAppError("voice", "speech-start", error);
+            finish(false);
+          }
+        });
       }
 
       function updateVoiceAvailabilityV2() {
@@ -25099,17 +25359,45 @@ ${photoSections}
         if (!eligible) setVoicePanelOpenV2(false);
       }
 
+      function voiceRecognitionErrorV2(name, message = name) {
+        const error = new Error(message);
+        error.name = name;
+        return error;
+      }
+
+      function settleVoiceRecognitionStartV2(recognition, started, error = null) {
+        const operation = voiceStateV2.recognitionStartOperation;
+        if (!operation || operation.recognition !== recognition) return;
+        clearTimeout(operation.timer);
+        voiceStateV2.recognitionStartOperation = null;
+        voiceStateV2.recognitionStarting = false;
+        updateVoiceTalkButtonV2();
+        if (started) operation.resolve(true);
+        else operation.reject(error || voiceRecognitionErrorV2("RecognitionStartError", "recognition-did-not-start"));
+      }
+
       function stopVoiceMediaV2() {
         clearTimeout(voiceStateV2.restartTimer);
         clearTimeout(voiceStateV2.captureTimer);
         voiceStateV2.restartTimer = null;
         voiceStateV2.captureTimer = null;
         voiceStateV2.captureOnce = false;
-        if (voiceStateV2.recognition) {
-          try { voiceStateV2.recognition.abort(); } catch {}
+        voiceStateV2.captureResultReceived = false;
+        voiceStateV2.captureFinalReceived = false;
+        voiceStateV2.recognitionRestartRequested = false;
+        const recognition = voiceStateV2.recognition;
+        settleVoiceRecognitionStartV2(recognition, false, voiceRecognitionErrorV2("AbortError", "recognition-stopped"));
+        voiceStateV2.recognition = null;
+        voiceStateV2.recognitionListening = false;
+        if (recognition) {
+          try { recognition.abort(); } catch (error) { logAppError("voice", "recognition-abort", error); }
         }
-        voiceStateV2.mediaStream?.getTracks?.().forEach(track => track.stop());
-        voiceStateV2.mediaStream = null;
+        updateVoiceTalkButtonV2();
+      }
+
+      function showVoiceNoSpeechV2() {
+        setVoiceTranscriptV2("");
+        setVoiceVisualStateV2("no-speech");
       }
 
       function createRecognitionV2() {
@@ -25121,59 +25409,115 @@ ${photoSections}
         recognition.lang = voiceLanguageV2();
         if (voiceStateV2.localWakeEnabled && "processLocally" in recognition) recognition.processLocally = true;
         recognition.onstart = () => {
-          if (voiceStateV2.active && !voiceStateV2.paused) setVoiceVisualStateV2("active");
+          if (voiceStateV2.recognition !== recognition) return;
+          voiceStateV2.recognitionListening = true;
+          voiceStateV2.captureTimedOut = false;
+          if (voiceStateV2.captureOnce) voiceStateV2.directListenUntil = Date.now() + 10000;
+          settleVoiceRecognitionStartV2(recognition, true);
+          if (voiceStateV2.active && !voiceStateV2.paused) {
+            const directlyListening = voiceStateV2.captureOnce || voiceStateV2.directListenUntil > Date.now();
+            setVoiceVisualStateV2(directlyListening ? "listening" : "active");
+          }
         };
         recognition.onspeechstart = () => {
-          if (!voiceStateV2.speaking) setVoiceVisualStateV2("detected");
+          if (voiceStateV2.recognition === recognition && !voiceStateV2.speaking) setVoiceVisualStateV2("detected");
         };
-        recognition.onresult = event => handleVoiceRecognitionResultV2(event);
+        recognition.onresult = event => {
+          if (voiceStateV2.recognition !== recognition) return;
+          handleVoiceRecognitionResultV2(event).catch(error => {
+            logAppError("voice", "recognition-result", error);
+            setVoiceVisualStateV2("error", "Não consegui aplicar o comando", "O treino não foi alterado. Tente novamente.");
+          });
+        };
         recognition.onerror = event => {
-          const fatal = ["not-allowed", "service-not-allowed", "audio-capture", "language-not-supported"].includes(event.error);
+          if (voiceStateV2.recognition !== recognition) return;
+          const code = String(event.error || "recognition-error");
+          const error = voiceRecognitionErrorV2(code, event.message || code);
+          voiceStateV2.recognitionListening = false;
+          settleVoiceRecognitionStartV2(recognition, false, error);
+          const fatal = ["not-allowed", "service-not-allowed", "audio-capture", "language-not-supported"].includes(code);
           if (fatal) {
             voiceStateV2.paused = true;
             voiceStateV2.visualOnly = true;
-            stopVoiceMediaV2();
-            if (["not-allowed", "service-not-allowed"].includes(event.error)) {
-              setVoiceVisualStateV2("denied");
-            } else if (event.error === "language-not-supported") {
-              setVoiceVisualStateV2("recognition-unavailable");
-            } else {
-              setVoiceVisualStateV2("error", "Microfone indisponível", "Não encontrei um microfone disponível.");
-            }
-          } else if (!["aborted", "no-speech"].includes(event.error)) {
-            setVoiceVisualStateV2("misunderstood", "Não consegui ouvir", "Use Falar agora ou escreva o comando.", 2800);
+            finishVoiceCaptureOnceV2({ preserveVisualState: true });
+            if (["not-allowed", "service-not-allowed"].includes(code)) setVoiceVisualStateV2("denied");
+            else if (code === "language-not-supported") setVoiceVisualStateV2("recognition-unavailable");
+            else setVoiceVisualStateV2("error", "Microfone indisponível", "Não encontrei um microfone disponível.");
+          } else if (code === "no-speech") {
+            finishVoiceCaptureOnceV2({ preserveVisualState: true });
+            showVoiceNoSpeechV2();
+          } else if (code !== "aborted" || (!voiceStateV2.manuallyStopped && !voiceStateV2.recognitionRestartRequested)) {
+            finishVoiceCaptureOnceV2({ preserveVisualState: true });
+            setVoiceVisualStateV2("error", "Não foi possível ouvir", "Toque em Falar agora para tentar novamente ou use o comando em texto.");
           }
+          updateVoiceTalkButtonV2();
         };
         recognition.onend = () => {
-          if (voiceStateV2.captureOnce) {
-            finishVoiceCaptureOnceV2();
+          const current = voiceStateV2.recognition === recognition;
+          if (current) voiceStateV2.recognitionListening = false;
+          settleVoiceRecognitionStartV2(recognition, false, voiceRecognitionErrorV2("RecognitionEndedError", "recognition-ended-before-start"));
+          if (current && voiceStateV2.captureOnce) {
+            const receivedFinal = voiceStateV2.captureFinalReceived;
+            const shouldReportEmpty = !receivedFinal && !voiceStateV2.manuallyStopped;
+            finishVoiceCaptureOnceV2({ preserveVisualState: receivedFinal || shouldReportEmpty });
+            if (shouldReportEmpty) showVoiceNoSpeechV2();
             return;
           }
-          if (voiceStateV2.localWakeEnabled && voiceStateV2.active && !voiceStateV2.paused && !voiceStateV2.manuallyStopped && !document.hidden && !voiceStateV2.speaking) scheduleRecognitionRestartV2();
+          updateVoiceTalkButtonV2();
+          if (current && voiceStateV2.localWakeEnabled && voiceStateV2.active && !voiceStateV2.paused && !voiceStateV2.manuallyStopped && !document.hidden) {
+            if (voiceStateV2.speaking) voiceStateV2.recognitionRestartRequested = true;
+            else scheduleRecognitionRestartV2();
+          }
         };
         return recognition;
       }
 
       function startRecognitionV2() {
-        if (!voiceStateV2.recognition || voiceStateV2.paused || !voiceStateV2.active || voiceStateV2.speaking || document.hidden) return;
-        try { voiceStateV2.recognition.start(); } catch (error) {
-          if (!String(error?.name || "").includes("InvalidState")) logAppError("voice", "recognition-start", error);
+        const recognition = voiceStateV2.recognition;
+        if (!recognition || voiceStateV2.paused || !voiceStateV2.active || document.hidden) return Promise.resolve(false);
+        if (voiceStateV2.speaking) {
+          voiceStateV2.recognitionRestartRequested = true;
+          return Promise.resolve(false);
         }
+        if (voiceStateV2.recognitionListening) return Promise.resolve(true);
+        if (voiceStateV2.recognitionStartOperation?.recognition === recognition) return voiceStateV2.recognitionStartOperation.promise;
+        let resolveStart;
+        let rejectStart;
+        const promise = new Promise((resolve, reject) => {
+          resolveStart = resolve;
+          rejectStart = reject;
+        });
+        const operation = { recognition, promise, resolve: resolveStart, reject: rejectStart, timer: null };
+        operation.timer = setTimeout(() => {
+          if (voiceStateV2.recognitionStartOperation !== operation) return;
+          const error = voiceRecognitionErrorV2("RecognitionStartTimeout", "recognition-start-timeout");
+          settleVoiceRecognitionStartV2(recognition, false, error);
+          try { recognition.abort(); } catch (abortError) { logAppError("voice", "recognition-timeout-abort", abortError); }
+        }, 5000);
+        voiceStateV2.recognitionStartOperation = operation;
+        voiceStateV2.recognitionStarting = true;
+        setVoiceVisualStateV2("starting");
+        try {
+          recognition.start();
+        } catch (error) {
+          logAppError("voice", "recognition-start", error);
+          settleVoiceRecognitionStartV2(recognition, false, error);
+        }
+        return promise;
       }
 
       function scheduleRecognitionRestartV2() {
         clearTimeout(voiceStateV2.restartTimer);
-        voiceStateV2.restartTimer = setTimeout(startRecognitionV2, 320);
-      }
-
-      async function requestVoiceMediaV2() {
-        if (!navigator.mediaDevices?.getUserMedia) throw new Error("media-devices-unavailable");
-        voiceStateV2.mediaStream?.getTracks?.().forEach(track => track.stop());
-        voiceStateV2.mediaStream = await navigator.mediaDevices.getUserMedia({
-          audio: { echoCancellation: true, noiseSuppression: true, autoGainControl: true },
-          video: false
-        });
-        return voiceStateV2.mediaStream;
+        if (voiceStateV2.speaking) {
+          voiceStateV2.recognitionRestartRequested = true;
+          return;
+        }
+        voiceStateV2.restartTimer = setTimeout(() => {
+          startRecognitionV2().catch(error => {
+            logAppError("voice", "recognition-restart", error);
+            setVoiceVisualStateV2("error", "Não foi possível retomar a escuta", "Toque em Falar agora para tentar novamente ou use o comando em texto.");
+          });
+        }, 320);
       }
 
       async function detectLocalWakeSupportV2() {
@@ -25187,43 +25531,114 @@ ${photoSections}
         }
       }
 
-      function finishVoiceCaptureOnceV2() {
+      function finishVoiceCaptureOnceV2({ preserveVisualState = false } = {}) {
+        const wasSingleCapture = voiceStateV2.captureOnce;
+        const recognition = voiceStateV2.recognition;
         clearTimeout(voiceStateV2.captureTimer);
         voiceStateV2.captureTimer = null;
         voiceStateV2.captureOnce = false;
-        voiceStateV2.mediaStream?.getTracks?.().forEach(track => track.stop());
-        voiceStateV2.mediaStream = null;
-        if (voiceStateV2.active && !voiceStateV2.paused) setVoiceVisualStateV2("ready");
+        voiceStateV2.directListenUntil = 0;
+        voiceStateV2.recognitionStarting = false;
+        voiceStateV2.recognitionListening = false;
+        if (wasSingleCapture && voiceStateV2.recognition === recognition) voiceStateV2.recognition = null;
+        updateVoiceTalkButtonV2();
+        if (!preserveVisualState && voiceStateV2.active && !voiceStateV2.paused) setVoiceVisualStateV2(voiceStateV2.localWakeEnabled ? "active" : "ready");
       }
 
       async function startVoiceCaptureOnceV2() {
-        if (!voiceStateV2.active) await beginVoiceSessionV2();
+        if (voiceStateV2.capturePromise || voiceStateV2.captureOnce || voiceStateV2.recognitionStarting || voiceStateV2.recognitionListening) return false;
+        if (!voiceStateV2.active) {
+          const initialization = beginVoiceSessionV2({ visualOnly: true });
+          if (!voiceStateV2.active && !(await initialization)) return false;
+        }
         if (!VoiceRecognitionV2) {
           setVoicePanelOpenV2(true);
           setVoiceVisualStateV2("unsupported");
           document.getElementById("voiceManualCommand")?.focus();
           return false;
         }
+        const operation = (async () => {
+          try {
+            setVoicePanelOpenV2(true);
+            cancelVoiceSpeechV2();
+            voiceStateV2.recognitionRestartRequested = false;
+            voiceStateV2.paused = false;
+            voiceStateV2.visualOnly = false;
+            voiceStateV2.manuallyStopped = false;
+            voiceStateV2.captureResultReceived = false;
+            voiceStateV2.captureFinalReceived = false;
+            voiceStateV2.captureTimedOut = false;
+            setVoiceTranscriptV2("");
+            voiceStateV2.captureOnce = true;
+            voiceStateV2.recognition = createRecognitionV2();
+            voiceStateV2.recognition.continuous = false;
+            const started = await startRecognitionV2();
+            if (!started) throw voiceRecognitionErrorV2("RecognitionStartBlocked", "recognition-start-blocked");
+            voiceStateV2.captureTimer = setTimeout(() => {
+              if (!voiceStateV2.captureOnce || voiceStateV2.captureFinalReceived) return;
+              voiceStateV2.captureTimedOut = true;
+              const recognition = voiceStateV2.recognition;
+              showVoiceNoSpeechV2();
+              finishVoiceCaptureOnceV2({ preserveVisualState: true });
+              if (recognition) {
+                try { recognition.abort(); } catch (error) { logAppError("voice", "single-capture-timeout", error); }
+              }
+            }, 10000);
+            return true;
+          } catch (error) {
+            logAppError("voice", "single-capture", error);
+            finishVoiceCaptureOnceV2({ preserveVisualState: true });
+            const denied = ["NotAllowedError", "SecurityError", "not-allowed", "service-not-allowed"].includes(error?.name);
+            if (denied) {
+              voiceStateV2.visualOnly = true;
+              voiceStateV2.paused = true;
+              setVoiceVisualStateV2("denied");
+            } else {
+              voiceStateV2.visualOnly = false;
+              voiceStateV2.paused = false;
+              setVoiceVisualStateV2("error", "Não foi possível iniciar a escuta", "Toque em Falar agora para tentar novamente ou use o comando em texto.");
+            }
+            return false;
+          }
+        })();
+        voiceStateV2.capturePromise = operation;
+        updateVoiceTalkButtonV2();
         try {
-          await requestVoiceMediaV2();
-          voiceStateV2.captureOnce = true;
-          voiceStateV2.directListenUntil = Date.now() + 10000;
-          voiceStateV2.recognition = createRecognitionV2();
-          voiceStateV2.recognition.continuous = false;
+          return await operation;
+        } finally {
+          if (voiceStateV2.capturePromise === operation) voiceStateV2.capturePromise = null;
+          updateVoiceTalkButtonV2();
+        }
+      }
+
+      async function voiceTalkNowV2() {
+        setVoicePanelOpenV2(true);
+        if (!VoiceRecognitionV2) {
+          setVoiceVisualStateV2("unsupported");
+          document.getElementById("voiceManualCommand")?.focus();
+          return false;
+        }
+        if (!voiceStateV2.active) {
+          const initialization = beginVoiceSessionV2({ visualOnly: true });
+          if (!voiceStateV2.active && !(await initialization)) return false;
+        }
+        if (voiceStateV2.capturePromise || voiceStateV2.captureOnce || voiceStateV2.recognitionStarting || (voiceStateV2.recognitionListening && !voiceStateV2.localWakeEnabled)) return false;
+        cancelVoiceSpeechV2();
+        if (!voiceStateV2.localWakeEnabled) return startVoiceCaptureOnceV2();
+        try {
+          voiceStateV2.paused = false;
+          voiceStateV2.visualOnly = false;
           voiceStateV2.manuallyStopped = false;
-          setVoiceVisualStateV2("detected", "Pode falar", "Aguardando seu comando.");
-          startRecognitionV2();
-          voiceStateV2.captureTimer = setTimeout(() => {
-            try { voiceStateV2.recognition?.abort(); } catch {}
-            finishVoiceCaptureOnceV2();
-          }, 10000);
+          voiceStateV2.directListenUntil = Date.now() + 10000;
+          setVoiceResponseV2(voiceReplyV2("speak"));
+          if (!voiceStateV2.recognition) voiceStateV2.recognition = createRecognitionV2();
+          const started = await startRecognitionV2();
+          if (!started) throw voiceRecognitionErrorV2("RecognitionStartBlocked", "recognition-start-blocked");
+          setVoiceVisualStateV2("listening");
           return true;
         } catch (error) {
-          logAppError("voice", "single-capture", error);
-          finishVoiceCaptureOnceV2();
-          voiceStateV2.visualOnly = true;
-          voiceStateV2.paused = true;
-          setVoiceVisualStateV2(error?.name === "NotAllowedError" ? "denied" : "error", "", error?.name === "NotAllowedError" ? "" : "Use o comando em texto ou tente novamente manualmente.");
+          logAppError("voice", "talk-now", error);
+          setVoiceVisualStateV2("error", "Não foi possível iniciar a escuta", "Toque em Falar agora para tentar novamente ou use o comando em texto.");
           return false;
         }
       }
@@ -25275,10 +25690,7 @@ ${photoSections}
         setVoiceVisualStateV2("requesting");
         try {
           voiceStateV2.localWakeEnabled = await detectLocalWakeSupportV2();
-          await requestVoiceMediaV2();
           if (!voiceStateV2.localWakeEnabled) {
-            voiceStateV2.mediaStream?.getTracks?.().forEach(track => track.stop());
-            voiceStateV2.mediaStream = null;
             voiceStateV2.paused = false;
             voiceStateV2.visualOnly = false;
             setVoiceVisualStateV2("ready");
@@ -25287,11 +25699,11 @@ ${photoSections}
             return true;
           }
           voiceStateV2.recognition = createRecognitionV2();
-          voiceStateV2.paused = false;
           voiceStateV2.visualOnly = false;
-          startRecognitionV2();
-          setVoiceVisualStateV2("active");
-          speakVoiceV2(textV2("Monolith Voice ativado."), textV2("Monolith Voice ativado. Diga Hey Monolith antes do comando."));
+          setVoiceResponseV2(textV2("Monolith Voice ativado. Diga Hey Monolith antes do comando."));
+          voiceStateV2.paused = false;
+          const started = await startRecognitionV2();
+          if (!started) throw voiceRecognitionErrorV2("RecognitionStartBlocked", "recognition-start-blocked");
           voiceVibrateV2(35);
           scheduleVoiceSessionSyncV2();
           return true;
@@ -25328,10 +25740,7 @@ ${photoSections}
         setVoiceVisualStateV2("requesting");
         try {
           voiceStateV2.localWakeEnabled = await detectLocalWakeSupportV2();
-          await requestVoiceMediaV2();
           if (!voiceStateV2.localWakeEnabled) {
-            voiceStateV2.mediaStream?.getTracks?.().forEach(track => track.stop());
-            voiceStateV2.mediaStream = null;
             voiceStateV2.paused = false;
             voiceStateV2.visualOnly = false;
             voiceStateV2.manuallyStopped = false;
@@ -25343,8 +25752,8 @@ ${photoSections}
           voiceStateV2.paused = false;
           voiceStateV2.visualOnly = false;
           voiceStateV2.manuallyStopped = false;
-          startRecognitionV2();
-          setVoiceVisualStateV2("active");
+          const started = await startRecognitionV2();
+          if (!started) throw voiceRecognitionErrorV2("RecognitionStartBlocked", "recognition-start-blocked");
           scheduleVoiceSessionSyncV2();
           return true;
         } catch (error) {
@@ -25365,7 +25774,7 @@ ${photoSections}
         clearInterval(voiceStateV2.ticker);
         clearTimeout(voiceStateV2.syncTimer);
         voiceStateV2.ticker = null;
-        if (window.speechSynthesis) window.speechSynthesis.cancel();
+        cancelVoiceSpeechV2();
         try { await syncVoiceSessionRemoteV2(remoteStatus); } catch (error) { logAppError("voice", "stop-sync", error); }
         voiceStateV2.status = reason;
         if (clearDraft || ["completed", "expired"].includes(reason)) clearVoiceDraftV2();
@@ -25560,24 +25969,50 @@ ${photoSections}
 
       async function handleVoiceRecognitionResultV2(event) {
         if (!voiceStateV2.active || voiceStateV2.paused || voiceStateV2.speaking) return;
+        const finalResults = [];
         for (let index = event.resultIndex; index < event.results.length; index += 1) {
           const result = event.results[index];
           const transcript = result[0]?.transcript?.trim() || "";
-          const preview = document.getElementById("voiceTranscript");
-          if (preview && transcript) preview.textContent = transcript;
-          if (!result.isFinal || !transcript) continue;
+          if (!transcript) continue;
+          voiceStateV2.captureResultReceived = true;
+          setVoiceTranscriptV2(transcript);
+          if (result.isFinal) finalResults.push({ transcript, confidence: Number(result[0]?.confidence) || 0 });
+        }
+        if (!finalResults.length) return;
+        const commands = voiceStateV2.captureOnce
+          ? [{ transcript: finalResults.map(result => result.transcript).join(" ").trim(), confidence: Math.max(...finalResults.map(result => result.confidence)) }]
+          : finalResults;
+        if (voiceStateV2.captureOnce) {
+          if (voiceStateV2.captureFinalReceived) return;
+          voiceStateV2.captureFinalReceived = true;
+        }
+        for (const finalResult of commands) {
+          const transcript = finalResult.transcript;
+          setVoiceTranscriptV2(transcript);
           const wake = stripVoiceWakeWordV2(transcript);
           const direct = voiceStateV2.directListenUntil > Date.now();
           if (!wake.woke && !direct) continue;
           if (wake.woke && !wake.command) {
+            voiceStateV2.directListenUntil = 0;
+            setVoiceVisualStateV2("interpreted", "Comando interpretado", "Preparando a escuta.");
+            await speakVoiceV2(textV2("Pode falar."));
             voiceStateV2.directListenUntil = Date.now() + 8000;
-            setVoiceVisualStateV2("detected", "Pode falar", "Aguardando seu comando.", 2200);
-            speakVoiceV2(textV2("Pode falar."));
+            if (voiceStateV2.recognitionListening) setVoiceVisualStateV2("listening", "Pode falar", "Aguardando seu comando.");
             continue;
           }
           voiceStateV2.directListenUntil = 0;
-          await processVoiceCommandV2(wake.command || transcript, Number(result[0]?.confidence) || 0, "speech");
-          if (voiceStateV2.captureOnce) finishVoiceCaptureOnceV2();
+          await processVoiceCommandV2(wake.command || transcript, finalResult.confidence, "speech");
+          if (voiceStateV2.captureOnce) {
+            const recognition = voiceStateV2.recognition;
+            finishVoiceCaptureOnceV2({ preserveVisualState: true });
+            try {
+              if (typeof recognition?.stop === "function") recognition.stop();
+              else recognition?.abort();
+            } catch (error) {
+              logAppError("voice", "single-capture-stop", error);
+            }
+            break;
+          }
         }
       }
 
@@ -26024,6 +26459,7 @@ ${photoSections}
           return false;
         }
 
+        setVoiceVisualStateV2("interpreted", "Comando interpretado", voiceNeedsConfidenceConfirmationV2(command.intent) ? "Validando os valores antes de alterar a sessão." : "Preparando a ação solicitada.");
         if (command.confidence < 0.78 && voiceNeedsConfidenceConfirmationV2(command.intent)) {
           const weightLabel = command.payload.weight !== null ? voiceFormattedSpokenWeightV2(command.payload.weight, command.payload.unit) : "--";
           const confirmMessage = command.intent === "record_set"
@@ -26049,10 +26485,25 @@ ${photoSections}
           applied = false;
         }
         const finalStatus = applied ? (voiceIsReadOnlyQueryV2(command.intent) ? "interpreted" : "applied") : "rejected";
-        syncVoiceCommandRemoteV2({ ...initialReceipt, status: finalStatus }).catch(error => logAppError("voice", "sync-command-final", error, { commandId: command.commandId }));
-        if (applied && voiceIsReadOnlyQueryV2(command.intent)) setVoiceVisualStateV2("saved", "Consulta interpretada", "O treino não foi alterado.", 2600);
-        else if (applied && command.intent !== "finish_workout") setVoiceVisualStateV2("saved", "Comando salvo", "Registro aplicado ao treino atual.", 2600);
+        const readOnly = voiceIsReadOnlyQueryV2(command.intent);
+        if (applied && readOnly) setVoiceVisualStateV2("interpreted", "Consulta interpretada", "O treino não foi alterado.", 2600);
+        else if (applied && command.intent !== "finish_workout") setVoiceVisualStateV2("applied");
         else if (!applied && !["cancel", "unknown"].includes(command.intent)) setVoiceVisualStateV2("misunderstood", "Comando não aplicado", "Revise o exercício atual e tente novamente.", 2600);
+        let commandSynchronized = false;
+        try {
+          commandSynchronized = await syncVoiceCommandRemoteV2({ ...initialReceipt, status: finalStatus });
+        } catch (error) {
+          logAppError("voice", "sync-command-final", error, { commandId: command.commandId });
+        }
+        if (applied && !readOnly && command.intent !== "finish_workout") {
+          let sessionSynchronized = false;
+          try {
+            sessionSynchronized = await syncVoiceSessionRemoteV2();
+          } catch (error) {
+            logAppError("voice", "sync-session-after-command", error, { commandId: command.commandId });
+          }
+          setVoiceVisualStateV2(commandSynchronized && sessionSynchronized ? "synced" : "sync-pending", "", "", 2600);
+        }
         scheduleVoiceSessionSyncV2();
         return applied;
       }
@@ -27930,23 +28381,7 @@ ${photoSections}
         }, { loadingText: "Abrindo Voice..." });
       });
       document.getElementById("closeVoicePanel")?.addEventListener("click", () => setVoicePanelOpenV2(false));
-      document.getElementById("voiceTalkNow")?.addEventListener("click", async () => {
-        if (!voiceStateV2.active || voiceStateV2.visualOnly) await beginVoiceSessionV2();
-        else if (voiceStateV2.paused && !voiceStateV2.visualOnly) await resumeVoiceSessionV2();
-        setVoicePanelOpenV2(true);
-        if (voiceStateV2.visualOnly || !VoiceRecognitionV2) {
-          document.getElementById("voiceManualCommand")?.focus();
-          setVoiceVisualStateV2("unsupported");
-          return;
-        }
-        if (!voiceStateV2.localWakeEnabled) {
-          await startVoiceCaptureOnceV2();
-          return;
-        }
-        voiceStateV2.directListenUntil = Date.now() + 8000;
-        setVoiceVisualStateV2("detected", "Pode falar", "Aguardando seu comando.", 2200);
-        speakVoiceV2(voiceReplyV2("speak"));
-      });
+      document.getElementById("voiceTalkNow")?.addEventListener("click", voiceTalkNowV2);
       document.getElementById("voicePauseButton")?.addEventListener("click", async () => {
         if (!voiceStateV2.active) return beginVoiceSessionV2();
         if (voiceStateV2.paused) return resumeVoiceSessionV2();
@@ -28036,6 +28471,14 @@ ${photoSections}
         window.monolithVoiceTest = {
           parse: parseVoiceCommandV2,
           process: processVoiceCommandV2,
+          capture: startVoiceCaptureOnceV2,
+          talkNow: voiceTalkNowV2,
+          startRecognition: startRecognitionV2,
+          createRecognition: createRecognitionV2,
+          handleResult: handleVoiceRecognitionResultV2,
+          speak: speakVoiceV2,
+          cancelSpeech: cancelVoiceSpeechV2,
+          setVisualState: setVoiceVisualStateV2,
           beginVisual: () => beginVoiceSessionV2({ visualOnly: true }),
           stop: stopVoiceSessionV2,
           state: voiceStateV2

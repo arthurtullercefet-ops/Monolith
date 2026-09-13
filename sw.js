@@ -1,4 +1,4 @@
-const CACHE_NAME = "monolith-v106-flow-corrections";
+const CACHE_NAME = "monolith-v108-voice-capture";
 
 self.addEventListener("install", event => {
   self.skipWaiting();
