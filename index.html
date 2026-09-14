@@ -14,8 +14,8 @@
   <link rel="manifest" href="manifest.webmanifest" />
   <link rel="icon" href="monolith-icon.svg" />
   <script>
-window.MONOLITH_BUILD = "monolith-v108-voice-capture";
-window.MONOLITH_VERSION_LABEL = "Monolith v108 · 13/09/2026";
+window.MONOLITH_BUILD = "monolith-v109-pending-fixes";
+window.MONOLITH_VERSION_LABEL = "Monolith v109 · 13/09/2026";
     (function clearOldAppCaches() {
       if ("serviceWorker" in navigator) {
         navigator.serviceWorker.getRegistrations?.()
@@ -5275,7 +5275,7 @@ window.MONOLITH_VERSION_LABEL = "Monolith v108 · 13/09/2026";
           <button class="action" id="loginButton" type="submit">Entrar</button>
           <div class="auth-tools">
             <button class="auth-secondary" id="clearDeviceSessionButton" type="button">Limpar sessão/cache deste aparelho</button>
-            <div class="build-version" id="buildVersionLabel">Versão do app: Monolith v108 · 13/09/2026</div>
+            <div class="build-version" id="buildVersionLabel">Versão do app: Monolith v109 · 13/09/2026</div>
           </div>
         </form>
       </div>
@@ -5902,8 +5902,8 @@ window.MONOLITH_VERSION_LABEL = "Monolith v108 · 13/09/2026";
                 <div class="field"><label for="dietFat">Gordura</label><input id="dietFat" inputmode="decimal" placeholder="70" /></div>
               </div>
               <div class="meal-stack" id="dietMealBuilder"></div>
-              <div class="section-title"><h3>Plano de suplementação</h3><span>Orientações separadas das refeições</span></div>
-              <div class="report-line">Confirme nome, dose e frequência. O Monolith não gera doses automaticamente.</div>
+              <div class="section-title"><h3>Plano de suplementação</h3><span data-i18n="Orientações separadas das refeições">Orientações separadas das refeições</span></div>
+              <div class="report-line" data-i18n="Confirme nome, dose e frequência. O Monolith não gera doses automaticamente.">Confirme nome, dose e frequência. O Monolith não gera doses automaticamente.</div>
               <div class="meal-stack" id="dietSupplementBuilder"></div>
               <button class="ghost" id="addDietSupplement" type="button">Adicionar suplemento</button>
               <button class="action" id="saveDietPlanButton" type="submit">Salvar dieta do aluno</button>
@@ -6157,7 +6157,7 @@ window.MONOLITH_VERSION_LABEL = "Monolith v108 · 13/09/2026";
             <div class="section-title"><h3>Configurar programa</h3><span>Prescrição do personal</span></div>
             <div class="measure-form-grid">
               <div class="field"><label for="programName">Nome do programa</label><input id="programName" required maxlength="120" placeholder="Ex: Hipertrofia · Bloco 1" /></div>
-              <div class="field"><label for="programDuration">Duração</label><select id="programDuration"><option value="4">4 semanas</option><option value="8" selected>8 semanas</option><option value="12">12 semanas</option></select></div>
+              <div class="field"><label for="programDuration">Duração</label><select id="programDuration" aria-label="Duração do programa"><option value="4" data-i18n="4 semanas">4 semanas</option><option value="8" data-i18n="8 semanas" selected>8 semanas</option><option value="12" data-i18n="12 semanas">12 semanas</option></select></div>
               <div class="field"><label for="programStartDate">Data de início</label><input id="programStartDate" type="date" required /></div>
               <div class="field"><label for="programStatus">Status</label><select id="programStatus"><option value="active">Ativo</option><option value="paused">Pausado</option><option value="completed">Concluído</option></select></div>
             </div>
@@ -7291,8 +7291,8 @@ window.MONOLITH_VERSION_LABEL = "Monolith v108 · 13/09/2026";
   <script>
     const MONOLITH_SUPABASE_URL = "https://jhxasnxuvmkhntbwepau.supabase.co";
     const MONOLITH_SUPABASE_KEY = "sb_publishable_lDtAXIOtkMwgwsAZyghBdg_gyLHGwpH";
-const MONOLITH_BUILD = window.MONOLITH_BUILD || "monolith-v108-voice-capture";
-const MONOLITH_VERSION_LABEL = window.MONOLITH_VERSION_LABEL || "Monolith v108 · 13/09/2026";
+const MONOLITH_BUILD = window.MONOLITH_BUILD || "monolith-v109-pending-fixes";
+const MONOLITH_VERSION_LABEL = window.MONOLITH_VERSION_LABEL || "Monolith v109 · 13/09/2026";
     const onboardingStepDefinitions = [
       ["welcome", "Boas-vindas", "Conheça o fluxo do seu acompanhamento.", "home"],
       ["terms", "Termos", "Revise consentimentos e informações da conta.", "profile"],
@@ -8800,16 +8800,18 @@ if (location.hash.toLowerCase() === "#leads") history.replaceState(null, "", `${
 
     window.safeRemoteLog = safeRemoteLog;
 
-    async function loadRemoteModule(module, scope, task, { hasCache = false } = {}) {
-      setRemoteDataState(module, scope, "loading");
+    async function loadRemoteModule(module, scope, task, { hasCache = false, shouldApply = () => true } = {}) {
+      if (shouldApply()) setRemoteDataState(module, scope, "loading");
       try {
         const data = await task();
+        if (!shouldApply()) return { ok: false, data, status: "stale" };
         const empty = data == null || (Array.isArray(data) && data.length === 0);
         setRemoteDataState(module, scope, empty ? "empty" : "loaded", {
           count: Array.isArray(data) ? data.length : data ? 1 : 0
         });
         return { ok: true, data, status: empty ? "empty" : "loaded" };
       } catch (error) {
+        if (!shouldApply()) return { ok: false, data: null, error, status: "stale" };
         logAppError(module, "load", error, { studentId: scope });
         setRemoteDataState(module, scope, hasCache ? "offline-cache" : "error", {
           code: error?.code || "UNKNOWN"
@@ -9202,7 +9204,7 @@ if (location.hash.toLowerCase() === "#leads") history.replaceState(null, "", `${
       saveWorkoutPrograms([...merged, ...retained.filter(program => program.studentId !== studentId)]);
     }
 
-    async function loadRemoteWorkoutPrograms(studentId) {
+    async function loadRemoteWorkoutPrograms(studentId, { shouldCache = () => true } = {}) {
       if (!monolithSupabase || !studentId || !isRealSupabaseAccount(currentAccount()) || !canAccessStudentData(studentId)) return [];
       const { data, error } = await monolithSupabase
         .from("workout_programs")
@@ -9211,7 +9213,7 @@ if (location.hash.toLowerCase() === "#leads") history.replaceState(null, "", `${
         .order("updated_at", { ascending: false });
       if (error) throw error;
       const programs = (data || []).map(remoteWorkoutProgramFromRow);
-      cacheWorkoutPrograms(studentId, programs);
+      if (shouldCache()) cacheWorkoutPrograms(studentId, programs);
       return programs;
     }
 
@@ -10644,6 +10646,37 @@ if (location.hash.toLowerCase() === "#leads") history.replaceState(null, "", `${
       return { ...legacyPlan, id: scopedKey, trainerId: legacyPlan.trainerId || trainerId };
     }
 
+    function publishedDietPlansForStudent(studentId) {
+      if (!studentId || !canAccessStudentData(studentId)) return [];
+      const user = currentAccount();
+      const trainerId = dietPlanTrainerId(studentId);
+      const seen = new Set();
+      return Object.values(loadDietPlans())
+        .filter(plan => plan?.studentId === studentId)
+        .filter(plan => {
+          if (!trainerId) return user?.role === "student" && user.id === studentId;
+          if (user?.role === "personal") return plan.trainerId === trainerId;
+          return !plan.trainerId || plan.trainerId === trainerId;
+        })
+        .filter(plan => ["published", "legacy_published"].includes(dietPlanStatus(plan)))
+        .sort((a, b) => {
+          const aPublished = String(a.publishedAt || a.updatedAt || a.savedAt || "");
+          const bPublished = String(b.publishedAt || b.updatedAt || b.savedAt || "");
+          return bPublished.localeCompare(aPublished)
+            || String(b.month || "").localeCompare(String(a.month || ""));
+        })
+        .filter(plan => {
+          const identity = plan.remoteId || plan.id || `${plan.trainerId || ""}:${plan.studentId}:${plan.month}`;
+          if (seen.has(identity)) return false;
+          seen.add(identity);
+          return true;
+        });
+    }
+
+    function latestPublishedDietForStudent(studentId) {
+      return publishedDietPlansForStudent(studentId)[0] || null;
+    }
+
     function studentsForPersonal(personalId) {
       const accounts = loadAccounts();
       const personal = accounts.find(item => item.id === personalId);
@@ -11314,7 +11347,7 @@ if (location.hash.toLowerCase() === "#leads") history.replaceState(null, "", `${
       return true;
     }
 
-    async function loadRemoteCompletedWorkouts(studentId = activeDataStudentId()) {
+    async function loadRemoteCompletedWorkouts(studentId = activeDataStudentId(), { shouldCache = () => true } = {}) {
       if (!monolithSupabase || !studentId || !isRealSupabaseAccount(currentAccount())) return [];
       if (!canAccessStudentData(studentId, { allowPersonalSelf: true })) return [];
       const { data, error } = await monolithSupabase
@@ -11325,7 +11358,7 @@ if (location.hash.toLowerCase() === "#leads") history.replaceState(null, "", `${
         .limit(250);
       if (error) throw error;
       const entries = (data || []).map(remoteCompletedWorkoutFromRow);
-      cacheRemoteCompletedWorkouts(entries, studentId);
+      if (shouldCache()) cacheRemoteCompletedWorkouts(entries, studentId);
       return entries;
     }
 
@@ -11478,6 +11511,35 @@ if (location.hash.toLowerCase() === "#leads") history.replaceState(null, "", `${
       return plan;
     }
 
+    async function loadRemotePublishedDietPlans(studentId, { shouldCache = () => true } = {}) {
+      if (!monolithSupabase || !studentId || !isRealSupabaseAccount(currentAccount())) return [];
+      if (!canAccessStudentData(studentId)) return [];
+      const user = currentAccount();
+      let query = monolithSupabase
+        .from("diet_plans")
+        .select("*")
+        .eq("student_id", studentId);
+      if (user?.role === "personal") query = query.eq("trainer_id", user.id);
+      if (user?.role === "student") {
+        const linkedTrainerId = studentTrainerLinkState(user).trainerId || user.trainerId || "";
+        if (linkedTrainerId) query = query.eq("trainer_id", linkedTrainerId);
+      }
+      const { data, error } = await query
+        .order("updated_at", { ascending: false })
+        .order("month_key", { ascending: false });
+      if (error) throw error;
+      const plans = (data || []).map(remoteDietPlanFromRow);
+      if (shouldCache()) plans.forEach(cacheDietPlan);
+      return plans
+        .filter(plan => ["published", "legacy_published"].includes(dietPlanStatus(plan)))
+        .sort((a, b) => {
+          const aPublished = String(a.publishedAt || a.updatedAt || a.savedAt || "");
+          const bPublished = String(b.publishedAt || b.updatedAt || b.savedAt || "");
+          return bPublished.localeCompare(aPublished)
+            || String(b.month || "").localeCompare(String(a.month || ""));
+        });
+    }
+
     async function saveRemoteDietPlan(plan) {
       const user = currentAccount();
       if (!monolithSupabase || !isRealSupabaseAccount(user) || user.role !== "personal") return false;
@@ -11613,29 +11675,38 @@ if (location.hash.toLowerCase() === "#leads") history.replaceState(null, "", `${
       if (!studentId || !isRealSupabaseAccount(currentAccount())) return { status: "local", results: [] };
       const reportStudent = student || (currentAccount()?.role === "student" ? currentAccount() : reportStudentFromId(studentId));
       const periodMonths = monthKeysForPeriod(reportPeriodForStudent(reportStudent));
+      const requestAccountId = currentAccount()?.id || "";
+      const shouldCachePublishedDiets = () => currentAccount()?.id === requestAccountId && activeDataStudentId() === studentId;
       const modules = [
-        ["checkins", () => loadRemoteCheckins(studentId), loadCheckins(studentId).length > 0],
-        ["measures", () => loadRemoteBodyMeasures(studentId), loadBodyMeasures(studentId).length > 0],
-        ["completed-workouts", () => loadRemoteCompletedWorkouts(studentId), loadCompletedWorkoutEntries().some(item => item.studentId === studentId)],
-        ["photos", () => loadRemoteProgressPhotos(studentId), Object.values(loadProgressPhotos(studentId)).some(group => Object.keys(group || {}).length)],
-        ...periodMonths.map(month => ["diet", () => loadRemoteDietPlan(studentId, month), Boolean(storedDietPlanForStudent(studentId, month))]),
-        ["checkin-factors", () => loadRemoteFactorsForStudent(studentId), factorsForStudent(studentId).length > 0],
-        ["anamnesis", () => loadRemoteAnamnesis(studentId), Boolean(storedAnamnesis(studentId))]
+        ["checkins", () => loadRemoteCheckins(studentId), loadCheckins(studentId).length > 0, false],
+        ["measures", () => loadRemoteBodyMeasures(studentId), loadBodyMeasures(studentId).length > 0, false],
+        ["completed-workouts", () => loadRemoteCompletedWorkouts(studentId), loadCompletedWorkoutEntries().some(item => item.studentId === studentId), false],
+        ["photos", () => loadRemoteProgressPhotos(studentId), Object.values(loadProgressPhotos(studentId)).some(group => Object.keys(group || {}).length), false],
+        ...periodMonths.map(month => ["diet", () => loadRemoteDietPlan(studentId, month), Boolean(storedDietPlanForStudent(studentId, month)), false]),
+        ["published-diets", () => loadRemotePublishedDietPlans(studentId, { shouldCache: shouldCachePublishedDiets }), publishedDietPlansForStudent(studentId).length > 0, true],
+        ["checkin-factors", () => loadRemoteFactorsForStudent(studentId), factorsForStudent(studentId).length > 0, false],
+        ["anamnesis", () => loadRemoteAnamnesis(studentId), Boolean(storedAnamnesis(studentId)), false]
       ];
       setRemoteDataState("report", studentId, "loading");
-      const results = await Promise.all(modules.map(([module, task, hasCache]) => loadRemoteModule(module, studentId, task, { hasCache })));
+      const results = await Promise.all(modules.map(async ([module, task, hasCache, optional]) => ({
+        module,
+        optional,
+        ...await loadRemoteModule(module, studentId, task, { hasCache })
+      })));
       const failures = results.filter(result => !result.ok);
+      const blockingFailures = failures.filter(result => !result.optional);
       const reportSnapshot = monthlyReportData(reportStudent);
       const hasReportData = Boolean(
         reportSnapshot.checkins.length ||
         reportSnapshot.bodyMeasures.length ||
         reportSnapshot.completedWorkouts.length ||
         reportSnapshot.activeDietPlan ||
+        reportSnapshot.latestPublishedDietPlan ||
         Object.values(reportSnapshot.progressPhotos || {}).some(group => Object.keys(group || {}).length)
       );
-      const reportStatus = failures.some(result => result.status === "error")
+      const reportStatus = blockingFailures.some(result => result.status === "error")
         ? "error"
-        : failures.length
+        : blockingFailures.length
           ? "offline-cache"
           : hasReportData ? "loaded" : "empty";
       setRemoteDataState("report", studentId, reportStatus, { count: results.length - failures.length });
@@ -11652,7 +11723,8 @@ if (location.hash.toLowerCase() === "#leads") history.replaceState(null, "", `${
       const isCurrentRequest = () => requestId === trainerDashboardHydrationSequence && currentAccount()?.id === trainerId;
       setRemoteDataState("trainer-dashboard", user.id, "loading");
       const studentsResult = await loadRemoteModule("students", user.id, () => loadRemoteLinkedStudents(user.id), {
-        hasCache: studentsForPersonal(user.id).length > 0
+        hasCache: studentsForPersonal(user.id).length > 0,
+        shouldApply: isCurrentRequest
       });
       if (!studentsResult.ok) {
         if (!isCurrentRequest()) return { status: "stale" };
@@ -11679,7 +11751,7 @@ if (location.hash.toLowerCase() === "#leads") history.replaceState(null, "", `${
         const rows = (data || []).map(remoteCheckinFromRow);
         if (isCurrentRequest()) studentIds.forEach(studentId => cacheRemoteCheckins(rows.filter(entry => entry.studentId === studentId), studentId));
         return rows;
-      }, { hasCache: studentIds.some(studentId => loadCheckins(studentId).length) });
+      }, { hasCache: studentIds.some(studentId => loadCheckins(studentId).length), shouldApply: isCurrentRequest });
       const workoutResult = await loadRemoteModule("trainer-completed-workouts", user.id, async () => {
         const { data, error } = await monolithSupabase
           .from("completed_workouts")
@@ -11691,12 +11763,13 @@ if (location.hash.toLowerCase() === "#leads") history.replaceState(null, "", `${
         const rows = (data || []).map(remoteCompletedWorkoutFromRow);
         if (isCurrentRequest()) studentIds.forEach(studentId => cacheRemoteCompletedWorkouts(rows.filter(entry => entry.studentId === studentId), studentId));
         return rows;
-      }, { hasCache: studentIds.some(studentId => loadCompletedWorkoutEntries().some(entry => entry.studentId === studentId)) });
+      }, { hasCache: studentIds.some(studentId => loadCompletedWorkoutEntries().some(entry => entry.studentId === studentId)), shouldApply: isCurrentRequest });
       const dietResult = await loadRemoteModule("trainer-diets", user.id, async () => {
         const { data, error } = await monolithSupabase
           .from("diet_plans")
           .select("*")
           .in("student_id", studentIds)
+          .eq("trainer_id", user.id)
           .eq("month_key", currentMonthKey());
         if (error) throw error;
         const rows = (data || []).map(remoteDietPlanFromRow);
@@ -11706,7 +11779,7 @@ if (location.hash.toLowerCase() === "#leads") history.replaceState(null, "", `${
           studentIds.filter(studentId => !studentsWithDiet.has(studentId)).forEach(studentId => removeCachedDietPlan(studentId, currentMonthKey()));
         }
         return rows;
-      }, { hasCache: studentIds.some(studentId => Boolean(storedDietPlanForStudent(studentId, currentMonthKey()))) });
+      }, { hasCache: studentIds.some(studentId => Boolean(storedDietPlanForStudent(studentId, currentMonthKey()))), shouldApply: isCurrentRequest });
       const assignedWorkoutResult = await loadRemoteModule("trainer-assigned-workouts", user.id, async () => {
         const { data, error } = await monolithSupabase
           .from("workout_templates")
@@ -11718,7 +11791,7 @@ if (location.hash.toLowerCase() === "#leads") history.replaceState(null, "", `${
         const rows = (data || []).map(remoteAssignedWorkoutEntryFromRow);
         if (isCurrentRequest()) cacheRemoteAssignedWorkoutsForTrainer(rows, user.id, studentIds);
         return rows;
-      }, { hasCache: studentIds.some(studentId => assignedWorkoutEntriesForStudent(studentId).length > 0) });
+      }, { hasCache: studentIds.some(studentId => assignedWorkoutEntriesForStudent(studentId).length > 0), shouldApply: isCurrentRequest });
       if (!isCurrentRequest()) return { status: "stale" };
       const results = [checkinResult, workoutResult, dietResult, assignedWorkoutResult];
       const failures = results.filter(result => !result.ok);
@@ -12444,18 +12517,18 @@ if (location.hash.toLowerCase() === "#leads") history.replaceState(null, "", `${
         <article class="meal-card supplement-card" data-supplement-id="${escapeHTML(item.id)}" data-saved="${item.saved ? "true" : "false"}">
           <header><h4>${escapeHTML(t("Suplemento"))} ${index + 1}</h4><span>${escapeHTML(t(item.isSponsored ? "Produto parceiro" : "Manual"))}</span></header>
           <div class="macro-grid">
-            <div class="field"><label>${escapeHTML(t("Nome"))}</label><input class="supplement-name" maxlength="120" value="${escapeHTML(item.name)}" required /></div>
-            <div class="field"><label>${escapeHTML(t("Marca"))}</label><input class="supplement-brand" maxlength="120" value="${escapeHTML(item.brand)}" /></div>
-            <div class="field"><label>${escapeHTML(t("Dose"))}</label><input class="supplement-dosage" maxlength="120" value="${escapeHTML(item.dosage)}" required /></div>
-            <div class="field"><label>${escapeHTML(t("Frequência"))}</label><input class="supplement-frequency" maxlength="120" value="${escapeHTML(item.frequency)}" required /></div>
-            <div class="field"><label>${escapeHTML(t("Momento de uso"))}</label><input class="supplement-timing" maxlength="120" value="${escapeHTML(item.timing)}" /></div>
-            <div class="field"><label>${escapeHTML(t("URL do produto"))}</label><input class="supplement-url" type="url" maxlength="500" value="${escapeHTML(item.productUrl)}" placeholder="https://..." /></div>
-            <div class="field"><label>${escapeHTML(t("Data de início"))}</label><input class="supplement-start" type="date" value="${escapeHTML(item.startDate)}" /></div>
-            <div class="field"><label>${escapeHTML(t("Data de término"))}</label><input class="supplement-end" type="date" value="${escapeHTML(item.endDate)}" /></div>
+            <div class="field"><label>${escapeHTML(t("Nome"))}</label><input class="supplement-name" aria-label="${escapeHTML(`${t("Nome")} ${index + 1}`)}" maxlength="120" value="${escapeHTML(item.name)}" required /></div>
+            <div class="field"><label>${escapeHTML(t("Marca"))}</label><input class="supplement-brand" aria-label="${escapeHTML(`${t("Marca")} ${index + 1}`)}" maxlength="120" value="${escapeHTML(item.brand)}" /></div>
+            <div class="field"><label>${escapeHTML(t("Dose"))}</label><input class="supplement-dosage" aria-label="${escapeHTML(`${t("Dose")} ${index + 1}`)}" maxlength="120" value="${escapeHTML(item.dosage)}" required /></div>
+            <div class="field"><label>${escapeHTML(t("Frequência"))}</label><input class="supplement-frequency" aria-label="${escapeHTML(`${t("Frequência")} ${index + 1}`)}" maxlength="120" value="${escapeHTML(item.frequency)}" required /></div>
+            <div class="field"><label>${escapeHTML(t("Momento de uso"))}</label><input class="supplement-timing" aria-label="${escapeHTML(`${t("Momento de uso")} ${index + 1}`)}" maxlength="120" value="${escapeHTML(item.timing)}" /></div>
+            <div class="field"><label>${escapeHTML(t("URL do produto"))}</label><input class="supplement-url" aria-label="${escapeHTML(`${t("URL do produto")} ${index + 1}`)}" type="url" maxlength="500" value="${escapeHTML(item.productUrl)}" placeholder="https://..." /></div>
+            <div class="field"><label>${escapeHTML(t("Data de início"))}</label><input class="supplement-start" aria-label="${escapeHTML(`${t("Data de início")} ${index + 1}`)}" type="date" value="${escapeHTML(item.startDate)}" /></div>
+            <div class="field"><label>${escapeHTML(t("Data de término"))}</label><input class="supplement-end" aria-label="${escapeHTML(`${t("Data de término")} ${index + 1}`)}" type="date" value="${escapeHTML(item.endDate)}" /></div>
           </div>
-          <div class="field"><label>${escapeHTML(t("Instruções"))}</label><textarea class="supplement-instructions" maxlength="600" rows="3">${escapeHTML(item.instructions)}</textarea></div>
+          <div class="field"><label>${escapeHTML(t("Instruções"))}</label><textarea class="supplement-instructions" aria-label="${escapeHTML(`${t("Instruções")} ${index + 1}`)}" maxlength="600" rows="3">${escapeHTML(item.instructions)}</textarea></div>
           <label class="voice-setting-toggle"><input class="supplement-sponsored" type="checkbox" ${item.isSponsored ? "checked" : ""} />${escapeHTML(t("Produto parceiro"))}</label>
-          <div class="field"><label>${escapeHTML(t("Parceiro"))}</label><input class="supplement-partner" maxlength="120" value="${escapeHTML(item.partnerName)}" /></div>
+          <div class="field"><label>${escapeHTML(t("Parceiro"))}</label><input class="supplement-partner" aria-label="${escapeHTML(`${t("Parceiro")} ${index + 1}`)}" maxlength="120" value="${escapeHTML(item.partnerName)}" /></div>
           <div class="action-row">
             <button class="ghost move-supplement-up" type="button" aria-label="${escapeHTML(t("Mover suplemento para cima"))}">↑</button>
             <button class="ghost move-supplement-down" type="button" aria-label="${escapeHTML(t("Mover suplemento para baixo"))}">↓</button>
@@ -13238,8 +13311,8 @@ if (location.hash.toLowerCase() === "#leads") history.replaceState(null, "", `${
         showToast(message);
         return false;
       }
-      setDietCsvStatus("Modelo de dieta CSV baixado.");
-      showToast("Modelo de dieta CSV baixado.");
+      setDietCsvStatus("Download do modelo de dieta CSV iniciado.");
+      showToast("Download do modelo de dieta CSV iniciado.");
       return true;
     }
 
@@ -13247,6 +13320,11 @@ if (location.hash.toLowerCase() === "#leads") history.replaceState(null, "", `${
       const user = currentAccount();
       if (!user || user.role !== "personal") return;
       const plans = Object.values(loadDietPlans()).filter(plan => canAccessStudentData(plan.studentId));
+      if (!plans.length) {
+        setDietCsvStatus("Nenhuma dieta disponível para exportar.");
+        showToast("Nenhuma dieta disponível para exportar.");
+        return false;
+      }
       const rows = [dietCsvHeader()];
       plans.forEach(plan => {
         const student = loadAccounts().find(account => account.id === plan.studentId);
@@ -13277,8 +13355,8 @@ if (location.hash.toLowerCase() === "#leads") history.replaceState(null, "", `${
         showToast(message);
         return false;
       }
-      setDietCsvStatus("Dietas exportadas em CSV.");
-      showToast("Dietas exportadas em CSV.");
+      setDietCsvStatus("Download da exportação de dietas CSV iniciado.");
+      showToast("Download da exportação de dietas CSV iniciado.");
       return true;
     }
 
@@ -17280,6 +17358,54 @@ if (location.hash.toLowerCase() === "#leads") history.replaceState(null, "", `${
       ,"Não consegui confirmar o convite no Supabase. Aplique a etapa 34 do banco e tente novamente.": "No pude confirmar la invitación en Supabase. Aplica el paso 34 de la base de datos e inténtalo de nuevo."
     });
 
+    Object.assign(translations.en, {
+      "4 semanas": "4 weeks",
+      "8 semanas": "8 weeks",
+      "12 semanas": "12 weeks",
+      "Duração do programa": "Program duration",
+      "Salvar programa para {name}": "Save program for {name}",
+      "Marcar rascunho": "Move to draft",
+      "Rascunho": "Draft",
+      "Arquivada": "Archived",
+      "Orientações separadas das refeições": "Guidance kept separate from meals",
+      "Confirme nome, dose e frequência. O Monolith não gera doses automaticamente.": "Confirm the name, dose, and frequency. Monolith does not generate doses automatically.",
+      "Carregando alertas...": "Loading alerts...",
+      "Não foi possível carregar os alertas agora.": "The alerts could not be loaded right now.",
+      "Parte dos alertas está usando dados em cache. Ausências não confirmadas foram omitidas.": "Some alerts are using cached data. Unconfirmed absences were omitted.",
+      "Carregando última dieta...": "Loading latest diet...",
+      "Não foi possível carregar a última dieta agora.": "The latest diet could not be loaded right now.",
+      "Sem conexão para confirmar a última dieta.": "Offline. The latest diet could not be confirmed.",
+      "Download do modelo de dieta CSV iniciado.": "Diet CSV template download started.",
+      "Download da exportação de dietas CSV iniciado.": "Diet CSV export download started.",
+      "Nenhuma dieta disponível para exportar.": "No diets are available to export.",
+      "Download do modelo de treino CSV iniciado.": "Workout CSV template download started.",
+      "Download da exportação de treinos CSV iniciado.": "Workout CSV export download started."
+    });
+
+    Object.assign(translations.es, {
+      "4 semanas": "4 semanas",
+      "8 semanas": "8 semanas",
+      "12 semanas": "12 semanas",
+      "Duração do programa": "Duración del programa",
+      "Salvar programa para {name}": "Guardar programa para {name}",
+      "Marcar rascunho": "Marcar como borrador",
+      "Rascunho": "Borrador",
+      "Arquivada": "Archivada",
+      "Orientações separadas das refeições": "Indicaciones separadas de las comidas",
+      "Confirme nome, dose e frequência. O Monolith não gera doses automaticamente.": "Confirma el nombre, la dosis y la frecuencia. Monolith no genera dosis automáticamente.",
+      "Carregando alertas...": "Cargando alertas...",
+      "Não foi possível carregar os alertas agora.": "No se pudieron cargar las alertas en este momento.",
+      "Parte dos alertas está usando dados em cache. Ausências não confirmadas foram omitidas.": "Algunas alertas usan datos en caché. Se omitieron las ausencias no confirmadas.",
+      "Carregando última dieta...": "Cargando la última dieta...",
+      "Não foi possível carregar a última dieta agora.": "No se pudo cargar la última dieta en este momento.",
+      "Sem conexão para confirmar a última dieta.": "Sin conexión. No se pudo confirmar la última dieta.",
+      "Download do modelo de dieta CSV iniciado.": "Se inició la descarga de la plantilla CSV de dieta.",
+      "Download da exportação de dietas CSV iniciado.": "Se inició la descarga de la exportación CSV de dietas.",
+      "Nenhuma dieta disponível para exportar.": "No hay dietas disponibles para exportar.",
+      "Download do modelo de treino CSV iniciado.": "Se inició la descarga de la plantilla CSV de entrenamiento.",
+      "Download da exportação de treinos CSV iniciado.": "Se inició la descarga de la exportación CSV de entrenamientos."
+    });
+
     function t(key, language = localStorage.getItem("monolith.language") || "pt") {
       return language === "pt" ? key : translations[language]?.[key] || key;
     }
@@ -18375,6 +18501,21 @@ if (location.hash.toLowerCase() === "#leads") history.replaceState(null, "", `${
       return `<div class="metric"><span>${escapeHTML(t(label))}</span><b>${escapeHTML(String(value))}</b></div>`;
     }
 
+    function latestPublishedDietSummaryLabel(report, targetStudentId, user = currentAccount()) {
+      const latestDietState = isRealSupabaseAccount(user)
+        ? getRemoteDataState("published-diets", targetStudentId).status
+        : "loaded";
+      if (["idle", "loading"].includes(latestDietState)) return t("Carregando última dieta...");
+      if (latestDietState === "error") return t("Não foi possível carregar a última dieta agora.");
+      if (report?.latestPublishedDietPlan) {
+        const label = `${localizedMonthLabel(report.latestPublishedDietPlan.month)} · ${t(dietPlanStatusLabel(report.latestPublishedDietPlan))}`;
+        return latestDietState === "offline-cache" ? `${label} · ${t("Dados em cache")}` : label;
+      }
+      return latestDietState === "offline-cache"
+        ? t("Sem conexão para confirmar a última dieta.")
+        : t("Nenhuma dieta publicada");
+    }
+
     function renderStatsSectionSummaries() {
       const overview = document.getElementById("studentStatsOverviewMetrics");
       const details = document.getElementById("studentStatsOverviewDetails");
@@ -18403,7 +18544,7 @@ if (location.hash.toLowerCase() === "#leads") history.replaceState(null, "", `${
           statsMetricHTML("Check-ins no período", report.checkins.length),
           statsMetricHTML("Adesão média do aluno", average === "--" ? "--" : `${average}%`),
           statsMetricHTML("Último peso", latestWeight ? formatWeight(latestWeight) : "--"),
-          statsMetricHTML("Dieta ativa do mês", report.activeDietPlan ? dietPlanStatusLabel(report.activeDietPlan) : "--")
+          statsMetricHTML("Dieta ativa do mês", report.activeDietPlan ? t(dietPlanStatusLabel(report.activeDietPlan)) : "--")
         ].join("");
       }
       const latestWorkout = report.metrics.lastWorkout;
@@ -18411,9 +18552,7 @@ if (location.hash.toLowerCase() === "#leads") history.replaceState(null, "", `${
       const latestWorkoutLabel = latestWorkout
         ? `${latestWorkout.workoutName || t("Treino")} · ${workoutDate ? (String(workoutDate).includes("T") ? localDateTimeLabel(workoutDate) : localDateLabel(String(workoutDate).slice(0, 10))) : ""}`
         : t("Nenhum treino concluído");
-      const latestDietLabel = report.activeDietPlan
-        ? `${localizedMonthLabel(report.activeDietPlan.month)} · ${dietPlanStatusLabel(report.activeDietPlan)}`
-        : t("Nenhuma dieta publicada");
+      const latestDietLabel = latestPublishedDietSummaryLabel(report, targetStudentId, user);
       const orderedWeights = [...report.weights].sort((a, b) => String(a.key || a.date || "").localeCompare(String(b.key || b.date || "")));
       let weightTrend = t("Sem dados suficientes");
       if (orderedWeights.length >= 2) {
@@ -19080,6 +19219,7 @@ if (location.hash.toLowerCase() === "#leads") history.replaceState(null, "", `${
       const bodyMeasures = reportUsableBodyMeasures(loadBodyMeasures(reportStudentId)).filter(entry => dateKeyInPeriod(entry.date, period));
       const weights = physicalWeightSeries(checkins, bodyMeasures);
       const activeDietPlan = metrics.activeDietPlan;
+      const latestPublishedDietPlan = latestPublishedDietForStudent(reportStudentId);
       const progressPhotos = loadProgressPhotos(reportStudentId);
       const anamnesis = storedAnamnesis(reportStudentId);
       const trainerId = user?.role === "personal" ? user.id : (reportStudent?.trainerId || user?.trainerId || "");
@@ -19087,7 +19227,7 @@ if (location.hash.toLowerCase() === "#leads") history.replaceState(null, "", `${
       const trainerPublicProfile = trainerId ? trainerProfilesCache()[trainerId] || trainerMapProfilesCache().find(item => item.trainer_id === trainerId) || null : null;
       const language = options.language || reportLanguage();
       const locale = { pt: "pt-BR", en: "en-US", es: "es-419" }[language] || "pt-BR";
-      return { student: reportStudent, trainer, trainerPublicProfile, period, metrics, checkins, completedWorkouts, stats, evolution, missedDays, weights, bodyMeasures, progressPhotos, activeDietPlan, anamnesis, generatedAt: normalizeLocalizedTimePunctuation(new Date().toLocaleString(locale, { timeZone: MONOLITH_TIME_ZONE }), language) };
+      return { student: reportStudent, trainer, trainerPublicProfile, period, metrics, checkins, completedWorkouts, stats, evolution, missedDays, weights, bodyMeasures, progressPhotos, activeDietPlan, latestPublishedDietPlan, anamnesis, generatedAt: normalizeLocalizedTimePunctuation(new Date().toLocaleString(locale, { timeZone: MONOLITH_TIME_ZONE }), language) };
     }
 
     function monthlyReportHTMLLegacy() {
@@ -19509,6 +19649,7 @@ ${photoSections}
         const isText = requestedType.toLowerCase().startsWith("text/");
         const mimeType = isText && !/charset=/i.test(requestedType) ? `${requestedType};charset=utf-8` : requestedType;
         const serializedContent = String(content);
+        if (!serializedContent.trim()) return false;
         const utf8Content = isText && !serializedContent.startsWith("\uFEFF") ? `\uFEFF${serializedContent}` : serializedContent;
         const blob = new Blob([utf8Content], { type: mimeType });
         if (!blob.size) return false;
@@ -19531,7 +19672,7 @@ ${photoSections}
         link.addEventListener("click", event => { clickEvent = event; }, { once: true });
         document.body.appendChild(link);
         link.click();
-        if (!clickEvent || clickEvent.defaultPrevented) throw new Error("download-click-not-delivered");
+        if (!clickEvent || clickEvent.defaultPrevented) throw new Error("download-request-canceled");
         window.setTimeout(() => link.remove(), 0);
         window.setTimeout(() => releaseDownloadUrl(objectUrl), DOWNLOAD_URL_RELEASE_DELAY_MS);
         return true;
@@ -19599,8 +19740,8 @@ ${photoSections}
         if (prepared.status === "stale") return false;
         const html = prepared.html;
         if (!html) throw new Error("report-html-empty");
-        const downloaded = downloadTextFile(reportFilename(target, language), "text/html;charset=utf-8", html);
-        if (!downloaded) throw new Error("report-download-not-delivered");
+        const downloadRequested = downloadTextFile(reportFilename(target, language), "text/html;charset=utf-8", html);
+        if (!downloadRequested) throw new Error("report-download-request-failed");
         showToast("Download do relatório HTML iniciado.");
         return true;
       } catch (error) {
@@ -22485,7 +22626,7 @@ ${photoSections}
       return `${studentId}:${type}:${sourceDate}`;
     }
 
-    async function hydratePulseReviews() {
+    async function hydratePulseReviews({ shouldCache = () => true } = {}) {
       const user = currentAccount();
       if (!monolithSupabase || !isRealSupabaseAccount(user) || user?.role !== "personal") return loadPulseReviews();
       const { data, error } = await monolithSupabase.from("monolith_pulse_reviews").select("*").eq("trainer_id", user.id).order("reviewed_at", { ascending: false }).limit(500);
@@ -22502,7 +22643,7 @@ ${photoSections}
         reviewedAt: row.reviewed_at,
         source: "supabase"
       }));
-      savePulseReviews(entries);
+      if (shouldCache()) savePulseReviews(entries);
       return entries;
     }
 
@@ -22519,10 +22660,30 @@ ${photoSections}
       return Math.ceil((end - dateFromKey(todayKey())) / 86400000);
     }
 
+    function pulseSourceConfirmed(module, trainerId = currentAccount()?.id || "") {
+      if (!isRealSupabaseAccount(currentAccount())) return true;
+      return ["loaded", "empty"].includes(getRemoteDataState(module, trainerId).status);
+    }
+
+    function pulseAllSourcesConfirmed(trainerId = currentAccount()?.id || "") {
+      return [
+        "trainer-checkins",
+        "trainer-diets",
+        "trainer-assigned-workouts",
+        "pulse-completed-workouts",
+        "pulse-programs"
+      ].every(module => pulseSourceConfirmed(module, trainerId));
+    }
+
     function buildPulseItems() {
       const user = currentAccount();
       if (user?.role !== "personal") return [];
       const items = [];
+      const checkinsConfirmed = pulseSourceConfirmed("trainer-checkins", user.id);
+      const workoutsConfirmed = pulseSourceConfirmed("pulse-completed-workouts", user.id);
+      const assignmentsConfirmed = pulseSourceConfirmed("trainer-assigned-workouts", user.id);
+      const dietsConfirmed = pulseSourceConfirmed("trainer-diets", user.id);
+      const programsConfirmed = pulseSourceConfirmed("pulse-programs", user.id);
       studentsForPersonal(user.id).forEach(student => {
         const metrics = studentMetrics(student);
         const latestDate = metrics.lastCheckin?.date || student.trainerLinkedAt?.slice?.(0, 10) || todayKey();
@@ -22530,22 +22691,22 @@ ${photoSections}
           student, type, priority, title, description, actionScreen, sourceDate,
           fingerprint: pulseFingerprint(student.id, type, sourceDate)
         });
-        if (!metrics.lastCheckin || metrics.daysSinceCheckin >= 3) {
+        if (checkinsConfirmed && (!metrics.lastCheckin || metrics.daysSinceCheckin >= 3)) {
           add("checkin", metrics.daysSinceCheckin === null || metrics.daysSinceCheckin >= 7 ? "high" : "medium", "Check-in pendente", metrics.daysSinceCheckin === null ? "O aluno ainda não enviou o primeiro check-in." : localizedMessage("{days} dias desde o último check-in.", { days: metrics.daysSinceCheckin }), "checkin");
         }
-        if (!metrics.lastWorkout && metrics.assignedWorkouts.length) {
+        if (workoutsConfirmed && assignmentsConfirmed && !metrics.lastWorkout && metrics.assignedWorkouts.length) {
           add("workout", "medium", "Treino ainda não iniciado", "Existe prescrição, mas ainda não há treino concluído.", "workouts");
-        } else if (metrics.lastWorkout) {
+        } else if (workoutsConfirmed && metrics.lastWorkout) {
           const workoutDate = dateFromKey(entryDateKey(metrics.lastWorkout.completedAt || metrics.lastWorkout.date));
           const elapsed = workoutDate ? Math.floor((dateFromKey(todayKey()) - workoutDate) / 86400000) : 0;
           if (elapsed >= 7) add("workout", "high", "Aluno sem treinar", localizedMessage("{days} dias desde o último treino registrado.", { days: elapsed }), "workouts", entryDateKey(metrics.lastWorkout.completedAt || metrics.lastWorkout.date));
         }
-        if (!metrics.assignedWorkouts.length) add("workout", "high", "Aluno novo sem treino", "Crie ou atribua o primeiro treino.", "workouts", student.trainerLinkedAt?.slice?.(0, 10) || todayKey());
-        if (!metrics.activeDietPlan) add("diet", "medium", "Dieta ausente", "Nenhuma dieta ativa para o ciclo atual.", "nutrition", currentMonthKey());
-        if (!metrics.activeProgram) add("program", "medium", "Sem programa ativo", "Organize os treinos em um programa de 4, 8 ou 12 semanas.", "programs", currentMonthKey());
+        if (assignmentsConfirmed && !metrics.assignedWorkouts.length) add("workout", "high", "Aluno novo sem treino", "Crie ou atribua o primeiro treino.", "workouts", student.trainerLinkedAt?.slice?.(0, 10) || todayKey());
+        if (dietsConfirmed && !metrics.activeDietPlan) add("diet", "medium", "Dieta ausente", "Nenhuma dieta ativa para o ciclo atual.", "nutrition", currentMonthKey());
+        if (programsConfirmed && !metrics.activeProgram) add("program", "medium", "Sem programa ativo", "Organize os treinos em um programa de 4, 8 ou 12 semanas.", "programs", currentMonthKey());
         const remaining = pulseProgramDaysRemaining(metrics.activeProgram);
-        if (remaining !== null && remaining >= 0 && remaining <= 7) add("program", "medium", "Programa terminando", localizedMessage("{days} dias restantes no programa atual.", { days: remaining }), "programs", metrics.activeProgram.startDate);
-        if (metrics.checkins.length >= 6) {
+        if (programsConfirmed && remaining !== null && remaining >= 0 && remaining <= 7) add("program", "medium", "Programa terminando", localizedMessage("{days} dias restantes no programa atual.", { days: remaining }), "programs", metrics.activeProgram.startDate);
+        if (checkinsConfirmed && metrics.checkins.length >= 6) {
           const recent = metrics.checkins.slice(0, 3);
           const older = metrics.checkins.slice(3, 6);
           const recentAverage = recent.reduce((sum, item) => sum + Number(item.score || 0), 0) / recent.length;
@@ -22557,7 +22718,7 @@ ${photoSections}
       feedback.filter(item => item.trainerId === user.id && item.status === "pending").forEach(item => {
         const student = reportStudentFromId(item.studentId);
         if (!student || !isLinkedStudentForPersonal(student.id, user)) return;
-        items.push({ student, type: "feedback", priority: item.flags?.includes("discomfort") ? "high" : "medium", title: item.flags?.includes("discomfort") ? "Feedback com desconforto" : "Feedback aguardando resposta", description: item.comment || "O aluno enviou um novo feedback.", actionScreen: "timeline", sourceDate: entryDateKey(item.createdAt), fingerprint: pulseFingerprint(student.id, "feedback", item.id) });
+        items.push({ student, type: "feedback", priority: item.flags?.includes("discomfort") ? "high" : "medium", title: item.flags?.includes("discomfort") ? "Feedback com desconforto" : "Feedback aguardando resposta", description: item.comment || "O aluno enviou um novo feedback.", descriptionIsUserContent: Boolean(item.comment), actionScreen: "timeline", sourceDate: entryDateKey(item.createdAt), fingerprint: pulseFingerprint(student.id, "feedback", item.id) });
       });
       const priorityRank = { high: 0, medium: 1, low: 2 };
       return items.sort((a, b) => (priorityRank[a.priority] - priorityRank[b.priority]) || a.student.name.localeCompare(b.student.name));
@@ -22576,44 +22737,131 @@ ${photoSections}
       renderPulse();
     }
 
+    function renderPulseLoadingState() {
+      ["pulseHighCount", "pulseMediumCount", "pulseCurrentCount", "pulseReviewedCount"].forEach(id => {
+        const target = document.getElementById(id);
+        if (target) target.textContent = "—";
+      });
+      const list = document.getElementById("pulseList");
+      if (list) {
+        list._pulseItems = [];
+        list.innerHTML = remoteStateHTML("loading", { loadingLabel: "Carregando alertas..." });
+      }
+    }
+
+    function renderPulseErrorState() {
+      ["pulseHighCount", "pulseMediumCount", "pulseCurrentCount"].forEach(id => {
+        const target = document.getElementById(id);
+        if (target) target.textContent = "—";
+      });
+      const reviewed = document.getElementById("pulseReviewedCount");
+      if (reviewed) reviewed.textContent = String(loadPulseReviews().filter(item => entryDateKey(item.reviewedAt) === todayKey()).length);
+      const list = document.getElementById("pulseList");
+      if (list) {
+        list._pulseItems = [];
+        list.innerHTML = remoteStateHTML("error", { errorLabel: "Não foi possível carregar os alertas agora.", retryScreen: "alerts" });
+      }
+    }
+
     function renderPulse() {
       if (currentAccount()?.role !== "personal") return;
+      const user = currentAccount();
+      const pulseState = getRemoteDataState("pulse", user.id).status;
+      if (isRealSupabaseAccount(user) && ["idle", "loading"].includes(pulseState)) {
+        renderPulseLoadingState();
+        return;
+      }
+      if (isRealSupabaseAccount(user) && pulseState === "error") {
+        renderPulseErrorState();
+        return;
+      }
       const allItems = buildPulseItems();
       const reviews = pulseReviewSet();
       const priority = document.getElementById("pulsePriorityFilter")?.value || "";
       const type = document.getElementById("pulseTypeFilter")?.value || "";
       const showReviewed = Boolean(document.getElementById("pulseShowReviewed")?.checked);
       const filtered = allItems.filter(item => (!priority || item.priority === priority) && (!type || item.type === type) && (showReviewed || !reviews.has(item.fingerprint)));
-      const students = studentsForPersonal(currentAccount()?.id);
+      const students = studentsForPersonal(user.id);
       const currentCount = students.filter(student => !studentMetrics(student).attentionReason).length;
       const reviewedToday = loadPulseReviews().filter(item => entryDateKey(item.reviewedAt) === todayKey()).length;
       document.getElementById("pulseHighCount").textContent = String(allItems.filter(item => item.priority === "high" && !reviews.has(item.fingerprint)).length);
       document.getElementById("pulseMediumCount").textContent = String(allItems.filter(item => item.priority === "medium" && !reviews.has(item.fingerprint)).length);
-      document.getElementById("pulseCurrentCount").textContent = String(currentCount);
+      document.getElementById("pulseCurrentCount").textContent = !students.length || pulseAllSourcesConfirmed(user.id) ? String(currentCount) : "—";
       document.getElementById("pulseReviewedCount").textContent = String(reviewedToday);
       const list = document.getElementById("pulseList");
-      list.innerHTML = filtered.map((item, index) => `
+      const cacheNotice = pulseState === "offline-cache"
+        ? remoteStateHTML("offline-cache", { cacheLabel: "Parte dos alertas está usando dados em cache. Ausências não confirmadas foram omitidas." })
+        : "";
+      list.innerHTML = cacheNotice + (filtered.map((item, index) => `
         <article class="pulse-item" data-priority="${item.priority}">
           <span class="pulse-priority" aria-hidden="true"></span>
-          <div class="pulse-copy"><strong>${escapeHTML(item.student.name)} · ${escapeHTML(t(item.title))}</strong><span>${escapeHTML(t(item.description))}</span></div>
+          <div class="pulse-copy"><strong>${escapeHTML(item.student.name)} · ${escapeHTML(t(item.title))}</strong><span>${escapeHTML(item.descriptionIsUserContent ? item.description : t(item.description))}</span></div>
           <div class="pulse-actions">
             <button class="ghost pulse-open" type="button" data-pulse-index="${index}">${escapeHTML(t("Abrir aluno"))}</button>
             <button class="ghost pulse-review" type="button" data-pulse-index="${index}" ${reviews.has(item.fingerprint) ? "disabled" : ""}>${escapeHTML(t(reviews.has(item.fingerprint) ? "Revisado" : "Marcar como revisado"))}</button>
           </div>
-        </article>`).join("") || dashboardEmptyHTML("Nenhuma prioridade com estes filtros.");
+        </article>`).join("") || dashboardEmptyHTML("Nenhuma prioridade com estes filtros."));
       list._pulseItems = filtered;
     }
 
+    let pulseHydrationSequence = 0;
+
+    async function hydratePulseCoreData(user, isCurrentRequest) {
+      const dashboard = await hydrateRemoteTrainerDashboard(user);
+      if (!isCurrentRequest() || dashboard.status === "stale") return { status: "stale", results: [] };
+      if (dashboard.status === "error") return { status: "error", results: dashboard.results || [] };
+      const students = studentsForPersonal(user.id);
+      if (!students.length) return { status: dashboard.status === "offline-cache" ? "offline-cache" : "empty", results: dashboard.results || [] };
+      const studentIds = students.map(student => student.id);
+      const [workouts, programs] = await Promise.all([
+        loadRemoteModule("pulse-completed-workouts", user.id, async () => {
+          const groups = await Promise.all(studentIds.map(studentId => loadRemoteCompletedWorkouts(studentId, { shouldCache: isCurrentRequest })));
+          return groups.flat();
+        }, { hasCache: studentIds.some(studentId => completedWorkoutEntriesForStudent(studentId).length > 0), shouldApply: isCurrentRequest }),
+        loadRemoteModule("pulse-programs", user.id, async () => {
+          const groups = await Promise.all(studentIds.map(studentId => loadRemoteWorkoutPrograms(studentId, { shouldCache: isCurrentRequest })));
+          return groups.flat();
+        }, { hasCache: studentIds.some(studentId => loadWorkoutPrograms(studentId).length > 0), shouldApply: isCurrentRequest })
+      ]);
+      if (!isCurrentRequest()) return { status: "stale", results: [workouts, programs] };
+      const results = [...(dashboard.results || []), workouts, programs];
+      const status = dashboard.status === "error" || results.some(result => result?.status === "error")
+        ? "error"
+        : dashboard.status === "offline-cache" || results.some(result => result?.status === "offline-cache")
+          ? "offline-cache"
+          : "loaded";
+      return { status, results };
+    }
+
     window.monolithRenderPulse = async function () {
-      await hydratePulseReviews();
-      renderPulse();
+      const user = currentAccount();
+      if (user?.role !== "personal") return { status: "unavailable" };
+      const requestId = ++pulseHydrationSequence;
+      const trainerId = user.id;
+      const language = reportLanguage();
+      const isCurrentRequest = () => requestId === pulseHydrationSequence && currentAccount()?.id === trainerId && reportLanguage() === language;
+      setRemoteDataState("pulse", trainerId, "loading");
+      if (isRealSupabaseAccount(user)) {
+        ["trainer-checkins", "trainer-diets", "trainer-assigned-workouts", "pulse-completed-workouts", "pulse-programs"].forEach(module => {
+          setRemoteDataState(module, trainerId, "loading");
+        });
+      }
+      renderPulseLoadingState();
+      const reviewsPromise = hydratePulseReviews({ shouldCache: isCurrentRequest });
+      const core = isRealSupabaseAccount(user)
+        ? await hydratePulseCoreData(user, isCurrentRequest)
+        : { status: "local", results: [] };
+      await reviewsPromise;
+      if (!isCurrentRequest() || core.status === "stale") return { status: "stale" };
+      setRemoteDataState("pulse", trainerId, core.status, { count: studentsForPersonal(trainerId).length });
+      if (core.status === "error") renderPulseErrorState();
+      else renderPulse();
+      return core;
     };
 
     document.getElementById("refreshPulseButton")?.addEventListener("click", async event => {
       await runPendingOperation("pulse-refresh", event.currentTarget, async () => {
-        await hydrateRemoteTrainerDashboard(currentAccount());
-        await hydratePulseReviews();
-        renderPulse();
+        await window.monolithRenderPulse();
       }, { loadingText: "Atualizando..." });
     });
     ["pulsePriorityFilter", "pulseTypeFilter", "pulseShowReviewed"].forEach(id => document.getElementById(id)?.addEventListener("change", renderPulse));
@@ -27235,8 +27483,8 @@ ${photoSections}
           toastV2(message);
           return false;
         }
-        setWorkoutCsvStatusV2("Modelo CSV baixado.");
-        toastV2(textV2("Modelo CSV baixado."));
+        setWorkoutCsvStatusV2("Download do modelo de treino CSV iniciado.");
+        toastV2(textV2("Download do modelo de treino CSV iniciado."));
         return true;
       }
 
@@ -27273,6 +27521,11 @@ ${photoSections}
             });
           });
         });
+        if (rows.length === 1) {
+          setWorkoutCsvStatusV2("Nenhum treino para exportar.");
+          toastV2(textV2("Nenhum treino para exportar."));
+          return false;
+        }
         const content = rows.map(row => row.map(csvEscapeV2).join(";")).join("\n");
         if (!downloadTextFile(`monolith-treinos-${todayKey()}.csv`, "text/csv;charset=utf-8", content)) {
           const message = textV2("Não consegui iniciar o download dos treinos.");
@@ -27280,8 +27533,8 @@ ${photoSections}
           toastV2(message);
           return false;
         }
-        setWorkoutCsvStatusV2("Treinos exportados em CSV.");
-        toastV2(textV2("Treinos exportados em CSV."));
+        setWorkoutCsvStatusV2("Download da exportação de treinos CSV iniciado.");
+        toastV2(textV2("Download da exportação de treinos CSV iniciado."));
         return true;
       }
 

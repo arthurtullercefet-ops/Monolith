@@ -200,7 +200,7 @@ function verifyProtectedRegressions() {
 }
 
 async function main() {
-  assert.match(html, /monolith-v108-voice-capture/);
+  assert.match(html, /monolith-v109-pending-fixes/);
   await verifyDownloadDispatch();
   await verifyBrowserDownloadEvent();
   verifyDietSemantics();

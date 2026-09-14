@@ -15,7 +15,7 @@ async function launchBrowser() {
 }
 
 async function loginDemo(page, role = "personal") {
-  await page.goto(`${baseUrl}${baseUrl.includes("?") ? "&" : "?"}qa=monolith-v108`, { waitUntil: "domcontentloaded" });
+  await page.goto(`${baseUrl}${baseUrl.includes("?") ? "&" : "?"}qa=monolith-v109`, { waitUntil: "domcontentloaded" });
   await page.locator("#loginEmail").fill(`${role}@monolith.app`);
   await page.locator("#loginPassword").fill("123456");
   await page.locator("#loginButton").click();
@@ -119,7 +119,7 @@ async function main() {
       };
     });
 
-    assert.equal(core.build, "monolith-v108-voice-capture");
+    assert.equal(core.build, "monolith-v109-pending-fixes");
     assert.equal(core.accountAfter, core.accountBefore, "language switching changed the authenticated account");
     assert.equal(core.selectedAfter, core.selectedBefore, "language switching changed the selected student");
     assert.deepEqual(core.audits.pt, []);

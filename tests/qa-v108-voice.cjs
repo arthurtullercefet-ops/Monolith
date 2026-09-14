@@ -187,7 +187,7 @@ function installVoiceMocks() {
 }
 
 async function loginStudent(page, origin) {
-  await page.goto(`${origin}/index.html?qa=monolith-v108`, { waitUntil: "domcontentloaded" });
+  await page.goto(`${origin}/index.html?qa=monolith-v109`, { waitUntil: "domcontentloaded" });
   await page.waitForFunction(() => !document.body.classList.contains("auth-resolving"));
   await page.locator("#loginEmail").fill("aluno@monolith.app");
   await page.locator("#loginPassword").fill("123456");
@@ -223,7 +223,7 @@ async function openIsolatedVoiceSession(page) {
 async function main() {
   const voiceStates = sourceBetween("const voiceStateCopyV2", "function setVoiceVisualStateV2");
   const commandFlow = sourceBetween("async function processVoiceCommandV2", "function html(value");
-  assert.match(html, /monolith-v108-voice-capture/);
+  assert.match(html, /monolith-v109-pending-fixes/);
   assert.doesNotMatch(voiceStates, /unsupported:\s*\["Navegador incompatível"/);
   assert.match(commandFlow, /command\.confidence < 0\.78 && voiceNeedsConfidenceConfirmationV2/);
   assert.match(commandFlow, /voiceIsRecentDuplicateV2\(command\)/);
