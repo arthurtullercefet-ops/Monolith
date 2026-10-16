@@ -92,6 +92,7 @@ window.MONOLITH_VERSION_LABEL = "Monolith v109 · 13/09/2026";
       function isSessionOnlyKey(key) {
         const safeKey = String(key);
         return sessionOnlyKeys.has(safeKey)
+          || safeKey.startsWith("monolith.pendingManagedStudent:")
           || safeKey.startsWith("monolith.pendingTrainerInvite:")
           || safeKey.startsWith("monolith.pendingInfluencerCode:")
           || safeKey.startsWith("monolith.selectedStudentScope:")
@@ -5421,7 +5422,7 @@ window.MONOLITH_VERSION_LABEL = "Monolith v109 · 13/09/2026";
           demoEmails[account.email] = true;
         });
         writeAccounts(demos.concat(current.filter(function (account) {
-          return !demoIds[account.id] && !demoEmails[account.email];
+          return account.accessMode === "managed" || (!demoIds[account.id] && !demoEmails[account.email]);
         })));
       }
 
@@ -6588,7 +6589,23 @@ window.MONOLITH_VERSION_LABEL = "Monolith v109 · 13/09/2026";
             <h2>Alunos</h2>
             <div class="date">Painel inicial do personal trainer</div>
           </div>
-          <button class="action" id="inviteStudentButton" type="button">Criar convite</button>
+          <div class="action-row"><button class="action" id="managedStudentButton" type="button">Aluno gerenciado — sem acesso ao aplicativo</button><button class="ghost" id="inviteStudentButton" type="button">Criar convite</button></div>
+        </div>
+        <div class="panel" id="managedStudentPanel" hidden>
+          <h3>Aluno gerenciado — sem acesso ao aplicativo</h3>
+          <p>Cadastre este aluno para organizar treinos, dietas, pagamentos e compromissos. Ele não receberá login nem terá acesso ao sistema.</p>
+          <form id="managedStudentForm">
+            <div class="form-grid">
+              <div class="field"><label for="managedStudentName">Nome</label><input id="managedStudentName" required maxlength="200" autocomplete="off" /></div>
+              <div class="field"><label for="managedStudentEmail">E-mail de contato (opcional)</label><input id="managedStudentEmail" type="email" maxlength="254" autocomplete="off" /></div>
+              <div class="field"><label for="managedStudentPhone">Telefone (opcional)</label><input id="managedStudentPhone" type="tel" maxlength="40" autocomplete="off" /></div>
+              <div class="field"><label for="managedStudentBirthDate">Data de nascimento (opcional)</label><input id="managedStudentBirthDate" type="date" min="1900-01-01" /></div>
+              <div class="field"><label for="managedStudentSpace">Space do Personal</label><select id="managedStudentSpace"><option value="">Sem Space</option></select></div>
+            </div>
+            <div class="field"><label for="managedStudentNotes">Observações do Personal</label><textarea id="managedStudentNotes" maxlength="10000" rows="3"></textarea></div>
+            <div class="action-row"><button class="action" id="saveManagedStudent" type="submit">Salvar aluno gerenciado</button><button class="ghost" id="cancelManagedStudent" type="button">Cancelar</button></div>
+            <p id="managedStudentNotice" role="status" aria-live="polite"></p>
+          </form>
         </div>
         <div class="panel" id="studentPlanLimitPanel" data-role-only="personal" hidden>
           <div class="section-title"><h3>Limite de alunos</h3><span id="studentPlanLimitBadge">0/15</span></div>
@@ -7362,7 +7379,7 @@ if (location.hash.toLowerCase() === "#leads") history.replaceState(null, "", `${
         const demoEmails = new Set(demoList.map(account => account.email));
         saveFallbackAccounts([
           ...demoList,
-          ...current.filter(account => !demoIds.has(account.id) && !demoEmails.has(account.email))
+          ...current.filter(account => account.accessMode === "managed" || (!demoIds.has(account.id) && !demoEmails.has(account.email)))
         ]);
       }
 
@@ -7373,7 +7390,7 @@ if (location.hash.toLowerCase() === "#leads") history.replaceState(null, "", `${
         if (id === "backup") id = "stats";
         if (id === "measures") id = "stats";
         const sessionId = localStorage.getItem("monolith.sessionUserId");
-        const sessionAccount = fallbackAccounts().find(account => account.id === sessionId) || null;
+        const sessionAccount = fallbackAccounts().find(account => account.id === sessionId && account.accessMode !== "managed") || null;
         const user = demoAccounts[document.getElementById("loginEmail")?.value?.trim()?.toLowerCase()] || sessionAccount;
         const roleOnly = document.querySelector(`.nav-btn[data-screen="${id}"]`)?.dataset.roleOnly;
         if (roleOnly && roleOnly !== user?.role) id = "home";
@@ -7586,7 +7603,7 @@ if (location.hash.toLowerCase() === "#leads") history.replaceState(null, "", `${
     let pendingLanguagePreference = "";
 
     function cacheRemoteAccount(profile, authUser = null) {
-      if (!profile?.id) return null;
+      if (!profile?.id || profile.access_mode === "managed") return null;
       const cachedAccount = loadAccounts().find(item => item.id === profile.id) || null;
       const savedVoiceSettings = (() => {
         try { return JSON.parse(localStorage.getItem("monolith.voiceSettings") || "{}"); } catch { return {}; }
@@ -7741,7 +7758,7 @@ if (location.hash.toLowerCase() === "#leads") history.replaceState(null, "", `${
       ];
       const merged = [
         ...seeded.map(demo => ({ ...demo, passwordHash: demoPassword })),
-        ...accounts.filter(account => !seeded.some(demo => demo.id === account.id || demo.email === account.email))
+        ...accounts.filter(account => account.accessMode === "managed" || !seeded.some(demo => demo.id === account.id || demo.email === account.email))
       ];
       saveAccounts(merged);
       return merged;
@@ -7749,7 +7766,7 @@ if (location.hash.toLowerCase() === "#leads") history.replaceState(null, "", `${
 
     function currentAccount() {
       const id = localStorage.getItem("monolith.sessionUserId");
-      return loadAccounts().find(account => account.id === id) || null;
+      return loadAccounts().find(account => account.id === id && account.accessMode !== "managed") || null;
     }
 
     const pendingOperations = new Map();
@@ -8881,7 +8898,7 @@ if (location.hash.toLowerCase() === "#leads") history.replaceState(null, "", `${
       if (!ids.length) return [];
       const { data: profiles, error: profileError } = await monolithSupabase
         .from("profiles")
-        .select("id,email,full_name,role,space_enabled")
+        .select("id,email,full_name,role,space_enabled,access_mode,managed_by,managed_space_id,contact_phone,birth_date,trainer_notes")
         .in("id", ids);
       if (profileError) throw profileError;
       const linkByStudent = new Map((links || []).map(link => [link.student_id, link]));
@@ -8894,6 +8911,12 @@ if (location.hash.toLowerCase() === "#leads") history.replaceState(null, "", `${
           email: profile.email || "",
           plan: planFromDbRole(profile.role),
           source: "supabase",
+          accessMode: profile.access_mode,
+          managedBy: profile.managed_by,
+          managedSpaceId: profile.managed_space_id,
+          contactPhone: profile.contact_phone || "",
+          birthDate: profile.birth_date || "",
+          trainerNotes: profile.trainer_notes || "",
           trainerId,
           trainerLinkedAt: linkByStudent.get(profile.id)?.created_at || ""
         }))
@@ -8953,7 +8976,7 @@ if (location.hash.toLowerCase() === "#leads") history.replaceState(null, "", `${
       const accounts = loadAccounts();
       const students = accounts
         .filter(account => account.role === "student" && (account.trainerId === user.id || user.students?.includes(account.id)))
-        .filter(account => !isRealSupabaseAccount(user) || !account.email?.endsWith("@monolith.app"))
+        .filter(account => !isRealSupabaseAccount(user) || account.accessMode === "managed" || !account.email?.endsWith("@monolith.app"))
         .sort((a, b) => a.name.localeCompare(b.name, undefined, { sensitivity: "base" }));
       renderClientCards(students);
     }
@@ -9026,6 +9049,10 @@ if (location.hash.toLowerCase() === "#leads") history.replaceState(null, "", `${
       return `<span class="student-menu-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${paths[name] || paths.report}</svg></span>`;
     }
 
+    function managedStudentBadgeHTML(student) {
+      return student?.accessMode === "managed" ? `<span class="pill">${escapeHTML(t("Sem acesso ao aplicativo"))}</span>` : "";
+    }
+
     function studentActionsMenuHTML(student) {
       const accessibleName = localizedMessage("Ações de {name}", { name: student.name });
       return `
@@ -9037,7 +9064,7 @@ if (location.hash.toLowerCase() === "#leads") history.replaceState(null, "", `${
             <button class="ghost" role="menuitem" type="button" data-student-screen="workouts" data-student-id="${escapeHTML(student.id)}" aria-label="${escapeHTML(`${t("Treinos")}: ${student.name}`)}">${clientActionIcon("workouts")}${escapeHTML(t("Treinos"))}</button>
             <button class="ghost" role="menuitem" type="button" data-student-screen="nutrition" data-student-id="${escapeHTML(student.id)}" aria-label="${escapeHTML(`${t("Dieta")}: ${student.name}`)}">${clientActionIcon("nutrition")}${escapeHTML(t("Dieta"))}</button>
             <button class="ghost" role="menuitem" type="button" data-student-screen="checkin" data-student-id="${escapeHTML(student.id)}" aria-label="${escapeHTML(`${t("Registrar check-in")}: ${student.name}`)}">${clientActionIcon("checkin")}${escapeHTML(t("Registrar check-in"))}</button>
-            <button class="ghost" role="menuitem" type="button" data-student-screen="anamnesis" data-student-id="${escapeHTML(student.id)}" aria-label="${escapeHTML(`${t("Ver anamnese")}: ${student.name}`)}">${clientActionIcon("anamnesis")}${escapeHTML(t("Ver anamnese"))}</button>
+            ${student.accessMode === "managed" ? "" : `<button class="ghost" role="menuitem" type="button" data-student-screen="anamnesis" data-student-id="${escapeHTML(student.id)}" aria-label="${escapeHTML(`${t("Ver anamnese")}: ${student.name}`)}">${clientActionIcon("anamnesis")}${escapeHTML(t("Ver anamnese"))}</button>`}
             <button class="ghost open-student-report" role="menuitem" type="button" data-student-id="${escapeHTML(student.id)}" aria-label="${escapeHTML(localizedMessage("Abrir relatório de {name}", { name: student.name }))}">${clientActionIcon("report")}${escapeHTML(t("Relatório HTML"))}</button>
           </div>
         </div>
@@ -9071,7 +9098,7 @@ if (location.hash.toLowerCase() === "#leads") history.replaceState(null, "", `${
       body.innerHTML = rows.slice(offset, offset + clientTablePageSize).map(({ student, summary }) => {
         return `
           <tr>
-            <td><div class="client-name-cell"><div class="student-avatar">${escapeHTML(studentInitials(student.name).toUpperCase())}</div><div><strong data-no-i18n="true">${escapeHTML(student.name)}</strong><div class="date" data-no-i18n="true">${escapeHTML(student.email)}</div></div></div></td>
+            <td><div class="client-name-cell"><div class="student-avatar">${escapeHTML(studentInitials(student.name).toUpperCase())}</div><div><strong data-no-i18n="true">${escapeHTML(student.name)}</strong><div class="date" data-no-i18n="true">${escapeHTML(student.email)}</div>${managedStudentBadgeHTML(student)}</div></div></td>
             <td>${escapeHTML(summary.objective)}</td>
             <td>${escapeHTML(summary.score)}</td>
             <td>${escapeHTML(summary.activity.label)}</td>
@@ -9100,8 +9127,8 @@ if (location.hash.toLowerCase() === "#leads") history.replaceState(null, "", `${
           <article class="coach-card">
             <div>
               <div class="kicker">${escapeHTML(t(student.plan || "Aluno"))}</div>
-              <h3 data-no-i18n="true">${escapeHTML(student.name)}</h3>
-              <p>${checkins.length ? `${checkins.length} ${escapeHTML(t("check-ins em 30 dias"))}` : escapeHTML(t("Aguardando primeiro check-in"))}</p>
+              <h3 data-no-i18n="true">${escapeHTML(student.name)}</h3>${managedStudentBadgeHTML(student)}
+              <p>${student.accessMode === "managed" ? escapeHTML(t("Acompanhamento pelo Personal")) : checkins.length ? `${checkins.length} ${escapeHTML(t("check-ins em 30 dias"))}` : escapeHTML(t("Aguardando primeiro check-in"))}</p>
               <div class="pill-row">
                 <span class="pill">Score ${escapeHTML(score)}</span>
                 <span class="pill">${escapeHTML(t("Último check-in"))}: ${escapeHTML(lastCheckin)}</span>
@@ -10392,7 +10419,7 @@ if (location.hash.toLowerCase() === "#leads") history.replaceState(null, "", `${
 
       await ensureDemoAccounts();
       const passwordHash = await hashPassword(password);
-      const account = loadAccounts().find(item => item.email.toLowerCase() === normalizedEmail && item.passwordHash === passwordHash);
+      const account = loadAccounts().find(item => item.accessMode !== "managed" && (item.email || "").toLowerCase() === normalizedEmail && item.passwordHash === passwordHash);
       if (!account) {
         clearAuthSessionOnly();
         showLoginNotice("E-mail ou senha incorretos. Se não tiver certeza da senha, use Recuperar senha.");
@@ -10682,7 +10709,7 @@ if (location.hash.toLowerCase() === "#leads") history.replaceState(null, "", `${
       const personal = accounts.find(item => item.id === personalId);
       return accounts
         .filter(account => account.role === "student" && (account.trainerId === personalId || personal?.students?.includes(account.id)))
-        .filter(account => !isRealSupabaseAccount(personal) || !account.email?.endsWith("@monolith.app"))
+        .filter(account => !isRealSupabaseAccount(personal) || account.accessMode === "managed" || !account.email?.endsWith("@monolith.app"))
         .sort((a, b) => a.name.localeCompare(b.name, undefined, { sensitivity: "base" }));
     }
 
@@ -17406,6 +17433,51 @@ if (location.hash.toLowerCase() === "#leads") history.replaceState(null, "", `${
       "Download da exportação de treinos CSV iniciado.": "Se inició la descarga de la exportación CSV de entrenamientos."
     });
 
+    Object.assign(translations.en, {
+  "Aluno gerenciado — sem acesso ao aplicativo": "Managed student — no app access",
+  "Cadastre este aluno para organizar treinos, dietas, pagamentos e compromissos. Ele não receberá login nem terá acesso ao sistema.": "Register this student to organize workouts, diets, payments and appointments. They will not receive a login or have access to the system.",
+  "E-mail de contato (opcional)": "Contact email (optional)",
+  "Telefone (opcional)": "Phone (optional)",
+  "Data de nascimento (opcional)": "Date of birth (optional)",
+  "Space do Personal": "Trainer's Space",
+  "Sem Space": "No Space",
+  "Observações do Personal": "Trainer notes",
+  "Salvar aluno gerenciado": "Save managed student",
+  "Sem acesso ao aplicativo": "No app access",
+  "Acompanhamento pelo Personal": "Managed by the trainer",
+  "Editar contato e observações": "Edit contact and notes",
+  "Agendado pelo Personal": "Scheduled by the trainer",
+  "Não foi possível carregar o Space. Reabra o cadastro para tentar novamente.": "Could not load the Space. Reopen the form to try again.",
+  "Entre com sua conta de Personal para salvar um aluno gerenciado.": "Sign in with your trainer account to save a managed student.",
+  "Salvando aluno gerenciado...": "Saving managed student...",
+  "Aluno gerenciado salvo. Sem login ou convite.": "Managed student saved. No login or invitation.",
+  "Cadastro salvo. Não foi possível atualizar a lista. Tente novamente para recarregar.": "Student saved. Could not refresh the list. Try again to reload.",
+  "Limite de alunos ativos atingido.": "Active student limit reached.",
+  "Não foi possível confirmar o cadastro. Tente novamente com os mesmos dados.": "Could not confirm the student was saved. Retry with the same details."
+});
+    Object.assign(translations.es, {
+  "Aluno gerenciado — sem acesso ao aplicativo": "Alumno gestionado — sin acceso a la aplicación",
+  "Cadastre este aluno para organizar treinos, dietas, pagamentos e compromissos. Ele não receberá login nem terá acesso ao sistema.": "Registra a este alumno para organizar entrenamientos, dietas, pagos y citas. No recibirá credenciales ni tendrá acceso al sistema.",
+  "E-mail de contato (opcional)": "Correo de contacto (opcional)",
+  "Telefone (opcional)": "Teléfono (opcional)",
+  "Data de nascimento (opcional)": "Fecha de nacimiento (opcional)",
+  "Space do Personal": "Space del entrenador",
+  "Sem Space": "Sin Space",
+  "Observações do Personal": "Notas del entrenador",
+  "Salvar aluno gerenciado": "Guardar alumno gestionado",
+  "Sem acesso ao aplicativo": "Sin acceso a la aplicación",
+  "Acompanhamento pelo Personal": "Seguimiento por el entrenador",
+  "Editar contato e observações": "Editar contacto y notas",
+  "Agendado pelo Personal": "Programado por el entrenador",
+  "Não foi possível carregar o Space. Reabra o cadastro para tentar novamente.": "No se pudo cargar el Space. Vuelve a abrir el formulario para intentarlo de nuevo.",
+  "Entre com sua conta de Personal para salvar um aluno gerenciado.": "Inicia sesión con tu cuenta de entrenador para guardar un alumno gestionado.",
+  "Salvando aluno gerenciado...": "Guardando alumno gestionado...",
+  "Aluno gerenciado salvo. Sem login ou convite.": "Alumno gestionado guardado. Sin acceso ni invitación.",
+  "Cadastro salvo. Não foi possível atualizar a lista. Tente novamente para recarregar.": "Alumno guardado. No se pudo actualizar la lista. Inténtalo de nuevo para recargar.",
+  "Limite de alunos ativos atingido.": "Se alcanzó el límite de alumnos activos.",
+  "Não foi possível confirmar o cadastro. Tente novamente com os mesmos dados.": "No se pudo confirmar el registro. Inténtalo de nuevo con los mismos datos."
+});
+
     function t(key, language = localStorage.getItem("monolith.language") || "pt") {
       return language === "pt" ? key : translations[language]?.[key] || key;
     }
@@ -19826,7 +19898,12 @@ ${photoSections}
         { label: "Medidas", screen: "stats", section: "measures", key: "measures" },
         { label: "Fotos", screen: "stats", section: "photos", key: "photos" }
       ];
-      const buttons = tabs.map(tab => `
+      if (loadAccounts().find(a => a.id === studentId)?.accessMode === "managed") tabs.push(
+        { label: "Pagamentos", screen: "payments", key: "payments" },
+        { label: "Agenda", screen: "schedule", key: "schedule" },
+        { label: "Linha do tempo", screen: "timeline", key: "timeline" }
+      );
+      const buttons = tabs.filter(tab => tab.key !== "anamnesis" || loadAccounts().find(a => a.id === studentId)?.accessMode !== "managed").map(tab => `
         <button class="student-file-tab ${activeKey === tab.key ? "primary" : ""}" type="button" data-student-screen="${tab.screen}" data-student-section="${tab.section || ""}" data-student-id="${escapeHTML(studentId)}">${escapeHTML(t(tab.label))}</button>
       `).join("");
       return `
@@ -19870,12 +19947,14 @@ ${photoSections}
           <div>
             <h3 data-no-i18n="true">${escapeHTML(student.name)}</h3>
             <p><span data-no-i18n="true">${escapeHTML(student.email)}</span> · ${escapeHTML(t(student.plan || "Aluno"))}</p>
+            ${managedStudentBadgeHTML(student)}
+            ${student.accessMode === "managed" ? `<p data-no-i18n="true">${escapeHTML(student.contactPhone || "")}${student.birthDate ? ` · ${escapeHTML(localDateLabel(student.birthDate))}` : ""}</p><p data-no-i18n="true" style="white-space:pre-wrap">${escapeHTML(student.trainerNotes || "")}</p><button type="button" class="ghost" data-edit-managed-student="${escapeHTML(student.id)}">${escapeHTML(t("Editar contato e observações"))}</button>` : ""}
           </div>
         </div>
         <div class="pill-row">
           ${statusPills}
         </div>
-        <div class="action-row"><button class="ghost" type="button" data-student-screen="anamnesis" data-student-id="${escapeHTML(student.id)}">${clientActionIcon("anamnesis")}${escapeHTML(t("Ver anamnese"))}</button></div>
+        <div class="action-row">${student.accessMode === "managed" ? "" : `<button class="ghost" type="button" data-student-screen="anamnesis" data-student-id="${escapeHTML(student.id)}">${clientActionIcon("anamnesis")}${escapeHTML(t("Ver anamnese"))}</button>`}</div>
         ${studentFileTabsHTML(student.id)}
       `;
     }
@@ -21013,6 +21092,148 @@ ${photoSections}
         }
       }, { loadingText: "Salvando perfil..." });
     });
+    let managedStudentPending = false;
+    let managedStudentSubmission = null;
+    function pendingManagedStudentKey(user) { return `monolith.pendingManagedStudent:${user.id}`; }
+
+    async function openManagedStudentForm(student = null) {
+      const user = currentAccount();
+      if (user?.role !== "personal" || managedStudentPending) return;
+      const form = document.getElementById("managedStudentForm");
+      form.querySelectorAll("input,textarea,select").forEach(control => control.disabled = false);
+      form.reset();
+      delete form.dataset.requestId;
+      form.dataset.studentId = student?.id || "";
+      managedStudentSubmission = null;
+      document.getElementById("managedStudentPanel").hidden = false;
+      document.getElementById("managedStudentNotice").textContent = "";
+      document.getElementById("managedStudentName").value = student?.name || "";
+      document.getElementById("managedStudentEmail").value = student?.email || "";
+      document.getElementById("managedStudentPhone").value = student?.contactPhone || "";
+      document.getElementById("managedStudentBirthDate").value = student?.birthDate || "";
+      document.getElementById("managedStudentBirthDate").max = todayKey();
+      document.getElementById("managedStudentNotes").value = student?.trainerNotes || "";
+      if (!student) {
+        try {
+          managedStudentSubmission = JSON.parse(localStorage.getItem(pendingManagedStudentKey(user)) || "null");
+        } catch { managedStudentSubmission = null; }
+        if (managedStudentSubmission) {
+          const payload = managedStudentSubmission;
+          form.dataset.requestId = payload.p_request_id;
+          document.getElementById("managedStudentName").value = payload.p_full_name;
+          document.getElementById("managedStudentEmail").value = payload.p_email || "";
+          document.getElementById("managedStudentPhone").value = payload.p_phone || "";
+          document.getElementById("managedStudentBirthDate").value = payload.p_birth_date || "";
+          document.getElementById("managedStudentNotes").value = payload.p_notes || "";
+          document.getElementById("managedStudentNotice").textContent = t("Não foi possível confirmar o cadastro. Tente novamente com os mesmos dados.");
+        }
+      }
+      const space = document.getElementById("managedStudentSpace");
+      space.innerHTML = `<option value="">${escapeHTML(t("Sem Space"))}</option>`;
+      space.disabled = Boolean(student);
+      if (student?.managedSpaceId) {
+        space.add(new Option(t("Space do Personal"), student.managedSpaceId));
+        space.value = student.managedSpaceId;
+      } else if (!student && monolithSupabase && isRealSupabaseAccount(user)) {
+        space.disabled = true;
+        try {
+          const { data, error } = await monolithSupabase.from("monolith_spaces").select("id,name").eq("owner_id", user.id).eq("active", true);
+          if (error) throw error;
+          if (currentAccount()?.id !== user.id) return;
+          (data || []).forEach(row => space.add(new Option(row.name || t("Space do Personal"), row.id)));
+          const activeId = window.monolithActiveSpace?.id;
+          if ((data || []).some(row => row.id === activeId)) space.value = activeId;
+          else if (data?.length === 1) space.value = data[0].id;
+          if (managedStudentSubmission?.p_space_id) space.value = managedStudentSubmission.p_space_id;
+          space.disabled = false;
+        } catch (error) {
+          document.getElementById("managedStudentNotice").textContent = t("Não foi possível carregar o Space. Reabra o cadastro para tentar novamente.");
+          return;
+        }
+      }
+      if (managedStudentSubmission) form.querySelectorAll("input,textarea").forEach(control => control.readOnly = true);
+      else form.querySelectorAll("input,textarea").forEach(control => control.readOnly = false);
+      document.getElementById("managedStudentName").focus();
+    }
+
+    document.getElementById("managedStudentButton")?.addEventListener("click", () => openManagedStudentForm());
+    document.getElementById("cancelManagedStudent")?.addEventListener("click", () => {
+      if (!managedStudentPending) document.getElementById("managedStudentPanel").hidden = true;
+    });
+    document.addEventListener("click", event => {
+      const button = event.target.closest?.("[data-edit-managed-student]");
+      if (!button) return;
+      const student = studentsForPersonal(currentAccount()?.id).find(a => a.id === button.dataset.editManagedStudent && a.accessMode === "managed");
+      if (student) { showScreen("clients"); openManagedStudentForm(student); }
+    });
+    document.getElementById("managedStudentForm")?.addEventListener("submit", async event => {
+      event.preventDefault();
+      const form = event.currentTarget;
+      const user = currentAccount();
+      const notice = document.getElementById("managedStudentNotice");
+      if (managedStudentPending || user?.role !== "personal" || !form.reportValidity()) return;
+      if (!monolithSupabase || !isRealSupabaseAccount(user)) { notice.textContent = t("Entre com sua conta de Personal para salvar um aluno gerenciado."); return; }
+      if (!form.dataset.studentId && !managedStudentSubmission && document.getElementById("managedStudentSpace").disabled) return;
+      // Keep the exact request and payload after an ambiguous network failure.
+      // Retrying cannot silently create a second student or change the saved payload.
+      managedStudentSubmission ||= {
+        p_full_name: document.getElementById("managedStudentName").value.trim(),
+        p_email: document.getElementById("managedStudentEmail").value.trim() || null,
+        p_phone: document.getElementById("managedStudentPhone").value.trim() || null,
+        p_birth_date: document.getElementById("managedStudentBirthDate").value || null,
+        p_notes: document.getElementById("managedStudentNotes").value.trim() || null,
+        p_space_id: document.getElementById("managedStudentSpace").value || null,
+        p_request_id: form.dataset.requestId ||= createClientRequestId("managed-student")
+      };
+      const payload = managedStudentSubmission;
+      if (!form.dataset.studentId) localStorage.setItem(pendingManagedStudentKey(user), JSON.stringify(payload));
+      managedStudentPending = true;
+      const controls = [...form.querySelectorAll("input,textarea,select,button")];
+      const disabled = controls.map(control => control.disabled);
+      controls.forEach(control => control.disabled = true);
+      notice.textContent = t("Salvando aluno gerenciado...");
+      let persisted = false;
+      try {
+        if (form.dataset.studentId) {
+          const { data, error } = await monolithSupabase.from("profiles").update({ full_name: payload.p_full_name, email: payload.p_email, contact_phone: payload.p_phone, birth_date: payload.p_birth_date, trainer_notes: payload.p_notes }).eq("id", form.dataset.studentId).eq("managed_by", user.id).eq("access_mode", "managed").select("id").single();
+          if (error || !data?.id) throw error || new Error("No persisted student");
+        } else {
+          const { data, error } = await monolithSupabase.rpc("create_managed_student", payload);
+          if (error || !data) throw error || new Error("No persisted student");
+        }
+        persisted = true;
+        if (currentAccount()?.id !== user.id) return;
+        const students = await loadRemoteLinkedStudents(user.id);
+        if (currentAccount()?.id !== user.id) return;
+        saveRemoteStudentsToCache(students, user.id);
+        setRemoteDataState("students", user.id, students.length ? "loaded" : "empty", { count: students.length });
+        renderClientCards(students);
+        form.reset();
+        delete form.dataset.requestId;
+        if (!form.dataset.studentId) localStorage.removeItem(pendingManagedStudentKey(user));
+        managedStudentSubmission = null;
+        form.querySelectorAll("input,textarea").forEach(control => control.readOnly = false);
+        notice.textContent = t("Aluno gerenciado salvo. Sem login ou convite.");
+        if (form.dataset.studentId) {
+          document.getElementById("managedStudentPanel").hidden = true;
+          delete form.dataset.studentId;
+          showToast("Aluno gerenciado salvo. Sem login ou convite.");
+        }
+      } catch (error) {
+        logAppError("managed-students", "save", error, { trainerId: user.id });
+        notice.textContent = t(persisted ? "Cadastro salvo. Não foi possível atualizar a lista. Tente novamente para recarregar." : String(error?.message || "").includes("MONOLITH_STUDENT_LIMIT") ? "Limite de alunos ativos atingido." : "Não foi possível confirmar o cadastro. Tente novamente com os mesmos dados.");
+        if (String(error?.message || "").includes("MONOLITH_STUDENT_LIMIT") || error?.code === "22023") {
+          managedStudentSubmission = null;
+          if (!form.dataset.studentId) localStorage.removeItem(pendingManagedStudentKey(user));
+          form.querySelectorAll("input,textarea").forEach(control => control.readOnly = false);
+        }
+        if (managedStudentSubmission) form.querySelectorAll("input,textarea").forEach(control => control.readOnly = true);
+      } finally {
+        managedStudentPending = false;
+        controls.forEach((control, index) => control.disabled = disabled[index]);
+      }
+    });
+
     document.getElementById("inviteStudentButton")?.addEventListener("click", async event => {
       const personal = currentAccount();
       if (!personal || personal.role !== "personal") return;
@@ -22691,10 +22912,10 @@ ${photoSections}
           student, type, priority, title, description, actionScreen, sourceDate,
           fingerprint: pulseFingerprint(student.id, type, sourceDate)
         });
-        if (checkinsConfirmed && (!metrics.lastCheckin || metrics.daysSinceCheckin >= 3)) {
+        if (student.accessMode !== "managed" && checkinsConfirmed && (!metrics.lastCheckin || metrics.daysSinceCheckin >= 3)) {
           add("checkin", metrics.daysSinceCheckin === null || metrics.daysSinceCheckin >= 7 ? "high" : "medium", "Check-in pendente", metrics.daysSinceCheckin === null ? "O aluno ainda não enviou o primeiro check-in." : localizedMessage("{days} dias desde o último check-in.", { days: metrics.daysSinceCheckin }), "checkin");
         }
-        if (workoutsConfirmed && assignmentsConfirmed && !metrics.lastWorkout && metrics.assignedWorkouts.length) {
+        if (student.accessMode !== "managed" && workoutsConfirmed && assignmentsConfirmed && !metrics.lastWorkout && metrics.assignedWorkouts.length) {
           add("workout", "medium", "Treino ainda não iniciado", "Existe prescrição, mas ainda não há treino concluído.", "workouts");
         } else if (workoutsConfirmed && metrics.lastWorkout) {
           const workoutDate = dateFromKey(entryDateKey(metrics.lastWorkout.completedAt || metrics.lastWorkout.date));
@@ -29053,12 +29274,17 @@ ${photoSections}
           .sort((a, b) => new Date(a.startsAt) - new Date(b.startsAt));
       }
 
+      function appointmentStatusText(appointment) {
+        const managed = loadAccounts().some(a => a.id === appointment.studentId && a.accessMode === "managed");
+        return t(managed && appointment.status === "awaiting_confirmation" ? "Agendado pelo Personal" : appointmentStatusLabels[appointment.status] || appointment.status);
+      }
+
       function appointmentEventHTML(appointment) {
         return `<button class="schedule-event ${escapeHTML(appointment.status)}" type="button" data-appointment-id="${escapeHTML(appointment.id)}">
           <span class="schedule-event-time">${escapeHTML(appointmentTimeLabel(appointment))}</span>
           <span class="schedule-event-title">${escapeHTML(t(appointmentTypeLabels[appointment.type] || "Outro"))}</span>
           <span class="schedule-event-title">${escapeHTML(appointmentStudentName(appointment))}</span>
-          <span class="schedule-event-status">${escapeHTML(t(appointmentStatusLabels[appointment.status] || appointment.status))}</span>
+          <span class="schedule-event-status">${escapeHTML(appointmentStatusText(appointment))}</span>
         </button>`;
       }
 
@@ -29109,7 +29335,7 @@ ${photoSections}
       }
 
       function compactAppointmentHTML(appointment) {
-        return `<div class="appointment-row"><div class="appointment-row-head"><div><strong>${escapeHTML(t(appointmentTypeLabels[appointment.type] || "Outro"))}</strong><div class="date">${escapeHTML(appointmentStudentName(appointment))}</div></div><span class="status-chip ${escapeHTML(appointment.status)}">${escapeHTML(t(appointmentStatusLabels[appointment.status]))}</span></div><div class="appointment-meta"><span>${escapeHTML(appointmentDateLabel(appointment, { short: true }))}</span><span>${escapeHTML(appointmentTimeLabel(appointment))}</span></div><div class="action-row"><button class="ghost" type="button" data-appointment-id="${escapeHTML(appointment.id)}">${escapeHTML(t("Detalhes"))}</button></div></div>`;
+        return `<div class="appointment-row"><div class="appointment-row-head"><div><strong>${escapeHTML(t(appointmentTypeLabels[appointment.type] || "Outro"))}</strong><div class="date">${escapeHTML(appointmentStudentName(appointment))}</div></div><span class="status-chip ${escapeHTML(appointment.status)}">${escapeHTML(appointmentStatusText(appointment))}</span></div><div class="appointment-meta"><span>${escapeHTML(appointmentDateLabel(appointment, { short: true }))}</span><span>${escapeHTML(appointmentTimeLabel(appointment))}</span></div><div class="action-row"><button class="ghost" type="button" data-appointment-id="${escapeHTML(appointment.id)}">${escapeHTML(t("Detalhes"))}</button></div></div>`;
       }
 
       function pendingScheduleItems() {
@@ -29120,7 +29346,7 @@ ${photoSections}
           scheduleState.requests.filter(request => request.status === "pending").forEach(request => items.push({ kind: "request", request, appointment: scheduleState.appointments.find(item => item.id === request.appointmentId) }));
           scheduleState.appointments.filter(item => new Date(item.endsAt).getTime() < now && ["awaiting_confirmation", "confirmed"].includes(item.status)).forEach(appointment => items.push({ kind: "close", appointment }));
         } else {
-          scheduleState.appointments.filter(item => item.status === "awaiting_confirmation" && new Date(item.endsAt).getTime() >= now).forEach(appointment => items.push({ kind: "confirm", appointment }));
+          scheduleState.appointments.filter(item => item.status === "awaiting_confirmation" && !loadAccounts().some(a => a.id === item.studentId && a.accessMode === "managed") && new Date(item.endsAt).getTime() >= now).forEach(appointment => items.push({ kind: "confirm", appointment }));
         }
         return items;
       }
@@ -29206,7 +29432,7 @@ ${photoSections}
           actions += `<button class="ghost danger" type="button" data-appointment-action="status" data-status="cancelled" data-appointment-id="${escapeHTML(appointment.id)}">${escapeHTML(t("Cancelar"))}</button>`;
           if (request) actions += `<button class="action" type="button" data-appointment-action="accept-request" data-request-id="${escapeHTML(request.id)}" data-appointment-id="${escapeHTML(appointment.id)}">${escapeHTML(t("Aceitar remarcação"))}</button><button class="ghost" type="button" data-appointment-action="reject-request" data-request-id="${escapeHTML(request.id)}">${escapeHTML(t("Recusar pedido"))}</button>`;
         }
-        return `<div class="appointment-row"><div class="appointment-row-head"><div><strong>${escapeHTML(t(appointmentTypeLabels[appointment.type] || "Outro"))}</strong><div class="date">${escapeHTML(appointmentStudentName(appointment))}</div></div><span class="status-chip ${escapeHTML(appointment.status)}">${escapeHTML(t(appointmentStatusLabels[appointment.status]))}</span></div><div class="appointment-details-grid"><div class="appointment-detail"><span>${escapeHTML(t("Data"))}</span>${escapeHTML(appointmentDateLabel(appointment))}</div><div class="appointment-detail"><span>${escapeHTML(t("Horário"))}</span>${escapeHTML(appointmentTimeLabel(appointment))}</div>${appointment.location ? `<div class="appointment-detail"><span>${escapeHTML(t("Localização"))}</span>${escapeHTML(appointment.location)}</div>` : ""}${appointment.meetingUrl ? `<div class="appointment-detail"><span>${escapeHTML(t("Link"))}</span><a href="${escapeHTML(appointment.meetingUrl)}" target="_blank" rel="noopener">${escapeHTML(appointment.meetingUrl)}</a></div>` : ""}${shared}${privateNote}</div>${requestBlock}<div class="action-row">${actions}</div></div>`;
+        return `<div class="appointment-row"><div class="appointment-row-head"><div><strong>${escapeHTML(t(appointmentTypeLabels[appointment.type] || "Outro"))}</strong><div class="date">${escapeHTML(appointmentStudentName(appointment))}</div></div><span class="status-chip ${escapeHTML(appointment.status)}">${escapeHTML(appointmentStatusText(appointment))}</span></div><div class="appointment-details-grid"><div class="appointment-detail"><span>${escapeHTML(t("Data"))}</span>${escapeHTML(appointmentDateLabel(appointment))}</div><div class="appointment-detail"><span>${escapeHTML(t("Horário"))}</span>${escapeHTML(appointmentTimeLabel(appointment))}</div>${appointment.location ? `<div class="appointment-detail"><span>${escapeHTML(t("Localização"))}</span>${escapeHTML(appointment.location)}</div>` : ""}${appointment.meetingUrl ? `<div class="appointment-detail"><span>${escapeHTML(t("Link"))}</span><a href="${escapeHTML(appointment.meetingUrl)}" target="_blank" rel="noopener">${escapeHTML(appointment.meetingUrl)}</a></div>` : ""}${shared}${privateNote}</div>${requestBlock}<div class="action-row">${actions}</div></div>`;
       }
 
       function openAppointmentDetails(id) {

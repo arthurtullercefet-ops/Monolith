@@ -82,7 +82,9 @@ Official docs:
    This adds manual student billing control for money received outside Monolith, including cycle-based charges anchored to the current link date, partial receipts, exemptions, reversals and audited corrections. It does not process money.
 34. Paste and run `monolith-production-step-34-diet-publication-measure-ownership-invites.sql`.
    This persists draft/published diet status without rewriting legacy diets, restricts student measure edits by record authorship and repairs invite token generation without `gen_random_bytes`.
-35. Confirm these tables exist:
+35. Paste and run `monolith-production-step-35-managed-students.sql` once.
+   This adds trainer-managed students without Auth accounts, reuses existing student IDs and active links, and enforces the shared 15-student limit. See `managed-students.md` for permissions, verification and non-destructive rollback.
+36. Confirm these tables exist:
    - `profiles`
    - `trainer_students`
    - `trainer_invites`
