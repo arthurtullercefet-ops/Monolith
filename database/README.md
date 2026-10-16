@@ -84,7 +84,9 @@ Official docs:
    This persists draft/published diet status without rewriting legacy diets, restricts student measure edits by record authorship and repairs invite token generation without `gen_random_bytes`.
 35. Paste and run `monolith-production-step-35-managed-students.sql` once.
    This adds trainer-managed students without Auth accounts, reuses existing student IDs and active links, and enforces the shared 15-student limit. See `managed-students.md` for permissions, verification and non-destructive rollback.
-36. Confirm these tables exist:
+36. Paste and run `monolith-production-step-36-diet-variants-rep-ranges.sql` once.
+   This adds independent named diets in the same month and prescribed repetition ranges without changing existing records or RLS. See `diet-variants-rep-ranges.md` for verification and compatibility details.
+37. Confirm these tables exist:
    - `profiles`
    - `trainer_students`
    - `trainer_invites`

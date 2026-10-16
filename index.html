@@ -160,6 +160,9 @@ window.MONOLITH_VERSION_LABEL = "Monolith v109 · 13/09/2026";
     })();
   </script>
   <style>
+    .diet-food-items { list-style: none; padding: 0; margin: 12px 0; display: grid; gap: 8px; }
+    .diet-food-items li { padding: 8px 12px; border-left: 2px solid var(--line); background: rgba(255,255,255,.025); white-space: pre-wrap; overflow-wrap: anywhere; }
+
     :root {
       --black: #0a0a0a;
       --panel: #181818;
@@ -5888,6 +5891,9 @@ window.MONOLITH_VERSION_LABEL = "Monolith v109 · 13/09/2026";
                   <label for="dietMonth">Mês</label>
                   <input id="dietMonth" type="month" />
                 </div>
+                <div class="field"><label for="dietVariant">Dieta</label><select id="dietVariant"><option value="default">Dieta padrão</option></select></div>
+                <div class="field"><label for="dietPlanName">Nome da dieta</label><input id="dietPlanName" maxlength="120" placeholder="Ex: High Day — dias de treino" data-i18n-placeholder="Ex: High Day — dias de treino" /></div>
+                <button class="ghost" id="newDietVariantButton" type="button">Nova dieta</button>
                 <div class="field">
                   <label for="dietMealCount">Refeições</label>
                   <select id="dietMealCount">
@@ -5933,6 +5939,7 @@ window.MONOLITH_VERSION_LABEL = "Monolith v109 · 13/09/2026";
                 <label for="studentDietMonth">Mês da dieta</label>
                 <input id="studentDietMonth" type="month" />
               </div>
+              <div class="field"><label for="studentDietVariant">Dieta</label><select id="studentDietVariant"></select></div>
             </div>
             <div class="locked-note" id="studentDietNote">Seu personal define esta dieta. Você pode visualizar, mas não redesenhar.</div>
             <div class="diet-view" id="studentDietView"></div>
@@ -10517,7 +10524,7 @@ if (location.hash.toLowerCase() === "#leads") history.replaceState(null, "", `${
         const visiblePlans = { ...plans };
         Object.entries(plans).forEach(([key, plan]) => {
           if (!plan?.studentId || !plan?.month) return;
-          const scopedKey = dietPlanKey(plan.studentId, plan.month, plan.trainerId);
+          const scopedKey = dietPlanKey(plan.studentId, plan.month, plan.trainerId, plan.variantKey);
           if (key !== scopedKey && plans[scopedKey]) delete visiblePlans[key];
         });
         return visiblePlans;
@@ -10604,7 +10611,7 @@ if (location.hash.toLowerCase() === "#leads") history.replaceState(null, "", `${
     function cacheDietPlan(plan) {
       if (!plan?.studentId || !plan?.month) return;
       const plans = loadDietPlans();
-      const key = dietPlanKey(plan.studentId, plan.month, plan.trainerId);
+      const key = dietPlanKey(plan.studentId, plan.month, plan.trainerId, plan.variantKey);
       plans[key] = {
         ...plan,
         id: key,
@@ -10652,17 +10659,18 @@ if (location.hash.toLowerCase() === "#leads") history.replaceState(null, "", `${
       return true;
     }
 
-    function dietPlanKey(studentId, month = currentMonthKey(), trainerId = "") {
+    function dietPlanKey(studentId, month = currentMonthKey(), trainerId = "", variantKey = "default") {
       const ownerId = dietPlanTrainerId(studentId, trainerId) || "unassigned";
-      return `${ownerId}:${studentId}:${month}`;
+      return `${ownerId}:${studentId}:${month}${variantKey && variantKey !== "default" ? `:${variantKey}` : ""}`;
     }
 
-    function storedDietPlanForStudent(studentId, month = currentMonthKey()) {
+    function storedDietPlanForStudent(studentId, month = currentMonthKey(), variantKey = "default") {
       if (!canAccessStudentData(studentId)) return null;
       const plans = loadDietPlans();
       const trainerId = dietPlanTrainerId(studentId);
-      const scopedKey = dietPlanKey(studentId, month, trainerId);
+      const scopedKey = dietPlanKey(studentId, month, trainerId, variantKey);
       if (plans[scopedKey]) return plans[scopedKey];
+      if (variantKey !== "default") return null;
       const legacyPlan = plans[legacyDietPlanKey(studentId, month)];
       const user = currentAccount();
       const legacyBelongsToScope = Boolean(legacyPlan && (
@@ -11122,7 +11130,9 @@ if (location.hash.toLowerCase() === "#leads") history.replaceState(null, "", `${
 
     function remoteDietPlanFromRow(row) {
       return {
-        id: dietPlanKey(row.student_id, row.month_key, row.trainer_id),
+        id: dietPlanKey(row.student_id, row.month_key, row.trainer_id, row.variant_key),
+        variantKey: row.variant_key || "default",
+        name: row.plan_name || "",
         remoteId: row.id,
         studentId: row.student_id,
         trainerId: row.trainer_id,
@@ -11513,7 +11523,63 @@ if (location.hash.toLowerCase() === "#leads") history.replaceState(null, "", `${
       return true;
     }
 
-    async function loadRemoteDietPlan(studentId, month = currentMonthKey()) {
+    function dietPlanTitle(plan) { return plan?.name || t("Dieta padrão"); }
+
+    function dietVariantsForStudent(studentId, month, publishedOnly = false) {
+      if (!canAccessStudentData(studentId)) return [];
+      const trainerId = dietPlanTrainerId(studentId);
+      const seen = new Set();
+      return Object.values(loadDietPlans()).filter(plan => {
+        if (plan.studentId !== studentId || plan.month !== month || (trainerId && plan.trainerId && plan.trainerId !== trainerId)) return false;
+        if (publishedOnly && !["published", "legacy_published"].includes(dietPlanStatus(plan))) return false;
+        const key = plan.variantKey || "default";
+        if (seen.has(key)) return false;
+        seen.add(key); return true;
+      }).sort((a,b) => (a.variantKey === "default" || !a.variantKey ? -1 : 0) - (b.variantKey === "default" || !b.variantKey ? -1 : 0) || dietPlanTitle(a).localeCompare(dietPlanTitle(b)));
+    }
+
+    function selectedDietVariantKey(studentView = false) {
+      return document.getElementById(studentView ? "studentDietVariant" : "dietVariant")?.value || "default";
+    }
+
+    async function withDietEditorLocked(task) {
+      const form = document.getElementById("dietPlanForm");
+      if (form.dataset.writing === "true") return;
+      const controls = [...form.querySelectorAll("input,select,textarea,button")];
+      const disabled = controls.map(control => control.disabled);
+      form.dataset.writing = "true";
+      controls.forEach(control => control.disabled = true);
+      try { return await task(); }
+      finally {
+        controls.forEach((control,index) => control.disabled = disabled[index]);
+        delete form.dataset.writing;
+        updateNumericSubmitStates();
+      }
+    }
+
+    function populateDietVariants(studentId, month, selected = "default", studentView = false) {
+      const select = document.getElementById(studentView ? "studentDietVariant" : "dietVariant");
+      if (!select) return;
+      const plans = dietVariantsForStudent(studentId, month, studentView);
+      select.innerHTML = plans.map(plan => `<option data-no-i18n="true" value="${escapeHTML(plan.variantKey || "default")}">${escapeHTML(dietPlanTitle(plan))}${studentView ? "" : ` · ${escapeHTML(t(dietPlanStatusLabel(plan)))}`}</option>`).join("");
+      if (!studentView && !plans.some(p => (p.variantKey || "default") === "default")) select.insertAdjacentHTML("afterbegin", `<option value="default">${escapeHTML(t("Dieta padrão"))}</option>`);
+      if ([...select.options].some(o => o.value === selected)) select.value = selected;
+      else if (!studentView && selected !== "default") { select.add(new Option(t("Nova dieta"), selected)); select.value = selected; }
+      else select.value = plans[0]?.variantKey || "default";
+      return select.value;
+    }
+
+    function replaceCachedRemoteDietVariants(studentId, plans, month = null) {
+      const cached = loadDietPlans();
+      const trainerId = dietPlanTrainerId(studentId);
+      Object.entries(cached).forEach(([key, plan]) => {
+        if (plan.studentId === studentId && (!month || plan.month === month) && (!trainerId || plan.trainerId === trainerId) && plan.syncStatus !== "failed") delete cached[key];
+      });
+      saveDietPlans(cached);
+      plans.forEach(cacheDietPlan);
+    }
+
+    async function loadRemoteDietPlan(studentId, month = currentMonthKey(), variantKey = "default") {
       if (!monolithSupabase || !studentId || !month || !isRealSupabaseAccount(currentAccount())) return null;
       if (!canAccessStudentData(studentId)) return null;
       const user = currentAccount();
@@ -11527,15 +11593,12 @@ if (location.hash.toLowerCase() === "#leads") history.replaceState(null, "", `${
         const linkedTrainerId = studentTrainerLinkState(user).trainerId || user.trainerId || "";
         if (linkedTrainerId) query = query.eq("trainer_id", linkedTrainerId);
       }
-      const { data, error } = await query.maybeSingle();
+      const { data, error } = await query.order("created_at", { ascending: true });
       if (error) throw error;
-      if (!data) {
-        removeCachedDietPlan(studentId, month, user?.role === "personal" ? user.id : user?.trainerId || "");
-        return null;
-      }
-      const plan = remoteDietPlanFromRow(data);
-      cacheDietPlan(plan);
-      return plan;
+      if (currentAccount()?.id !== user.id) return null;
+      const plans = (data || []).map(remoteDietPlanFromRow);
+      replaceCachedRemoteDietVariants(studentId, plans, month);
+      return plans.find(plan => plan.variantKey === variantKey) || (variantKey === "default" ? plans[0] : null) || null;
     }
 
     async function loadRemotePublishedDietPlans(studentId, { shouldCache = () => true } = {}) {
@@ -11556,7 +11619,7 @@ if (location.hash.toLowerCase() === "#leads") history.replaceState(null, "", `${
         .order("month_key", { ascending: false });
       if (error) throw error;
       const plans = (data || []).map(remoteDietPlanFromRow);
-      if (shouldCache()) plans.forEach(cacheDietPlan);
+      if (shouldCache()) replaceCachedRemoteDietVariants(studentId, plans);
       return plans
         .filter(plan => ["published", "legacy_published"].includes(dietPlanStatus(plan)))
         .sort((a, b) => {
@@ -11576,6 +11639,8 @@ if (location.hash.toLowerCase() === "#leads") history.replaceState(null, "", `${
         trainer_id: user.id,
         student_id: plan.studentId,
         month_key: plan.month,
+        plan_name: plan.name || "",
+        variant_key: plan.variantKey || "default",
         calories: plan.calories || null,
         protein: plan.protein || null,
         carbs: plan.carbs || null,
@@ -11587,7 +11652,7 @@ if (location.hash.toLowerCase() === "#leads") history.replaceState(null, "", `${
       };
       let { data, error } = await monolithSupabase
         .from("diet_plans")
-        .upsert(payload, { onConflict: "student_id,month_key" })
+        .upsert(payload, { onConflict: "trainer_id,student_id,month_key,variant_key" })
         .select("*")
         .single();
       if (error && /publication_status|published_at|published_by/i.test(supabaseErrorText(error))) {
@@ -11600,7 +11665,7 @@ if (location.hash.toLowerCase() === "#leads") history.replaceState(null, "", `${
         if (errorDetail.includes("supplements")) delete legacyPayload.supplements;
         ({ data, error } = await monolithSupabase
           .from("diet_plans")
-          .upsert(legacyPayload, { onConflict: "student_id,month_key" })
+          .upsert(legacyPayload, { onConflict: "trainer_id,student_id,month_key,variant_key" })
           .select("*")
           .single());
       }
@@ -11617,6 +11682,8 @@ if (location.hash.toLowerCase() === "#leads") history.replaceState(null, "", `${
         trainer_id: user.id,
         student_id: plan.studentId,
         month_key: plan.month,
+        plan_name: plan.name || "",
+        variant_key: plan.variantKey || "default",
         calories: dietNumericValue(plan.calories),
         protein: dietNumericValue(plan.protein),
         carbs: dietNumericValue(plan.carbs),
@@ -11628,7 +11695,7 @@ if (location.hash.toLowerCase() === "#leads") history.replaceState(null, "", `${
       }));
       const { data, error } = await monolithSupabase
         .from("diet_plans")
-        .upsert(payloads, { onConflict: "student_id,month_key" })
+        .upsert(payloads, { onConflict: "trainer_id,student_id,month_key,variant_key" })
         .select("*");
       if (error && /publication_status|published_at|published_by/i.test(supabaseErrorText(error))) {
         throw new Error(t("Aplique a migration de publicação das dietas antes de importar."));
@@ -11639,15 +11706,17 @@ if (location.hash.toLowerCase() === "#leads") history.replaceState(null, "", `${
       return saved;
     }
 
-    async function deleteRemoteDietPlan(studentId, month = currentMonthKey()) {
+    async function deleteRemoteDietPlan(studentId, month = currentMonthKey(), variantKey = "default") {
       const user = currentAccount();
       if (!monolithSupabase || !isRealSupabaseAccount(user) || user.role !== "personal") return false;
       if (!studentId || !month || !canAccessStudentData(studentId)) return false;
       const { error } = await monolithSupabase
         .from("diet_plans")
         .delete()
+        .eq("trainer_id", user.id)
         .eq("student_id", studentId)
-        .eq("month_key", month);
+        .eq("month_key", month)
+        .eq("variant_key", variantKey);
       if (error) throw error;
       return true;
     }
@@ -11800,13 +11869,11 @@ if (location.hash.toLowerCase() === "#leads") history.replaceState(null, "", `${
           .eq("month_key", currentMonthKey());
         if (error) throw error;
         const rows = (data || []).map(remoteDietPlanFromRow);
-        const studentsWithDiet = new Set(rows.map(plan => plan.studentId));
         if (isCurrentRequest()) {
-          rows.forEach(cacheDietPlan);
-          studentIds.filter(studentId => !studentsWithDiet.has(studentId)).forEach(studentId => removeCachedDietPlan(studentId, currentMonthKey()));
+          studentIds.forEach(studentId => replaceCachedRemoteDietVariants(studentId, rows.filter(plan => plan.studentId === studentId), currentMonthKey()));
         }
         return rows;
-      }, { hasCache: studentIds.some(studentId => Boolean(storedDietPlanForStudent(studentId, currentMonthKey()))), shouldApply: isCurrentRequest });
+      }, { hasCache: studentIds.some(studentId => dietVariantsForStudent(studentId, currentMonthKey()).length > 0), shouldApply: isCurrentRequest });
       const assignedWorkoutResult = await loadRemoteModule("trainer-assigned-workouts", user.id, async () => {
         const { data, error } = await monolithSupabase
           .from("workout_templates")
@@ -11832,7 +11899,8 @@ if (location.hash.toLowerCase() === "#leads") history.replaceState(null, "", `${
     }
 
     function activeDietForStudent(studentId, month = currentMonthKey()) {
-      const plan = storedDietPlanForStudent(studentId, month);
+      const visible = dietVariantsForStudent(studentId, month, currentAccount()?.role === "student").filter(plan => dietPlanStatus(plan) !== "archived");
+      const plan = visible.find(plan => !plan.variantKey || plan.variantKey === "default") || visible[0];
       if (!plan) return null;
       const status = dietPlanStatus(plan);
       if (currentAccount()?.role === "student") return ["published", "legacy_published"].includes(status) ? plan : null;
@@ -12611,7 +12679,7 @@ if (location.hash.toLowerCase() === "#leads") history.replaceState(null, "", `${
         <article class="meal-card" data-meal-index="${index}">
           <header><h4>${escapeHTML(t("Refeição"))} ${index + 1}</h4><span>${escapeHTML(t("Macros por refeição"))}</span></header>
           <div class="field"><label>${escapeHTML(t("Nome da refeição"))}</label><input class="meal-name" value="${escapeHTML(meal.name || "")}" placeholder="${escapeHTML(t("Ex: Almoço"))}" /></div>
-          <div class="field"><label>${escapeHTML(t("Alimentos e quantidades"))}</label><textarea class="meal-items" placeholder="${escapeHTML(t("Ex: 150g arroz, 180g frango, salada"))}">${escapeHTML(meal.items || "")}</textarea></div>
+          <div class="field"><label>${escapeHTML(t("Alimentos e quantidades"))}</label><textarea class="meal-items" placeholder="${escapeHTML(t("100g arroz\n120g frango\n100g brócolis"))}">${escapeHTML(meal.items || "")}</textarea></div>
           <div class="macro-grid">
             <div class="field"><label>${escapeHTML(t("Calorias"))}</label><input class="meal-calories" inputmode="numeric" value="${escapeHTML(meal.calories || "")}" placeholder="520" /></div>
             <div class="field"><label>${escapeHTML(t("Proteína"))}</label><input class="meal-protein" inputmode="decimal" value="${escapeHTML(meal.protein || "")}" placeholder="42" /></div>
@@ -12630,6 +12698,7 @@ if (location.hash.toLowerCase() === "#leads") history.replaceState(null, "", `${
     function currentDietFormHasContent() {
       const plan = readDietPlanForm();
       return Boolean(
+        plan.name ||
         plan.calories ||
         plan.protein ||
         plan.carbs ||
@@ -12642,6 +12711,9 @@ if (location.hash.toLowerCase() === "#leads") history.replaceState(null, "", `${
     function applyDietPlanToForm(plan) {
       const form = document.getElementById("dietPlanForm");
       if (form) form.dataset.planStatus = plan?.id ? dietPlanStatus(plan) : (plan?.status || "draft");
+      if (form) form.dataset.variantKey = selectedDietVariantKey();
+      const nameInput = document.getElementById("dietPlanName");
+      if (nameInput) { nameInput.value = plan?.name || ""; nameInput.required = selectedDietVariantKey() !== "default"; }
       const mealCount = document.getElementById("dietMealCount");
       if (mealCount) mealCount.value = String(Math.max(1, Math.min(10, plan?.meals?.length || 5)));
       ["dietCalories", "dietProtein", "dietCarbs", "dietFat"].forEach(id => {
@@ -12662,7 +12734,7 @@ if (location.hash.toLowerCase() === "#leads") history.replaceState(null, "", `${
       } = sourcePlan || {};
       return {
         ...content,
-        id: dietPlanKey(studentId, month),
+        id: dietPlanKey(studentId, month, "", sourcePlan?.variantKey),
         studentId,
         trainerId: currentAccount()?.id || sourcePlan?.trainerId || "",
         month,
@@ -12699,6 +12771,8 @@ if (location.hash.toLowerCase() === "#leads") history.replaceState(null, "", `${
         danger: true
       })) return;
       const copiedPlan = dietDraftCopy(sourcePlan, { studentId, month });
+      copiedPlan.variantKey = selectedDietVariantKey();
+      copiedPlan.id = dietPlanKey(studentId, month, "", copiedPlan.variantKey);
       applyDietPlanToForm(copiedPlan);
       markDirty("diet");
       showToast("Dieta do mês anterior copiada.");
@@ -12714,7 +12788,7 @@ if (location.hash.toLowerCase() === "#leads") history.replaceState(null, "", `${
         title: "Publicar dieta?",
         message: "A dieta ficará visível para o aluno vinculado.",
         contextLabel: "Destino",
-        contextValue: `${accountNameForTarget(plan.studentId)} · ${localizedMonthLabel(plan.month)}`,
+        contextValue: `${accountNameForTarget(plan.studentId)} · ${dietPlanTitle(plan)} · ${localizedMonthLabel(plan.month)}`,
         confirmLabel: "Publicar",
         danger: false
       })) return;
@@ -12728,7 +12802,7 @@ if (location.hash.toLowerCase() === "#leads") history.replaceState(null, "", `${
         if (isRealSupabaseAccount(currentAccount())) await saveRemoteDietPlan(updatedPlan);
         else cacheDietPlan(updatedPlan);
         updateDietPlanMeta(key, { status: nextStatus, archived: nextStatus === "archived" });
-        const authoritative = storedDietPlanForStudent(plan.studentId, plan.month) || updatedPlan;
+        const authoritative = storedDietPlanForStudent(plan.studentId, plan.month, plan.variantKey) || updatedPlan;
         applyDietPlanToForm(authoritative);
         showToast(nextStatus === "draft" ? "Dieta marcada como rascunho." : nextStatus === "archived" ? "Dieta arquivada." : "Dieta publicada.");
       }, { loadingText: nextStatus === "published" ? "Publicando dieta..." : "Atualizando dieta..." });
@@ -12744,7 +12818,7 @@ if (location.hash.toLowerCase() === "#leads") history.replaceState(null, "", `${
         title: "Excluir esta dieta?",
         message: "Esta ação removerá a dieta salva deste período.",
         contextLabel: "Dieta",
-        contextValue: `${accountNameForTarget(studentId)} · ${localizedMonthLabel(month)}`,
+        contextValue: `${accountNameForTarget(studentId)} · ${dietPlanTitle(plan)} · ${localizedMonthLabel(month)}`,
         confirmLabel: "Excluir",
         danger: true,
         operationKey: `diet-delete:${key}`,
@@ -12753,7 +12827,7 @@ if (location.hash.toLowerCase() === "#leads") history.replaceState(null, "", `${
         successMessage: "Dieta excluída.",
         errorMessage: "Não consegui excluir a dieta. Tente novamente.",
         onConfirm: async () => {
-          const synced = await deleteRemoteDietPlan(studentId, month);
+          const synced = await deleteRemoteDietPlan(studentId, month, plan.variantKey);
           rememberDietPlanVersion(plan, "delete");
           const plans = loadDietPlans();
           delete plans[key];
@@ -12777,7 +12851,7 @@ if (location.hash.toLowerCase() === "#leads") history.replaceState(null, "", `${
         contextValue: `${accountNameForTarget(plan.studentId)} · ${localizedMonthLabel(month)}`,
         fieldType: "month",
         fieldLabel: "Mês de destino",
-        fieldValue: nextMonthKey(month),
+        fieldValue: month,
         confirmLabel: "Continuar"
       });
       if (!targetMonth) return;
@@ -12786,15 +12860,10 @@ if (location.hash.toLowerCase() === "#leads") history.replaceState(null, "", `${
         return;
       }
       const copy = dietDraftCopy(plan, { studentId: plan.studentId, month: targetMonth });
+      copy.variantKey = createClientRequestId("diet-variant");
+      copy.name = `${dietPlanTitle(plan).slice(0, 100)} · ${t("Cópia")}`;
+      copy.id = dietPlanKey(copy.studentId, targetMonth, copy.trainerId, copy.variantKey);
       const plans = loadDietPlans();
-      if (plans[copy.id] && !await confirmAction({
-        title: "Substituir dieta existente?",
-        message: "Já existe dieta nesse mês. Substituir?",
-        contextLabel: "Destino",
-        contextValue: `${accountNameForTarget(copy.studentId)} · ${localizedMonthLabel(targetMonth)}`,
-        confirmLabel: "Substituir",
-        danger: true
-      })) return;
       await runPendingOperation(`diet-duplicate:${copy.id}`, "#duplicateDietButton", async clientRequestId => {
         copy.clientRequestId = clientRequestId;
         if (plans[copy.id]) rememberDietPlanVersion(plans[copy.id], "duplicate_replace");
@@ -12803,6 +12872,7 @@ if (location.hash.toLowerCase() === "#leads") history.replaceState(null, "", `${
         updateDietPlanMeta(copy.id, { status: "draft", archived: false });
         const monthInput = document.getElementById("dietMonth");
         if (monthInput) monthInput.value = targetMonth;
+        populateDietVariants(copy.studentId, targetMonth, copy.variantKey);
         renderNutrition();
         showToast("Dieta duplicada como rascunho.");
       }, { loadingText: "Duplicando dieta..." });
@@ -12841,11 +12911,14 @@ if (location.hash.toLowerCase() === "#leads") history.replaceState(null, "", `${
       const month = document.getElementById("dietMonth")?.value || currentMonthKey();
       const meals = readDietMealBuilderEntries();
       const supplements = readDietSupplementBuilderEntries().filter(supplementHasUserContent).map((item, index) => cloneDietSupplement(item, index));
-      const existing = storedDietPlanForStudent(studentId, month);
+      const variantKey = selectedDietVariantKey();
+      const existing = storedDietPlanForStudent(studentId, month, variantKey);
       const formStatus = document.getElementById("dietPlanForm")?.dataset.planStatus || "";
       return {
         ...(existing || {}),
-        id: dietPlanKey(studentId, month),
+        id: dietPlanKey(studentId, month, "", variantKey),
+        variantKey,
+        name: document.getElementById("dietPlanName")?.value.trim() || "",
         studentId,
         trainerId: currentAccount()?.id || "personal-demo",
         month,
@@ -12862,8 +12935,9 @@ if (location.hash.toLowerCase() === "#leads") history.replaceState(null, "", `${
     function currentDietPlanSelection() {
       const studentId = selectedDietStudentId();
       const month = document.getElementById("dietMonth")?.value || currentMonthKey();
-      const key = dietPlanKey(studentId, month);
-      return { studentId, month, key, plan: storedDietPlanForStudent(studentId, month) };
+      const variantKey = selectedDietVariantKey();
+      const key = dietPlanKey(studentId, month, "", variantKey);
+      return { studentId, month, key, plan: storedDietPlanForStudent(studentId, month, variantKey) };
     }
 
     function dietPlanStatusLabel(plan) {
@@ -12968,6 +13042,17 @@ if (location.hash.toLowerCase() === "#leads") history.replaceState(null, "", `${
       return ["calories", "protein", "carbs", "fat"].some(key => dietNumericValue(plan?.[key]) !== null);
     }
 
+    function dietFoodLines(value = "") {
+      const text = String(value ?? "").replace(/\r\n?/g, "\n");
+      // An explicit line is authoritative; a decimal comma is never a separator.
+      return (text.includes("\n") ? text.split("\n") : text.split(/(?<!\d),|,(?!\d)|;/)).map(line => line.trim()).filter(Boolean);
+    }
+
+    function dietFoodItemsHTML(value = "") {
+      const lines = dietFoodLines(value);
+      return lines.length ? `<ul class="diet-food-items" data-no-i18n="true">${lines.map(line => `<li>${escapeHTML(line)}</li>`).join("")}</ul>` : `<p>${escapeHTML(t("Sem alimentos cadastrados."))}</p>`;
+    }
+
     function renderDietPlan(containerId, plan, emptyText = "Nenhuma dieta prescrita para este mês.") {
       const container = document.getElementById(containerId);
       if (!container) return;
@@ -12981,6 +13066,7 @@ if (location.hash.toLowerCase() === "#leads") history.replaceState(null, "", `${
       const calculatedTotals = dietCalculatedMealTotals(plan);
       const hasCalculatedTotals = Object.values(calculatedTotals).some(value => value !== null);
       container.innerHTML = `
+        <h3 data-no-i18n="true">${escapeHTML(dietPlanTitle(plan))}</h3>
         <div class="metric"><span>${escapeHTML(t("Meta diária prescrita"))}</span><b>${escapeHTML(nutritionNumber(plan.calories))} kcal</b></div>
         <div class="pill-row">
           <span class="pill">${escapeHTML(t(statusLabel))}</span>
@@ -13002,7 +13088,7 @@ if (location.hash.toLowerCase() === "#leads") history.replaceState(null, "", `${
         ${(plan.meals || []).map((meal, index) => `
           <article class="meal-card">
             <header><h4 data-no-i18n="true">${escapeHTML(meal.name || `${t("Refeição")} ${index + 1}`)}</h4><span>${escapeHTML(nutritionNumber(meal.calories))} kcal</span></header>
-            <p data-no-i18n="true">${escapeHTML(meal.items || t("Sem alimentos cadastrados."))}</p>
+            ${dietFoodItemsHTML(meal.items)}
             <div class="pill-row">
               <span class="pill">P ${escapeHTML(nutritionNumber(meal.protein))}</span>
               <span class="pill">C ${escapeHTML(nutritionNumber(meal.carbs))}</span>
@@ -13107,7 +13193,9 @@ if (location.hash.toLowerCase() === "#leads") history.replaceState(null, "", `${
       { key: "targetCalories", labels: ["meta_calorias", "target_calories", "meta_calorias"], aliases: ["calorias_meta"], numeric: true },
       { key: "targetProtein", labels: ["meta_proteina", "target_protein", "meta_proteina"], aliases: ["proteina_meta"], numeric: true },
       { key: "targetCarbs", labels: ["meta_carbo", "target_carbs", "meta_carbo"], aliases: ["carbo_meta"], numeric: true },
-      { key: "targetFat", labels: ["meta_gordura", "target_fat", "meta_grasa"], aliases: ["gordura_meta", "grasa_meta"], numeric: true }
+      { key: "targetFat", labels: ["meta_gordura", "target_fat", "meta_grasa"], aliases: ["gordura_meta", "grasa_meta"], numeric: true },
+      { key: "planName", labels: ["nome_dieta", "diet_name", "nombre_dieta"], aliases: ["plan_name"], optionalHeader: true },
+      { key: "variantKey", labels: ["variante", "variant", "variante"], aliases: ["variant_key"], optionalHeader: true }
     ];
 
     function dietCsvHeaderIndexes(header = []) {
@@ -13242,7 +13330,7 @@ if (location.hash.toLowerCase() === "#leads") history.replaceState(null, "", `${
       }
       if (!rows.length) return { preview: [{ line: 1, status: "error", studentLabel: "-", item: "CSV", message: "Arquivo CSV vazio." }], plans: [], valid: false };
       const indexes = dietCsvHeaderIndexes(rows[0]);
-      const missingHeaders = dietCsvSchema.filter(column => indexes[column.key] < 0).map(column => column.labels[0]);
+      const missingHeaders = dietCsvSchema.filter(column => !column.optionalHeader && indexes[column.key] < 0).map(column => column.labels[0]);
       if (missingHeaders.length) {
         return {
           preview: [{ line: 1, status: "error", studentLabel: "-", item: "Cabeçalho", message: `${t("Colunas obrigatórias ausentes")}: ${missingHeaders.join(", ")}` }],
@@ -13254,6 +13342,7 @@ if (location.hash.toLowerCase() === "#leads") history.replaceState(null, "", `${
       if (!dataRows.length) return { preview: [{ line: 2, status: "error", studentLabel: "-", item: "CSV", message: "Nenhuma linha de dados encontrada." }], plans: [], valid: false };
       const preview = [];
       const plans = new Map();
+      const namedVariants = new Map();
       dataRows.forEach((row, index) => {
         const line = index + 2;
         const rawStudent = dietCsvValue(row, indexes, "studentName");
@@ -13282,9 +13371,20 @@ if (location.hash.toLowerCase() === "#leads") history.replaceState(null, "", `${
             carbs: parseDietCsvNumber(dietCsvValue(row, indexes, "targetCarbs"), "Meta de carboidratos"),
             fat: parseDietCsvNumber(dietCsvValue(row, indexes, "targetFat"), "Meta de gordura")
           };
-          const key = dietPlanKey(studentId, month);
+          const name = dietCsvValue(row, indexes, "planName");
+          let variantKey = dietCsvValue(row, indexes, "variantKey");
+          if (!variantKey && name) {
+            const group = JSON.stringify([studentId,month,name]);
+            if (!namedVariants.has(group)) namedVariants.set(group, createClientRequestId("diet-import-variant"));
+            variantKey = namedVariants.get(group);
+          }
+          variantKey ||= "default";
+          if (variantKey !== "default" && !/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/.test(variantKey)) throw new Error(t("Identificador de dieta inválido."));
+          if (name.length > 120 || (variantKey !== "default" && !name)) throw new Error(t("Informe um nome de dieta com até 120 caracteres."));
+          const key = dietPlanKey(studentId, month, "", variantKey);
           if (!plans.has(key)) plans.set(key, {
             id: key,
+            variantKey, name,
             studentId,
             trainerId: currentAccount()?.id || "",
             month,
@@ -13372,7 +13472,9 @@ if (location.hash.toLowerCase() === "#leads") history.replaceState(null, "", `${
           plan.calories || "",
           plan.protein || "",
           plan.carbs || "",
-          plan.fat || ""
+          plan.fat || "",
+          plan.name || "",
+          plan.variantKey || "default"
         ]));
       });
       const content = rows.map(row => row.map(csvEscapeDiet).join(";")).join("\n");
@@ -13516,6 +13618,7 @@ if (location.hash.toLowerCase() === "#leads") history.replaceState(null, "", `${
       const monthInput = isPersonal ? personalMonthInput : studentMonthInput;
       const requestedMonth = monthInput?.value || currentMonthKey();
       const requestedMealCount = Math.max(1, Math.min(10, Number(document.getElementById("dietMealCount")?.value) || 5));
+      const requestedVariant = selectedDietVariantKey(!isPersonal);
       personalPanel.hidden = !isPersonal;
       studentPanel.hidden = isPersonal;
       personalPanel.style.display = isPersonal ? "" : "none";
@@ -13546,15 +13649,17 @@ if (location.hash.toLowerCase() === "#leads") history.replaceState(null, "", `${
         const dietStudentId = selectedDietStudentId();
         const dietMonth = requestedMonth;
         if (!dietStudentId) {
+          populateDietVariants("", dietMonth);
           applyDietPlanToForm(emptyDietDraft(requestedMealCount));
           renderDietPlan("dietPreview", null);
           setDietRemoteState("loaded");
           return;
         }
-        let plan = dietStudentId ? storedDietPlanForStudent(dietStudentId, dietMonth) : null;
+        let plan = dietStudentId ? storedDietPlanForStudent(dietStudentId, dietMonth, requestedVariant) : null;
         if (dietStudentId) {
           try {
-            plan = await loadRemoteDietPlan(dietStudentId, dietMonth) || plan;
+            await loadRemoteDietPlan(dietStudentId, dietMonth, requestedVariant);
+            plan = storedDietPlanForStudent(dietStudentId, dietMonth, requestedVariant);
           } catch (error) {
             if (requestId !== nutritionRenderSequence) return;
             logAppError("diet", "load", error, { studentId: dietStudentId, month: dietMonth });
@@ -13569,6 +13674,7 @@ if (location.hash.toLowerCase() === "#leads") history.replaceState(null, "", `${
           }
         }
         if (requestId !== nutritionRenderSequence || selectedDietStudentId() !== dietStudentId || (monthInput?.value || currentMonthKey()) !== dietMonth) return;
+        populateDietVariants(dietStudentId, dietMonth, requestedVariant);
         applyDietPlanToForm(plan || emptyDietDraft(requestedMealCount));
         renderDietPlan("dietPreview", plan || null);
         setDietRemoteState("loaded");
@@ -13599,6 +13705,10 @@ if (location.hash.toLowerCase() === "#leads") history.replaceState(null, "", `${
         if (requestId !== nutritionRenderSequence || currentAccount()?.id !== user.id || (studentMonthInput?.value || currentMonthKey()) !== requestedMonth) return;
         document.getElementById("selfNutritionPanel").hidden = Boolean(linkedTrainerId);
         document.getElementById("studentDietNote").textContent = linkedTrainerId ? t("Seu personal define esta dieta. Você pode visualizar, mas não redesenhar.") : t("Sem personal vinculado: use a contagem básica para registrar seu dia.");
+        if (linkedTrainerId) {
+          const variant = populateDietVariants(user.id, requestedMonth, requestedVariant, true);
+          plan = dietVariantsForStudent(user.id, requestedMonth, true).find(p => (p.variantKey || "default") === variant) || null;
+        } else document.getElementById("studentDietVariant").innerHTML = "";
         renderDietPlan("studentDietView", plan, linkedTrainerId ? "Nenhuma dieta prescrita para este mês." : "Nenhuma dieta de personal vinculada.");
         if (!linkedTrainerId) {
           renderFoodLogMeals();
@@ -13620,6 +13730,7 @@ if (location.hash.toLowerCase() === "#leads") history.replaceState(null, "", `${
         const form = document.getElementById("dietPlanForm");
         if (!form || form.dataset.remoteState === "loading") return;
         const draft = readDietPlanForm();
+        populateDietVariants(draft.studentId, draft.month, draft.variantKey);
         renderDietPlan("dietPreview", draft.studentId ? draft : null);
         return;
       }
@@ -13631,7 +13742,9 @@ if (location.hash.toLowerCase() === "#leads") history.replaceState(null, "", `${
         return;
       }
       const linkedTrainerId = linkState.trainerId || user.trainerId || "";
-      const plan = linkedTrainerId ? activeDietForStudent(user.id, month) : null;
+      const variant = selectedDietVariantKey(true);
+      if (linkedTrainerId) populateDietVariants(user.id, month, variant, true);
+      const plan = linkedTrainerId ? dietVariantsForStudent(user.id, month, true).find(p => (p.variantKey || "default") === variant) || activeDietForStudent(user.id, month) : null;
       const selfPanel = document.getElementById("selfNutritionPanel");
       const note = document.getElementById("studentDietNote");
       if (selfPanel) selfPanel.hidden = Boolean(linkedTrainerId);
@@ -17478,6 +17591,39 @@ if (location.hash.toLowerCase() === "#leads") history.replaceState(null, "", `${
   "Não foi possível confirmar o cadastro. Tente novamente com os mesmos dados.": "No se pudo confirmar el registro. Inténtalo de nuevo con los mismos datos."
 });
 
+    Object.assign(translations.en, {
+  "Dieta padrão": "Default diet",
+  "Nome da dieta": "Diet name",
+  "Ex: High Day — dias de treino": "Example: High Day — training days",
+  "Nova dieta": "New diet",
+  "Cópia": "Copy",
+  "Repetições prescritas": "Prescribed repetitions",
+  "Repetições realizadas": "Completed repetitions",
+  "Meta": "Target",
+  "Use um número ou uma faixa crescente entre 1 e 100, como 10–12.": "Use a number or an increasing range between 1 and 100, such as 10–12.",
+  "100g arroz\n120g frango\n100g brócolis": "100g rice\n120g chicken\n100g broccoli",
+  "Identificador de dieta inválido.": "Invalid diet identifier.",
+  "Informe um nome de dieta com até 120 caracteres.": "Enter a diet name of up to 120 characters.",
+  "Descartar alterações da dieta?": "Discard diet changes?",
+  "As alterações ainda não salvas serão descartadas.": "Unsaved changes will be discarded."
+});
+    Object.assign(translations.es, {
+  "Dieta padrão": "Dieta predeterminada",
+  "Nome da dieta": "Nombre de la dieta",
+  "Ex: High Day — dias de treino": "Ej.: High Day — días de entrenamiento",
+  "Nova dieta": "Nueva dieta",
+  "Cópia": "Copia",
+  "Repetições prescritas": "Repeticiones prescritas",
+  "Repetições realizadas": "Repeticiones realizadas",
+  "Meta": "Objetivo",
+  "Use um número ou uma faixa crescente entre 1 e 100, como 10–12.": "Usa un número o un intervalo creciente entre 1 y 100, como 10–12.",
+  "100g arroz\n120g frango\n100g brócolis": "100g arroz\n120g pollo\n100g brócoli",
+  "Identificador de dieta inválido.": "Identificador de dieta no válido.",
+  "Informe um nome de dieta com até 120 caracteres.": "Introduce un nombre de dieta de hasta 120 caracteres.",
+  "Descartar alterações da dieta?": "¿Descartar los cambios de la dieta?",
+  "As alterações ainda não salvas serão descartadas.": "Se descartarán los cambios sin guardar."
+});
+
     function t(key, language = localStorage.getItem("monolith.language") || "pt") {
       return language === "pt" ? key : translations[language]?.[key] || key;
     }
@@ -17573,6 +17719,15 @@ if (location.hash.toLowerCase() === "#leads") history.replaceState(null, "", `${
       return "";
     }
 
+    function normalizePrescribedReps(value = "") {
+      const text = String(value ?? "").trim().replace(/[–—−]/g, "-").replace(/\s/g, "");
+      if (!text) return "";
+      if (!/^\d{1,3}(?:-\d{1,3})?$/.test(text)) return null;
+      const [minimum, maximum = minimum] = text.split("-").map(Number);
+      if (minimum < 1 || maximum > 100 || maximum < minimum) return null;
+      return text.includes("-") ? `${minimum}-${maximum}` : String(minimum);
+    }
+
     function numericRuleForInput(input) {
       if (!input?.matches) return null;
       if (input.matches("#dietCalories, .meal-calories, .food-calories")) return { label: "Calorias", integer: true, min: 1, max: 10000, unit: "kcal" };
@@ -17581,12 +17736,14 @@ if (location.hash.toLowerCase() === "#leads") history.replaceState(null, "", `${
       if (input.matches(".set-weight, .session-weight")) return { label: "Peso do exercício", min: 0, max: 600, allowZero: true, weight: true, unit: weightUnitLabel() };
       if (input.matches("#measureBodyFat")) return { label: "Gordura corporal", min: 1, max: 70, unit: "%" };
       if (input.matches("#measureWaist, #measureChest, #measureArm, #measureLeg, #measureHip")) return { label: "Medida corporal", min: 20, max: 300, unit: "cm" };
-      if (input.matches(".set-reps, .session-reps")) return { label: "Repetições", integer: true, min: 1, max: 100, unit: "x" };
+      if (input.matches(".set-reps")) return { label: "Repetições", integer: true, range: true, min: 1, max: 100, unit: "x" };
+      if (input.matches(".session-reps")) return { label: "Repetições", integer: true, min: 1, max: 100, unit: "x" };
       if (input.matches(".set-rest, .session-rest")) return { label: "Descanso", integer: true, min: 0, max: 900, allowZero: true, unit: "s" };
       return null;
     }
 
     function numericTextPattern(rule) {
+      if (rule?.range) return /^\d{0,3}(?:\s*[-–—−]\s*\d{0,3})?$/;
       return rule?.integer ? /^-?\d*$/ : /^-?\d*(?:[,.]\d*)?$/;
     }
 
@@ -17595,7 +17752,7 @@ if (location.hash.toLowerCase() === "#leads") history.replaceState(null, "", `${
       scope.querySelectorAll("input").forEach(input => {
         const rule = numericRuleForInput(input);
         if (!rule) return;
-        input.inputMode = rule.integer ? "numeric" : "decimal";
+        input.inputMode = rule.range ? "text" : rule.integer ? "numeric" : "decimal";
         input.setAttribute("min", String(rule.min ?? 0));
         input.setAttribute("max", String(rule.max));
         input.setAttribute("step", rule.integer ? "1" : "0.01");
@@ -17657,6 +17814,11 @@ if (location.hash.toLowerCase() === "#leads") history.replaceState(null, "", `${
       if (!text) {
         setFieldError(input, "");
         return true;
+      }
+      if (rule.range) {
+        const normalized = normalizePrescribedReps(text);
+        setFieldError(input, normalized === null ? t("Use um número ou uma faixa crescente entre 1 e 100, como 10–12.") : "");
+        return normalized !== null;
       }
       if (!numericTextPattern(rule).test(text)) {
         setFieldError(input, `${t(rule.label)}: ${t("use apenas números, vírgula ou ponto.")}`);
@@ -18093,11 +18255,11 @@ if (location.hash.toLowerCase() === "#leads") history.replaceState(null, "", `${
       Object.keys(dirtyScopeForms).forEach(setDirtyBaseline);
       document.addEventListener("input", event => {
         const scope = dirtyScopeForForm(event.target.closest("form"));
-        if (scope && !dirtyGuardBypass && !["dietStudent", "dietMonth", "workoutStudent", "statsStudent", "measureStudent", "anamnesisStudent", "programStudent"].includes(event.target.id)) markDirty(scope);
+        if (scope && !dirtyGuardBypass && !["dietStudent", "dietMonth", "dietVariant", "workoutStudent", "statsStudent", "measureStudent", "anamnesisStudent", "programStudent"].includes(event.target.id)) markDirty(scope);
       }, true);
       document.addEventListener("change", event => {
         const scope = dirtyScopeForForm(event.target.closest("form"));
-        if (scope && !dirtyGuardBypass && !["dietStudent", "dietMonth", "workoutStudent", "statsStudent", "measureStudent", "anamnesisStudent", "programStudent"].includes(event.target.id)) markDirty(scope);
+        if (scope && !dirtyGuardBypass && !["dietStudent", "dietMonth", "dietVariant", "workoutStudent", "statsStudent", "measureStudent", "anamnesisStudent", "programStudent"].includes(event.target.id)) markDirty(scope);
       }, true);
       ["dietStudent", "dietMonth", "workoutStudent", "statsStudent", "measureStudent", "anamnesisStudent", "programStudent"].forEach(id => {
         const select = document.getElementById(id);
@@ -19578,7 +19740,7 @@ if (location.hash.toLowerCase() === "#leads") history.replaceState(null, "", `${
       const weightBars = reportChartBars(displayWeightSeries(report.weights), weightUnitLabel());
       const bodyFatBars = reportChartBars(bodyMeasureSeries("bodyFat", report.bodyMeasures), "%");
       const measureRows = report.bodyMeasures.slice(0, 20).map(entry => `<tr><td>${escapeHTML(reportDateLabel(entry.date, language))}</td><td>${formatWeight(entry.weight, { language })}</td><td>${formatMeasureValue(entry.bodyFat, "%", language)}</td><td>${formatMeasureValue(entry.waist, "cm", language)}</td><td>${formatMeasureValue(entry.chest, "cm", language)}</td><td>${formatMeasureValue(entry.arm, "cm", language)}</td><td>${formatMeasureValue(entry.leg, "cm", language)}</td><td>${formatMeasureValue(entry.hip, "cm", language)}</td><td>${escapeHTML(entry.notes || "")}</td></tr>`).join("");
-      const dietRows = report.activeDietPlan?.meals?.map((meal, index) => `<tr><td>${rn(index + 1, 0)}</td><td>${escapeHTML(meal.name || `${rt("Refeição")} ${rn(index + 1, 0)}`)}</td><td>${escapeHTML(meal.items || "")}</td><td>${escapeHTML([meal.calories ? `${rn(meal.calories)} kcal` : "", meal.protein ? `P ${rn(meal.protein)}` : "", meal.carbs ? `C ${rn(meal.carbs)}` : "", meal.fat ? `G ${rn(meal.fat)}` : ""].filter(Boolean).join(" / "))}</td><td>${escapeHTML(meal.substitutions || "")}</td><td>${escapeHTML(meal.notes || "")}</td></tr>`).join("") || "";
+      const dietRows = report.activeDietPlan?.meals?.map((meal, index) => `<tr><td>${rn(index + 1, 0)}</td><td>${escapeHTML(meal.name || `${rt("Refeição")} ${rn(index + 1, 0)}`)}</td><td>${dietFoodItemsHTML(meal.items)}</td><td>${escapeHTML([meal.calories ? `${rn(meal.calories)} kcal` : "", meal.protein ? `P ${rn(meal.protein)}` : "", meal.carbs ? `C ${rn(meal.carbs)}` : "", meal.fat ? `G ${rn(meal.fat)}` : ""].filter(Boolean).join(" / "))}</td><td>${escapeHTML(meal.substitutions || "")}</td><td>${escapeHTML(meal.notes || "")}</td></tr>`).join("") || "";
       const reportDietNumber = value => {
         const number = dietNumericValue(value);
         return number === null ? "--" : rn(number);
@@ -20488,6 +20650,7 @@ ${photoSections}
         return;
       }
       setSelectedStudentForPersonal(event.target.value);
+      document.getElementById("dietVariant").value = "default";
       renderNutrition();
     });
     document.getElementById("refreshTrainerMap")?.addEventListener("click", renderTrainerMap);
@@ -20548,6 +20711,29 @@ ${photoSections}
         logAppError("trainer-profile", "map-preview", error, { trainerId: user.id });
         showToast(error?.message || t("Não consegui abrir a prévia do perfil público."));
       }
+    });
+    async function confirmDietVariantNavigation() {
+      if (!dirtyScopes.get("diet")?.dirty) return true;
+      const confirmed = await confirmAction({ title: "Descartar alterações da dieta?", message: "As alterações ainda não salvas serão descartadas.", confirmLabel: "Continuar", danger: true });
+      if (confirmed) clearDirty("diet");
+      return confirmed;
+    }
+    document.getElementById("dietVariant")?.addEventListener("change", async () => {
+      if (!await confirmDietVariantNavigation()) {
+        document.getElementById("dietVariant").value = document.getElementById("dietPlanForm").dataset.variantKey || "default";
+        return;
+      }
+      renderNutrition();
+    });
+    document.getElementById("studentDietVariant")?.addEventListener("change", rerenderNutritionLanguage);
+    document.getElementById("newDietVariantButton")?.addEventListener("click", async () => {
+      if (currentAccount()?.role !== "personal" || !selectedDietStudentId()) { showToast("Selecione um aluno vinculado para salvar a dieta."); return; }
+      if (!await confirmDietVariantNavigation()) return;
+      const key = createClientRequestId("diet-variant");
+      populateDietVariants(selectedDietStudentId(), document.getElementById("dietMonth").value || currentMonthKey(), key);
+      applyDietPlanToForm(emptyDietDraft());
+      setDirtyBaseline("diet");
+      document.getElementById("dietPlanName").focus();
     });
     document.getElementById("dietMonth")?.addEventListener("change", renderNutrition);
     document.getElementById("studentDietMonth")?.addEventListener("change", renderNutrition);
@@ -20620,6 +20806,7 @@ ${photoSections}
     });
     document.getElementById("dietPlanForm")?.addEventListener("submit", async event => {
       event.preventDefault();
+      if (event.currentTarget.dataset.writing === "true") return;
       if (currentAccount()?.role !== "personal") {
         authMessage("Apenas o personal pode prescrever dieta para aluno.");
         renderNutrition();
@@ -20631,6 +20818,11 @@ ${photoSections}
         return;
       }
       const plan = readDietPlanForm();
+      if ((plan.variantKey !== "default" && !plan.name) || plan.name.length > 120) {
+        authMessage("Informe um nome de dieta com até 120 caracteres.");
+        document.getElementById("dietPlanName").focus();
+        return;
+      }
       if (!validateDietSupplements(plan.supplements)) return;
       if (plan.supplements.length && !await ensureSupplementResponsibilityAccepted()) return;
       if (!plan.studentId || !canAccessStudentData(plan.studentId)) {
@@ -20643,11 +20835,11 @@ ${photoSections}
         title: "Confirmar dieta",
         message: "Revise o aluno e o período antes de salvar.",
         contextLabel: "Destino",
-        contextValue: `${studentName} · ${localizedMonthLabel(plan.month)}`,
+        contextValue: `${studentName} · ${dietPlanTitle(plan)} · ${localizedMonthLabel(plan.month)}`,
         confirmLabel: "Salvar dieta",
         danger: false
       })) return;
-      await runPendingOperation(`diet-save:${plan.id}`, event.submitter || "#saveDietPlanButton", async clientRequestId => {
+      await withDietEditorLocked(() => runPendingOperation(`diet-save:${plan.id}`, event.submitter || "#saveDietPlanButton", async clientRequestId => {
         plan.clientRequestId = clientRequestId;
         plan.syncStatus = isRealSupabaseAccount(currentAccount()) ? "pending" : "local";
         const plans = loadDietPlans();
@@ -20660,17 +20852,18 @@ ${photoSections}
           authMessage(error?.message || "Não consegui salvar a dieta no Supabase. Tente novamente.");
           return;
         }
-        const authoritative = storedDietPlanForStudent(plan.studentId, plan.month) || plan;
+        const authoritative = storedDietPlanForStudent(plan.studentId, plan.month, plan.variantKey) || plan;
         authoritative.syncStatus = isRealSupabaseAccount(currentAccount()) ? "synced" : "local";
         authoritative.supplements = (authoritative.supplements || []).map((item, index) => cloneDietSupplement({ ...item, saved: true }, index));
         cacheDietPlan(authoritative);
+        populateDietVariants(plan.studentId, plan.month, plan.variantKey);
         updateDietPlanMeta(plan.id, { status: dietPlanStatus(authoritative), archived: dietPlanStatus(authoritative) === "archived" });
         window.monolithLastRemovedSupplement = null;
         renderDietSupplementBuilder(authoritative.supplements || []);
         renderDietPlan("dietPreview", authoritative);
         setDirtyBaseline("diet");
         authMessage(isRealSupabaseAccount(currentAccount()) ? "Dieta do aluno salva no Supabase." : "Dieta salva.");
-      }, { loadingText: "Salvando dieta..." });
+      }, { loadingText: "Salvando dieta..." }));
     });
     document.getElementById("foodMealCount")?.addEventListener("change", renderFoodLogMeals);
     document.getElementById("foodLogForm")?.addEventListener("submit", async event => {
@@ -27531,8 +27724,9 @@ ${photoSections}
       function normalizeRepsValueV2(value = "") {
         const text = String(value || "").trim();
         if (!text) return "";
-        if (!/^\d{1,3}$/.test(text) || Number(text) < 1 || Number(text) > 100) throw new Error(textV2("Repetições inválidas no CSV."));
-        return String(Number(text));
+        const normalized = normalizePrescribedReps(text);
+        if (normalized === null) throw new Error(textV2("Repetições inválidas no CSV."));
+        return normalized;
       }
 
       function workoutCsvWeightUnitV2(header = [], indexes = {}, hasHeader = false) {
@@ -28108,6 +28302,7 @@ ${photoSections}
 
       function presetSetsV2(preset = "3x10") {
         const presets = {
+          "3x10-12": Array.from({ length: 3 }, () => ({ weight: "", reps: "10-12", type: "working_set", rest: "90" })),
           "3x10": [
             { weight: "", reps: "10", type: "working_set", rest: "90" },
             { weight: "", reps: "10", type: "working_set", rest: "90" },
@@ -28151,7 +28346,7 @@ ${photoSections}
         row.innerHTML = `
           <span class="set-index">${htmlT("Série")}</span>
           <input class="set-weight" placeholder="${htmlT("Peso")}" inputmode="decimal" maxlength="6" value="${html(weightInputValue(set.weight))}" />
-          <input class="set-reps" placeholder="${htmlT("Reps")}" inputmode="numeric" maxlength="2" value="${html(set.reps || "")}" />
+          <input class="set-reps" placeholder="10–12" aria-label="${htmlT("Repetições prescritas")}" inputmode="text" maxlength="9" value="${html(set.reps || "")}" />
           <select class="set-type">${typeOptions(set.type)}</select>
           <input class="set-rest" placeholder="${htmlT("Descanso s")}" inputmode="numeric" maxlength="3" value="${html(set.rest || "90")}" />
           <button class="ghost remove-set-v2" type="button">${htmlT("Remover")}</button>
@@ -28184,7 +28379,7 @@ ${photoSections}
             </div>
           </details>
           <div class="mobile-set-presets">
-            <button class="ghost apply-set-preset-v2" type="button" data-preset="3x10">3x10</button>
+            <button class="ghost apply-set-preset-v2" type="button" data-preset="3x10">3x10</button><button class="ghost apply-set-preset-v2" type="button" data-preset="3x10-12">3×10–12</button>
             <button class="ghost apply-set-preset-v2" type="button" data-preset="4x8">4x8</button>
             <button class="ghost apply-set-preset-v2" type="button" data-preset="5x5">5x5</button>
             <button class="ghost apply-set-preset-v2" type="button" data-preset="warmup3">${htmlT("Aquecimento")}</button>
@@ -28215,7 +28410,7 @@ ${photoSections}
           const name = editor.querySelector(".exercise-name").value.trim() || `Exercício ${index + 1}`;
           const sets = [...editor.querySelectorAll(".set-row")].map(row => ({
             weight: parseWeightInput(row.querySelector(".set-weight").value.trim()) ?? "",
-            reps: row.querySelector(".set-reps").value.trim(),
+            reps: normalizePrescribedReps(row.querySelector(".set-reps").value) ?? "",
             type: row.querySelector(".set-type").value,
             rest: row.querySelector(".set-rest").value.trim() || "90"
           }));
@@ -28243,14 +28438,16 @@ ${photoSections}
       }
 
       function sessionSetRowV2(exerciseIndex, setIndex, set = {}, previousSet = null) {
+        const targetReps = set.targetReps || (String(set.reps || "").match(/[-–—−]/) ? normalizePrescribedReps(set.reps) : "");
+        const actualReps = targetReps && String(set.reps || "").match(/[-–—−]/) ? "" : set.reps || "";
         const previousLine = previousSet
           ? `<tr class="previous-row"><td colspan="6"><div class="previous-strip"><span>${htmlT("Anterior")}: ${html(formatWeight(previousSet.weight || 0))} x ${html(previousSet.reps || "0")} reps (${html(setTypeLabelV2(previousSet.type))})</span><span class="progress-hint">${htmlT("Preencha hoje para comparar")}</span></div></td></tr>`
           : "";
         return `
-          <tr data-exercise-index="${exerciseIndex}" data-set-index="${setIndex}" data-prev-weight="${html(previousSet?.weight || "")}" data-prev-reps="${html(previousSet?.reps || "")}">
+          <tr data-exercise-index="${exerciseIndex}" data-set-index="${setIndex}" data-target-reps="${html(targetReps || "")}" data-prev-weight="${html(previousSet?.weight || "")}" data-prev-reps="${html(previousSet?.reps || "")}">
             <td class="series-cell" data-label="${htmlT("Série")}">${setIndex + 1}</td>
             <td class="weight-cell" data-label="${htmlT("Peso")}"><input class="session-weight" value="${html(weightInputValue(set.weight))}" placeholder="${htmlT("Peso")}" inputmode="decimal" maxlength="6" /></td>
-            <td class="reps-cell" data-label="${htmlT("Reps")}"><input class="session-reps" value="${html(set.reps || "")}" placeholder="${htmlT("Reps")}" inputmode="numeric" maxlength="2" /></td>
+            <td class="reps-cell" data-label="${htmlT("Reps")}">${targetReps ? `<div class="date">${htmlT("Meta")}: ${html(targetReps)}</div>` : ""}<input class="session-reps" value="${html(actualReps)}" placeholder="${htmlT("Reps")}" aria-label="${htmlT("Repetições realizadas")}" inputmode="numeric" maxlength="3" /></td>
             <td class="type-cell" data-label="${htmlT("Técnica")}"><select class="session-type">${typeOptions(set.type)}</select></td>
             <td class="rest-cell" data-label="${htmlT("Descanso")}">
               <div class="rest-control">
@@ -28363,6 +28560,7 @@ ${photoSections}
           exercise.sets = [...block.querySelectorAll("tr[data-set-index]")].map(row => ({
             weight: parseWeightInput(row.querySelector(".session-weight")?.value.trim() || "") ?? "",
             reps: row.querySelector(".session-reps")?.value.trim() || "",
+            targetReps: row.dataset.targetReps || "",
             type: canonicalSetTypeV2(row.querySelector(".session-type")?.value),
             rest: row.querySelector(".session-rest")?.value.trim() || "90",
             done: row.querySelector(".set-done-v2")?.classList.contains("done") || false
@@ -28406,6 +28604,7 @@ ${photoSections}
             set: Number(row.dataset.setIndex) + 1,
             weight: parseWeightInput(row.querySelector(".session-weight").value.trim()) ?? "",
             reps: row.querySelector(".session-reps").value.trim(),
+            targetReps: row.dataset.targetReps || "",
             type: row.querySelector(".session-type").value,
             rest: row.querySelector(".session-rest").value.trim(),
             done: row.querySelector(".set-done-v2").classList.contains("done")
