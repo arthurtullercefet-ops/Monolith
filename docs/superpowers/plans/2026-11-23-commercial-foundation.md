@@ -1,6 +1,6 @@
 # Commercial Foundation Implementation Plan
 
-> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
+> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [x]`) syntax for tracking.
 
 **Goal:** Make the approved trainer business model enforceable and reviewable before payment-provider setup.
 
@@ -27,25 +27,25 @@
 ### Task 1: Server business rules
 **Files:** Create database/monolith-production-step-40-commercial-foundation.sql; tests/qa-commercial-foundation.sql.
 **Interfaces:** current-account state RPC and service-only commission preview as specified.
-- [ ] Write SQL behavior assertions for regional prices, equal core features, current-user isolation, Basic/Pro quota, managed student idempotency, subscription expiration, existing access, blocked client writes and commission arithmetic/overrides.
-- [ ] Run assertions before implementation; expect absent commercial API.
-- [ ] Implement catalog, access grants, state RPC, capacity trigger and commission preview.
-- [ ] Run the assertions with migration inside BEGIN/ROLLBACK; expect success and unchanged persistent counts.
-- [ ] Commit server rules and tests.
+- [x] Write SQL behavior assertions for regional prices, equal core features, current-user isolation, Basic/Pro quota, managed student idempotency, subscription expiration, existing access, blocked client writes and commission arithmetic/overrides.
+- [x] Run assertions before implementation; expect absent commercial API.
+- [x] Implement catalog, access grants, state RPC, capacity trigger and commission preview.
+- [x] Run the assertions with migration inside BEGIN/ROLLBACK; expect success and unchanged persistent counts.
+- [x] Commit server rules and tests.
 
 ### Task 2: Account and capacity display
 **Files:** Create assets/monolith-commercial.js; tests/qa-commercial-ui.cjs. Modify index.html; package.json.
 **Interfaces:** use the state RPC and render only verified current-user data.
-- [ ] Write UI behavior tests: correct regional currency, real quota/source, student included message, server error/loading state and disabled checkout.
-- [ ] Run tests before implementation; expect missing module/display behavior.
-- [ ] Implement rendering helper and current-account integration, resetting state on identity changes.
-- [ ] Run unit/browser tests and existing QA scripts; expect no regressions.
-- [ ] Commit UI and tests.
+- [x] Write UI behavior tests: correct regional currency, real quota/source, student included message, server error/loading state and disabled checkout.
+- [x] Run tests before implementation; expect missing module/display behavior.
+- [x] Implement rendering helper and current-account integration, resetting state on identity changes.
+- [x] Run unit/browser tests and existing QA scripts; expect no regressions.
+- [x] Commit UI and tests.
 
 ### Task 3: Review and release preparation
 **Files:** Update database/README.md; docs/commercial-foundation-handoff.md.
-- [ ] Document deployed-versus-pending state, required provider events and beta handling.
-- [ ] Run an independent whole-change review and fix material findings with regression coverage.
+- [x] Document deployed-versus-pending state, required provider events and beta handling.
+- [x] Run an independent whole-change review and fix material findings with regression coverage.
 - [ ] Deploy only reviewed, tested migration; verify catalog, effective current quotas and grants.
-- [ ] Prepare/push changes using existing GitHub authorization if available. Report exact checks and payment-provider blocker.
+- [x] Prepare/push changes using existing GitHub authorization if available. Report exact checks and payment-provider blocker.
 

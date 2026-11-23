@@ -23,4 +23,5 @@ Branch: codex/commercial-foundation
 - Ruling: stage schema and frontend in a draft PR until purchase or explicit beta onboarding exists; deploying now would block new trainers. Current production stays unchanged.
 - Ruling: retain explicit READ COMMITTED enforcement and defer the genuinely overlapping two-session test to an environment with independently controlled SQL sessions; release remains blocked until that check.
 - Final: minor (deferred): initial hidden capacity markup contains 0/15 before rendering; future policy-rate changes need dynamic localized affiliate copy. Current server/15% policy is correct.
+- Delivery: draft PR https://github.com/arthurtullercefet-ops/Monolith/pull/2, remote code commit 0628e811f916ef4e49e38b8059e07172a197e975. Remote tree exactly matches reviewed local code. No merge or production migration.
 
