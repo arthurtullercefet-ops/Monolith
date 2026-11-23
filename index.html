@@ -6543,8 +6543,8 @@ window.MONOLITH_VERSION_LABEL = "Monolith v109 · 13/09/2026";
 
           <div class="panel">
             <div class="section-title"><h3>Configurações da conta</h3><span>Assinatura</span></div>
-            <p>Gerencie assinatura, cobrança e ações sensíveis da conta. Pagamentos serão conectados ao provedor oficial antes do lançamento.</p>
-            <div class="settings-actions">
+            <div id="commercialAccountSettings" data-no-i18n="true" aria-live="polite"></div>
+            <div class="settings-actions" data-role-only="personal">
               <button class="ghost" type="button" id="manageSubscriptionButton" disabled>Gerenciar assinatura · Em breve</button>
               <button class="ghost danger" type="button" id="cancelSubscriptionButton" disabled>Cancelar assinatura · Em breve</button>
             </div>
@@ -7311,6 +7311,7 @@ window.MONOLITH_VERSION_LABEL = "Monolith v109 · 13/09/2026";
 
   <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
+  <script src="assets/monolith-commercial.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script>
     const MONOLITH_SUPABASE_URL = "https://jhxasnxuvmkhntbwepau.supabase.co";
@@ -7596,9 +7597,11 @@ if (location.hash.toLowerCase() === "#leads") history.replaceState(null, "", `${
       return role === "personal" ? "trainer_basic" : "student";
     }
 
+    const monolithCommercialStates = new Map();
+    const monolithCommercialRequests = new Map();
+
     function planFromDbRole(role) {
-      if (role === "trainer_plus") return "Personal Trainer Plus";
-      if (role === "trainer_basic") return "Personal Trainer Basic";
+      if (role?.startsWith("trainer")) return "Personal Trainer";
       if (role === "influencer") return "Influencer";
       return "Aluno";
     }
@@ -7990,8 +7993,11 @@ if (location.hash.toLowerCase() === "#leads") history.replaceState(null, "", `${
     function accountRolePlanLabel(account) {
       if (!account) return "--";
       if (account.role === "personal") {
-        const plan = hasSpaceEntitlement(account) ? "Plus Space" : (account.dbRole === "trainer_basic" || /basic/i.test(account.plan || "") ? "Basic" : "Plus");
-        return `${t("Personal Trainer")} · ${t(plan)}`;
+        const entry = monolithCommercialStates.get(account.id);
+        const verified = entry?.status === "loaded" ? entry.data : null;
+        const plan = verified?.plan_key === "trainer_pro" ? "Personal Pro"
+          : verified?.plan_key === "trainer_basic" ? "Personal Basic" : t("Personal Trainer");
+        return plan + (hasSpaceEntitlement(account) ? " · Space" : "");
       }
       const role = t(roleLabel(account.role));
       const plan = String(account.plan || "Supabase").trim();
@@ -8970,6 +8976,8 @@ if (location.hash.toLowerCase() === "#leads") history.replaceState(null, "", `${
             const checkinFailure = checkinResults.find(result => result.status === "rejected");
             if (checkinFailure) throw checkinFailure.reason;
             setRemoteDataState("students", user.id, remoteStudents.length ? "loaded" : "empty", { count: remoteStudents.length });
+            await loadMonolithCommercialState(user, { force: true });
+            if (requestId !== clientListRenderSequence) return;
             renderClientCards(remoteStudents);
             return;
           }
@@ -9662,6 +9670,71 @@ if (location.hash.toLowerCase() === "#leads") history.replaceState(null, "", `${
       }
     }
 
+    async function loadMonolithCommercialState(user = currentAccount(), { force = false } = {}) {
+      if (!user?.id) return null;
+      if (monolithCommercialRequests.has(user.id)) {
+        const pending = monolithCommercialRequests.get(user.id);
+        if (!force) return pending;
+        await pending;
+        if (currentAccount()?.id !== user.id) return null;
+        return loadMonolithCommercialState(user, { force: true });
+      }
+      const existing = monolithCommercialStates.get(user.id);
+      if (!force && existing) return existing.data || null;
+      const isTrainer = user.role === "personal";
+      if (!isRealSupabaseAccount(user)) {
+        const active = isTrainer ? studentsForPersonal(user.id).length : 0;
+        const data = { is_trainer: isTrainer, plan_key: null, source: "demo",
+          student_limit: isTrainer ? 15 : 0, active_students: active, can_add_student: isTrainer && active < 15,
+          over_limit: false, checkout_available: false, prices: [],
+          policy: { student_access_included: true, discovery_free: true, default_commission_bps: 1500 } };
+        monolithCommercialStates.set(user.id, { status: "demo", data });
+        return data;
+      }
+      monolithCommercialStates.set(user.id, { status: "loading", data: null });
+      renderCommercialSettings();
+      renderStudentPlanLimit();
+      const request = (async () => {
+        try {
+          if (!monolithSupabase) throw new Error("Commercial API unavailable");
+          const { data, error } = await monolithSupabase.rpc("get_monolith_commercial_state");
+          if (error || !data) throw error || new Error("Commercial state missing");
+          monolithCommercialStates.set(user.id, { status: "loaded", data });
+          return data;
+        } catch (error) {
+          monolithCommercialStates.set(user.id, { status: "error", data: null });
+          logAppError("commercial", "load", error);
+          return null;
+        } finally {
+          if (currentAccount()?.id === user.id) {
+            renderCommercialSettings();
+            renderStudentPlanLimit();
+            refreshAuthIdentityLabels();
+          }
+        }
+      })().finally(() => monolithCommercialRequests.delete(user.id));
+      monolithCommercialRequests.set(user.id, request);
+      return request;
+    }
+
+    function renderCommercialSettings() {
+      const user = currentAccount();
+      const target = document.getElementById("commercialAccountSettings");
+      if (!target || !window.MonolithCommercial) return;
+      if (!user) { target.innerHTML = ""; return; }
+      const planHeading = document.getElementById("profilePlan");
+      if (planHeading) planHeading.textContent = accountRolePlanLabel(user);
+      refreshAuthIdentityLabels();
+      let entry = monolithCommercialStates.get(user.id);
+      if (!entry) {
+        loadMonolithCommercialState(user);
+        entry = monolithCommercialStates.get(user.id);
+      }
+      target.innerHTML = window.MonolithCommercial.settingsHTML(entry?.data || null, {
+        status: entry?.status || "loading", language: localStorage.getItem("monolith.language") || "pt"
+      });
+    }
+
     function renderStudentPlanLimit(count = studentsForPersonal(currentAccount()?.id).length) {
       const user = currentAccount();
       const panel = document.getElementById("studentPlanLimitPanel");
@@ -9670,11 +9743,17 @@ if (location.hash.toLowerCase() === "#leads") history.replaceState(null, "", `${
       if (!panel || !badge || !text) return;
       panel.hidden = !user || user.role !== "personal";
       if (!user || user.role !== "personal") return;
-      badge.textContent = `${count}/15`;
-      const overLimit = count > 15;
-      text.textContent = overLimit
-        ? t("Você passou de 15 alunos. O Personal Pro será necessário para manter novos alunos ativos.")
-        : t("O plano atual acompanha até 15 alunos. Acima disso, o Personal Pro será necessário.");
+      let entry = monolithCommercialStates.get(user.id);
+      if (!entry) {
+        loadMonolithCommercialState(user);
+        entry = monolithCommercialStates.get(user.id);
+      }
+      if (entry?.status === "demo") entry.data.active_students = count;
+      const view = window.MonolithCommercial?.capacityView(entry?.data || null, entry?.status || "loading", localStorage.getItem("monolith.language") || "pt");
+      badge.textContent = view?.badge || "—";
+      text.textContent = view?.detail || "";
+      badge.setAttribute("data-no-i18n", "true");
+      text.setAttribute("data-no-i18n", "true");
     }
 
     const accountIdentityHydrationStates = new Map();
@@ -9699,7 +9778,7 @@ if (location.hash.toLowerCase() === "#leads") history.replaceState(null, "", `${
       accountIdentityHydrationStates.set(user.id, "loading");
       setIdentityHydrationVisible(true);
       const request = (async () => {
-        const tasks = [window.monolithLoadActiveSpace?.()];
+        const tasks = [window.monolithLoadActiveSpace?.(), loadMonolithCommercialState(user, { force: true })];
         if (user.role === "student") tasks.push(ensureStudentTrainerId(user));
         const results = await Promise.allSettled(tasks);
         if (currentAccount()?.id !== user.id) return results;
@@ -10229,6 +10308,7 @@ if (location.hash.toLowerCase() === "#leads") history.replaceState(null, "", `${
 
     function renderProfile() {
       const user = currentAccount();
+      renderCommercialSettings();
       const setText = (id, value) => {
         const element = document.getElementById(id);
         if (element) element.textContent = value || "--";
@@ -17989,6 +18069,8 @@ if (location.hash.toLowerCase() === "#leads") history.replaceState(null, "", `${
       });
       localStorage.setItem("monolith.language", language);
       document.documentElement.lang = ({ pt: "pt-BR", en: "en-US", es: "es" })[language] || "pt-BR";
+      renderCommercialSettings();
+      renderStudentPlanLimit();
       document.querySelectorAll(".language-button").forEach(button => {
         const active = button.dataset.lang === language;
         button.classList.toggle("active", active);
@@ -21400,6 +21482,8 @@ ${photoSections}
         if (currentAccount()?.id !== user.id) return;
         saveRemoteStudentsToCache(students, user.id);
         setRemoteDataState("students", user.id, students.length ? "loaded" : "empty", { count: students.length });
+        await loadMonolithCommercialState(user, { force: true });
+        if (currentAccount()?.id !== user.id) return;
         renderClientCards(students);
         form.reset();
         delete form.dataset.requestId;
@@ -21414,6 +21498,18 @@ ${photoSections}
         }
       } catch (error) {
         logAppError("managed-students", "save", error, { trainerId: user.id });
+        if (String(error?.message || "").includes("MONOLITH_SUBSCRIPTION_REQUIRED")) {
+          managedStudentSubmission = null;
+          if (!form.dataset.studentId) localStorage.removeItem(pendingManagedStudentKey(user));
+          form.querySelectorAll("input,textarea").forEach(control => control.readOnly = false);
+          await loadMonolithCommercialState(user, { force: true });
+          if (currentAccount()?.id === user.id) {
+            const entry = monolithCommercialStates.get(user.id);
+            notice.textContent = window.MonolithCommercial.capacityView(entry?.data, entry?.status,
+              localStorage.getItem("monolith.language") || "pt").detail;
+          }
+          return;
+        }
         notice.textContent = t(persisted ? "Cadastro salvo. Não foi possível atualizar a lista. Tente novamente para recarregar." : String(error?.message || "").includes("MONOLITH_STUDENT_LIMIT") ? "Limite de alunos ativos atingido." : "Não foi possível confirmar o cadastro. Tente novamente com os mesmos dados.");
         if (String(error?.message || "").includes("MONOLITH_STUDENT_LIMIT") || error?.code === "22023") {
           managedStudentSubmission = null;

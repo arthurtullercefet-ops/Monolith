@@ -37,6 +37,10 @@ async function main() {
   }
   // Fixture accounts exist ONLY in this ephemeral database.
   for(let n=1;n<=4;n++) await db.query(`insert into auth.users(id,email,raw_user_meta_data) values($1,$2,$3)`, [uuid(n),`fixture${n}@example.test`,JSON.stringify({role:n<4?'trainer_basic':'student',full_name:'Fixture'})]);
+  // New trainers need an explicit server grant after the commercial foundation.
+  await db.exec(`insert into trainer_access_grants(trainer_id,grant_kind,student_limit,plan_key)
+    select id,'beta',15,'trainer_basic' from profiles where role in ('trainer_basic','trainer_plus')
+    on conflict(trainer_id) do nothing;`);
   await db.exec(`grant select,insert,update,delete on all tables in schema public to authenticated; grant select on all tables in schema public to anon;`);
   const as = async (n,fn,role='authenticated') => {
     await db.exec(`set role ${role};`);
