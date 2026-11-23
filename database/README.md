@@ -230,6 +230,15 @@ Before public launch:
 
 ## Release verification
 
+### Security baseline and authenticated RPCs (2026-11-23)
+
+- For a new backend, after steps 01-36 run `monolith-production-step-37-production-security-baseline.sql`. It records signup, immutable account role, and invite-only relationship protections already verified in production. Do not replay old bootstrap files onto a running backend.
+- Run `monolith-production-step-38-authenticated-rpc-access.sql` to restrict the 18 listed business RPCs to signed-in callers. Production received this ACL-only change on 2026-11-23; no user data, function bodies, helper permissions, triggers, or RLS policies were changed by that deployment.
+- Run `../tests/qa-security-hardening.sql` in SQL Editor to verify anonymous denial and retained authenticated/service-role access. It raises an error on a regression and never modifies user records.
+- Run `monolith-production-step-39-helper-trigger-security.sql` after Step 38. It restricts five remaining privileged helpers to signed-in callers, removes client execution of privileged trigger functions, and fixes 17 unset search paths. This was applied in production on 2026-11-23 after approval. PostgreSQL still invokes triggers normally; no trigger bodies, user records or RLS policies are changed by Step 39.
+- Run `../tests/qa-security-followup.sql` to verify the Step 39 ACLs and validator behavior.
+- Supabase leaked-password protection requires Pro or above. The current Free plan cannot enable it; no plan upgrade was performed.
+
 After steps 13 through 34 are installed, test with fictitious accounts:
 
 - A student cannot read another student's workouts, diet, measures, photos, anamnesis, feedback or timeline.
