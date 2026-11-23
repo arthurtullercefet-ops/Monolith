@@ -263,3 +263,13 @@ After steps 13 through 34 are installed, test with fictitious accounts:
 - Reactivating a trainer-student relationship updates `trainer_students.active_since`; future cycles use the new link date without changing historical charges.
 - Repeating charge generation for the same trainer, student and cycle does not create duplicates.
 - Demo and QA records remain intact and suspicious legacy values remain flagged rather than deleted.
+
+## Step 40: trainer commercial foundation
+
+- Apply `monolith-production-step-40-commercial-foundation.sql` before publishing the new commercial UI.
+- Basic: 15 active students; Pro: 50. Regional monthly prices are USD 34.99/49.99 and BRL 29.90/39.90. Managed students count as seats.
+- Existing access is preserved using server-owned legacy grants; roles and Space access are unchanged. New beta accounts require an explicit authorized grant until checkout exists.
+- `get_monolith_commercial_state()` reads only the caller's effective capacity and catalog. Clients cannot write subscriptions, grants, prices or commission terms.
+- `preview_monolith_referral_commission(...)` is service-role only, uses minor units and preserves explicit negotiated rate overrides. It does not record earnings or pay commissions.
+- `../tests/qa-commercial-foundation.sql` is an assertion fragment for an explicit BEGIN/ROLLBACK harness. It creates temporary managed fixtures using existing trainer identities; never commit its fixture data or run it as a deployment migration.
+- Payment-provider and native-store integration remain pending. See `../docs/commercial-foundation-handoff.md`.
